@@ -179,6 +179,3 @@ CLAUDE.md                    产品研究框架与工作原则
 ## 工作台按身份动态组合（2026-09-14）
 
 `DASHBOARD_LAYOUTS` / `WIDGET_ACCESS`（`dictionaries.py`）定每个身份的默认小组件；`GET /api/dashboard/role` 一次返回该身份能看的专属块（待我确认的门、我的待办、采购异常、施工现场、水电瓦斯与保险、permit 与检查、设计交付、卖出文件、老板总览），没权限的块不返回。`/summary` 与 `/widgets` 对看不到钱的身份给无钱版。前端 `Dashboard.tsx` 按 `meta.dashboard_layouts[actor]` 生成默认布局，存储键按身份分开；`MyTodoTable` 同时给待办页和小组件用。
-
-## KAN-15
-测试 Git 提交与推送流程。
