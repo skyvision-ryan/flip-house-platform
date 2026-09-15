@@ -9,13 +9,15 @@ allowed-tools: Bash, Read, Glob, Grep
 ## 1. 取单
 顺序**不是**纯 backlog rank。按下面的优先级判断（依据 @docs/Jira执行清单_2026-09-15.md）：
 
-1. 只取 **Subtask**，不取父票（KAN-17/18/19 是交付目标，整体验收，不直接开发）
+1. 只取**执行单**（issuetype 为 故事 或 任务，且挂在 Epic 之下），不取 Epic（KAN-35/36/37 是交付目标，整体验收，不直接开发；KAN-10 是历史归档 Epic）
 2. 跳过被阻塞的票（`is blocked by` 里还有未完成的）、已在 In Review 的票、别人经办的进行中票
 3. 在可执行的票里，按执行清单给出的交付顺序与目标日期取最靠前的一张（当前安排：KAN-20 → KAN-21 → KAN-27 → 28 → 29/30/31 → 32/33 → 34）
 4. 执行清单与 Jira 实际状态不一致时，**以 Jira 实际状态为准**，并在回复里指出不一致
 
 查询用 atlassian MCP（工具名以 `/mcp` 实际列出的为准）；MCP 不可用时 `python3 scripts/jira.py search "<JQL>"`。
-参考 JQL：`project = KAN AND issuetype = Subtask AND statusCategory != Done ORDER BY key ASC`
+参考 JQL：`project = KAN AND issuetype in (故事, 任务) AND parent in (KAN-35, KAN-36, KAN-37) AND statusCategory != Done ORDER BY key ASC`
+
+阻塞关系已经是 Jira 原生 `is blocked by` 链接，直接查 `issuelinks`，不要再去读文档里的前置表。
 
 ## 2. 检查 Definition of Ready
 对照 @.claude/templates/ticket-story.md，确认这张单有：背景 / 范围 / 明确不做 / 可验证的验收标准 / 影响文件 / 依赖 / 风险。
