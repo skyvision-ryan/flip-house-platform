@@ -1,6 +1,7 @@
 export type Option = { value: string; label: string };
 
 export interface Meta {
+  demo_mode: boolean;
   strategies: Option[];
   stages: Option[];
   substages: Record<string, Option[]>;
@@ -34,6 +35,7 @@ export interface StepItem {
 }
 export interface StageProgress {
   key: string; label: string; short: string; done: number; total: number; gate_title: string | null; gate_done: boolean; gate_confirmed: string[]; gate_at: string | null;
+  gates?: { key: string; title: string; done: boolean; confirmed: string[]; at: string | null }[];
 }
 export interface Steps {
   stages: { key: string; label: string; short: string; desc?: string | null; items: StepItem[]; done_count: number; total: number; gate_title: string | null; gate_done: boolean; gate_confirmed: string[]; gate_at: string | null }[];
@@ -160,12 +162,20 @@ export interface DashboardRole {
   boss?: { active: number; leads: number; portfolio: number; total_invested: number; expected_profit: number; realized_profit: number; over_budget_count: number } | null;
 }
 
+export interface Me { id: number; username: string; display_name: string; role_code: string; role_label: string; tier: string; tier_label: string; is_admin: boolean; active: boolean; created_at: string; last_login_at: string | null; demo_mode: boolean }
+export type UserRow = Omit<Me, 'demo_mode'>;
+
+/** 演示模式下顶栏“我是”选的身份；登录后只有管理员的选择才会被后端采纳。 */
 function actorHeader(): Record<string, string> {
-  try { return { 'X-Actor': encodeURIComponent(localStorage.getItem('actor') || '负责人') }; } catch { return {}; }
+  try { const a = localStorage.getItem('actor'); return a ? { 'X-Actor': encodeURIComponent(a) } : {}; } catch { return {}; }
 }
 
+/** 会话过期或未登录时通知 App（App 决定跳登录页还是留在演示模式）。 */
+export const AUTH_EVENT = 'auth:401';
+
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(path, { headers: { ...(init?.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }), ...actorHeader() }, ...init });
+  const res = await fetch(path, { credentials: 'same-origin', headers: { ...(init?.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }), ...actorHeader() }, ...init });
+  if (res.status === 401 && !path.startsWith('/api/auth/')) window.dispatchEvent(new Event(AUTH_EVENT));
   if (!res.ok) {
     let msg = `${res.status} ${res.statusText}`;
     try { const j = await res.json(); if (j.detail) msg = typeof j.detail === 'string' ? j.detail : JSON.stringify(j.detail); } catch { /* ignore */ }
@@ -177,6 +187,13 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   meta: () => req<Meta>('/api/meta'),
+  me: () => req<Me>('/api/auth/me'),
+  authMode: () => req<{ demo_mode: boolean; has_users: boolean }>('/api/auth/mode'),
+  login: (username: string, password: string) => req<Me>('/api/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) }),
+  logout: () => req<{ ok: boolean }>('/api/auth/logout', { method: 'POST' }),
+  users: () => req<UserRow[]>('/api/users'),
+  createUser: (body: { username: string; display_name: string; role_code: string; password: string; is_admin: boolean }) => req<UserRow>('/api/users', { method: 'POST', body: JSON.stringify(body) }),
+  patchUser: (id: number, body: Partial<{ display_name: string; role_code: string; is_admin: boolean; active: boolean; password: string }>) => req<UserRow>(`/api/users/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
   dashboard: () => req<DashboardSummary>('/api/dashboard/summary'),
   widgets: () => req<DashboardWidgets>('/api/dashboard/widgets'),
   dashboardRole: () => req<DashboardRole>('/api/dashboard/role'),

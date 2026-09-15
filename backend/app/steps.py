@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from . import models
-from .dictionaries import FILE_TYPES, MONEY_FIELDS, STAGE_CHECKLIST, UTILITY_KINDS
+from .dictionaries import FILE_TYPES, MONEY_FIELDS, STAGE_CHECKLIST, STAGE_TO_LEGACY, UTILITY_KINDS
 
 UTILITY_LABEL = {u["value"]: u["label"] for u in UTILITY_KINDS}
 
@@ -61,6 +61,9 @@ def _evidence(rule: str, p: models.Project, hide_money: bool = False) -> tuple[b
                 return True, f"已传 {len(hit)} 张照片" + (f"（{f.uploaded_by} 传的）" if f.uploaded_by else "")
         elif kind == "confirm":
             return False, None
+        elif kind == "analysis":
+            if p.analyses:
+                return True, f"已做 {len(p.analyses)} 版交易分析"
         elif kind == "expense":
             # 保留解析能力，但清单不再用 expense:any 冒充采购完成
             if p.expenses:
@@ -163,12 +166,16 @@ def compute_steps(db: Session, p: models.Project, hide_money: bool = False) -> d
                 "done_by": (m.done_by if m else None), "done_at": (m.done_at if m else None), "note": (m.note if m else None),
             })
         undone = [i for i in items if not i["done"]]
-        gate = next((i for i in items if i["gate"]), None)
+        gates = [i for i in items if i["gate"]]
+        all_gates_done = all(g["done"] for g in gates) if gates else (not undone)
+        # 步卡上显示的门：第一道没过的；都过了就是最后一道
+        shown = next((g for g in gates if not g["done"]), gates[-1] if gates else None)
         stages.append({"key": st["key"], "label": st["label"], "short": st.get("short", st["label"]), "desc": st.get("desc"), "items": items,
                        "done_count": len(items) - len(undone), "total": len(items),
-                       "gate_title": gate["title"] if gate else None, "gate_done": bool(gate and gate["done"]),
-                       "gate_confirmed": (gate["confirmed"] if gate else []),
-                       "gate_at": (gate["done_at"] if gate and gate["done"] else None)})
+                       "gates": [{"key": g["key"], "title": g["title"], "done": g["done"], "confirmed": g["confirmed"], "at": g["done_at"] if g["done"] else None} for g in gates],
+                       "gate_title": shown["title"] if shown else None, "gate_done": all_gates_done,
+                       "gate_confirmed": (shown["confirmed"] if shown else []),
+                       "gate_at": (shown["done_at"] if shown and shown["done"] else None)})
 
     idx = next((i for i, s in enumerate(stages) if not s["gate_done"]), len(stages) - 1)
     cur = stages[idx]
@@ -182,5 +189,23 @@ def compute_steps(db: Session, p: models.Project, hide_money: bool = False) -> d
         current = {"key": cur["key"], "label": cur["label"], "index": idx + 1}
         next_up = [{"key": i["key"], "title": i["title"], "owners": i["owners"], "gate": i["gate"]} for i in undone_here[:3]]
     progress = [{"key": s["key"], "label": s["label"], "short": s["short"], "done": s["done_count"], "total": s["total"],
-                 "gate_title": s["gate_title"], "gate_done": s["gate_done"], "gate_confirmed": s["gate_confirmed"], "gate_at": s["gate_at"]} for s in stages]
+                 "gate_title": s["gate_title"], "gate_done": s["gate_done"], "gate_confirmed": s["gate_confirmed"], "gate_at": s["gate_at"], "gates": s["gates"]} for s in stages]
     return {"stages": stages, "current_stage": current, "next_up": next_up, "earlier_undone": earlier, "stage_progress": progress}
+
+
+def derive_legacy_stage(steps: dict, p: models.Project) -> tuple[str, str | None]:
+    """清单当前段 → 旧的 stage / substage。线索段保留人工填的子阶段（联系卖家 / 约看 / 已出价…）。"""
+    key = steps["current_stage"]["key"]
+    stage, sub = STAGE_TO_LEGACY.get(key, ("lead", None))
+    if stage == "lead":
+        sub = p.substage if p.stage == "lead" and p.substage else "new_lead"
+    return stage, sub
+
+
+def sync_legacy_stage(db: Session, p: models.Project, steps: dict) -> bool:
+    """把派生的 stage / substage 写回 projects（只为旧筛选与状态规则）。有变化返回 True，调用方决定是否 commit。"""
+    stage, sub = derive_legacy_stage(steps, p)
+    if p.stage != stage or p.substage != sub:
+        p.stage, p.substage = stage, sub
+        return True
+    return False

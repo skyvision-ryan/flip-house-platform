@@ -91,11 +91,11 @@ export default function EditProjectModal({ visible, project, onDismiss, onSaved 
           <FormField label="投资策略">
             <Select selectedOption={meta?.strategies.find((s) => s.value === f.strategy) ?? null} options={meta?.strategies ?? []} onChange={({ detail }) => set('strategy', detail.selectedOption.value)} />
           </FormField>
-          <FormField label="阶段">
-            <Select selectedOption={meta?.stages.find((s) => s.value === f.stage) ?? null} options={meta?.stages ?? []} onChange={({ detail }) => { set('stage', detail.selectedOption.value); set('substage', meta?.substages[detail.selectedOption.value!]?.[0]?.value ?? ''); }} />
+          <FormField label="阶段" description="由清单的大节点推进，不能手改">
+            <Select disabled selectedOption={meta?.stages.find((s) => s.value === f.stage) ?? null} options={meta?.stages ?? []} onChange={() => undefined} />
           </FormField>
-          <FormField label="子阶段">
-            <Select selectedOption={substages.find((s) => s.value === f.substage) ?? null} options={substages} onChange={({ detail }) => set('substage', detail.selectedOption.value)} />
+          <FormField label="子阶段" description="只有线索阶段可以手改热度与进展">
+            <Select disabled={f.stage !== 'lead'} selectedOption={substages.find((s) => s.value === f.substage) ?? null} options={substages} onChange={({ detail }) => set('substage', detail.selectedOption.value)} />
           </FormField>
           {f.stage === 'lead' && (
             <FormField label="线索热度">

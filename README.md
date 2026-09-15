@@ -1,3 +1,5 @@
+> 新来的（人或 agent）先读根目录 `ROADMAP.md`：现状、时间线、路线图、AWS 落地、约束、上手。
+
 # 翻新项目平台（Flip House Platform）· MVP 0
 
 给房屋翻新转卖（house flipping）公司用的内部平台。以“项目”为中心，把一套房子从线索、买入、施工到卖出的数据放在一处，每个数字带来源，买前算账和买后记账连成一条线。
@@ -70,7 +72,31 @@ npm run dev
 
 免费版说明：15 分钟无访问会休眠，再打开约 30 秒；磁盘是临时的，每次部署示例数据自动重建，上传的文件不保留。换到 AWS App Runner、Railway 等平台时同一个 Dockerfile 可直接用。
 
-生产环境变量：`PORT`（平台注入）、`DATA_DIR`（数据库与上传目录）、`PROVIDER`（数据源，目前只有 `mock`）。
+### 环境变量（全部可不设，本地开发零配置）
+
+| 变量 | 默认 | 说明 |
+|---|---|---|
+| `DEMO_MODE` | `1` | `1`：没登录也能用顶栏"我是"自报身份（本地、Render 演示）。`0`：必须登录，`X-Actor` 头一律不认（公司内部上线用这个） |
+| `SEED_DEMO` | 跟随 `DEMO_MODE` | `1` 首次启动灌十套示例房；`0` 空库 |
+| `ADMIN_USER` / `ADMIN_PASSWORD` | 空 | `users` 表为空时自动建这个管理员（角色负责人）。上线第一次启动必设，之后可删 |
+| `SECRET_KEY` | 随机 | 登录 cookie 的签名密钥。生产必设，否则每次重启所有人要重新登录 |
+| `SESSION_DAYS` | `14` | 登录保持天数 |
+| `COOKIE_SECURE` | `DEMO_MODE=0` 时为 1 | cookie 只走 HTTPS。本地用 `DEMO_MODE=0` 测试时设 `0` |
+| `DB_URL` | 本地 SQLite | 上云填 `postgresql+psycopg://user:pw@host/db`（D2） |
+| `STORAGE` / `S3_BUCKET` | `local` | 文件存本地目录还是 S3（D2 接） |
+| `CORS_ORIGINS` | 本地 5180 / 5173 | 逗号分隔。同一容器提供前端时不需要 |
+| `DATA_DIR` | `backend/data` | SQLite 与上传目录 |
+| `PROVIDER` | `mock` | 房产数据源 |
+| `PORT` | 平台注入 | |
+
+**登录与账号（2026-09-14 晚加）**：`users` 表一个人一条，账号绑一个角色代号（代号决定权限，见"角色、权限与交付物"）。登录是账号密码，密码 pbkdf2 加盐存，会话是 HttpOnly cookie 里的签名 token，不加第三方依赖。管理员在侧栏"用户"页建账号、改角色、重置密码、停用；`DEMO_MODE=1` 下管理员还能用顶栏临时切身份看别人看到的。水电瓦斯账户密码只回给紫、蓝和 K，其他人拿到的是空。
+
+本地按正式模式跑一遍：
+
+```bash
+cd backend
+DEMO_MODE=0 COOKIE_SECURE=0 ADMIN_USER=admin ADMIN_PASSWORD=改我 ./.venv/bin/uvicorn app.main:app --port 8000
+```
 
 ---
 
@@ -185,5 +211,6 @@ CLAUDE.md                    产品研究框架与工作原则
 
 `DASHBOARD_LAYOUTS` / `WIDGET_ACCESS`（`dictionaries.py`）定每个身份的默认小组件；`GET /api/dashboard/role` 一次返回该身份能看的专属块（待我确认的门、我的待办、采购异常、施工现场、水电瓦斯与保险、permit 与检查、设计交付、卖出文件、老板总览），没权限的块不返回。`/summary` 与 `/widgets` 对看不到钱的身份给无钱版。前端 `Dashboard.tsx` 按 `meta.dashboard_layouts[actor]` 生成默认布局，存储键按身份分开；`MyTodoTable` 同时给待办页和小组件用。
 
-## KAN-15
-测试 Git 提交与推送流程。
+## 工作流集成 P1：归一（2026-09-14 晚）
+
+差距分析见 `docs/工作流集成_差距分析.md`。P1 只改配置与派生逻辑：`STAGE_CHECKLIST` 改为六段（预买房 / 买房与过户 / 装修 / 预上市 / 卖房上市 / 售出收尾），每项加 `ws` workstream 标签，项 key 全部沿用；一段可多门（`stage_progress[].gates`，段推进要求所有门过）；门可以是证据门（`listing`，confirm 为空）；新增 `analysis:any` 证据与 `home_inspection`、`analysis` 两项；`projects.stage/substage` 由清单派生（`steps.sync_legacy_stage`，`project_out` 时写回），PATCH 忽略手改，编辑弹窗里只读，线索子阶段仍可手改。

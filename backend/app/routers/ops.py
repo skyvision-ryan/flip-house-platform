@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from .. import models, schemas
 from ..db import get_db
 from ..dictionaries import INSPECTION_RESULTS, UTILITY_KINDS, UTILITY_STATUSES
-from .common import get_actor, log_update, require
+from .common import allowed, get_actor, log_update, require
 
 router = APIRouter(prefix="/api", tags=["ops"])
 
@@ -25,8 +25,8 @@ def _project(db: Session, project_id: int) -> models.Project:
 
 # ---------- 水电瓦斯 ----------
 @router.get("/projects/{project_id}/utilities", response_model=list[schemas.UtilityOut])
-def list_utilities(project_id: int, db: Session = Depends(get_db)):
-    """总是返回三行（水 / 电 / 瓦斯），没填过的给空行，前端直接编辑。"""
+def list_utilities(project_id: int, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
+    """总是返回三行（水 / 电 / 瓦斯），没填过的给空行，前端直接编辑。账户密码只给紫、蓝和 K。"""
     p = _project(db, project_id)
     by = {u.kind: u for u in p.utilities}
     out = []
@@ -39,7 +39,9 @@ def list_utilities(project_id: int, db: Session = Depends(get_db)):
     db.commit()
     for u in out:
         db.refresh(u)
-    return out
+    if allowed(actor, "utility_secret"):
+        return out
+    return [schemas.UtilityOut.model_validate(u).model_copy(update={"password": None}) for u in out]
 
 
 @router.put("/projects/{project_id}/utilities/{kind}", response_model=list[schemas.UtilityOut])
@@ -66,7 +68,7 @@ def save_utility(project_id: int, kind: str, body: schemas.UtilityIn, db: Sessio
         text += f"，卡在：{body.blocker}"
     log_update(db, project_id, actor, "utility", text)
     db.commit()
-    return list_utilities(project_id, db)
+    return list_utilities(project_id, db, actor)
 
 
 # ---------- 检查记录 ----------

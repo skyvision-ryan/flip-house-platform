@@ -9,29 +9,34 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import select
 
 from . import models
+from .auth import ensure_admin
 from .db import SessionLocal, init_db
-from .routers import analyses, budget, dashboard, files, lookup, meta, ops, procurement, projects, property_data, steps
+from .routers import analyses, auth, budget, dashboard, files, lookup, meta, ops, procurement, projects, property_data, steps
+from .settings import ADMIN_PASSWORD, ADMIN_USER, CORS_ORIGINS, SEED_DEMO
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
     with SessionLocal() as db:
-        if db.scalar(select(models.Project).limit(1)) is None:
+        if SEED_DEMO and db.scalar(select(models.Project).limit(1)) is None:
             from .seed import seed
             seed(db)
+        if ensure_admin(db, ADMIN_USER, ADMIN_PASSWORD):
+            print(f"已创建管理员账号：{ADMIN_USER}")
     yield
 
 
 app = FastAPI(title="翻新项目平台 API", version="0.1.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5180", "http://127.0.0.1:5180", "http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=CORS_ORIGINS,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-for r in (meta, dashboard, lookup, projects, property_data, files, budget, analyses, steps, ops, procurement):
+for r in (auth, meta, dashboard, lookup, projects, property_data, files, budget, analyses, steps, ops, procurement):
     app.include_router(r.router)
 
 

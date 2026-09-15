@@ -163,6 +163,8 @@ PERMISSIONS = {
     "procurement":       ["purple", "blue", "J"],  # 材料清单：J 主责
     "analysis":          ["purple", "blue"],
     "utilities":         ["purple", "blue", "K"],
+    "utility_secret":    ["purple", "blue", "K"],   # 看水电瓦斯账户密码
+    "manage_users":      ["purple", "blue"],        # 侧栏“用户”入口；真正校验看 is_admin
     "inspections":       ["purple", "blue", "Z"],
     "upload_any":        ["purple", "blue"],          # 传任何类型的文件
     "tick_any":          ["purple", "blue"],          # 代任何人打勾
@@ -226,47 +228,59 @@ def _r(label, record): return {"kind": "record", "label": label, "record": recor
 def _c(label, field=None, doc_type=None): return {"kind": "confirm", "label": label, "field": field, "doc_type": doc_type}
 def _t(label="做完打勾"): return {"kind": "tick", "label": label}
 
+# 六段模板（对齐团队定稿 + FLIP_WORKFLOW_FOR_CLAUDE.md）。项 key 全部沿用旧 key，project_steps 里的勾不用迁移。
+# workstream：同一段里并行的线，P2 起按它分组展示；gate 可以是 confirm（D+J 双勾）或证据门（confirm 为空，靠证据过）。
 STAGE_CHECKLIST = [
-    {"key": "s1", "label": "① 买", "short": "买", "items": [
-        {"key": "screen", "title": "筛选房源", "owners": ["J"], "evidence": "field:risks", "deliverable": _d("建项目、写风险", "risks")},
-        {"key": "view", "title": "看房", "owners": ["L"], "evidence": "photo:view", "deliverable": _p("看房照片")},
-        {"key": "price", "title": "董事会定价、谈价", "owners": ["D", "L"], "evidence": "field:purchase_price", "deliverable": _d("买入价", "purchase_price")},
-        {"key": "open_escrow", "title": "Open escrow", "owners": GATE_CONFIRM, "evidence": "confirm", "gate": True, "confirm": GATE_CONFIRM, "deliverable": _c("购房合同", doc_type="purchase_contract")},
+    {"key": "s1", "label": "① 预买房", "short": "预买房", "items": [
+        {"key": "screen", "title": "筛选房源", "ws": "尽调", "owners": ["J"], "evidence": "field:risks", "deliverable": _d("写风险：死亡记录 / 无证改建 / 违规记录", "risks")},
+        {"key": "view", "title": "看房", "ws": "看房", "owners": ["L"], "evidence": "photo:view", "deliverable": _p("看房照片")},
+        {"key": "analysis", "title": "算账：估价与装修费", "ws": "财务", "owners": ["D", "L"], "evidence": "analysis:any", "deliverable": _r("交易分析", "analyses")},
+        {"key": "price", "title": "董事会定价、谈价", "ws": "财务", "owners": ["D", "L"], "evidence": "field:purchase_price", "deliverable": _d("买入价", "purchase_price")},
+        {"key": "open_escrow", "title": "Open escrow（决定买）", "ws": "决定", "owners": GATE_CONFIRM, "evidence": "confirm", "gate": True, "confirm": GATE_CONFIRM, "deliverable": _c("购房合同", doc_type="purchase_contract")},
     ]},
-    {"key": "s2", "label": "② 贷", "short": "贷", "items": [
-        {"key": "loan_insurance", "title": "开始贷款、买保险", "owners": ["J", "K"], "evidence": "file:insurance", "deliverable": _f("保险单（填到期日）", "insurance")},
-        {"key": "loan_doc", "title": "签 loan doc", "owners": ["D", "L"], "evidence": "file:loan_doc", "deliverable": _f("签署的贷款文件", "loan_doc")},
-        {"key": "measure", "title": "量尺、估价", "owners": ["L"], "evidence": "file:measure_note", "deliverable": _f("量尺记录", "measure_note")},
-        {"key": "design", "title": "设计方案", "owners": ["设计师"], "evidence": "file:drawing", "deliverable": _f("方案图纸", "drawing")},
-        {"key": "close_escrow", "title": "Close escrow", "owners": GATE_CONFIRM, "evidence": "confirm", "gate": True, "confirm": GATE_CONFIRM, "deliverable": _c("买入日期", field="purchase_date", doc_type="closing_statement")},
-        {"key": "utilities_on", "title": "开水电瓦斯", "owners": ["K"], "evidence": "utilities:on", "deliverable": _r("三家账户都开通", "utilities")},
+    {"key": "s2", "label": "② 买房与过户", "short": "买房过户", "items": [
+        {"key": "loan_insurance", "title": "开始贷款、买保险", "ws": "融资", "owners": ["J", "K"], "evidence": "file:insurance", "deliverable": _f("保险单（填到期日）", "insurance")},
+        {"key": "loan_doc", "title": "签 loan doc", "ws": "融资", "owners": ["D", "L"], "evidence": "file:loan_doc", "deliverable": _f("签署的贷款文件", "loan_doc")},
+        {"key": "home_inspection", "title": "房屋检查", "ws": "检查", "owners": ["J"], "evidence": "file:inspection", "deliverable": _f("检验报告", "inspection")},
+        {"key": "measure", "title": "量尺、估价", "ws": "测量设计", "owners": ["L"], "evidence": "file:measure_note", "deliverable": _f("量尺记录", "measure_note")},
+        {"key": "design", "title": "设计方案", "ws": "测量设计", "owners": ["设计师"], "evidence": "file:drawing", "deliverable": _f("方案图纸", "drawing")},
+        {"key": "close_escrow", "title": "Close escrow（过户）", "ws": "过户", "owners": GATE_CONFIRM, "evidence": "confirm", "gate": True, "confirm": GATE_CONFIRM, "deliverable": _c("买入日期", field="purchase_date", doc_type="closing_statement")},
+        {"key": "utilities_on", "title": "开水电瓦斯", "ws": "水电", "owners": ["K"], "evidence": "utilities:on", "deliverable": _r("三家账户都开通", "utilities")},
     ]},
-    {"key": "s3", "label": "③ 设计定稿 + permit", "short": "设计+permit", "items": [
-        {"key": "design_final", "title": "设计定稿", "owners": ["设计师"], "evidence": "file:drawing_final", "deliverable": _f("定稿图纸", "drawing_final")},
-        {"key": "permit_apply", "title": "申请 permit", "owners": ["Z"], "evidence": "file:permit_application", "deliverable": _f("申请回执", "permit_application")},
-        {"key": "prep_work", "title": "先干不用 permit 的活", "owners": ["PM"], "evidence": "photo:prep_work", "deliverable": _p("现场照片")},
-        {"key": "permit_issued", "title": "拿到 permit 文件", "owners": ["Z"], "evidence": "file:permit", "deliverable": _f("permit 文件", "permit")},
-        {"key": "start", "title": "可以开工", "owners": GATE_CONFIRM, "evidence": "confirm", "gate": True, "confirm": GATE_CONFIRM, "deliverable": _c("开工日期", field="construction_start")},
+    {"key": "s3", "label": "③ 装修", "short": "装修", "items": [
+        {"key": "design_final", "title": "设计定稿", "ws": "设计", "owners": ["设计师"], "evidence": "file:drawing_final", "deliverable": _f("定稿图纸", "drawing_final")},
+        {"key": "permit_apply", "title": "申请 permit", "ws": "permit", "owners": ["Z"], "evidence": "file:permit_application", "deliverable": _f("申请回执", "permit_application")},
+        {"key": "prep_work", "title": "先干不用 permit 的活", "ws": "施工", "owners": ["PM"], "evidence": "photo:prep_work", "deliverable": _p("现场照片")},
+        {"key": "permit_issued", "title": "拿到 permit 文件", "ws": "permit", "owners": ["Z"], "evidence": "file:permit", "deliverable": _f("permit 文件", "permit")},
+        {"key": "start", "title": "可以开工", "ws": "施工", "owners": GATE_CONFIRM, "evidence": "confirm", "gate": True, "confirm": GATE_CONFIRM, "deliverable": _c("开工日期", field="construction_start")},
+        {"key": "purchase", "title": "分阶段采购", "ws": "采购", "owners": ["J"], "evidence": "procurement:critical", "deliverable": _r("采购清单", "procurement")},
+        {"key": "progress", "title": "施工进度", "ws": "施工", "owners": ["PM"], "evidence": "photo:progress", "deliverable": _p("进度照片")},
+        {"key": "inspections", "title": "阶段性检查", "ws": "检查", "owners": ["Z"], "evidence": "inspections:any", "deliverable": _r("检查记录", "inspections")},
+        {"key": "final", "title": "final（City 验收通过）", "ws": "City Final", "owners": GATE_CONFIRM, "evidence": "confirm", "gate": True, "confirm": GATE_CONFIRM, "deliverable": _c("final 检查通过", field=None)},
     ]},
-    {"key": "s4", "label": "④ 施工 + 采购", "short": "施工+采购", "items": [
-        {"key": "purchase", "title": "分阶段采购", "owners": ["J"], "evidence": "procurement:critical", "deliverable": _r("采购清单", "procurement")},
-        {"key": "progress", "title": "施工进度", "owners": ["PM"], "evidence": "photo:progress", "deliverable": _p("进度照片")},
-        {"key": "inspections", "title": "阶段性检查", "owners": ["Z"], "evidence": "inspections:any", "deliverable": _r("检查记录", "inspections")},
-        {"key": "agent", "title": "agent 介入", "owners": ["J"], "evidence": "manual", "deliverable": _t()},
-        {"key": "final", "title": "final", "owners": GATE_CONFIRM, "evidence": "confirm", "gate": True, "confirm": GATE_CONFIRM, "deliverable": _c("final 检查通过", field=None)},
+    {"key": "s4", "label": "④ 预上市", "short": "预上市", "items": [
+        {"key": "staging", "title": "staging", "ws": "staging", "owners": ["J"], "evidence": "photo:staging", "deliverable": _p("staging 照片")},
+        {"key": "agent", "title": "选 listing agent", "ws": "agent", "owners": ["J"], "evidence": "manual", "deliverable": _t()},
+        {"key": "listing", "title": "上市", "ws": "上市", "owners": ["J"], "evidence": "field:list_date|file:listing_agreement", "gate": True, "deliverable": _d("挂牌日期", "list_date")},
     ]},
-    {"key": "s5", "label": "⑤ 卖", "short": "卖", "items": [
-        {"key": "staging", "title": "staging", "owners": ["J"], "evidence": "photo:staging", "deliverable": _p("staging 照片")},
-        {"key": "listing", "title": "上市", "owners": ["J"], "evidence": "field:list_date|file:listing_agreement", "deliverable": _d("挂牌日期", "list_date")},
-        {"key": "mow", "title": "园丁剪草", "owners": ["A", "园丁"], "evidence": "photo:mow", "deliverable": _p("剪草后照片")},
-        {"key": "offer", "title": "收到 offer", "owners": GATE_CONFIRM, "evidence": "confirm", "gate": True, "confirm": GATE_CONFIRM, "deliverable": _c("offer 文件", doc_type="offer")},
-        {"key": "sale_docs", "title": "卖房文件", "owners": ["S", "W"], "evidence": "file:sale_docs", "deliverable": _f("卖房文件包", "sale_docs")},
-        {"key": "disclosure", "title": "seller disclosure", "owners": ["K"], "evidence": "file:seller_disclosure", "deliverable": _f("披露文件", "seller_disclosure")},
-        {"key": "sign", "title": "签卖房文件", "owners": ["D"], "evidence": "file:sale_signed", "deliverable": _f("签署版", "sale_signed")},
-        {"key": "closed", "title": "交割完成", "owners": GATE_CONFIRM, "evidence": "confirm", "gate": True, "confirm": GATE_CONFIRM, "deliverable": _c("成交日期", field="sale_date", doc_type="sale_closing")},
-        {"key": "services_off", "title": "关水电瓦斯、退保险", "owners": ["K"], "evidence": "utilities:off", "deliverable": _r("三家账户都关闭", "utilities")},
+    {"key": "s5", "label": "⑤ 卖房上市", "short": "卖房", "items": [
+        {"key": "mow", "title": "园丁剪草", "ws": "园林", "owners": ["A", "园丁"], "evidence": "photo:mow", "deliverable": _p("剪草后照片")},
+        {"key": "offer", "title": "收到 offer", "ws": "offer", "owners": GATE_CONFIRM, "evidence": "confirm", "gate": True, "confirm": GATE_CONFIRM, "deliverable": _c("offer 文件", doc_type="offer")},
+        {"key": "sale_docs", "title": "卖房文件", "ws": "过户文件", "owners": ["S", "W"], "evidence": "file:sale_docs", "deliverable": _f("卖房文件包", "sale_docs")},
+        {"key": "disclosure", "title": "seller disclosure", "ws": "过户文件", "owners": ["K"], "evidence": "file:seller_disclosure", "deliverable": _f("披露文件", "seller_disclosure")},
+        {"key": "sign", "title": "签卖房文件", "ws": "过户文件", "owners": ["D"], "evidence": "file:sale_signed", "deliverable": _f("签署版", "sale_signed")},
+        {"key": "closed", "title": "交割完成", "ws": "交割", "owners": GATE_CONFIRM, "evidence": "confirm", "gate": True, "confirm": GATE_CONFIRM, "deliverable": _c("成交日期", field="sale_date", doc_type="sale_closing")},
+    ]},
+    {"key": "s6", "label": "⑥ 售出收尾", "short": "收尾", "items": [
+        {"key": "services_off", "title": "关水电瓦斯、退保险", "ws": "收尾", "owners": ["K"], "evidence": "utilities:off", "deliverable": _r("三家账户都关闭", "utilities")},
     ]},
 ]
+# 旧五段 → 新六段（旧 stage key 没有持久化，仅供文档与调试）
+LEGACY_STAGE_MAP = {"s1": "s1", "s2": "s2", "s3": "s3", "s4": "s3", "s5": "s5"}
+# 派生旧模型：清单当前段 → projects.stage / substage（旧字段只为筛选与状态规则兼容，不再手改）
+STAGE_TO_LEGACY = {"s1": ("lead", None), "s2": ("active", "construction"), "s3": ("active", "construction"),
+                   "s4": ("active", "listing"), "s5": ("active", "listing"), "s6": ("portfolio", "sold"), "done": ("portfolio", "sold")}
+
 STEP_BY_KEY = {it["key"]: it for st in STAGE_CHECKLIST for it in st["items"]}
 ITEM_EVIDENCE = {it["key"]: it["evidence"] for st in STAGE_CHECKLIST for it in st["items"]}
 
@@ -362,7 +376,9 @@ KEY_FIELDS_FOR_COMPLETENESS = [
 
 
 def meta() -> dict:
+    from .settings import DEMO_MODE
     return {
+        "demo_mode": DEMO_MODE,
         "strategies": STRATEGIES,
         "stages": STAGES,
         "substages": SUBSTAGES,
@@ -378,6 +394,7 @@ def meta() -> dict:
         "owner_map": OWNER_MAP,
         "file_default_owner": FILE_DEFAULT_OWNER,
         "stage_checklist": STAGE_CHECKLIST,
+        "stage_to_legacy": STAGE_TO_LEGACY,
         "permit_rule": PERMIT_RULE,
         "dashboard_layouts": DASHBOARD_LAYOUTS,
         "widget_access": WIDGET_ACCESS,
