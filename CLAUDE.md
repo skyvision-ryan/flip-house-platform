@@ -2,6 +2,8 @@
 
 更新：2026-09-15。
 
+本机统一工作区：`/Users/Ryan/Desktop/GitHub/flip-house-platform`。同一时间只由一个助手修改，交接后再继续。
+
 请先读 [AGENTS.md](AGENTS.md)，再读 [ROADMAP.md](ROADMAP.md)。所有开发助手共用这两份入口，本文不维护另一套排期。开始工作时同时核对 [仓库与协作约定](docs/仓库与协作约定.md)，不要把另一个克隆或另一个远端当成当前版本。
 
 ## 当前目标
