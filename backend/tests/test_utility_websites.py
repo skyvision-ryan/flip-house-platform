@@ -1,6 +1,11 @@
-"""Run with: python -m unittest discover -s tests (requires httpx)."""
+"""Run with: python -m unittest discover -s tests (requires httpx).
+
+水电密码的权限边界在 test_baseline_alignment.py 里单独验证；这里只测网址存取，
+所以统一带上有权限的 X-Actor，避免依赖「演示模式下不带身份默认是负责人」这个隐式前提。
+"""
 
 import unittest
+from urllib.parse import quote
 from unittest.mock import patch
 
 from fastapi import FastAPI
@@ -34,7 +39,7 @@ class UtilityWebsiteTests(unittest.TestCase):
         app = FastAPI()
         app.include_router(router)
         app.dependency_overrides[db.get_db] = session_override
-        self.client = TestClient(app)
+        self.client = TestClient(app, headers={"X-Actor": quote("负责人")})
         self.addCleanup(self.client.close)
 
     def test_websites_persist_independently_and_can_be_cleared(self):
