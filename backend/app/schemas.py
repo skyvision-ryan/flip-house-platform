@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, HttpUrl, field_validator
 
 
 class ORM(BaseModel):
@@ -402,6 +402,7 @@ class StepToggleIn(BaseModel):
 # ---------- 水电瓦斯与检查记录 ----------
 class UtilityIn(BaseModel):
     company: Optional[str] = None
+    website: Optional[str] = None
     account_no: Optional[str] = None
     login: Optional[str] = None
     password: Optional[str] = None
@@ -409,12 +410,29 @@ class UtilityIn(BaseModel):
     status: str = "not_started"
     blocker: Optional[str] = None
 
+    @field_validator("website")
+    @classmethod
+    def validate_website(cls, value: Optional[str]) -> Optional[str]:
+        if not value or not value.strip():
+            return None
+        value = value.strip()
+        if ":" not in value and not value.startswith("//"):
+            value = "https://" + value
+        try:
+            url = HttpUrl(value)
+            if url.username or url.password:
+                raise ValueError()
+        except ValueError:
+            raise ValueError("请输入有效的 http:// 或 https:// 网址，且不要包含账号密码")
+        return str(url)
+
 
 class UtilityOut(ORM):
     id: int
     project_id: int
     kind: str
     company: Optional[str] = None
+    website: Optional[str] = None
     account_no: Optional[str] = None
     login: Optional[str] = None
     password: Optional[str] = None

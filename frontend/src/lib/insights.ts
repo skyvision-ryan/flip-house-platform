@@ -94,7 +94,7 @@ async function loadInsightsAll(projects: Project[]): Promise<Insight[]> {
       const stuck = utilLists[ai].filter((u) => u.status === 'pending' && u.blocker);
       stuck.forEach((u) => {
         const kind = u.kind === 'water' ? '水' : u.kind === 'electric' ? '电' : '瓦斯';
-        out.push({ ...base, level: 'info', tag: '水电卡住', href: `/projects/${p.id}?tab=data`, text: `${p.name} 的${kind}还没开通，卡在：${u.blocker}。`, headline: `${kind}还没开通`, detail: `卡在：${u.blocker}` });
+        out.push({ ...base, level: 'info', tag: '水电卡住', href: `/projects/${p.id}?tab=data&section=utilities`, text: `${p.name} 的${kind}还没开通，卡在：${u.blocker}。`, headline: `${kind}还没开通`, detail: `卡在：${u.blocker}` });
       });
     }
     if (p.stage === 'lead' && p.analysis_count === 0) {

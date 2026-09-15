@@ -106,9 +106,10 @@ export interface ProjectFile {
 
 export interface Utility {
   id: number; project_id: number; kind: string; company: string | null; account_no: string | null; login: string | null; password: string | null;
+  website: string | null;
   opened_under: string | null; status: string; blocker: string | null; updated_by: string | null; updated_at: string;
 }
-export interface UtilityIn { company: string | null; account_no: string | null; login: string | null; password: string | null; opened_under: string | null; status: string; blocker: string | null }
+export interface UtilityIn { company: string | null; website: string | null; account_no: string | null; login: string | null; password: string | null; opened_under: string | null; status: string; blocker: string | null }
 export interface Inspection {
   id: number; project_id: number; name: string; date: string | null; result: string; is_final: boolean; fixer: string | null; note: string | null; recorded_by: string | null; created_at: string;
 }

@@ -153,7 +153,7 @@ CLAUDE.md                    产品研究框架与工作原则
 
 - **五个阶段**：`STAGE_CHECKLIST` 改为负责人自己拆的 买 / 贷 / 设计定稿 + permit / 施工 + 采购 / 卖。每个阶段带一句 `desc` 说明谁管、什么是前提。
 - **大节点 D + J 双勾**：带 `confirm: ["D","J"]` 的项在 `project_steps` 里存两条（`open_escrow:D`、`open_escrow:J`），两条都在才算过。`POST /steps/{key}` 用 `confirm_as` 指明替谁勾；当前身份就是 D 或 J 则不用传；负责人代勾记成“D（负责人 代勾）”。
-- **水电瓦斯**：`utility_accounts` 每套房三行（water / electric / gas），`GET/PUT /api/projects/{id}/utilities/{kind}`。证据规则 `utilities:on`（三家都开过）/ `utilities:off`（三家都关）。
+- **水电瓦斯**：`utility_accounts` 每套房三行（water / electric / gas），`GET/PUT /api/projects/{id}/utilities/{kind}`。每家可保存官网或登录页网址，在新标签页打开；账号、登录名、密码支持复制当前输入值（密码仍默认隐藏，空值禁用）。网址仅接受 HTTP(S)，旧库启动时自动补充可空的 `website` 列。证据规则 `utilities:on`（三家都开过）/ `utilities:off`（三家都关）。
 - **检查记录**：`inspections` 一次一行，`is_final` + `passed` 触发 `inspections:final`，`final` 大节点自动过；任一通过触发 `inspections:any`。接口 `/api/projects/{id}/inspections`、`/api/inspections/{iid}`。
 - **保险到期**：`files.expires_at`；工作台“未来 30 天”和“需要关注”都会提。
 - **分工调整**：J = Jessie，兼采购（原 A）；新增 PM；施工进度与临时安排由 L + D 定。permit 默认范围在 `PERMIT_RULE`（常识值，每套房可改）。
