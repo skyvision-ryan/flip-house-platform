@@ -236,6 +236,7 @@ class UtilityAccount(Base):
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), index=True)
     kind: Mapped[str] = mapped_column(String)  # water / electric / gas
     company: Mapped[Optional[str]] = mapped_column(String)
+    website: Mapped[Optional[str]] = mapped_column(String)
     account_no: Mapped[Optional[str]] = mapped_column(String)
     login: Mapped[Optional[str]] = mapped_column(String)
     password: Mapped[Optional[str]] = mapped_column(String)

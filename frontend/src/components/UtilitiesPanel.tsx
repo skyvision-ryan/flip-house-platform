@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useState } from 'react';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
 import Input from '@cloudscape-design/components/input';
+import Link from '@cloudscape-design/components/link';
 import Select from '@cloudscape-design/components/select';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import Spinner from '@cloudscape-design/components/spinner';
@@ -19,6 +20,21 @@ import { OwnerDot } from './OwnerTag';
 const STATUS_KIND: Record<string, 'success' | 'pending' | 'stopped' | 'in-progress'> = { on: 'success', pending: 'in-progress', not_started: 'pending', off: 'stopped' };
 const shortTime = (iso: string | null) => (iso ? iso.slice(5, 16).replace('T', ' ').replace('-', '/') : '');
 
+function websiteHref(value: string | null): string | null {
+  const trimmed = value?.trim();
+  if (!trimmed) return null;
+  try {
+    const url = new URL(trimmed.includes(':') || trimmed.startsWith('//') ? trimmed : `https://${trimmed}`);
+    return ['https:', 'http:'].includes(url.protocol) && !url.username && !url.password ? url.href : null;
+  } catch {
+    return null;
+  }
+}
+
+function withControls(input: ReactNode, controls: ReactNode) {
+  return <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', alignItems: 'center', gap: 4 }}>{input}{controls}</div>;
+}
+
 /** 数据页里的“水、电、瓦斯账户”：三行固定，行内直接改，改完点保存。密码默认打码，点“看”才显示。 */
 export default function UtilitiesPanel({ projectId, onChanged }: { projectId: number; onChanged?: () => void }) {
   const meta = useMeta();
@@ -34,16 +50,35 @@ export default function UtilitiesPanel({ projectId, onChanged }: { projectId: nu
 
   if (!rows) return <Box textAlign="center" padding="m"><Spinner /></Box>;
 
-  const toIn = (u: Utility): UtilityIn => ({ company: u.company, account_no: u.account_no, login: u.login, password: u.password, opened_under: u.opened_under, status: u.status, blocker: u.blocker });
+  const toIn = (u: Utility): UtilityIn => ({ company: u.company, website: u.website ?? null, account_no: u.account_no, login: u.login, password: u.password, opened_under: u.opened_under, status: u.status, blocker: u.blocker });
   const get = (u: Utility) => draft[u.kind] ?? toIn(u);
   const set = (u: Utility, patch: Partial<UtilityIn>) => setDraft((d) => ({ ...d, [u.kind]: { ...get(u), ...patch } }));
   const dirty = (u: Utility) => JSON.stringify(get(u)) !== JSON.stringify(toIn(u));
   const statusOptions = meta?.utility_statuses ?? [];
 
+  const copy = async (value: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      flash({ type: 'success', content: `${label}已复制` });
+    } catch {
+      flash({ type: 'error', content: '复制失败，请手动复制，或检查浏览器的剪贴板权限。' });
+    }
+  };
+
+  const copyButton = (value: string | null, label: string) => (
+    <Button iconName="copy" ariaLabel={`复制${label}`} disabled={!value} onClick={() => { if (value) void copy(value, label); }} />
+  );
+
   const save = async (u: Utility) => {
+    const value = get(u);
+    const website = websiteHref(value.website);
+    if (value.website?.trim() && !website) {
+      flash({ type: 'error', content: '请输入有效的 http:// 或 https:// 网址，且不要包含账号密码。' });
+      return;
+    }
     setSaving(u.kind);
     try {
-      setRows(await api.saveUtility(projectId, u.kind, get(u)));
+      setRows(await api.saveUtility(projectId, u.kind, { ...value, website }));
       setDraft((d) => { const n = { ...d }; delete n[u.kind]; return n; });
       flash({ type: 'success', content: `${labelOf(meta?.utility_kinds, u.kind)}的账户已保存（${actor}）` });
       onChanged?.();
@@ -66,6 +101,7 @@ export default function UtilitiesPanel({ projectId, onChanged }: { projectId: nu
       <ColumnLayout columns={3}>
         {rows.map((u) => {
           const v = get(u);
+          const href = websiteHref(v.website);
           return (
             <Container
               key={u.kind}
@@ -79,10 +115,21 @@ export default function UtilitiesPanel({ projectId, onChanged }: { projectId: nu
                   <Select selectedOption={statusOptions.find((o) => o.value === v.status) ?? null} options={statusOptions} onChange={({ detail }) => set(u, { status: detail.selectedOption.value! })} />
                 </FormField>
                 <FormField label="公司"><Input value={v.company ?? ''} placeholder="比如 Evergy" onChange={({ detail }) => set(u, { company: detail.value || null })} /></FormField>
-                <FormField label="账号"><Input value={v.account_no ?? ''} onChange={({ detail }) => set(u, { account_no: detail.value || null })} /></FormField>
-                <FormField label="登录名"><Input value={v.login ?? ''} onChange={({ detail }) => set(u, { login: detail.value || null })} /></FormField>
-                <FormField label="密码" secondaryControl={<Button iconName={showPw[u.kind] ? 'lock-private' : 'unlocked'} ariaLabel="显示或隐藏密码" onClick={() => setShowPw((s) => ({ ...s, [u.kind]: !s[u.kind] }))} />}>
-                  <Input type={showPw[u.kind] ? 'text' : 'password'} value={v.password ?? ''} onChange={({ detail }) => set(u, { password: detail.value || null })} />
+                <FormField label="网址" description="可填写公司官网或登录页；省略协议时使用 https://。"
+                  errorText={v.website?.trim() && !href ? '请输入有效的 http:// 或 https:// 网址，且不要包含账号密码。' : undefined}
+                  secondaryControl={href ? <Link href={href} target="_blank" rel="noopener noreferrer" external externalIconAriaLabel="在新标签页打开">打开网站</Link> : undefined}>
+                  <Input value={v.website ?? ''} placeholder="https://…" onChange={({ detail }) => set(u, { website: detail.value || null })} />
+                </FormField>
+                <FormField label="账号">{withControls(
+                  <Input value={v.account_no ?? ''} onChange={({ detail }) => set(u, { account_no: detail.value || null })} />, copyButton(v.account_no, '账号'))}</FormField>
+                <FormField label="登录名">{withControls(
+                  <Input value={v.login ?? ''} onChange={({ detail }) => set(u, { login: detail.value || null })} />, copyButton(v.login, '登录名'))}</FormField>
+                <FormField label="密码">{withControls(
+                  <Input type={showPw[u.kind] ? 'text' : 'password'} value={v.password ?? ''} onChange={({ detail }) => set(u, { password: detail.value || null })} />,
+                  <SpaceBetween direction="horizontal" size="xxs">
+                    {copyButton(v.password, '密码')}
+                    <Button iconName={showPw[u.kind] ? 'lock-private' : 'unlocked'} ariaLabel="显示或隐藏密码" onClick={() => setShowPw((s) => ({ ...s, [u.kind]: !s[u.kind] }))} />
+                  </SpaceBetween>)}
                 </FormField>
                 <FormField label="用谁的名字开的" description="有的房用 A 的名字，有的用别人的，写清楚防混淆">
                   <Input value={v.opened_under ?? ''} onChange={({ detail }) => set(u, { opened_under: detail.value || null })} />
