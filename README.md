@@ -4,7 +4,7 @@
 
 当前是 MVP 0：验证数据层思路，用模拟数据源演示。界面用 AWS 控制台的开源组件库 Cloudscape。
 
-**在线演示**：https://flip-house-platform.onrender.com （Render 免费版，闲置后首次打开约需 30 秒）
+**在线演示**：[flip-house-platform-ryan.onrender.com](https://flip-house-platform-ryan.onrender.com)（Render 免费版，闲置后首次打开可能需要等待唤醒）
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/skyvision-ryan/flip-house-platform)
 
@@ -58,6 +58,8 @@ npm run dev
 ## 部署（Render，推送即部署）
 
 `render.yaml` 使用 Render Python 环境：构建时安装后端依赖并打包前端，运行时由同一个服务提供 API 和前端页面。Python 3.12 与 Node.js 22 分别由 `.python-version` 和 `.node-version` 指定。仓库保留 `Dockerfile`，供容器部署使用。
+
+当前服务已在 `My Workspace` 创建：[Render 控制台](https://dashboard.render.com/web/srv-dak9kap42hec739p4pig)。日常更新只需 push 或合并到 `main`，无需重复创建服务。当前服务由控制台管理配置；`render.yaml` 记录对应配置，供重建或新建 Blueprint 使用。
 
 1. 用 GitHub 账号登录 [render.com](https://render.com)。
 2. New → **Blueprint** → 通过已连接的 GitHub 账号选择 `skyvision-ryan/flip-house-platform` → Apply，创建 `flip-house-platform-ryan` 服务。首次构建约 3–5 分钟。
