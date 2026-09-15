@@ -35,7 +35,10 @@ git commit -m "KAN-<n> <一句话说明>"
 按 @.claude/templates/pr-body.md 生成 PR 正文，然后
 ```bash
 git push -u origin HEAD
-gh pr create --title "KAN-<n> <一句话>" --body-file <临时文件>
+# --repo 必须显式写：本仓库是 LianCr/flip-house-platform 的 fork，
+# gh 默认会把 base 解析成上游父仓库，导致「No commits between LianCr:main and ...」
+gh pr create --repo skyvision-ryan/flip-house-platform --base main \
+  --title "KAN-<n> <一句话>" --body-file <临时文件>
 ```
 推送和开 PR 前先把 PR 正文给我看一眼。
 
