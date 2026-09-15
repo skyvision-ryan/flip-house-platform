@@ -64,7 +64,7 @@ npm run dev
 1. 用 GitHub 账号登录 [render.com](https://render.com)。
 2. New → **Blueprint** → 通过已连接的 GitHub 账号选择 `skyvision-ryan/flip-house-platform` → Apply，创建 `flip-house-platform-ryan` 服务。首次构建约 3–5 分钟。
 3. 服务跟踪 `main`，Auto-Deploy 设置为 **On Commit**（`autoDeployTrigger: commit`）。之后每次推送或合并到 `main`，Render 自动构建并部署；其他分支的 push 不更新该站点。
-4. 在 Render 的 Events 页面查看部署结果；`/api/health` 返回 `ok` 和当前部署提交号，可与 GitHub 核对。
+4. 在 Render 的 Deploys 页面查看部署结果和触发原因。健康检查路径设为 `/api/health`，接口返回 `ok` 和当前部署提交号；自动部署完成后可与 GitHub `main` 的最新提交核对。
 
 自动部署需要连接 GitHub 账号并授权该仓库。仅通过 Public Git Repository URL 创建的服务不支持自动部署，无需另外配置定时任务或部署钩子。
 
