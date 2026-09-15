@@ -3,15 +3,17 @@
 services:
   - type: web
     name: flip-house-platform-ryan
-    runtime: docker
+    runtime: python
     repo: https://github.com/skyvision-ryan/flip-house-platform
     branch: main
     region: oregon
     plan: free
     healthCheckPath: /api/health
     autoDeployTrigger: commit
+    buildCommand: pip install -r backend/requirements.txt && npm --prefix frontend ci --include=dev --no-audit --no-fund && npm --prefix frontend run build
+    startCommand: uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port $PORT
     envVars:
       - key: PROVIDER
         value: mock
       - key: DATA_DIR
-        value: /app/backend/data
+        value: /tmp/flip-house-platform-data

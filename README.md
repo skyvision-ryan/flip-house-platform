@@ -57,7 +57,7 @@ npm run dev
 
 ## 部署（Render，推送即部署）
 
-仓库里带 `Dockerfile` 和 `render.yaml`：一个容器同时提供后端 API 和打包后的前端。
+`render.yaml` 使用 Render Python 环境：构建时安装后端依赖并打包前端，运行时由同一个服务提供 API 和前端页面。Python 3.12 与 Node.js 22 分别由 `.python-version` 和 `.node-version` 指定。仓库保留 `Dockerfile`，供容器部署使用。
 
 1. 用 GitHub 账号登录 [render.com](https://render.com)。
 2. New → **Blueprint** → 通过已连接的 GitHub 账号选择 `skyvision-ryan/flip-house-platform` → Apply，创建 `flip-house-platform-ryan` 服务。首次构建约 3–5 分钟。
