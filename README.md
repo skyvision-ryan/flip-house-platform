@@ -6,7 +6,7 @@
 
 **在线演示**：https://flip-house-platform.onrender.com （Render 免费版，闲置后首次打开约需 30 秒）
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/LianCr/flip-house-platform)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/skyvision-ryan/flip-house-platform)
 
 ---
 
@@ -60,8 +60,11 @@ npm run dev
 仓库里带 `Dockerfile` 和 `render.yaml`：一个容器同时提供后端 API 和打包后的前端。
 
 1. 用 GitHub 账号登录 [render.com](https://render.com)。
-2. New → **Blueprint** → 选这个仓库 → Apply。首次构建约 3–5 分钟。
-3. 之后每次推送到 `main`，Render 自动重新部署。
+2. New → **Blueprint** → 通过已连接的 GitHub 账号选择 `skyvision-ryan/flip-house-platform` → Apply，创建 `flip-house-platform-ryan` 服务。首次构建约 3–5 分钟。
+3. 服务跟踪 `main`，Auto-Deploy 设置为 **On Commit**（`autoDeployTrigger: commit`）。之后每次推送或合并到 `main`，Render 自动构建并部署；其他分支的 push 不更新该站点。
+4. 在 Render 的 Events 页面查看部署结果；`/api/health` 返回 `ok` 和当前部署提交号，可与 GitHub 核对。
+
+自动部署需要连接 GitHub 账号并授权该仓库。仅通过 Public Git Repository URL 创建的服务不支持自动部署，无需另外配置定时任务或部署钩子。
 
 免费版说明：15 分钟无访问会休眠，再打开约 30 秒；磁盘是临时的，每次部署示例数据自动重建，上传的文件不保留。换到 AWS App Runner、Railway 等平台时同一个 Dockerfile 可直接用。
 

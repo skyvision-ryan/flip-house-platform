@@ -2,11 +2,14 @@
 # 之后每次推送到 main 自动重新部署。
 services:
   - type: web
-    name: flip-house-platform
+    name: flip-house-platform-ryan
     runtime: docker
+    repo: https://github.com/skyvision-ryan/flip-house-platform
+    branch: main
+    region: oregon
     plan: free
     healthCheckPath: /api/health
-    autoDeploy: true
+    autoDeployTrigger: commit
     envVars:
       - key: PROVIDER
         value: mock
