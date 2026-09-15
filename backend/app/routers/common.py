@@ -3,22 +3,36 @@
 from typing import Optional
 from urllib.parse import unquote
 
-from fastapi import Header, HTTPException
+from fastapi import Depends, Header, HTTPException, Request
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from .. import models, schemas
+from ..auth import current_user
+from ..db import get_db
 from ..dictionaries import KEY_FIELDS_FOR_COMPLETENESS, PERMISSIONS, PROPERTY_FIELDS, tier_of
+from ..settings import DEMO_MODE
 from ..status import compute_status
-from ..steps import compute_steps
+from ..steps import compute_steps, sync_legacy_stage
 
 FIELD_TYPES = {f["key"]: f["type"] for f in PROPERTY_FIELDS}
 FIELD_LABELS = {f["key"]: f["label"] for f in PROPERTY_FIELDS}
 
 
-def get_actor(x_actor: Optional[str] = Header(default=None)) -> str:
-    """当前操作人：前端把顶栏“我是谁”放在 X-Actor 头里（URL 编码）。取不到就是负责人。"""
-    return unquote(x_actor) if x_actor else "负责人"
+def get_actor(request: Request, db: Session = Depends(get_db), x_actor: Optional[str] = Header(default=None)) -> str:
+    """当前操作人的角色代号。
+
+    登录了：用账号绑定的角色代号；管理员在演示模式下可以用 X-Actor 头临时切身份（顶栏“我是”）。
+    没登录：演示模式接受 X-Actor（默认负责人）；正式模式一律 401。
+    """
+    u = current_user(request, db)
+    if u is not None:
+        if DEMO_MODE and u.is_admin and x_actor:
+            return unquote(x_actor)
+        return u.role_code
+    if DEMO_MODE:
+        return unquote(x_actor) if x_actor else "负责人"
+    raise HTTPException(401, "还没登录")
 
 
 def allowed(actor: str, action: str, *extra_ok: str) -> bool:
@@ -61,8 +75,11 @@ def budget_totals(db: Session, project_id: int) -> tuple[float, float]:
 
 def project_out(db: Session, p: models.Project, actor: str = "负责人") -> schemas.ProjectOut:
     planned, spent = budget_totals(db, p.id)
-    status, reason = compute_status(p, planned, spent)
     hide = not can_read_money(actor)
+    steps = compute_steps(db, p, hide_money=hide)
+    if sync_legacy_stage(db, p, steps):
+        db.commit()
+    status, reason = compute_status(p, planned, spent)
     if hide and "$" in reason:
         reason = "支出超预算（金额对你隐藏）" if status == "at_risk" else reason
     prop = p.property
@@ -71,7 +88,6 @@ def project_out(db: Session, p: models.Project, actor: str = "负责人") -> sch
         missing.append("买入价")
     if not hide and p.target_arv is None:
         missing.append("目标售价（ARV）")
-    steps = compute_steps(db, p, hide_money=hide)
     return schemas.ProjectOut(
         id=p.id, name=p.name, strategy=p.strategy, stage=p.stage, substage=p.substage,
         lead_heat=p.lead_heat, status=status, status_reason=reason,

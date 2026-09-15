@@ -47,7 +47,7 @@ export default function OverviewTab({ project, reload, deepLink, focus }: { proj
           以下关键字段还没有值：{project.missing_fields.join('、')}。可在“数据”页或“编辑”中补充。
         </Alert>
       )}
-      <Container header={<Header variant="h2" description="五步一张卡，点一张看那一步做到哪。每步最后一道门是大节点，D、J 都确认才往下走。"><ReviewTag id="B" />现在到哪一步</Header>}>
+      <Container header={<Header variant="h2" description="六步一张卡，点一张看那一步做到哪。每步的大节点 D、J 都确认才往下走。"><ReviewTag id="B" />现在到哪一步</Header>}>
         <StepsPanel projectId={project.id} deepLink={deepLink} onChanged={() => { reload(); api.projectUpdates(project.id, 12).then(setUpdates).catch(() => undefined); }} />
       </Container>
       <div id="inspections" />

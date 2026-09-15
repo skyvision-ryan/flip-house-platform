@@ -17,3 +17,5 @@ services:
         value: mock
       - key: DATA_DIR
         value: /tmp/flip-house-platform-data
+      - key: DEMO_MODE   # 演示站：不用登录，顶栏自报身份。公司内部部署设 0 并配 ADMIN_USER / ADMIN_PASSWORD / SECRET_KEY
+        value: "1"

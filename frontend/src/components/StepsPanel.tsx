@@ -50,7 +50,7 @@ function StageCard({ st, index, state, selected, waitingOn, onSelect }: { st: St
       role="button" tabIndex={0} onClick={onSelect} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(); } }}
       aria-pressed={selected}
       style={{
-        position: 'relative', flex: '1 1 160px', minWidth: 150, background: '#fff', borderRadius: 12, padding: '12px 14px 12px 16px', cursor: 'pointer',
+        position: 'relative', flex: '1 1 130px', minWidth: 120, background: '#fff', borderRadius: 12, padding: '10px 12px 10px 14px', cursor: 'pointer',
         border: `${state === 'current' ? 2 : 1}px solid ${state === 'current' ? BLUE : BORDER}`,
         boxShadow: selected ? `0 0 0 3px ${state === 'current' ? 'rgba(9,114,211,.18)' : 'rgba(9,114,211,.25)'}` : '0 1px 2px rgba(0,7,22,.06)',
         color: state === 'future' ? GREY : 'inherit', transition: 'box-shadow .15s',
@@ -58,7 +58,7 @@ function StageCard({ st, index, state, selected, waitingOn, onSelect }: { st: St
     >
       {state === 'done' && <span style={{ position: 'absolute', left: 0, top: 10, bottom: 10, width: 4, borderRadius: 2, background: GREEN }} />}
       <div style={{ fontWeight: 700, fontSize: 15, display: 'flex', alignItems: 'baseline', gap: 6, whiteSpace: 'nowrap', overflow: 'hidden' }}>
-        <span>{['①', '②', '③', '④', '⑤'][index]}</span><span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{st.short}</span>
+        <span>{['①', '②', '③', '④', '⑤', '⑥'][index]}</span><span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{st.short}</span>
       </div>
       <div style={{ marginTop: 6, fontSize: 13 }}>
         {state === 'done' ? <span style={{ color: GREEN, fontWeight: 600 }}>✓ 已完成</span>
@@ -101,7 +101,7 @@ export default function StepsPanel({ projectId, onChanged, deepLink }: { project
     const sk = findStageKey(steps, deepLink.step);
     if (sk) setSelected(sk);
     appliedDeep.current = token;
-    const act = deepLink.action ?? actionMode(it, { forConfirm: it.gate });
+    const act = deepLink.action ?? actionMode(it, { forConfirm: it.gate && it.confirm.length > 0 });
     if (act === 'upload' && (it.deliverable?.kind === 'file' || it.deliverable?.kind === 'photo')) setModal({ kind: 'upload', it });
     else if (act === 'field' && it.deliverable?.kind === 'field') { setFieldVal(''); setModal({ kind: 'field', it }); }
     else if (act === 'confirm' || it.gate) {
@@ -189,7 +189,7 @@ export default function StepsPanel({ projectId, onChanged, deepLink }: { project
 
   const segments: ({ kind: 'items'; items: StepItem[] } | { kind: 'gate'; it: StepItem })[] = [];
   for (const it of stage.items) {
-    if (it.gate) segments.push({ kind: 'gate', it });
+    if (it.gate && it.confirm.length) segments.push({ kind: 'gate', it });   // 证据型门（如上市）当普通行
     else {
       const last = segments[segments.length - 1];
       if (last && last.kind === 'items') last.items.push(it); else segments.push({ kind: 'items', items: [it] });

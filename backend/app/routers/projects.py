@@ -91,6 +91,9 @@ def patch_project(project_id: int, body: schemas.ProjectPatch, db: Session = Dep
     p = _get(db, project_id)
     data = body.model_dump(exclude_unset=True)
     clear = data.pop("clear_status_override", False)
+    data.pop("stage", None)                      # 阶段由清单派生，不再手改
+    if p.stage != "lead":
+        data.pop("substage", None)               # 只有线索段的子阶段（联系卖家 / 约看 / 已出价）还手改
     if MONEY_FIELDS & set(data):
         require(actor, "edit_money", what="改价格")
     if set(data) - MONEY_FIELDS or clear:

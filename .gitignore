@@ -13,3 +13,6 @@ frontend/tsconfig.tsbuildinfo
 专业流程 完整版.jpg
 理解版，流程图.png
 流程图.png
+__pycache__/
+.claude/settings.local.json
+.claude/state/

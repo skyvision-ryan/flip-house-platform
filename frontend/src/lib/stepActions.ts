@@ -22,7 +22,7 @@ export function canActOn(item: StepItem, role: RoleLike): boolean {
   if (dv.kind === 'file' || dv.kind === 'photo') return mine || role.can('upload_any');
   if (dv.kind === 'field') return dv.field === 'purchase_price' ? role.can('edit_money') : role.can('edit_project') || mine;
   if (dv.kind === 'record') {
-    return mine || role.can(dv.record === 'utilities' ? 'utilities' : dv.record === 'inspections' ? 'inspections' : dv.record === 'procurement' ? 'procurement' : 'budget');
+    return mine || role.can(dv.record === 'utilities' ? 'utilities' : dv.record === 'inspections' ? 'inspections' : dv.record === 'procurement' ? 'procurement' : dv.record === 'analyses' ? 'analysis' : 'budget');
   }
   return false;
 }
@@ -40,7 +40,7 @@ export function needsMyConfirm(item: StepItem, actor: string): boolean {
 }
 
 export function actionMode(item: StepItem, opts?: { forConfirm?: boolean }): ActionMode {
-  if (opts?.forConfirm || item.gate || item.deliverable?.kind === 'confirm') return 'confirm';
+  if (opts?.forConfirm || (item.gate && item.confirm.length > 0) || item.deliverable?.kind === 'confirm') return 'confirm';
   const dv = item.deliverable;
   if (!dv) return 'view';
   if (dv.kind === 'file' || dv.kind === 'photo') return 'upload';
@@ -69,6 +69,7 @@ export function actionLabel(item: StepItem, opts: { actor: string; canDo: boolea
     if (dv?.record === 'expenses') return '记支出';
     if (dv?.record === 'procurement') return '管采购';
     if (dv?.record === 'inspections') return '记检查';
+    if (dv?.record === 'analyses') return '去算账';
     return '去处理';
   }
   return '查看';
@@ -83,6 +84,7 @@ export function actionHref(projectId: number, item: StepItem, opts?: { forConfir
   if (mode === 'navigate' && dv?.record === 'expenses') return `${base}?tab=budget`;
   if (mode === 'navigate' && dv?.record === 'procurement') return `${base}?tab=budget&section=procurement`;
   if (mode === 'navigate' && dv?.record === 'inspections') return `${base}?tab=overview&focus=inspections`;
+  if (mode === 'navigate' && dv?.record === 'analyses') return `${base}?tab=analysis`;
   const action = opts?.action ?? (mode === 'upload' ? 'upload' : mode === 'field' ? 'field' : mode === 'confirm' ? 'confirm' : mode === 'tick' ? 'tick' : undefined);
   const qs = new URLSearchParams({ tab: 'overview', step: item.key });
   if (action) qs.set('action', action);
@@ -90,7 +92,7 @@ export function actionHref(projectId: number, item: StepItem, opts?: { forConfir
 }
 
 export function statusHint(item: StepItem): string {
-  if (item.gate) {
+  if (item.gate && item.confirm.length > 0) {
     const waiting = item.confirm.filter((c) => !item.confirmed.includes(c));
     if (item.done) return '已确认';
     if (item.confirmed.length) return `等 ${waiting.join('、')} 确认`;
@@ -106,6 +108,7 @@ export function statusHint(item: StepItem): string {
     if (dv.record === 'expenses') return '待记支出';
     if (dv.record === 'procurement') return '待处理采购';
     if (dv.record === 'inspections') return '待记检查';
+    if (dv.record === 'analyses') return '待算账';
   }
   if (dv.kind === 'tick') return '待标完成';
   return dv.label;

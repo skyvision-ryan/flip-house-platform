@@ -276,3 +276,18 @@ class ProcurementItem(Base):
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     updated_by: Mapped[Optional[str]] = mapped_column(String)
     updated_at: Mapped[str] = mapped_column(String, default=now_iso, onupdate=now_iso)
+
+
+class User(Base):
+    """登录账号：一个人一个账号，账号绑定一个角色代号（决定权限）。"""
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    username: Mapped[str] = mapped_column(String, unique=True, index=True)
+    display_name: Mapped[str] = mapped_column(String)
+    role_code: Mapped[str] = mapped_column(String)  # 对应 ROLES 里的代号：老板 / 负责人 / D / J / K ...
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
+    password_hash: Mapped[str] = mapped_column(String)
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[str] = mapped_column(String, default=now_iso)
+    last_login_at: Mapped[Optional[str]] = mapped_column(String)
