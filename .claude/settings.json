@@ -2,39 +2,25 @@
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "hooks": {
     "SessionStart": [
-      {
-        "hooks": [
-          { "type": "command", "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/session-context.sh full" }
-        ]
-      }
+      { "hooks": [{ "type": "command", "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/session-context.sh\" full" }] }
     ],
     "UserPromptSubmit": [
-      {
-        "hooks": [
-          { "type": "command", "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/session-context.sh brief" }
-        ]
-      }
+      { "hooks": [{ "type": "command", "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/session-context.sh\" brief" }] }
     ],
     "PreToolUse": [
       {
         "matcher": "Bash",
-        "hooks": [
-          { "type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/check_commit.py" }
-        ]
+        "hooks": [{ "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/check_commit.py\"" }]
       },
       {
         "matcher": "Edit|Write|MultiEdit|NotebookEdit",
-        "hooks": [
-          { "type": "command", "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/require-ticket.sh" }
-        ]
+        "hooks": [{ "type": "command", "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-ticket.sh\"" }]
       }
     ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write|MultiEdit",
-        "hooks": [
-          { "type": "command", "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/post-edit-check.sh" }
-        ]
+        "hooks": [{ "type": "command", "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/post-edit-check.sh\"" }]
       }
     ]
   },
@@ -49,7 +35,8 @@
       "Bash(gh pr view:*)",
       "Bash(gh pr list:*)",
       "Bash(./.venv/bin/python -m unittest:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npm run build:*)",
+      "Bash(python3 scripts/check_local.py:*)"
     ],
     "ask": [
       "Bash(git commit:*)",
