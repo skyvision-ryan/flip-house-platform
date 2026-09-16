@@ -16,6 +16,7 @@
 | 完整交付标准 | [范围与验收](docs/本周开发Tickets_2026-09-15.md)、[iPhone 验收](docs/Demo验收_2026-09-18.md) |
 | 云部署 | [AWS 统一方案](docs/AWS内部部署方案.md) |
 | GitHub、目录和交接 | [协作约定](docs/仓库与协作约定.md) |
+| 管理层进度报告怎么维护 | [VP 进度报告说明](docs/VP进度报告_设计与数据维护说明.md)；服务在 [services/vp_report](services/vp_report/README.md) |
 
 ## 本地准备
 
@@ -88,6 +89,9 @@ AWS 仍按既定 ECS/Fargate + RDS + S3 + Cognito 方案实施。
 - `backend/app/`：配置、身份、数据模型、六段/证据计算、金额分析与 API。
 - `frontend/src/`：工作台、项目、待办、登录/用户页面与组件；规则助手尚未接 LLM。
 - `.claude/`：引用共同规则的命令与辅助 hooks。
+- `services/vp_report/`：KAN-40 管理层进度报告，**独立服务**（独立进程、依赖与发布）。
+  只读 Jira、口令访问，不 import backend/app，也不认 `DEMO_MODE` / `X-Actor`。
+  代码已通过回归，但**尚未部署，也未在真机验证**。
 - `scripts/`：本地检查、工作区核对与 Jira REST 回退工具。
 - `docs/reference/`：保留的原始业务参考件，不是当前开发指令。
 
