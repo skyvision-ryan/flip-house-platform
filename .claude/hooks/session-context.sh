@@ -1,27 +1,23 @@
 #!/bin/bash
-# SessionStart（full）与 UserPromptSubmit（brief）：把当前 ticket 和流程红线注入上下文
-# stdout 会成为模型的上下文，所以 brief 模式必须短。
 source "$(dirname "$0")/common.sh"
 MODE="${1:-brief}"
-TICKET=$(active_ticket)
 BRANCH=$(git_branch)
+TICKET=$(active_ticket)
+STATE=""
+[ -s "$STATE_DIR/active-ticket" ] && STATE=$(head -n1 "$STATE_DIR/active-ticket" | tr -d '[:space:]')
 
 if [ -z "$TICKET" ]; then
-  printf '【JIRA 流程】当前没有进行中的 ticket（分支 %s）。改 backend/ 或 frontend/ 会被拦；先 /jira:next 按 backlog rank 取单，或 /jira:start <KAN-n>。\n' "$BRANCH"
+  printf '【开发上下文】分支 %s 没有关联执行单；backend/frontend 写入会被拦。用户授权的文档或开发工具整理可继续。\n' "$BRANCH"
 else
-  printf '【JIRA 流程】当前 ticket：%s（分支 %s）。只做这张单范围内的事；范围外的发现用 /jira:bug（缺陷，自动建单）或 /jira:finding（需求/架构，出草稿待确认），不要就地做。\n' "$TICKET" "$BRANCH"
+  printf '【开发上下文】当前 %s（分支 %s）。按票内范围和实际依赖交付。\n' "$TICKET" "$BRANCH"
 fi
-
+[ -n "$STATE" ] && [ "$STATE" != "$TICKET" ] && printf '【提示】state 文件中的 %s 已过期，本轮忽略；分支是权威来源。\n' "$STATE"
 [ "$MODE" != "full" ] && exit 0
 
 cat <<'TXT'
 
-【红线】一张 ticket = 一个分支 = 一个 PR，不混改；提交主题必须是 "KAN-<n> 一句话"；完成前逐条对验收标准附证据。
-【本机命令】
-  后端： cd backend && ./.venv/bin/uvicorn app.main:app --reload --port 8000
-  后端回归： cd backend && ./.venv/bin/python -m unittest discover -s tests
-  前端： export PATH="/opt/homebrew/opt/node@20/bin:$PATH" && cd frontend && npm run dev
-  前端类型检查： cd frontend && npx tsc -b
-【流程手册】docs/工程流程_JIRA驱动.md
+共同规则：先读 AGENTS.md；一张执行单一个分支/PR；不要从旧审计批量开单。
+本地完整检查：python3 scripts/check_local.py
+后端：cd backend && ./.venv/bin/python -m unittest discover -s tests
+前端：npm --prefix frontend run build
 TXT
-exit 0

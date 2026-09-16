@@ -15,7 +15,7 @@
   jira.py transitions KAN-16
   jira.py transition  KAN-16 'In Progress'
   jira.py comment KAN-16 --file evidence.md
-  jira.py link    KAN-17 blocks KAN-16        # 关系名：blocks / relates
+  jira.py link    KAN-123 blocks KAN-124      # 关系名：blocks / relates
 """
 from __future__ import annotations
 

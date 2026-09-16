@@ -89,6 +89,4 @@ RDS 提供自动备份与快照；具体保留和恢复能力需要配置与实�
 
 不预建所有未来服务；统一的是身份、接口、数据归属、部署与权限规则。首期仍是一个可交付的应用。
 
-App Runner 已不向新客户开放，不作为新 AWS 账号的默认选择。ECS Express Mode 可用于评估和原型，但当前部署资产以可复现的 CDK 配置为准，不并行维护两套互不一致的云配置。[App Runner 说明](https://docs.aws.amazon.com/apprunner/latest/dg/apprunner-availability-change.html)、[ECS Express Mode](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/express-service-overview.html)
-
 Amplify 可以托管 React，待前端独立发布时接入即可。[AWS Amplify](https://aws.amazon.com/amplify/getting-started/)

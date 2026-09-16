@@ -1,20 +1,6 @@
-# Claude Code 项目入口
+# Claude Code 入口
 
-更新：2026-09-15。
+@AGENTS.md
 
-本机统一工作区：`/Users/Ryan/Desktop/GitHub/flip-house-platform`。同一时间只由一个助手修改，交接后再继续。
-
-请先读 [AGENTS.md](AGENTS.md)，再读 [ROADMAP.md](ROADMAP.md)。所有开发助手共用这两份入口，本文不维护另一套排期。开始工作时同时核对 [仓库与协作约定](docs/仓库与协作约定.md)，不要把另一个克隆或另一个远端当成当前版本。
-
-## 当前目标
-
-- **2026-09-18 周五 demo**：同一套房中，负责人分派任务，执行者用手机查看说明、反馈卡点、提交结果，负责人确认后总览更新。
-- **2026-09-21 至 09-25 AWS 内部试用**：真实账号、Postgres、S3、可重复部署、备份恢复及 2–3 套在建房。
-- 今天的三张开发 ticket：[统一账号与 AWS 基础 / 项目任务 / 手机端执行](docs/本周开发Tickets_2026-09-15.md)。均为计划，不是已完成能力。
-
-## 关键上下文
-
-- 当前方向详见 [产品方向与执行原则](docs/产品方向与执行原则.md)。移动端协作进入近期核心范围，数据分析与房产 AI 的长期目标保留。
-- 笔记本昨晚的整理与当前分支存在版本差异；读 [版本核验](docs/当前实现与版本核验.md)，不要重复开发可复用的功能，也不要把未同步功能写成已上线。
-- [统一 AWS 方案](docs/AWS内部部署方案.md)：ECS/Fargate + RDS PostgreSQL + S3，同源服务 iPhone/电脑；Cognito、IAM、ECR、Secrets Manager、CloudWatch、CDK 统一基础。首期控制服务规模，Amplify 留到前端独立发布时；不采用临时的 Lightsail 路线。
-- 原 CLAUDE.md 已归档为 [历史产品研究框架](docs/archive/产品研究框架_2026-09-14.md)。其中研究优先、AI 简报先于现场协作的安排不再适用于本轮交付。
+所有开发助手共用 AGENTS.md，不在此维护第二套方向或排期。
+Jira 命令遵守其中的交付规则；当前 ticket 以 Git 分支为准，旧 state 文件不能覆盖分支事实。
