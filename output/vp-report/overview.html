@@ -1,113 +1,94 @@
 <!doctype html><html lang="zh-CN"><meta charset="utf-8">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{width:390px;background:#f4f6fa;color:#182c46;
- font:16px/1.6 -apple-system,"PingFang SC","Heiti SC",sans-serif;-webkit-font-smoothing:antialiased}
-.banner{background:#fff5df;color:#845006;font-size:12px;padding:8px 16px;text-align:center;
- border-bottom:1px solid #eadfc4;line-height:1.45}
-.head{background:#fff;padding:18px 16px 14px;border-bottom:1px solid #dee5ee}
-.brand{font-size:13px;color:#52647a}
-h1{font-size:25px;font-weight:600;line-height:1.3;margin:2px 0 8px}
-.byline{display:flex;justify-content:space-between;font-size:12px;color:#52647a;flex-wrap:wrap;gap:4px 12px}
-.panel{padding:14px 16px}
-.card{background:#fff;border:1px solid #dee5ee;border-radius:12px;padding:15px;margin-bottom:12px}
-h2{font-size:17px;font-weight:600;margin-bottom:9px}
-.now{font-size:18px;font-weight:600;line-height:1.45}
-.sub{font-size:13px;color:#52647a;margin-top:7px;line-height:1.55}
-.next{margin-top:12px;padding-top:11px;border-top:1px solid #eef2f7;font-size:14px;display:flex;gap:10px}
-.next b{color:#155bb5;white-space:nowrap}
-.legend{font-size:12px;color:#52647a;margin-bottom:7px}
-.axis{position:relative;height:18px;font-size:11px;color:#52647a}
-.axis span{position:absolute;transform:translateX(-50%)}
-.lane{border-top:1px solid #eef2f7;padding:10px 0 11px}
-.lane:first-of-type{border-top:0}
-.lrow{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.lname{font-size:15px;font-weight:500}
-.ldate{font-size:12px;color:#52647a;white-space:nowrap}
-.track{position:relative;height:18px;margin-top:7px;border-radius:3px;
- background:repeating-linear-gradient(to right,#e4eaf2 0 1px,transparent 1px calc(100%/13))}
-.bar{position:absolute;top:3px;height:12px;border-radius:3px;background:#155bb5;opacity:.72}
-.bar.ms{background:#845006}
-.today{position:absolute;top:-2px;bottom:-2px;width:2px;background:#182c46}
-.chips{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap}
-.chip{font-size:11px;padding:2px 7px;border-radius:5px;border:1px solid currentColor;line-height:1.5}
-.note{font-size:12px;color:#52647a;margin-top:8px;line-height:1.5}
-.mt{display:flex;gap:11px;padding:10px 0;border-top:1px solid #eef2f7;font-size:14px}
-.mt:first-of-type{border-top:0}
-.mt b{color:#155bb5;white-space:nowrap;font-size:13px}
-.mt small{display:block;color:#52647a;font-size:12px;margin-top:2px}
-.q{padding:9px 0;border-top:1px solid #eef2f7;font-size:14px}
-.q:first-of-type{border-top:0}
-.q dt{font-size:12px;color:#52647a;margin-bottom:2px}
-.q dd{font-size:14px}
-.pend{color:#845006;font-weight:500}
-table{width:100%;border-collapse:collapse;font-size:12px}
-th,td{text-align:left;padding:6px 4px;border-bottom:1px solid #eef2f7;vertical-align:top}
-th{color:#52647a;font-weight:500;font-size:11px}
-.k{white-space:nowrap;color:#155bb5}
-.foot{background:#fff;border-top:1px solid #dee5ee;padding:12px 16px 16px;font-size:11px;
- color:#52647a;line-height:1.7}
-.foot b{color:#182c46;font-weight:500}
+body{width:390px;background:#eef1f6;color:#16283f;
+ font:15px/1.55 -apple-system,"PingFang SC","Heiti SC",sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{padding:14px 14px 0}
+.top{font-size:12px;color:#64748b;letter-spacing:.02em}
+h1{font-size:21px;font-weight:600;margin:1px 0 10px}
+.lede{background:#fff;border:1px solid #d9e1ec;border-radius:12px;padding:13px 14px;margin-bottom:12px}
+.lede p{font-size:15.5px;line-height:1.5;font-weight:500}
+.lede .nx{margin-top:9px;padding-top:9px;border-top:1px solid #eff3f8;font-size:14px;color:#155bb5;font-weight:600}
+.chart{background:#fff;border:1px solid #d9e1ec;border-radius:12px;padding:13px 12px 11px;margin-bottom:12px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 11px;font-size:11px;color:#64748b;margin-bottom:10px}
+.legend i{font-style:normal}
+.grid{position:relative}
+.axis{position:relative;height:15px;font-size:10.5px;color:#7c8a9c;margin-bottom:2px}
+.axis span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.msrail{position:relative;height:28px;margin-bottom:3px}
+.ms{position:absolute;transform:translateX(-50%);font-size:15px;line-height:1;top:7px}
+.ms.meeting{color:#b45309}.ms.target{color:#1d4ed8}.ms.trial{color:#7c3aed}
+.msdate{position:absolute;transform:translateX(-50%);top:21px;font-size:9.5px;color:#7c8a9c;white-space:nowrap}
+.lane{position:relative;padding:9px 0 10px;border-top:1px solid #f0f3f8}
+.lname{font-size:14.5px;font-weight:600;line-height:1.35}
+.lnote{font-size:11.5px;color:#64748b;margin-top:1px;line-height:1.4}
+.track{position:relative;height:20px;margin-top:8px}
+.bar{position:absolute;top:5px;height:10px;border-radius:5px}
+.dot{position:absolute;top:2px;width:16px;height:16px;margin-left:-8px;border-radius:50%;
+ background:#fff;border:2px solid #b9c4d2;font-size:9px;line-height:12px;text-align:center;color:#fff}
+.dot.d{background:#186342;border-color:#186342}
+.tag{display:inline-block;font-size:10.5px;padding:1px 7px;border-radius:9px;
+ border:1px solid currentColor;margin-top:7px;line-height:1.6;font-weight:500}
+.today{position:absolute;top:0;bottom:0;width:2px;background:#0f172a;z-index:3}
+.todaycap{position:absolute;top:-3px;transform:translateX(-50%);background:#0f172a;color:#fff;
+ font-size:9.5px;padding:1px 5px;border-radius:4px;white-space:nowrap;z-index:4}
+.mslist{margin-top:11px;border-top:1px solid #f0f3f8;padding-top:9px}
+.mi{display:flex;gap:8px;align-items:baseline;font-size:12.5px;padding:3px 0}
+.mi b{font-weight:600;white-space:nowrap;min-width:52px}
+.mi .sym{font-size:13px;line-height:1}
+.mi small{color:#64748b;font-size:11.5px}
+.risk{background:#fff;border:1px solid #d9e1ec;border-radius:12px;padding:12px 14px;margin-bottom:12px}
+.risk h2{font-size:13px;color:#64748b;font-weight:600;margin-bottom:7px}
+.ri{display:flex;gap:9px;font-size:13.5px;line-height:1.5;padding:6px 0;border-top:1px solid #f0f3f8}
+.ri:first-of-type{border-top:0}
+.ri .w{color:#b45309;font-size:14px;line-height:1.4}
+.ri em{font-style:normal;color:#155bb5;font-weight:600}
+.foot{padding:9px 16px 15px;font-size:10.5px;color:#7c8a9c;line-height:1.6}
 </style><body data-vp-report="1">
-<div class="banner">第一阶段审阅稿 · 数据来自 Jira 与 GitHub 实际记录 · 横条为<b>暂定</b>计划工期，非管理层已确认承诺</div>
-<div class="head"><div class="brand">翻房协作系统</div><h1>内部上线进度</h1>
-<div class="byline"><span>交付负责人：Ryan</span><span>数据截至 2026-09-16 14:47</span></div></div>
+<div class="wrap">
+<div class="top">翻房协作系统</div><h1>内部上线进度</h1>
 
-<div class="panel">
-<div class="card"><div class="now">15 项开发工作已完成 1 项</div>
-<div class="sub">代码基线已统一。账号权限、任务分派、手机交接三项仍在开发中，均未通过业务验收。</div>
-<div class="next"><b>下一节点</b><span>9/17 会议确定试用范围；9/18 目标演示手机协作</span></div></div>
+<div class="lede"><p>代码基线已完成。账号权限、任务分派、手机协作三项正在开发，都还没有通过验收。</p>
+<div class="nx">下一个节点：明天 9/17 试用方案确认会　下午 2:00（结束时间待确认）</div></div>
 
-<div class="card"><h2>接下来怎么推进</h2>
-<div class="legend">横条＝暂定计划工期（不表示完成度）　竖线＝今天 9/16</div>
-<div class="axis"><span style="left:0;transform:none">9/14</span><span style="left:30.8%">9/18</span>
-<span style="left:61.5%">9/22</span><span style="left:100%;transform:translateX(-100%)">9/27</span></div>
-<div class="lane"><div class="lrow">
- <span class="lname">账号与安全上线</span>
- <span class="ldate">09/15—09/23（暂定）</span></div>
- <div class="track"><div class="bar " style="left:7.69%;width:61.54%"></div>
- <div class="today" style="left:15.38%"></div></div>
- <div class="chips">
-  <span class="chip" style="color:#155bb5">进行中</span>
-  <span class="chip" style="color:#6b7a8d">待确认</span><span class="chip" style="color:#6b7a8d">1/7 项已完成</span></div></div><div class="lane"><div class="lrow">
- <span class="lname">任务分派与确认</span>
- <span class="ldate">09/16—09/17（暂定）</span></div>
- <div class="track"><div class="bar " style="left:15.38%;width:7.69%"></div>
- <div class="today" style="left:15.38%"></div></div>
- <div class="chips">
-  <span class="chip" style="color:#6b7a8d">未开始</span>
-  <span class="chip" style="color:#6b7a8d">待确认</span><span class="chip" style="color:#6b7a8d">0/4 项已完成</span></div></div><div class="lane"><div class="lrow">
- <span class="lname">手机协作演示</span>
- <span class="ldate">09/17—09/18（暂定）</span></div>
- <div class="track"><div class="bar " style="left:23.08%;width:7.69%"></div>
- <div class="today" style="left:15.38%"></div></div>
- <div class="chips">
-  <span class="chip" style="color:#6b7a8d">未开始</span>
-  <span class="chip" style="color:#6b7a8d">待确认</span><span class="chip" style="color:#6b7a8d">0/4 项已完成</span></div></div><div class="lane"><div class="lrow">
- <span class="lname">首批房屋试用</span>
- <span class="ldate">09/24—09/25（暂定）</span></div>
- <div class="track"><div class="bar ms" style="left:76.92%;width:7.69%"></div>
- <div class="today" style="left:15.38%"></div></div>
- <div class="chips">
-  <span class="chip" style="color:#6b7a8d">未开始</span>
-  <span class="chip" style="color:#6b7a8d">待确认</span><span class="chip" style="color:#6b7a8d">尚未在 Jira 建记录</span></div></div>
-<div class="note">左侧四项为业务交付主线，15 张开发执行单见技术详情附页。</div></div>
-
-<div class="card"><h2>近期会议</h2><div class="mt"><b>明天 9/17<br>14:00（结束时间待确认）</b><div>确定试用范围与验收标准<small>确定内部试用的范围、人员、职责与验收标准</small><small>尚未在 Jira 建记录</small></div></div><div class="mt"><b>9/22<br>14:00—14:45</b><div>检查上线准备，决定试用安排<small>检查上线准备，明确试用安排与启动条件</small><small>尚未在 Jira 建记录</small></div></div>
-<div class="note">会议召开不等于决议落实；结论与行动需会后回填。</div></div>
-
-<div class="card"><h2>上线情况</h2><div class="q"><dt>演示环境部署</dt><dd>staging · 9737462 · success</dd></div>
-<div class="q"><dt>AWS 内部上线</dt><dd class="pend">未开始</dd></div>
-<div class="q"><dt>真机验收</dt><dd class="pend">尚未进行</dd></div>
-<div class="note">演示环境部署成功 ≠ 内部上线。开发完成、部署成功、真机验收、业务上线为四件不同的事。</div></div>
-
-<div class="card"><h2>业务判断</h2><div class="q"><dt>现在已经能做什么</dt><dd><span class="pend">待核对</span></dd></div><div class="q"><dt>还差什么</dt><dd><span class="pend">待核对</span></dd></div><div class="q"><dt>怎样才算交付</dt><dd><span class="pend">待核对</span></dd></div><div class="q"><dt>需要谁决定什么</dt><dd><span class="pend">待核对</span></dd></div>
-<div class="note">以上四项须由业务负责人填写后才会显示内容，系统不代为推断。</div></div>
+<div class="chart">
+<div class="legend"><i style="color:#b45309">◆ 会议</i><i style="color:#1d4ed8">● 交付目标</i>
+<i style="color:#7c3aed">▰ 试用</i><i style="color:#186342">✓ 已完成</i><i>○ 未完成</i><i>▮ 今天</i></div>
+<div class="grid">
+<div class="axis"><span style="left:3%">9/14</span><span style="left:30.8%">9/18</span>
+<span style="left:61.5%">9/22</span><span style="left:95%">9/27</span></div>
+<div class="msrail"><div class="today" style="left:15.38%"></div>
+<span class="todaycap" style="left:15.38%">今天 9/16</span><span class="ms meeting" style="left:23.08%">◆</span><span class="msdate" style="left:23.08%">9/17</span><span class="ms target" style="left:30.77%">●</span><span class="msdate" style="left:30.77%">9/18</span><span class="ms meeting" style="left:61.54%">◆</span><span class="msdate" style="left:61.54%">9/22</span><span class="ms target" style="left:69.23%">●</span><span class="msdate" style="left:69.23%">9/23</span><span class="ms trial" style="left:76.92%">▰</span><span class="msdate" style="left:76.92%">9/24</span></div>
+<div class="lane">
+<div class="lname">账号权限与上线准备</div><div class="lnote">每人独立登录，只能看到自己项目的资料</div>
+<div class="track"><div class="bar" style="left:7.69%;width:61.54%;
+ background:#155bb5;opacity:.30"></div><span class="dot d" style="left:13.28%">✓</span><span class="dot" style="left:17.48%"></span><span class="dot" style="left:51.75%"></span><span class="dot" style="left:55.95%"></span><span class="dot" style="left:59.44%"></span><span class="dot" style="left:63.64%"></span><span class="dot" style="left:69.23%"></span>
+<div class="today" style="left:15.38%"></div></div>
+<span class="tag" style="color:#155bb5">正在推进</span></div><div class="lane">
+<div class="lname">任务分派与交付确认</div><div class="lnote">负责人能派任务，并确认交付结果</div>
+<div class="track"><div class="bar" style="left:15.38%;width:7.69%;
+ background:#97a3b4;opacity:.30"></div><span class="dot" style="left:15.38%"></span><span class="dot" style="left:18.88%"></span><span class="dot" style="left:23.08%"></span><span class="dot" style="left:27.28%"></span>
+<div class="today" style="left:15.38%"></div></div>
+<span class="tag" style="color:#97a3b4">尚未开始</span></div><div class="lane">
+<div class="lname">手机协作演示</div><div class="lnote">执行者用手机交材料，负责人在电脑确认</div>
+<div class="track"><div class="bar" style="left:23.08%;width:7.69%;
+ background:#97a3b4;opacity:.30"></div><span class="dot" style="left:23.08%"></span><span class="dot" style="left:26.57%"></span><span class="dot" style="left:30.77%"></span><span class="dot" style="left:34.97%"></span>
+<div class="today" style="left:15.38%"></div></div>
+<span class="tag" style="color:#97a3b4">尚未开始</span></div><div class="lane">
+<div class="lname">首批房屋内部试用</div><div class="lnote">选 2–3 套房，真实走一遍流程</div>
+<div class="track"><div class="bar" style="left:76.92%;width:7.69%;
+ background:#97a3b4;opacity:.30"></div>
+<div class="today" style="left:15.38%"></div></div>
+<span class="tag" style="color:#97a3b4">尚未开始</span></div>
+</div>
+<div class="mslist"><div class="mi"><span class="sym" style="color:#b45309">◆</span><b>明天 9/17</b><span>试用方案确认会<small>　下午 2:00（结束时间待确认）</small></span></div><div class="mi"><span class="sym" style="color:#1d4ed8">●</span><b>9/18</b><span>手机协作演示<small>　目标</small></span></div><div class="mi"><span class="sym" style="color:#b45309">◆</span><b>9/22</b><span>上线准备检查会<small>　下午 2:00–2:45</small></span></div><div class="mi"><span class="sym" style="color:#1d4ed8">●</span><b>9/23</b><span>云上线验收<small>　目标</small></span></div><div class="mi"><span class="sym" style="color:#7c3aed">▰</span><b>9/24</b><span>首批房屋内部试用<small>　目标 9/24–25</small></span></div></div>
 </div>
 
-<div class="foot">
-<b>数据截至：</b>2026-09-16 14:47（最后一次成功同步）<br>
-<b>业务核对人：</b>尚未核对　<b>业务核对时间：</b>尚未核对<br>
-<b>证据来源：</b>Jira KAN 项目（Epic KAN-35/36/37 及其子项）、GitHub 部署记录<br>
-<b>口径：</b>开始日期为按依赖链倒推的暂定值，非实际开工时间；不提供总体完成百分比。
-</div></body></html>
+<div class="risk"><h2>需要关注</h2>
+<div class="ri"><span class="w">▲</span><span>上线准备检查会排在云上线验收<b>前一天</b>，若当天准备未就绪，需当场决定缩小试用范围或改期。<em>　→ Ryan 与 PM</em></span></div>
+<div class="ri"><span class="w">▲</span><span>下周云上线的两项准备工作，计划完成时间早于它们依赖的基础设施，排期需要确认。<em>　→ Ryan</em></span></div>
+</div>
+</div>
+<div class="foot">横条为暂定计划时间，非已确认承诺；节点打勾表示该项工作已完成，日期走过不代表完成。<br>
+数据截至 2026-09-16 14:47　业务核对：尚未核对　时区 America/Los_Angeles</div>
+</body></html>
