@@ -76,6 +76,7 @@ class Line:
     children: list[str] = field(default_factory=list)
     subtasks: list[str] = field(default_factory=list)
     done_count: int = 0           # 仅辅助信息，不等于业务完成度
+    active_count: int = 0         # 正在进行的执行单数：子单开工，主线就该动
     total_count: int = 0
     # 业务叙述：只从 Epic 描述的「管理摘要 v1」区读，脚本永不推断
     business_name: str = ""
@@ -90,6 +91,9 @@ class Line:
     reviewed_at: str | None = None
     # 这条主线缺了什么，逐条说清楚，供页面显示「待确认：…」
     missing: list[str] = field(default_factory=list)
+    # 自相矛盾、占位值冒充结论之类的问题：必须出现在首页「需要关注」，
+    # 埋在展开详情里等于没说
+    conflicts: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -102,6 +106,36 @@ class Milestone:
     status_category: str = "new"
     jira_key: str | None = None
     note: str = ""
+    date_provisional: bool = False   # 日期字段有值 ≠ 已确认承诺
+    missing: list[str] = field(default_factory=list)
+
+
+@dataclass
+class Event:
+    """首页统一展示的业务节点。
+
+    交付目标、试用、会议**共用一条时间轴**。分开维护会出现这种事：
+    9/17 的会议在快照里读到了，首页却说下一个节点是 9/18 的交付单。
+    """
+    title: str
+    kind: str                        # meeting / target / trial
+    date: str                        # "" = 日期待确认，仍要显示，不能静默消失
+    end_date: str | None = None
+    start_time: str | None = None    # None = 时刻未填
+    end_time: str | None = None
+    time_provisional: bool = False   # 没写时区，按 LA 解释
+    date_provisional: bool = False   # 日期只是暂定
+    status_category: str = "new"
+    jira_key: str | None = None
+    note: str = ""
+    missing: list[str] = field(default_factory=list)
+
+    def order(self) -> tuple:
+        """同日按已知时刻排序；时刻未知的排在当天已知时刻之后。"""
+        return (self.date or "9999-12-31", self.start_time or "99:99")
+
+    def is_done(self) -> bool:
+        return self.status_category == "done"
 
 
 @dataclass
@@ -138,6 +172,8 @@ class Snapshot:
     schema_version: int = SCHEMA_VERSION
     fetch_errors: list[str] = field(default_factory=list)
     lines: list[Line] = field(default_factory=list)
+    # events = 页面实际展示的统一节点集合（由 milestones + meetings 合并去重）
+    events: list[Event] = field(default_factory=list)
     milestones: list[Milestone] = field(default_factory=list)
     meetings: list[Meeting] = field(default_factory=list)
     deployments: list[Deployment] = field(default_factory=list)
@@ -183,9 +219,35 @@ def validate_integrity(snap: Snapshot) -> None:
     for ms in snap.milestones:
         if ms.kind not in MILESTONE_KINDS:
             raise ContractError(f"里程碑 {ms.title} 类型非法：{ms.kind!r}")
-        _require_date(ms.date, f"里程碑 {ms.title}")
+        # 缺日期是**业务事实**（没填交付日），不是数据损坏：页面显示待确认。
+        if ms.date:
+            _require_date(ms.date, f"里程碑 {ms.title}")
     for m in snap.meetings:
-        _require_date(m.date, f"会议 {m.title}")
+        if m.date:
+            _require_date(m.date, f"会议 {m.title}")
+    for ev in snap.events:
+        if ev.kind not in MILESTONE_KINDS:
+            raise ContractError(f"节点 {ev.title} 类型非法：{ev.kind!r}")
+        if ev.date:
+            _require_date(ev.date, f"节点 {ev.title}")
+
+
+def next_event(events: list[Event], today: date) -> Event | None:
+    """下一个待办节点：日期未过且没完成的第一个。
+
+    过去的、已完成的都不算——首页写「下一个节点」却指着上周的会议，
+    比不写还糟。events 已按 (日期, 时刻) 排好序。
+    """
+    for ev in events:
+        if not ev.date or ev.is_done():
+            continue
+        try:
+            when = date.fromisoformat(ev.date)
+        except ValueError:
+            continue
+        if when >= today:
+            return ev
+    return None
 
 
 def _require_date(value: str, what: str) -> None:

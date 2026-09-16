@@ -10,6 +10,7 @@
 
 from __future__ import annotations
 
+import re
 from datetime import date, datetime
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -17,7 +18,7 @@ from zoneinfo import ZoneInfo
 from . import adf, settings
 from .contract import (
     FETCH_FAILED, FETCH_OK, FETCH_PARTIAL, SCHEMA_VERSION, UNKNOWN, UNREVIEWED,
-    Issue, Line, Meeting, Milestone, Snapshot, check_dates,
+    Event, Issue, Line, Meeting, Milestone, Snapshot, check_dates, next_event,
 )
 from .jira_client import JiraClient, JiraError
 
@@ -30,6 +31,9 @@ TRIAL_LABEL = "mgmt-trial"
 
 _RISK_MAP = {"按计划": "按计划", "有风险": "有风险", "已延期": "已延期", UNREVIEWED: UNKNOWN}
 
+# 业务核对时间至少要有一个能解析的日期，可再带 HH:MM 和时区文字
+_REVIEW_TIME_RE = re.compile(r"^(\d{4}-\d{2}-\d{2})(?:[ T](\d{2}):(\d{2}))?")
+
 
 def today_local() -> date:
     return datetime.now(TZ).date()
@@ -37,6 +41,24 @@ def today_local() -> date:
 
 def now_iso() -> str:
     return datetime.now(TZ).isoformat(timespec="seconds")
+
+
+def valid_review_time(text: Any) -> bool:
+    """业务核对时间必须是能解析的日期（可带时刻），不能是一句话或占位词。"""
+    if adf.is_placeholder(text):
+        return False
+    m = _REVIEW_TIME_RE.match(str(text).strip())
+    if not m:
+        return False
+    try:
+        date.fromisoformat(m.group(1))
+    except ValueError:
+        return False
+    if m.group(2) is not None:
+        hh, mm = int(m.group(2)), int(m.group(3))
+        if not (0 <= hh <= 23 and 0 <= mm <= 59):
+            return False
+    return True
 
 
 # ---------- 原始 Jira → 契约对象 ----------
@@ -48,7 +70,6 @@ def parse_issue(raw: dict[str, Any], start_field: str) -> Issue:
     category = (status.get("statusCategory") or {}).get("key") or "new"
     blocked_by = []
     for link in f.get("issuelinks") or []:
-        # inwardIssue + type.inward == "is blocked by"
         inward = link.get("inwardIssue")
         ltype = (link.get("type") or {}).get("inward", "")
         if inward and "block" in str(ltype).lower():
@@ -73,28 +94,56 @@ def _labels(raw: dict[str, Any]) -> list[str]:
     return [str(x) for x in ((raw.get("fields") or {}).get("labels") or [])]
 
 
+def display_name(raw: dict[str, Any]) -> str:
+    """页面上显示的名字。
+
+    Jira 标题是给开发看的（「D4 · 修复真机验收问题…」「B4 · 用 CDK 建立…」），
+    VP 不该读这些。想换个说法，在描述里写一行「展示名称：…」即可——
+    **在 Jira 维护，不写死回代码**。没写就照用 Jira 标题。
+    """
+    f = raw.get("fields") or {}
+    name = adf.find_line_value(f.get("description"), adf.DISPLAY_NAME_KEY)
+    if name and not adf.is_placeholder(name):
+        return name
+    return f.get("summary") or raw.get("key", "")
+
+
+def _date_is_provisional(raw: dict[str, Any]) -> bool:
+    """日期字段有值 ≠ 已确认承诺。要暂定就在描述里写「日期状态：暂定」。"""
+    f = raw.get("fields") or {}
+    status = adf.find_line_value(f.get("description"), adf.DATE_STATUS_KEY)
+    if not status:
+        return False
+    return status.strip().lower() in adf.PROVISIONAL_WORDS
+
+
 def compute_lane_state(
-    done_count: int, total_count: int, epic_category: str,
+    done_count: int, active_count: int, total_count: int, epic_category: str,
     summary: dict[str, str], due: str | None, today: date,
 ) -> tuple[str, str]:
     """交付阶段与风险提示。**顶部摘要和图里的状态都调这一个函数。**
 
     规则（brief §6）：ticket 全 Done 只到「待验收」；必须有明确的整体验收结果
     才是「已验收」。不得仅凭处于待验收就显示延期。
+
+    `active_count` 是**正在进行**的执行单数。没有它的话，Epic 还挂在「待办」、
+    子单已经开工的主线会显示成「未开始」——开工要靠人手动去改 Epic 才看得见，
+    那报告就不是跟着 Jira 走了。
     """
-    # 「已验收」是业务结论，门槛是四样齐全：验收结果 + 证据 + 确认人 + 确认时间。
-    # 少任何一样都只能停在「待验收」——没人签字的"已验收"就是猜的。
+    # 「已验收」是业务结论，门槛是四样齐全且**都不是占位词**：
+    # 验收结果 + 证据 + 确认人 + 可解析的确认时间。
+    # 「整体验收：已通过 / 验收证据：待核对」不是验收，是还没填完。
     accepted = (
         summary.get("整体验收") == "已通过"
-        and summary.get("验收证据")
-        and summary.get("业务核对人")
-        and summary.get("业务核对时间")
+        and not adf.is_placeholder(summary.get("验收证据"))
+        and not adf.is_placeholder(summary.get("业务核对人"))
+        and valid_review_time(summary.get("业务核对时间"))
     )
     if accepted:
         stage = "已验收"
     elif total_count > 0 and done_count == total_count:
         stage = "待验收"
-    elif done_count > 0 or epic_category == "indeterminate":
+    elif done_count > 0 or active_count > 0 or epic_category == "indeterminate":
         stage = "进行中"
     else:
         stage = "未开始"
@@ -115,38 +164,67 @@ def _rollup_due(children: list[Issue]) -> str | None:
     return max(dues) if dues else None
 
 
+def _lane_start(epic: dict[str, Any], children: list[Issue], start_field: str) -> str | None:
+    """先用 Epic 自己的开始日期；没填才退回子项里最早的开始日。"""
+    own = (epic.get("fields") or {}).get(start_field)
+    if isinstance(own, str) and own:
+        return own
+    starts = [c.start for c in children if c.start]
+    return min(starts) if starts else None
+
+
 def build_line(epic: dict[str, Any], children: list[Issue], subtasks: list[Issue],
                today: date, start_field: str = "customfield_10015") -> Line:
     f = epic.get("fields") or {}
     key = epic.get("key", "")
-    fields, missing_fields, has_block = adf.parse_summary(f.get("description"))
+    parsed = adf.parse_summary(f.get("description"))
+    fields = parsed.fields
 
     missing: list[str] = []
-    if not has_block:
+    conflicts: list[str] = []
+    if not parsed.found:
         missing.append(f"{key} 描述里没有「{adf.SUMMARY_MARKER}」区")
-    elif missing_fields:
-        missing.append(f"{key} 管理摘要缺：{'、'.join(missing_fields)}")
+    else:
+        conflicts.extend(f"{key} {c}" for c in parsed.conflicts)
+        if parsed.placeholders:
+            missing.append(f"{key} 这些字段还是占位值：{'、'.join(parsed.placeholders)}")
+        remaining = [m for m in parsed.missing if m not in parsed.placeholders]
+        if remaining:
+            missing.append(f"{key} 管理摘要缺：{'、'.join(remaining)}")
     if not f.get("duedate"):
         missing.append(f"{key} 没有填承诺日（截止日期）")
+    # 声称已通过但拿不出完整依据：这是矛盾，要让人看见，不是静静降级
+    if fields.get("整体验收") == "已通过":
+        gaps = [label for label, ok in (
+            ("验收证据", not adf.is_placeholder(fields.get("验收证据"))),
+            ("业务核对人", not adf.is_placeholder(fields.get("业务核对人"))),
+            ("业务核对时间", valid_review_time(fields.get("业务核对时间"))),
+        ) if not ok]
+        if gaps:
+            conflicts.append(
+                f"{key} 标了「整体验收：已通过」，但 {'、'.join(gaps)} 还不可用，"
+                "按待验收显示")
 
     done = sum(1 for c in children if c.status_category == "done")
+    active = sum(1 for c in children if c.status_category == "indeterminate")
     category = ((f.get("status") or {}).get("statusCategory") or {}).get("key") or "new"
-    stage, risk = compute_lane_state(done, len(children), category, fields,
+    stage, risk = compute_lane_state(done, active, len(children), category, fields,
                                      f.get("duedate"), today)
 
     return Line(
         id=key.lower(),
-        title=fields.get("业务名称") or f.get("summary") or key,
+        title=display_name(epic),
         jira_key=key,
         start=_lane_start(epic, children, start_field),
         due=f.get("duedate"),
         rollup_due=_rollup_due(children),
-        dates_provisional=False,
+        dates_provisional=_date_is_provisional(epic),
         stage=stage,
         risk=risk,
         children=[c.key for c in children],
         subtasks=[s.key for s in subtasks],
         done_count=done,
+        active_count=active,
         total_count=len(children),
         business_name=fields.get("业务名称", ""),
         has_now=fields.get("已经具备", UNREVIEWED),
@@ -159,53 +237,83 @@ def build_line(epic: dict[str, Any], children: list[Issue], subtasks: list[Issue
         reviewed_by=fields.get("业务核对人"),
         reviewed_at=fields.get("业务核对时间"),
         missing=missing,
+        conflicts=conflicts,
     )
 
 
-def _lane_start(epic: dict[str, Any], children: list[Issue], start_field: str) -> str | None:
-    """先用 Epic 自己的开始日期；没填才退回子项里最早的开始日。"""
-    own = (epic.get("fields") or {}).get(start_field)
-    if isinstance(own, str) and own:
-        return own
-    starts = [c.start for c in children if c.start]
-    return min(starts) if starts else None
+def milestone_kind(raw: dict[str, Any]) -> str:
+    labels = _labels(raw)
+    if TRIAL_LABEL in labels:
+        return "trial"
+    if MEETING_LABEL in labels:
+        return "meeting"
+    return "target"
 
 
 def build_milestone(raw: dict[str, Any], start_field: str) -> Milestone:
+    """按类别决定节点画在哪一天。
+
+    交付目标画在**交付日**（截止日期）。以前一律优先开始日，结果
+    start=9/21、due=9/23 的交付单被画在 9/21——把开工日当成了交付承诺。
+    缺截止日期就留空，页面显示待确认，不拿开工日顶替。
+    """
     f = raw.get("fields") or {}
-    labels = _labels(raw)
-    kind = "trial" if TRIAL_LABEL in labels else (
-        "meeting" if MEETING_LABEL in labels else "target")
+    key = raw.get("key", "")
+    kind = milestone_kind(raw)
     start = f.get(start_field)
+    start = start if isinstance(start, str) and start else None
     due = f.get("duedate")
-    begin = start if isinstance(start, str) and start else due
-    end = due if (start and due and start != due) else None
+
+    missing: list[str] = []
+    if kind == "trial":
+        # 试用是一段区间：开始 → 结束
+        begin = start or due
+        end = due if (start and due and start != due) else None
+        if not begin:
+            missing.append(f"{key} 试用没有填开始或结束日期")
+    elif kind == "meeting":
+        begin, end = due, None
+        if not begin:
+            missing.append(f"{key} 会议没有填日期")
+    else:
+        begin, end = due, None          # 交付目标 = 交付日
+        if not begin:
+            missing.append(f"{key} 没有填交付日（截止日期）")
+
     category = ((f.get("status") or {}).get("statusCategory") or {}).get("key") or "new"
     return Milestone(
-        title=f.get("summary") or raw.get("key", ""),
+        title=display_name(raw),
         date=begin or "",
         end_date=end,
         kind=kind,
         status_category=category,
-        jira_key=raw.get("key"),
+        jira_key=key,
+        date_provisional=_date_is_provisional(raw),
+        missing=missing,
     )
 
 
 def build_meeting(raw: dict[str, Any]) -> Meeting:
     f = raw.get("fields") or {}
     key = raw.get("key", "")
-    fields, missing_fields, has_block = adf.parse_meeting(f.get("description"))
+    parsed = adf.parse_meeting(f.get("description"))
+    fields = parsed.fields
 
     missing: list[str] = []
-    if not has_block:
+    if not parsed.found:
         missing.append(f"{key} 描述里没有「{adf.MEETING_MARKER}」区")
-    elif missing_fields:
-        missing.append(f"{key} 会议纪要缺：{'、'.join(missing_fields)}")
+    else:
+        for conflict in parsed.conflicts:
+            missing.append(f"{key} {conflict}")
+        if parsed.missing:
+            missing.append(f"{key} 会议纪要缺：{'、'.join(parsed.missing)}")
+    if not f.get("duedate"):
+        missing.append(f"{key} 会议没有填日期")
 
     tz_text = fields.get("时区", "")
     # duedate 只有日期，代替不了 14:00 的时刻；时刻只从纪要区读。
     return Meeting(
-        title=f.get("summary") or key,
+        title=display_name(raw),
         date=f.get("duedate") or "",
         start_time=fields.get("开始") or None,
         end_time=fields.get("结束") or None,
@@ -218,6 +326,39 @@ def build_meeting(raw: dict[str, Any]) -> Meeting:
         time_provisional=not tz_text,
         missing=missing,
     )
+
+
+def build_events(milestones: list[Milestone], meetings: list[Meeting]) -> list[Event]:
+    """交付目标、试用、会议合并成**一条时间轴**上的同一批节点。
+
+    会议只凭 mgmt-meeting 标签就该出现，不要求再补第二个标签。
+    同一个 Jira key 两边都出现时按会议算——会议带时刻，信息更全。
+    """
+    events: list[Event] = []
+    seen: set[str] = set()
+
+    for m in meetings:
+        if m.jira_key:
+            seen.add(m.jira_key)
+        events.append(Event(
+            title=m.title, kind="meeting", date=m.date,
+            start_time=m.start_time, end_time=m.end_time,
+            time_provisional=m.time_provisional,
+            status_category="new", jira_key=m.jira_key, missing=list(m.missing),
+        ))
+
+    for ms in milestones:
+        if ms.jira_key and ms.jira_key in seen:
+            continue                     # 已经以会议身份进来了，不重复
+        events.append(Event(
+            title=ms.title, kind=ms.kind, date=ms.date, end_date=ms.end_date,
+            date_provisional=ms.date_provisional,
+            status_category=ms.status_category, jira_key=ms.jira_key,
+            missing=list(ms.missing),
+        ))
+
+    events.sort(key=lambda e: e.order())
+    return events
 
 
 # ---------- 组装 ----------
@@ -253,13 +394,12 @@ def assemble(
                 if parent in child_keys for s in group]
         lines.append(build_line(epic, children, subs, today, start_field))
 
+    # 缺日期的记录**保留**并显示为待确认，不静默丢掉
     milestones = [build_milestone(r, start_field) for r in milestone_raw]
-    milestones = [m for m in milestones if m.date]
-    milestones.sort(key=lambda m: m.date)
+    milestones.sort(key=lambda m: m.date or "9999-12-31")
 
     meetings = [build_meeting(r) for r in meeting_raw]
-    meetings = [m for m in meetings if m.date]
-    meetings.sort(key=lambda m: m.date)
+    meetings.sort(key=lambda m: (m.date or "9999-12-31", m.start_time or "99:99"))
 
     status = FETCH_PARTIAL if errors else FETCH_OK
     snap = Snapshot(
@@ -270,6 +410,7 @@ def assemble(
         schema_version=SCHEMA_VERSION,
         fetch_errors=errors,
         lines=lines,
+        events=build_events(milestones, meetings),
         milestones=milestones,
         meetings=meetings,
         issues=all_issues,

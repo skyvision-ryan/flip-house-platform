@@ -26,6 +26,7 @@ from datetime import date, timedelta
 from typing import Any
 
 from . import settings
+from .contract import next_event
 
 SENTINEL = 'data-vp-report="1"'
 
@@ -201,9 +202,11 @@ class Axis:
                 d = _parse(ln.get(key))
                 if d:
                     dates.append(d)
-        for ms in snap.get("milestones") or []:
+        # events = 交付目标 + 试用 + 会议。会议日期也必须参与范围计算，
+        # 否则 9/17 的会议会被挤到轴外。
+        for ev in snap.get("events") or []:
             for key in ("date", "end_date"):
-                d = _parse(ms.get(key))
+                d = _parse(ev.get(key))
                 if d:
                     dates.append(d)
         for it in snap.get("issues") or []:
@@ -346,25 +349,34 @@ def _lanes_html(snap: dict, axis: Axis, today: date, sheet: StyleSheet) -> str:
         a, b = axis.pos(start), axis.pos(due)
         bar_cls = sheet.cls(f"left:{a:.2f}%;width:{max(b - a, 2.5):.2f}%")
         progress = f'{ln.get("done_count", 0)}/{ln.get("total_count", 0)} 张执行单完成'
+        # 阶段和风险是两个维度，首页要同时看得见：「正在推进」+「已延期」。
+        # 以前只画阶段，算出来的"已延期"整页一个字都没有。
+        risk = ln.get("risk")
+        risk_chip = (f'<span class="tag warn ml8">{esc(risk)}</span>'
+                     if risk in ("已延期", "有风险") else "")
         out += (
             f'<div class="lane">{head}'
             f'<div class="track"><div class="bar {bg_cls} {bar_cls}"></div>'
             f'{_dots(children, axis, sheet)}'
             f'<div class="today {today_cls}"></div></div>'
-            f'<span class="tag {text_cls}">{esc(tag)}</span>'
+            f'<span class="tag {text_cls}">{esc(tag)}</span>{risk_chip}'
             f'<span class="lnote ml8">{esc(progress)}</span>'
             f'{_lane_details(ln, children)}</div>')
     return out
 
 
-def _milestone_rail(snap: dict, axis: Axis, sheet: StyleSheet) -> str:
+def _event_rail(snap: dict, axis: Axis, sheet: StyleSheet) -> str:
+    """一条轨道上同时放交付目标、试用和会议。
+
+    以前会议不在这里——快照里读到了 9/17 的会议，图上却没有菱形。
+    """
     rail = ""
-    for ms in snap.get("milestones") or []:
-        d = _parse(ms.get("date"))
+    for ev in snap.get("events") or []:
+        d = _parse(ev.get("date"))
         if not d:
-            continue
+            continue                     # 没日期的在下面的清单里显示待确认
         left = sheet.left(axis.pos(d))
-        kind = ms.get("kind") or "target"
+        kind = ev.get("kind") or "target"
         color_cls = KIND_CLASS.get(kind, "c-target")
         sym = KIND_SYMBOL.get(kind, "●")
         rail += (f'<span class="ms {color_cls} {left}">{sym}</span>'
@@ -372,23 +384,60 @@ def _milestone_rail(snap: dict, axis: Axis, sheet: StyleSheet) -> str:
     return rail
 
 
-def _milestone_list(snap: dict, today: date) -> str:
-    out = ""
-    for ms in snap.get("milestones") or []:
-        d = _parse(ms.get("date"))
-        if not d:
-            continue
-        end = _parse(ms.get("end_date"))
-        rel = _relative(d, today)
-        head = f'{rel + " " if rel else ""}{_md(d)}' + (f'–{_md(end)}' if end else "")
-        kind = ms.get("kind") or "target"
+def _event_clock(ev: dict) -> str:
+    """会议要显示时刻；时刻没填就明说，不留空让人以为是全天。"""
+    if ev.get("kind") != "meeting":
+        return ""
+    start_t, end_t = ev.get("start_time"), ev.get("end_time")
+    if start_t and end_t:
+        clock = f"{start_t}–{end_t}"
+    elif start_t:
+        clock = f"{start_t}（结束时间待确认）"
+    else:
+        clock = "时刻待确认"
+    return clock + ("（时区暂定）" if ev.get("time_provisional") else "")
+
+
+def _event_list(snap: dict, today: date) -> str:
+    events = snap.get("events") or []
+    if not events:
+        return ('<div class="kv warn">待确认：Jira 里还没有带 mgmt-milestone 或 '
+                'mgmt-meeting 标签的节点记录。</div>')
+    dated, undated = "", ""
+    for ev in events:
+        kind = ev.get("kind") or "target"
         color_cls = KIND_CLASS.get(kind, "c-target")
         sym = KIND_SYMBOL.get(kind, "●")
-        state = "已完成" if ms.get("status_category") == "done" else "目标"
-        out += (f'<div class="mi"><span class="sym {color_cls}">{sym}</span>'
-                f'<b>{esc(head)}</b><span>{esc(ms.get("title"))}'
-                f'<small>　{esc(state)}　{jira_link(ms.get("jira_key"))}</small></span></div>')
-    return out or '<div class="kv warn">待确认：Jira 里还没有带 mgmt-milestone 标签的里程碑记录。</div>'
+        title = esc(ev.get("title"))
+        link = jira_link(ev.get("jira_key"))
+
+        d = _parse(ev.get("date"))
+        if not d:
+            # 缺日期的记录保留并标出来，不能静默消失
+            undated += (f'<div class="mi"><span class="sym {color_cls}">{sym}</span>'
+                        f'<b class="warn">日期待确认</b><span>{title}'
+                        f'<small>　{link}</small></span></div>')
+            continue
+
+        end = _parse(ev.get("end_date"))
+        rel = _relative(d, today)
+        head = f'{rel + " " if rel else ""}{_md(d)}' + (f'–{_md(end)}' if end else "")
+        if kind == "meeting":
+            state = "会议"
+        elif ev.get("status_category") == "done":
+            state = "已完成"
+        else:
+            state = "目标"
+        extras = [state]
+        clock = _event_clock(ev)
+        if clock:
+            extras.append(clock)
+        if ev.get("date_provisional"):
+            extras.append("日期暂定")
+        dated += (f'<div class="mi"><span class="sym {color_cls}">{sym}</span>'
+                  f'<b>{esc(head)}</b><span>{title}'
+                  f'<small>　{esc("　".join(extras))}　{link}</small></span></div>')
+    return dated + undated
 
 
 def _meetings_html(snap: dict, today: date) -> str:
@@ -436,6 +485,17 @@ def _attention_html(snap: dict) -> str:
     items: list[str] = []
     for ln in snap.get("lines") or []:
         title = ln.get("title") or ""
+        # 自相矛盾优先：占位值冒充验收、同字段填了两个值
+        for conflict in ln.get("conflicts") or []:
+            items.append(esc(conflict))
+        # 系统判定的风险：到期未完成。不需要人先补一句风险说明才看得见。
+        risk = ln.get("risk")
+        if risk == "已延期":
+            left = (ln.get("total_count") or 0) - (ln.get("done_count") or 0)
+            items.append(f'{esc(title)}：目标日 {esc(ln.get("due"))} 已过，'
+                         f'仍有 {esc(left)} 张执行单未完成')
+        elif risk == "有风险":
+            items.append(f'{esc(title)}：已标记为有风险')
         if ln.get("risk_note"):
             items.append(f'{esc(title)}：{esc(ln["risk_note"])}')
         decision = ln.get("decision_needed")
@@ -450,8 +510,27 @@ def _attention_html(snap: dict) -> str:
                 '<span class="warn">（"没有取到"不等于"没有风险"——风险判断需要人填。）</span>'
                 '</div></div>')
     rows = "".join(f'<div class="ri"><span class="w">▲</span><span>{i}</span></div>'
-                   for i in items[:6])
+                   for i in items[:8])
     return f'<div class="risk"><h2>需要关注</h2>{rows}</div>'
+
+
+class _Event:
+    """把快照里的事件 dict 包一层，好让 contract.next_event 用同一套规则。
+
+    页面拿到的是 to_dict() 之后的普通字典，而"下一个节点"的规则只写一份，
+    放在 contract 里。这层适配器就是为了不把规则复制第二遍。
+    """
+
+    __slots__ = ("_d",)
+
+    def __init__(self, d: dict) -> None:
+        self._d = d
+
+    def __getattr__(self, name: str) -> Any:
+        return self._d.get(name)
+
+    def is_done(self) -> bool:
+        return self._d.get("status_category") == "done"
 
 
 def _lede(snap: dict, today: date) -> str:
@@ -465,13 +544,17 @@ def _lede(snap: dict, today: date) -> str:
     if not counts.get("已验收") and lines:
         sentence += "目前还没有任何一条通过业务验收。"
 
-    upcoming = [m for m in (snap.get("milestones") or [])
-                if (_parse(m.get("date")) or date.max) >= today]
-    if upcoming:
-        nxt = min(upcoming, key=lambda m: m["date"])
-        d = _parse(nxt["date"])
+    # 会议、交付目标、试用共用一个集合选"下一个"——不然快照里明明有 9/17 的会议，
+    # 首页却指向 9/18 的交付单。
+    nxt = next_event([_Event(e) for e in (snap.get("events") or [])], today)
+    if nxt is not None:
+        d = _parse(nxt.date)
         rel = _relative(d, today)
-        nxt_txt = f'下一个节点：{rel + " " if rel else ""}{_md(d)} {nxt.get("title")}'
+        clock = _event_clock({"kind": nxt.kind, "start_time": nxt.start_time,
+                              "end_time": nxt.end_time,
+                              "time_provisional": nxt.time_provisional})
+        nxt_txt = (f'下一个节点：{rel + " " if rel else ""}{_md(d)} {nxt.title}'
+                   + (f'　{clock}' if clock else ""))
     else:
         nxt_txt = "后续节点待确认"
     return (f'<div class="lede"><p>{esc(sentence)}</p>'
@@ -555,7 +638,7 @@ def report_page(state: dict, nonce: str) -> str:
 
     ticks = "".join(
         f'<span class="{sheet.label_left(axis.pos(t))}">{_md(t)}</span>' for t in axis.ticks())
-    rail = _milestone_rail(snap, axis, sheet)
+    rail = _event_rail(snap, axis, sheet)
     lanes = _lanes_html(snap, axis, today, sheet)
 
     fetched = (snap.get("fetched_at") or "")[:16].replace("T", " ")
@@ -576,7 +659,7 @@ def report_page(state: dict, nonce: str) -> str:
 <span class="todaycap {todaycap_cls}">今天 {_md(today)}</span>{rail}</div>
 {lanes}
 </div>
-<div class="mslist">{_milestone_list(snap, today)}</div>
+<div class="mslist">{_event_list(snap, today)}</div>
 </div>
 {_attention_html(snap)}
 {_meetings_html(snap, today)}
