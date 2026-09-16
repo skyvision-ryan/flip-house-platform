@@ -1,0 +1,340 @@
+{
+  "fetch_status": "ok",
+  "fetched_at": "2026-09-16T14:47:07-07:00",
+  "timezone": "America/Los_Angeles",
+  "today": "2026-09-16",
+  "fetch_errors": [],
+  "lines": [
+    {
+      "id": "account",
+      "title": "账号与安全上线",
+      "jira_key": "KAN-35",
+      "jira_note": "",
+      "start": "2026-09-15",
+      "due": "2026-09-23",
+      "dates_provisional": true,
+      "stage": "进行中",
+      "risk": "待确认",
+      "children": [
+        "KAN-20",
+        "KAN-21",
+        "KAN-22",
+        "KAN-23",
+        "KAN-24",
+        "KAN-25",
+        "KAN-26"
+      ],
+      "done_count": 1,
+      "total_count": 7,
+      "has_now": "待核对",
+      "needs": "待核对",
+      "definition_of_done": "待核对",
+      "decision_needed": "待核对"
+    },
+    {
+      "id": "tasks",
+      "title": "任务分派与确认",
+      "jira_key": "KAN-36",
+      "jira_note": "",
+      "start": "2026-09-16",
+      "due": "2026-09-17",
+      "dates_provisional": true,
+      "stage": "未开始",
+      "risk": "待确认",
+      "children": [
+        "KAN-27",
+        "KAN-28",
+        "KAN-29",
+        "KAN-30"
+      ],
+      "done_count": 0,
+      "total_count": 4,
+      "has_now": "待核对",
+      "needs": "待核对",
+      "definition_of_done": "待核对",
+      "decision_needed": "待核对"
+    },
+    {
+      "id": "mobile",
+      "title": "手机协作演示",
+      "jira_key": "KAN-37",
+      "jira_note": "",
+      "start": "2026-09-17",
+      "due": "2026-09-18",
+      "dates_provisional": true,
+      "stage": "未开始",
+      "risk": "待确认",
+      "children": [
+        "KAN-31",
+        "KAN-32",
+        "KAN-33",
+        "KAN-34"
+      ],
+      "done_count": 0,
+      "total_count": 4,
+      "has_now": "待核对",
+      "needs": "待核对",
+      "definition_of_done": "待核对",
+      "decision_needed": "待核对"
+    },
+    {
+      "id": "trial",
+      "title": "首批房屋试用",
+      "jira_key": null,
+      "jira_note": "尚未在 Jira 建记录",
+      "start": "2026-09-24",
+      "due": "2026-09-25",
+      "dates_provisional": true,
+      "stage": "未开始",
+      "risk": "待确认",
+      "children": [],
+      "done_count": 0,
+      "total_count": 0,
+      "has_now": "待核对",
+      "needs": "待核对",
+      "definition_of_done": "待核对",
+      "decision_needed": "待核对"
+    }
+  ],
+  "meetings": [
+    {
+      "title": "确定试用范围与验收标准",
+      "date": "2026-09-17",
+      "start_time": "14:00",
+      "end_time": null,
+      "purpose": "确定内部试用的范围、人员、职责与验收标准",
+      "jira_key": null,
+      "outcome": "待核对"
+    },
+    {
+      "title": "检查上线准备，决定试用安排",
+      "date": "2026-09-22",
+      "start_time": "14:00",
+      "end_time": "14:45",
+      "purpose": "检查上线准备，明确试用安排与启动条件",
+      "jira_key": null,
+      "outcome": "待核对"
+    }
+  ],
+  "deployments": [
+    {
+      "environment": "staging",
+      "sha": "9737462",
+      "state": "success",
+      "created_at": "2026-09-16T00:31:12Z",
+      "url": "https://github.com/skyvision-ryan/flip-house-platform/deployments"
+    }
+  ],
+  "aws_status": "未开始",
+  "issues": [
+    {
+      "key": "KAN-20",
+      "summary": "A1 · 对齐代码基线并完成六阶段兼容迁移",
+      "status": "已完成",
+      "status_category": "done",
+      "start": "2026-09-15",
+      "due": "2026-09-16",
+      "start_provisional": true,
+      "parent": "KAN-35",
+      "assignee": "ryanlian"
+    },
+    {
+      "key": "KAN-21",
+      "summary": "A2 · 建立独立账号、项目权限与可分派成员接口",
+      "status": "待办",
+      "status_category": "new",
+      "start": "2026-09-16",
+      "due": "2026-09-16",
+      "start_provisional": true,
+      "parent": "KAN-35",
+      "assignee": "ryanlian"
+    },
+    {
+      "key": "KAN-22",
+      "summary": "B1 · 接入 PostgreSQL 并建立可重复数据库迁移",
+      "status": "待办",
+      "status_category": "new",
+      "start": "2026-09-21",
+      "due": "2026-09-21",
+      "start_provisional": true,
+      "parent": "KAN-35",
+      "assignee": "ryanlian"
+    },
+    {
+      "key": "KAN-23",
+      "summary": "B2 · 接入私有 S3 附件存储与授权下载",
+      "status": "待办",
+      "status_category": "new",
+      "start": "2026-09-21",
+      "due": "2026-09-21",
+      "start_provisional": true,
+      "parent": "KAN-35",
+      "assignee": "ryanlian"
+    },
+    {
+      "key": "KAN-24",
+      "summary": "B3 · 接入 Cognito 并保持业务用户身份稳定",
+      "status": "待办",
+      "status_category": "new",
+      "start": "2026-09-22",
+      "due": "2026-09-22",
+      "start_provisional": true,
+      "parent": "KAN-35",
+      "assignee": "ryanlian"
+    },
+    {
+      "key": "KAN-25",
+      "summary": "B4 · 用 CDK 建立统一 AWS 网络与应用基础设施",
+      "status": "待办",
+      "status_category": "new",
+      "start": "2026-09-21",
+      "due": "2026-09-22",
+      "start_provisional": true,
+      "parent": "KAN-35",
+      "assignee": "ryanlian"
+    },
+    {
+      "key": "KAN-26",
+      "summary": "B5 · 打通固定版本发布、恢复与回退验收",
+      "status": "待办",
+      "status_category": "new",
+      "start": "2026-09-23",
+      "due": "2026-09-23",
+      "start_provisional": true,
+      "parent": "KAN-35",
+      "assignee": "ryanlian"
+    },
+    {
+      "key": "KAN-27",
+      "summary": "C1 · 建立任务模板、项目实例与幂等迁移",
+      "status": "待办",
+      "status_category": "new",
+      "start": "2026-09-16",
+      "due": "2026-09-16",
+      "start_provisional": true,
+      "parent": "KAN-36",
+      "assignee": "ryanlian"
+    },
+    {
+      "key": "KAN-28",
+      "summary": "C2 · 实现分派、状态流转、显式前置与活动记录",
+      "status": "待办",
+      "status_category": "new",
+      "start": "2026-09-17",
+      "due": "2026-09-17",
+      "start_provisional": true,
+      "parent": "KAN-36",
+      "assignee": "ryanlian"
+    },
+    {
+      "key": "KAN-29",
+      "summary": "C3 · 统一证据、审阅和关键节点完成规则",
+      "status": "待办",
+      "status_category": "new",
+      "start": "2026-09-17",
+      "due": "2026-09-17",
+      "start_provisional": true,
+      "parent": "KAN-36",
+      "assignee": "ryanlian"
+    },
+    {
+      "key": "KAN-30",
+      "summary": "C4 · 交付网页任务安排与一致的待办总览",
+      "status": "待办",
+      "status_category": "new",
+      "start": "2026-09-17",
+      "due": "2026-09-17",
+      "start_provisional": true,
+      "parent": "KAN-36",
+      "assignee": "ryanlian"
+    },
+    {
+      "key": "KAN-31",
+      "summary": "D1 · 构建 iPhone 我的待办与任务详情",
+      "status": "待办",
+      "status_category": "new",
+      "start": "2026-09-17",
+      "due": "2026-09-17",
+      "start_provisional": true,
+      "parent": "KAN-37",
+      "assignee": "ryanlian"
+    },
+    {
+      "key": "KAN-32",
+      "summary": "D2 · 跑通手机交付、等待与负责人审阅闭环",
+      "status": "待办",
+      "status_category": "new",
+      "start": "2026-09-18",
+      "due": "2026-09-18",
+      "start_provisional": true,
+      "parent": "KAN-37",
+      "assignee": "ryanlian"
+    },
+    {
+      "key": "KAN-33",
+      "summary": "D3 · 完成 Safari 主屏幕入口与会话兼容",
+      "status": "待办",
+      "status_category": "new",
+      "start": "2026-09-18",
+      "due": "2026-09-18",
+      "start_provisional": true,
+      "parent": "KAN-37",
+      "assignee": "ryanlian"
+    },
+    {
+      "key": "KAN-34",
+      "summary": "D4 · 修复真机验收问题并固化周五演示版本",
+      "status": "待办",
+      "status_category": "new",
+      "start": "2026-09-18",
+      "due": "2026-09-18",
+      "start_provisional": true,
+      "parent": "KAN-37",
+      "assignee": "ryanlian"
+    },
+    {
+      "key": "KAN-35",
+      "summary": "统一账号与 AWS 部署基础",
+      "status": "待办",
+      "status_category": "new",
+      "start": "2026-09-15",
+      "due": "2026-09-23",
+      "start_provisional": true,
+      "parent": null,
+      "assignee": "ryanlian"
+    },
+    {
+      "key": "KAN-36",
+      "summary": "将阶段清单升级为可分派的项目任务",
+      "status": "待办",
+      "status_category": "new",
+      "start": "2026-09-16",
+      "due": "2026-09-17",
+      "start_provisional": true,
+      "parent": null,
+      "assignee": "ryanlian"
+    },
+    {
+      "key": "KAN-37",
+      "summary": "完成 iPhone 任务执行与负责人验收闭环",
+      "status": "待办",
+      "status_category": "new",
+      "start": "2026-09-17",
+      "due": "2026-09-18",
+      "start_provisional": true,
+      "parent": null,
+      "assignee": "ryanlian"
+    }
+  ],
+  "reviewed_by": null,
+  "reviewed_at": null,
+  "source_note": "Jira 经 Atlassian MCP 读取；部署记录经 gh api 读取。开始日期为倒推所得的暂定计划值，非实际开工时间。",
+  "date_check": {
+    "checked": 18,
+    "missing": [],
+    "anomalies": [
+      "KAN-22 截止(2026-09-21) 早于其前置 KAN-25 截止(2026-09-22)",
+      "KAN-23 截止(2026-09-21) 早于其前置 KAN-25 截止(2026-09-22)"
+    ]
+  }
+}

@@ -1,0 +1,113 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:390px;background:#f4f6fa;color:#182c46;
+ font:16px/1.6 -apple-system,"PingFang SC","Heiti SC",sans-serif;-webkit-font-smoothing:antialiased}
+.banner{background:#fff5df;color:#845006;font-size:12px;padding:8px 16px;text-align:center;
+ border-bottom:1px solid #eadfc4;line-height:1.45}
+.head{background:#fff;padding:18px 16px 14px;border-bottom:1px solid #dee5ee}
+.brand{font-size:13px;color:#52647a}
+h1{font-size:25px;font-weight:600;line-height:1.3;margin:2px 0 8px}
+.byline{display:flex;justify-content:space-between;font-size:12px;color:#52647a;flex-wrap:wrap;gap:4px 12px}
+.panel{padding:14px 16px}
+.card{background:#fff;border:1px solid #dee5ee;border-radius:12px;padding:15px;margin-bottom:12px}
+h2{font-size:17px;font-weight:600;margin-bottom:9px}
+.now{font-size:18px;font-weight:600;line-height:1.45}
+.sub{font-size:13px;color:#52647a;margin-top:7px;line-height:1.55}
+.next{margin-top:12px;padding-top:11px;border-top:1px solid #eef2f7;font-size:14px;display:flex;gap:10px}
+.next b{color:#155bb5;white-space:nowrap}
+.legend{font-size:12px;color:#52647a;margin-bottom:7px}
+.axis{position:relative;height:18px;font-size:11px;color:#52647a}
+.axis span{position:absolute;transform:translateX(-50%)}
+.lane{border-top:1px solid #eef2f7;padding:10px 0 11px}
+.lane:first-of-type{border-top:0}
+.lrow{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.lname{font-size:15px;font-weight:500}
+.ldate{font-size:12px;color:#52647a;white-space:nowrap}
+.track{position:relative;height:18px;margin-top:7px;border-radius:3px;
+ background:repeating-linear-gradient(to right,#e4eaf2 0 1px,transparent 1px calc(100%/13))}
+.bar{position:absolute;top:3px;height:12px;border-radius:3px;background:#155bb5;opacity:.72}
+.bar.ms{background:#845006}
+.today{position:absolute;top:-2px;bottom:-2px;width:2px;background:#182c46}
+.chips{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap}
+.chip{font-size:11px;padding:2px 7px;border-radius:5px;border:1px solid currentColor;line-height:1.5}
+.note{font-size:12px;color:#52647a;margin-top:8px;line-height:1.5}
+.mt{display:flex;gap:11px;padding:10px 0;border-top:1px solid #eef2f7;font-size:14px}
+.mt:first-of-type{border-top:0}
+.mt b{color:#155bb5;white-space:nowrap;font-size:13px}
+.mt small{display:block;color:#52647a;font-size:12px;margin-top:2px}
+.q{padding:9px 0;border-top:1px solid #eef2f7;font-size:14px}
+.q:first-of-type{border-top:0}
+.q dt{font-size:12px;color:#52647a;margin-bottom:2px}
+.q dd{font-size:14px}
+.pend{color:#845006;font-weight:500}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{text-align:left;padding:6px 4px;border-bottom:1px solid #eef2f7;vertical-align:top}
+th{color:#52647a;font-weight:500;font-size:11px}
+.k{white-space:nowrap;color:#155bb5}
+.foot{background:#fff;border-top:1px solid #dee5ee;padding:12px 16px 16px;font-size:11px;
+ color:#52647a;line-height:1.7}
+.foot b{color:#182c46;font-weight:500}
+</style><body data-vp-report="1">
+<div class="banner">第一阶段审阅稿 · 数据来自 Jira 与 GitHub 实际记录 · 横条为<b>暂定</b>计划工期，非管理层已确认承诺</div>
+<div class="head"><div class="brand">翻房协作系统</div><h1>内部上线进度</h1>
+<div class="byline"><span>交付负责人：Ryan</span><span>数据截至 2026-09-16 14:47</span></div></div>
+
+<div class="panel">
+<div class="card"><div class="now">15 项开发工作已完成 1 项</div>
+<div class="sub">代码基线已统一。账号权限、任务分派、手机交接三项仍在开发中，均未通过业务验收。</div>
+<div class="next"><b>下一节点</b><span>9/17 会议确定试用范围；9/18 目标演示手机协作</span></div></div>
+
+<div class="card"><h2>接下来怎么推进</h2>
+<div class="legend">横条＝暂定计划工期（不表示完成度）　竖线＝今天 9/16</div>
+<div class="axis"><span style="left:0;transform:none">9/14</span><span style="left:30.8%">9/18</span>
+<span style="left:61.5%">9/22</span><span style="left:100%;transform:translateX(-100%)">9/27</span></div>
+<div class="lane"><div class="lrow">
+ <span class="lname">账号与安全上线</span>
+ <span class="ldate">09/15—09/23（暂定）</span></div>
+ <div class="track"><div class="bar " style="left:7.69%;width:61.54%"></div>
+ <div class="today" style="left:15.38%"></div></div>
+ <div class="chips">
+  <span class="chip" style="color:#155bb5">进行中</span>
+  <span class="chip" style="color:#6b7a8d">待确认</span><span class="chip" style="color:#6b7a8d">1/7 项已完成</span></div></div><div class="lane"><div class="lrow">
+ <span class="lname">任务分派与确认</span>
+ <span class="ldate">09/16—09/17（暂定）</span></div>
+ <div class="track"><div class="bar " style="left:15.38%;width:7.69%"></div>
+ <div class="today" style="left:15.38%"></div></div>
+ <div class="chips">
+  <span class="chip" style="color:#6b7a8d">未开始</span>
+  <span class="chip" style="color:#6b7a8d">待确认</span><span class="chip" style="color:#6b7a8d">0/4 项已完成</span></div></div><div class="lane"><div class="lrow">
+ <span class="lname">手机协作演示</span>
+ <span class="ldate">09/17—09/18（暂定）</span></div>
+ <div class="track"><div class="bar " style="left:23.08%;width:7.69%"></div>
+ <div class="today" style="left:15.38%"></div></div>
+ <div class="chips">
+  <span class="chip" style="color:#6b7a8d">未开始</span>
+  <span class="chip" style="color:#6b7a8d">待确认</span><span class="chip" style="color:#6b7a8d">0/4 项已完成</span></div></div><div class="lane"><div class="lrow">
+ <span class="lname">首批房屋试用</span>
+ <span class="ldate">09/24—09/25（暂定）</span></div>
+ <div class="track"><div class="bar ms" style="left:76.92%;width:7.69%"></div>
+ <div class="today" style="left:15.38%"></div></div>
+ <div class="chips">
+  <span class="chip" style="color:#6b7a8d">未开始</span>
+  <span class="chip" style="color:#6b7a8d">待确认</span><span class="chip" style="color:#6b7a8d">尚未在 Jira 建记录</span></div></div>
+<div class="note">左侧四项为业务交付主线，15 张开发执行单见技术详情附页。</div></div>
+
+<div class="card"><h2>近期会议</h2><div class="mt"><b>明天 9/17<br>14:00（结束时间待确认）</b><div>确定试用范围与验收标准<small>确定内部试用的范围、人员、职责与验收标准</small><small>尚未在 Jira 建记录</small></div></div><div class="mt"><b>9/22<br>14:00—14:45</b><div>检查上线准备，决定试用安排<small>检查上线准备，明确试用安排与启动条件</small><small>尚未在 Jira 建记录</small></div></div>
+<div class="note">会议召开不等于决议落实；结论与行动需会后回填。</div></div>
+
+<div class="card"><h2>上线情况</h2><div class="q"><dt>演示环境部署</dt><dd>staging · 9737462 · success</dd></div>
+<div class="q"><dt>AWS 内部上线</dt><dd class="pend">未开始</dd></div>
+<div class="q"><dt>真机验收</dt><dd class="pend">尚未进行</dd></div>
+<div class="note">演示环境部署成功 ≠ 内部上线。开发完成、部署成功、真机验收、业务上线为四件不同的事。</div></div>
+
+<div class="card"><h2>业务判断</h2><div class="q"><dt>现在已经能做什么</dt><dd><span class="pend">待核对</span></dd></div><div class="q"><dt>还差什么</dt><dd><span class="pend">待核对</span></dd></div><div class="q"><dt>怎样才算交付</dt><dd><span class="pend">待核对</span></dd></div><div class="q"><dt>需要谁决定什么</dt><dd><span class="pend">待核对</span></dd></div>
+<div class="note">以上四项须由业务负责人填写后才会显示内容，系统不代为推断。</div></div>
+</div>
+
+<div class="foot">
+<b>数据截至：</b>2026-09-16 14:47（最后一次成功同步）<br>
+<b>业务核对人：</b>尚未核对　<b>业务核对时间：</b>尚未核对<br>
+<b>证据来源：</b>Jira KAN 项目（Epic KAN-35/36/37 及其子项）、GitHub 部署记录<br>
+<b>口径：</b>开始日期为按依赖链倒推的暂定值，非实际开工时间；不提供总体完成百分比。
+</div></body></html>
