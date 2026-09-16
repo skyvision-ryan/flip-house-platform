@@ -1,0 +1,107 @@
+# 把 Render 的部署结果登记成 GitHub Deployment，好让 Jira 看到。
+#
+# 背景：Render 直接从 GitHub 拉代码自动部署（见 render.yaml 的 autoDeployTrigger: commit），
+# 但它不创建 GitHub Deployment 对象，也没有 Jira 集成。而 GitHub for Jira 应用只监听
+# deployment_status 事件——所以在此之前 Jira 从未收到过任何部署数据。
+#
+# 本 workflow 不执行部署，只观察并登记。部署仍然由 Render 做。
+# Jira 靠提交信息里的 KAN-<n> 把这条部署关联到对应的单。
+
+name: Record Render deploy in Jira
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  deployments: write
+
+# 不取消进行中的运行：每次 push 对应一次真实的 Render 部署，都应如实登记。
+concurrency:
+  group: render-deploy-report
+  cancel-in-progress: false
+
+env:
+  HEALTH_URL: https://flip-house-platform-ryan.onrender.com/api/health
+  # 用 staging 而非 production：Render 那套是 DEMO_MODE=1 + 合成数据 + 临时磁盘，
+  # 标成 production 会在 Jira 里制造「已有生产环境」的假象。
+  ENVIRONMENT: staging
+  POLL_TIMEOUT_SECONDS: "1200"
+  POLL_INTERVAL_SECONDS: "20"
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: 登记部署
+        id: create
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          id=$(jq -nc \
+                --arg ref "$GITHUB_SHA" \
+                --arg env "$ENVIRONMENT" \
+                --arg desc "Render 自动部署 ${GITHUB_SHA:0:7}" \
+                '{
+                   ref: $ref,
+                   environment: $env,
+                   description: $desc,
+                   auto_merge: false,
+                   required_contexts: [],
+                   production_environment: false,
+                   transient_environment: false
+                 }' \
+              | gh api "repos/$GITHUB_REPOSITORY/deployments" --input - --jq '.id')
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+          echo "已创建 deployment #$id（environment=$ENVIRONMENT）"
+
+      # 健康端点返回 RENDER_GIT_COMMIT[:7]（backend/app/main.py）。
+      # 只有当线上返回的 commit 等于本次 SHA 时才算部署成功——
+      # 否则可能只是上一版还活着，不能当成本次部署已完成。
+      - name: 等待 Render 上线本次提交
+        id: wait
+        run: |
+          set -uo pipefail
+          expected="${GITHUB_SHA:0:7}"
+          deadline=$(( SECONDS + POLL_TIMEOUT_SECONDS ))
+          echo "期望线上 commit = $expected"
+          while (( SECONDS < deadline )); do
+            # --max-time 30：Render 免费层冷启动实测会超过 15s（首次请求触发唤醒后才恢复亚秒响应）。
+            live=$(curl -fsS --max-time 30 "$HEALTH_URL" 2>/dev/null | jq -r '.commit // empty' 2>/dev/null || true)
+            if [ "$live" = "$expected" ]; then
+              echo "线上已是 $live，部署完成"
+              exit 0
+            fi
+            echo "线上 commit = ${live:-<无响应>}，继续等待（已用 ${SECONDS}s）"
+            sleep "$POLL_INTERVAL_SECONDS"
+          done
+          echo "::warning::${POLL_TIMEOUT_SECONDS}s 内线上未出现 $expected（可能部署失败，或已被后续 push 取代）"
+          exit 1
+
+      - name: 回写部署状态
+        if: always() && steps.create.outputs.id != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEPLOY_ID: ${{ steps.create.outputs.id }}
+          WAIT_RESULT: ${{ steps.wait.outcome }}
+        run: |
+          set -euo pipefail
+          if [ "$WAIT_RESULT" = "success" ]; then
+            state=success
+            desc="Render 已上线 ${GITHUB_SHA:0:7}"
+          else
+            state=failure
+            desc="未确认 ${GITHUB_SHA:0:7} 上线（超时、部署失败或被后续 push 取代）"
+          fi
+          jq -nc \
+            --arg state "$state" \
+            --arg desc "$desc" \
+            --arg env "$ENVIRONMENT" \
+            --arg env_url "https://flip-house-platform-ryan.onrender.com" \
+            --arg log_url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            '{state:$state, description:$desc, environment:$env, environment_url:$env_url, log_url:$log_url}' \
+          | gh api "repos/$GITHUB_REPOSITORY/deployments/$DEPLOY_ID/statuses" --input - --jq '.state'
+          echo "deployment #$DEPLOY_ID 状态已回写为 $state"

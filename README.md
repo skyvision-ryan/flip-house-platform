@@ -85,13 +85,14 @@ cd backend
 
 ## 当前演示部署记录
 
-仓库记录的演示地址：[Render demo](https://flip-house-platform-ryan.onrender.com)。本次文档更新未重新核验在线健康或执行部署。
+仓库记录的演示地址：[Render demo](https://flip-house-platform-ryan.onrender.com)。2026-09-15 实测 `/api/health` 返回 `{"ok":true,"commit":"73a01c2"}`，与当时的 `main` HEAD 一致（免费层冷启动首次请求需 30s 以上）。
 
 - `render.yaml` 使用 Render Python 环境，构建后端依赖及前端，由同一服务提供 API/网页；`Dockerfile` 保留给容器部署。
 - 当前仓库记录的服务追踪 `main`，main 的 push/merge 会触发自动部署；其他分支不会直接发布该服务。
 - `/api/health` 返回 `ok` 和当前 `RENDER_GIT_COMMIT` 的短提交号（本地为 local），发布后用它核对目标版本。
 - 现有演示采用模拟数据与临时磁盘；重新部署不能作为持久化保证。公开演示环境只使用合成资料，真实内部数据进入有账号和持久化保障的环境。
 - 当前代码读取 `PORT`、`DATA_DIR`、`PROVIDER`、`FRONTEND_DIST` 等环境变量；`DB_URL`、正式登录与 S3 等配置仍需按统一代码基线核验/实现。
+- `.github/workflows/jira-deployment.yml` 在 push 到 main 后把这次 Render 部署登记为 GitHub Deployment（environment `staging`），供 Jira 显示部署记录。它不执行部署，只轮询 `/api/health` 直到线上 commit 等于本次 SHA 才标记成功；Render 本身不创建 GitHub Deployment 对象，也没有 Jira 集成。
 
 下周新 AWS 部署使用 [当前方案](docs/AWS内部部署方案.md)。App Runner 旧建议已调整；本轮没有创建 AWS 资源，也没有把 Render 的部署配置改成 AWS。
 
