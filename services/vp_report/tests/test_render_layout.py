@@ -143,7 +143,7 @@ class UnifiedEventsTest(unittest.TestCase):
         for i in range(4):
             self.assertIn(f"同一天的节点{i}", html)
         # 四个同日节点 → 四个标记，位置完全相同（锚在真实日期上）
-        anchors = re.findall(r'<i class="node k-\w+ (g\d+)">', html)
+        anchors = re.findall(r'<i class="schedule-node k-\w+ (g\d+)">', html)
         self.assertEqual(len(anchors), 4)
         self.assertEqual(len(set(anchors)), 1, "同日节点被挪到了不同日期上")
 
@@ -206,7 +206,7 @@ class GanttBlockTest(unittest.TestCase):
     def test_lane_name_column_is_pinned(self):
         html = page()
         self.assertIn("position:sticky", html)
-        self.assertIn("左滑查看后续日期", html)
+        self.assertIn("左右滑动看日期", html)
 
     def test_bar_length_is_planned_time_only(self):
         html = page()
