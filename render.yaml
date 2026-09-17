@@ -1,6 +1,17 @@
 # Render Blueprint：在 render.com 选 New → Blueprint → 选这个仓库 → Apply 即可。
 # 之后每次推送到 main 自动重新部署。
+#
+# 这里有两个互相独立的服务：
+#   1. flip-house-platform-ryan  —— 主业务（后端 + 前端）
+#   2. flip-house-vp-report      —— KAN-40 管理层进度报告，独立进程、独立依赖
+# 两者跟同一个 main 分支，但各自构建、各自启动、各自回退。
+# 报告服务发布失败不影响主业务继续运行。
+#
+# ⚠️ 改这个文件会触发 Blueprint 处理，buildFilter 隔离不了它本身。
+#    Apply 之前务必先看 Blueprint diff，确认另一个服务没被动到。
+#    另外 buildFilter 是**全量替换**：某个服务省略它就等于清空该服务的过滤器。
 services:
+  # ---------------- 主业务 ----------------
   - type: web
     name: flip-house-platform-ryan
     runtime: python
@@ -12,10 +23,53 @@ services:
     autoDeployTrigger: commit
     buildCommand: pip install -r backend/requirements.txt && npm --prefix frontend ci --include=dev --no-audit --no-fund && npm --prefix frontend run build
     startCommand: uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port $PORT
+    buildFilter:
+      paths:
+        - backend/**
+        - frontend/**
+        - render.yaml
     envVars:
       - key: PROVIDER
         value: mock
       - key: DATA_DIR
         value: /tmp/flip-house-platform-data
       - key: DEMO_MODE   # 演示站：不用登录，顶栏自报身份。公司内部部署设 0 并配 ADMIN_USER / ADMIN_PASSWORD / SECRET_KEY
+        value: "1"
+
+  # ---------------- KAN-40 管理层进度报告 ----------------
+  # 固定链接给微信群用；未来主业务迁到 AWS 时，这个地址只需改 DNS。
+  # 主业务不持有 JIRA_TOKEN / REPORT_PASSCODE，这里也不碰业务数据库。
+  - type: web
+    name: flip-house-vp-report
+    runtime: python
+    repo: https://github.com/skyvision-ryan/flip-house-platform
+    branch: main
+    region: oregon
+    plan: free
+    healthCheckPath: /healthz
+    autoDeployTrigger: commit
+    # 不用 rootDir，照抄主业务已验证的 --app-dir 写法，少一层路径解析差异
+    buildCommand: pip install -r services/vp_report/requirements.txt
+    startCommand: uvicorn app.main:app --app-dir services/vp_report --host 0.0.0.0 --port $PORT
+    buildFilter:
+      paths:
+        - services/vp_report/**
+        - render.yaml
+    envVars:
+      # ⚠️ sync: false 只在**首次创建 Blueprint** 时提示填值；
+      #    往已有 Blueprint 里新增服务时不会提示，必须在 Render 控制台手工添加。
+      #    这几个没配齐之前，/healthz 会返回 503，服务不会被误判成部署成功。
+      - key: JIRA_SITE
+        sync: false
+      - key: JIRA_EMAIL
+        sync: false
+      - key: JIRA_TOKEN          # 专用只读账号的 token，不要用站点管理员的
+        sync: false
+      - key: REPORT_PASSCODE     # 发给 VP / PM 的访问口令
+        sync: false
+      - key: REPORT_SECRET       # 会话签名密钥，必须固定，否则重启后全员掉线
+        sync: false
+      - key: REPORT_COOKIE_SECURE
+        value: "1"
+      - key: REPORT_TRUSTED_PROXY_HOPS   # Render 前面一层反向代理
         value: "1"

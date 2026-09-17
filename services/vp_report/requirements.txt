@@ -1,0 +1,5 @@
+# 报告服务自己的依赖，与 backend/requirements.txt 互不影响。
+fastapi>=0.115
+uvicorn[standard]>=0.30
+httpx>=0.27          # 调 Jira，也是 TestClient 的依赖
+python-multipart>=0.0.9  # 口令表单 POST

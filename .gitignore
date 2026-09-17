@@ -1,4 +1,6 @@
 backend/.venv/
+services/*/.venv/
+.venv/
 backend/data/
 backend/**/__pycache__/
 frontend/node_modules/
