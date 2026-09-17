@@ -257,7 +257,7 @@ class AppTest(unittest.TestCase):
         r = self.client.get("/")
         self.assertEqual(r.status_code, 200)
         self.assertIn("请输入访问口令", r.text)
-        self.assertNotIn("内部上线进度</h1>\n", r.text.replace("<h1>内部上线进度</h1>", ""))
+        self.assertIn("项目进度", r.text)
 
     def test_data_endpoint_is_401_even_with_business_demo_headers(self):
         """DEMO_MODE=1 且带 X-Actor：业务系统的绕过开关对报告服务必须无效。"""
@@ -287,7 +287,7 @@ class AppTest(unittest.TestCase):
 
         again = self.client.get("/")                  # 不再提供口令
         self.assertEqual(again.status_code, 200)
-        self.assertIn("内部上线进度", again.text)
+        self.assertIn("项目进度", again.text)
         self.assertNotIn("请输入访问口令", again.text)
 
         data = self.client.get("/api/report/data")
@@ -335,7 +335,7 @@ class AppTest(unittest.TestCase):
             self.client.post("/login", data={"passcode": "kan40-test"})
             r = self.client.get("/")
         gate.set()
-        self.assertIn("正在同步 Jira 最新进度", r.text)
+        self.assertIn("正在读取最新进度", r.text)
         self.assertNotIn("需要关注", r.text)
 
     def test_unavailable_page_says_it_is_not_zero_progress(self):

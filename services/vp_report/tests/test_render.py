@@ -117,17 +117,26 @@ class EscapingTest(unittest.TestCase):
 class ReportPageTest(unittest.TestCase):
     def test_plan_dates_and_completion_are_expressed_separately(self):
         html = page()
-        self.assertIn("横条为计划时间，非完成进度", html)
+        self.assertIn("不表示完成进度", html)
         self.assertIn("日期走过不代表完成", html)
+        self.assertIn("工作做完不等于通过业务验收", html)
 
-    def test_completed_ticket_shows_a_check_and_others_do_not(self):
+    def test_progress_block_counts_tasks_by_status(self):
+        """首页不再铺匿名圆圈：完成情况改用按任务数量的分段条表达。"""
         html = page()
-        self.assertIn('class="dot d ', html)     # KAN-20 已完成
-        self.assertRegex(html, r'class="dot g\d+"')   # 其余未完成
+        self.assertIn("各项工作进展", html)
+        self.assertIn("按任务数量统计", html)
+        self.assertIn("seg-done", html)          # 已完成段
+        self.assertIn("seg-todo", html)          # 未开始段
+        self.assertIn("已完成 1", html)          # KAN-20 已完成
+        self.assertIn("共 4 项", html)
+        # 不得出现总体完成率
+        self.assertNotIn("总体完成", html)
+        self.assertNotIn("项目完成率", html)
 
     def test_lane_states_differ_per_lane(self):
         html = page()
-        self.assertIn("正在推进", html)
+        self.assertIn("进行中", html)
         self.assertIn("尚未开始", html)
 
     def test_schedule_conflict_appears_under_attention(self):
@@ -144,7 +153,8 @@ class ReportPageTest(unittest.TestCase):
 
     def test_sync_time_is_the_successful_fetch_not_render_time(self):
         html = page()
-        self.assertIn("最后成功同步 2026-09-16 10:00", html)
+        self.assertIn("2026-09-16 10:00", html)
+        self.assertIn("最后一次成功读取 Jira", html)
         self.assertIn("业务核对", html)
 
     def test_stale_banner_names_the_time_of_the_old_data(self):
@@ -152,10 +162,11 @@ class ReportPageTest(unittest.TestCase):
         self.assertIn("更新暂时失败", html)
         self.assertIn("2026-09-16 10:00", html)
 
-    def test_missing_meeting_records_are_named_not_faked(self):
-        html = page(meetings=[])
-        self.assertIn("待确认", html)
-        self.assertIn("mgmt-meeting", html)
+    def test_no_events_is_stated_plainly_not_faked_as_fine(self):
+        html = page(meetings=[], milestones=[])
+        self.assertIn("还没有排定的会议或交付节点", html)
+        # 首页不出现 Jira 标签这类开发词
+        self.assertNotIn("mgmt-meeting", html)
 
     def test_meeting_without_end_time_says_so(self):
         html = page()
@@ -177,7 +188,8 @@ class ReportPageTest(unittest.TestCase):
     def test_no_horizontal_scroll_hint_for_phone(self):
         html = page()
         self.assertIn("width=device-width", html)
-        self.assertIn("max-width:430px", html)
+        self.assertIn("max-width:430px", html)   # 手机竖屏
+        self.assertIn("max-width:720px", html)   # 桌面加宽
 
 
 class GatePageTest(unittest.TestCase):
