@@ -131,16 +131,17 @@ export default function ProjectPage() {
                   </SpaceBetween>
                 }
               >
-                <SpaceBetween direction="horizontal" size="xs" alignItems="center">
+                {/* 窄屏要能换行：SpaceBetween 横向不换行，这里用 flex-wrap。 */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, minWidth: 0 }}>
                   <ReviewTag id="A" />
                   <OwnerTag block="project.header" />
                   <span>{project.name}</span>
                   <Badge color={STAGE_COLOR[project.stage] ?? 'grey'}>{project.current_stage?.label ?? `${labelOf(meta?.stages, project.stage)} · ${labelOf(meta?.substages[project.stage], project.substage)}`}</Badge>
                   <Badge color="grey">{labelOf(meta?.strategies, project.strategy)}</Badge>
                   <StatusBadge status={project.status} />
-                </SpaceBetween>
+                </div>
               </Header>
-              <ColumnLayout columns={2} variant="text-grid">
+              <ColumnLayout columns={2} minColumnWidth={260} variant="text-grid">
                 <div>
                   <Box variant="awsui-key-label">交易</Box>
                   <DealSummary p={project} />

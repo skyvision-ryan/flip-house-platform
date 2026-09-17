@@ -1,8 +1,10 @@
+import Badge from '@cloudscape-design/components/badge';
 import Box from '@cloudscape-design/components/box';
 import Link from '@cloudscape-design/components/link';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import { Update } from '../api/client';
 import { OwnerDot } from './OwnerTag';
+import { BORDER } from './charts/palette';
 
 const KIND_TAB: Record<string, string> = { file: 'files', data: 'data', expense: 'budget', budget: 'budget', analysis: 'analysis', step: 'overview', project: 'overview', utility: 'data&section=utilities', inspection: 'overview', procurement: 'budget&section=procurement' };
 const KIND_LABEL: Record<string, string> = { file: '文件', data: '数据', expense: '支出', budget: '预算', analysis: '分析', step: '清单', project: '项目', utility: '水电', inspection: '检查', procurement: '采购' };
@@ -17,7 +19,7 @@ function dayLabel(d: string): string {
   return d.slice(5).replace('-', '/');
 }
 
-/** 把“上传了现场照片：demo.png（“看房”）”拆成 动作 + 对象，对象加粗。 */
+/** 把“上传了现场照片：demo.png”拆成 动作 + 对象，对象加粗。 */
 function split(text: string): { action: string; object: string | null } {
   const i = text.indexOf('：');
   if (i < 0) {
@@ -27,7 +29,7 @@ function split(text: string): { action: string; object: string | null } {
   return { action: text.slice(0, i), object: text.slice(i + 1) };
 }
 
-/** “谁更新了什么”：按天分组；每行 = 时间 · 谁 · 项目 · 类型 · 做了什么（对象加粗）。工作台和项目页共用。 */
+/** “谁更新了什么”：按天分组。窄屏整行换行，不截断——手机上也要读得全。 */
 export default function UpdatesList({ items, showProject, onGo, emptyText = '还没有更新记录。' }: { items: Update[]; showProject?: boolean; onGo: (href: string) => void; emptyText?: string }) {
   if (!items.length) return <Box color="text-body-secondary">{emptyText}</Box>;
   const groups: { day: string; rows: Update[] }[] = [];
@@ -45,20 +47,23 @@ export default function UpdatesList({ items, showProject, onGo, emptyText = '还
             const href = `/projects/${u.project_id}?tab=${KIND_TAB[u.kind] ?? 'overview'}`;
             const { action, object } = split(u.text);
             return (
-              <div key={u.id} style={{ display: 'grid', gridTemplateColumns: showProject ? '40px auto minmax(90px, 0.6fr) 40px minmax(0, 1.6fr)' : '40px auto 40px minmax(0, 1fr)', gap: 6, alignItems: 'center', padding: '4px 0', borderTop: '1px solid #eaeded' }}>
+              <div
+                key={u.id}
+                style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: 6, padding: '6px 0', borderTop: `1px solid ${BORDER}` }}
+              >
                 <Box variant="small" color="text-body-secondary">{hm(u.created_at)}</Box>
                 <OwnerDot code={u.actor} />
                 {showProject && (
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    <Link href={href} onFollow={(e) => { e.preventDefault(); onGo(href); }}>{u.project_name ?? '—'}</Link>
-                  </span>
+                  <Link href={href} onFollow={(e) => { e.preventDefault(); onGo(href); }}>{u.project_name ?? '—'}</Link>
                 )}
-                <span style={{ fontSize: 11, color: '#5f6b7a', background: '#f2f3f3', borderRadius: 4, padding: '1px 5px', textAlign: 'center', whiteSpace: 'nowrap' }}>{KIND_LABEL[u.kind] ?? u.kind}</span>
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={u.text}>
-                  <span style={{ color: '#5f6b7a' }}>{action}{object ? '：' : ''}</span>
-                  {object && <b>{object}</b>}
-                  {!showProject && <>　<Link href={href} variant="secondary" fontSize="body-s" onFollow={(e) => { e.preventDefault(); onGo(href); }}>去看</Link></>}
-                </span>
+                <Badge color="grey">{KIND_LABEL[u.kind] ?? u.kind}</Badge>
+                <Box variant="span">
+                  <Box variant="span" color="text-body-secondary">{action}{object ? '：' : ''}</Box>
+                  {object && <Box variant="span" fontWeight="bold">{object}</Box>}
+                </Box>
+                {!showProject && (
+                  <Link href={href} variant="secondary" fontSize="body-s" onFollow={(e) => { e.preventDefault(); onGo(href); }}>去看</Link>
+                )}
               </div>
             );
           })}

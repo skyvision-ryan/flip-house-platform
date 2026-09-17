@@ -19,7 +19,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
 from app import db, models
-from app.dictionaries import STAGE_CHECKLIST
+from app.dictionaries import STAGE_CHECKLIST, STEP_BY_KEY
 from app.routers import common
 from app.routers.ops import router as ops_router
 from app.steps import compute_steps
@@ -32,6 +32,10 @@ LEGACY_STEP_KEYS = [
     "purchase", "progress", "inspections", "agent", "final",
     "staging", "listing", "mow", "offer", "sale_docs", "disclosure", "sign", "closed", "services_off",
 ]
+
+# 六段模板当前的 31 个 key（29 个旧 key + 六段拆分时新增的 analysis、home_inspection）。
+# 加静态说明文案（purpose / done_when）不许顺带增删项，所以这里锁全集。
+ALL_STEP_KEYS = [*LEGACY_STEP_KEYS, "analysis", "home_inspection"]
 
 
 def _memory_engine(cleanup):
@@ -50,6 +54,27 @@ class SixStageTemplateTests(unittest.TestCase):
     def test_no_legacy_step_key_is_dropped(self):
         missing = [k for k in LEGACY_STEP_KEYS if k not in self.keys]
         self.assertEqual(missing, [], f"六段模板丢了旧 step key，历史记录会失联：{missing}")
+
+    def test_checklist_still_has_exactly_31_items(self):
+        self.assertEqual(len(self.keys), 31, f"六段模板应为 31 项，实际 {len(self.keys)} 项")
+        self.assertEqual(sorted(set(self.keys)), sorted(set(ALL_STEP_KEYS)),
+                         "加说明文案不能顺带增删清单项")
+
+    def test_every_item_has_purpose_and_done_when(self):
+        """每一项都要说清「这是什么」和「按现在的规则怎么算完成」。"""
+        for key in self.keys:
+            item = STEP_BY_KEY[key]
+            for field in ("purpose", "done_when"):
+                text = item.get(field)
+                self.assertIsInstance(text, str, f"{key} 的 {field} 必须是字符串")
+                self.assertTrue(text.strip(), f"{key} 的 {field} 不能为空")
+
+    def test_copy_does_not_leak_ticket_numbers(self):
+        """给业务人员看的文案里不出现工程票号。"""
+        for key in self.keys:
+            item = STEP_BY_KEY[key]
+            for field in ("purpose", "done_when"):
+                self.assertNotIn("KAN-", item[field], f"{key} 的 {field} 不该出现票号")
 
     def test_step_keys_are_unique(self):
         dupes = sorted({k for k in self.keys if self.keys.count(k) > 1})
@@ -100,6 +125,19 @@ class LegacyDataSurvivesMigrationTests(unittest.TestCase):
             gate = next(it for st in self._steps(s)["stages"] for it in st["items"] if it["key"] == "open_escrow")
             self.assertFalse(gate["done"], "只有一个人确认不能算过门")
             self.assertEqual(gate["confirmed"], ["D"])
+
+    def test_compute_steps_carries_ws_purpose_and_done_when(self):
+        """前端要能直接显示并行线和静态说明，不用再查字典。"""
+        with Session(self.engine) as s:
+            items = [it for st in self._steps(s)["stages"] for it in st["items"]]
+        self.assertEqual(len(items), 31)
+        for it in items:
+            for field in ("ws", "purpose", "done_when"):
+                self.assertIn(field, it, f"{it['key']} 的 {field} 没透传到 compute_steps")
+                self.assertTrue((it[field] or "").strip(), f"{it['key']} 的 {field} 不能为空")
+            self.assertEqual(it["ws"], STEP_BY_KEY[it["key"]]["ws"])
+            self.assertEqual(it["purpose"], STEP_BY_KEY[it["key"]]["purpose"])
+            self.assertEqual(it["done_when"], STEP_BY_KEY[it["key"]]["done_when"])
 
     def test_stage_progress_exposes_every_gate(self):
         with Session(self.engine) as s:

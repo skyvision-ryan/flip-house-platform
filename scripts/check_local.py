@@ -63,6 +63,8 @@ def main() -> int:
         ok &= run("后端测试", [str(python), "-m", "unittest", "discover", "-s", "tests"],
                   BACKEND, test_env)
     ok &= run("开发工具测试", [sys.executable, ".claude/hooks/test_check_commit.py"], ROOT, env)
+    # 前端纯逻辑单测：Node 22 自带 --test 和 TS 剥离，不需要额外依赖。
+    ok &= run("前端单测", [node, "--test", "--experimental-strip-types", "src/lib/stepDisplay.test.ts"], FRONTEND, env)
     ok &= run("前端构建", ["npm", "run", "build"], FRONTEND, env)
     ok &= run("Git diff 格式", ["git", "diff", "--check"], ROOT, env)
     return 0 if ok else 1

@@ -1,28 +1,52 @@
+import Box from '@cloudscape-design/components/box';
 import { useMeta } from '../lib/meta';
 import { useActor } from '../lib/actor';
 import { colorOf } from '../lib/role';
+import { SURFACE, TEXT_2, BORDER } from './charts/palette';
 
-/** 蓝色圆标：这一块由谁负责。单字母画圆，多字（设计师 / 园丁 / 负责人 / ？）画胶囊。和黄色评审圆标并排。 */
+/** 负责角色的圆标：单字母画圆，多字（设计师 / 园丁 / 负责人 / ？）画胶囊。颜色来自后端 tier 配置。 */
 export function OwnerDot({ code, title }: { code: string; title?: string }) {
   const meta = useMeta();
   const single = [...code].length === 1;
-  const color = code === '?' ? '#5f6b7a' : colorOf(meta, code);
+  const unknown = code === '?';
+  const color = unknown ? TEXT_2 : colorOf(meta, code);
   const tierLabel = meta?.tiers?.[meta?.roles.find((r) => r.code === code)?.tier ?? '']?.label;
   return (
     <span
       title={title ?? `${code}${tierLabel ? `（${tierLabel}）` : ''}`}
-      aria-label={title ?? `负责人：${code}`}
+      aria-label={title ?? `负责角色：${code}`}
       style={{
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
         minWidth: 22, height: 22, borderRadius: 11, padding: single ? 0 : '0 7px',
-        background: code === '?' ? '#fff' : color, color: code === '?' ? '#5f6b7a' : '#fff',
-        border: code === '?' ? '1px dashed #8d99a8' : 'none',
-        fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontWeight: 700, fontSize: single ? 13 : 11, lineHeight: 1,
+        background: unknown ? SURFACE : color, color: unknown ? TEXT_2 : SURFACE,
+        border: unknown ? `1px dashed ${BORDER}` : 'none',
+        fontWeight: 700, fontSize: single ? 13 : 11, lineHeight: 1,
         marginRight: 4, verticalAlign: 'middle', flexShrink: 0, userSelect: 'none', whiteSpace: 'nowrap',
       }}
     >
       {code}
     </span>
+  );
+}
+
+/** 负责角色，圆标 + 可见文字。手机上没有 hover，代号必须直接看得见。 */
+export function OwnerNames({ codes, prefix }: { codes: string[]; prefix?: string }) {
+  const meta = useMeta();
+  if (!codes.length) return null;
+  return (
+    <Box variant="span" color="text-body-secondary" fontSize="body-s">
+      {prefix}
+      {codes.map((c) => {
+        const tier = meta?.roles.find((r) => r.code === c)?.tier ?? '';
+        const tierLabel = meta?.tiers?.[tier]?.label;
+        return (
+          <Box key={c} variant="span" margin={{ right: 'xs' }}>
+            <OwnerDot code={c} />
+            {tierLabel ?? ''}
+          </Box>
+        );
+      })}
+    </Box>
   );
 }
 
