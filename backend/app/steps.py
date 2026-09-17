@@ -159,6 +159,7 @@ def compute_steps(db: Session, p: models.Project, hide_money: bool = False) -> d
                 evidence = why if ok else (f"{m.done_by} 手工确认，没有交付证据" if override else None)
             items.append({
                 "key": it["key"], "title": it["title"], "owners": it["owners"], "gate": bool(it.get("gate")),
+                "ws": it.get("ws"), "purpose": it.get("purpose"), "done_when": it.get("done_when"),
                 "deliverable": it.get("deliverable"), "evidence_hint": _hint(it, p, hide_money),
                 "confirm": confirm, "confirmed": confirmed,
                 "done": done, "how": how,
