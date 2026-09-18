@@ -1,0 +1,16 @@
+---
+name: "source-command-jira-next"
+description: "从 Jira 选择下一张可执行单并开始工作"
+---
+
+# source-command-jira-next
+
+Use this skill when the user asks to run the migrated source command `jira-next`.
+
+## Command Template
+
+1. 读取 Jira 中 KAN-35/36/37 下未完成的故事/任务，跳过未完成阻塞、In Review 和他人正在处理的票。
+2. 用户当前明确指定优先；否则按 docs/Jira执行清单_2026-09-15.md 的交付链、截止日期，再按 backlog rank 选择。Jira 实际状态优先于文档快照。
+3. 核对最小开工条件：目标、范围、可验证结果、真实依赖。能从代码和现行文档补清的直接补；只有缺少会改变实现的业务决定时才询问。
+4. 检查工作区，保留未提交内容。从最新可用 main 创建 KAN-编号分支；把票转 In Progress，并评论分支与简短实施范围。
+5. 实施并验证，不等待重复确认。Epic 只保存整体目标，不直接当开发单。
