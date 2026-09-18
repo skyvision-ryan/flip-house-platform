@@ -21,7 +21,7 @@ import OwnerTag from '../../components/OwnerTag';
 import { Meter } from '../../components/charts';
 import { api, Project } from '../../api/client';
 import { useFlash } from '../../lib/flash';
-import { dateStr, money, num, pct } from '../../lib/format';
+import { dateStr, daysBetween, money, num, pct } from '../../lib/format';
 import { labelOf, useMeta } from '../../lib/meta';
 import { useRole } from '../../lib/role';
 import OverviewTab from './OverviewTab';
@@ -33,7 +33,6 @@ import EditProjectModal from './EditProjectModal';
 
 const STAGE_COLOR: Record<string, 'severity-low' | 'severity-medium' | 'green'> = { lead: 'severity-low', active: 'severity-medium', portfolio: 'green' };
 
-const daysBetween = (a: string | null, b: string | null) => (a && b ? Math.round((new Date(b + 'T00:00:00').getTime() - new Date(a + 'T00:00:00').getTime()) / 86400000) : null);
 const short = (d: string | null) => (d ? d.slice(5).replace('-', '/') : '—');
 
 /** 身份卡右侧“交易”一栏：按阶段说结论。 */

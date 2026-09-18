@@ -27,3 +27,9 @@ export function text(v: string | number | null | undefined): string {
   if (v === null || v === undefined || v === '') return '—';
   return String(v);
 }
+
+/** 两个 YYYY-MM-DD 之间差几天；任一为空返回 null。工期条和项目头卡共用。 */
+export function daysBetween(a: string | null | undefined, b: string | null | undefined): number | null {
+  if (!a || !b) return null;
+  return Math.round((new Date(b + 'T00:00:00').getTime() - new Date(a + 'T00:00:00').getTime()) / 86400000);
+}

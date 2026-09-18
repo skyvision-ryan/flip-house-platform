@@ -6,6 +6,7 @@ import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
 import Cards from '@cloudscape-design/components/cards';
 import Checkbox from '@cloudscape-design/components/checkbox';
+import ColumnLayout from '@cloudscape-design/components/column-layout';
 import DatePicker from '@cloudscape-design/components/date-picker';
 import ExpandableSection from '@cloudscape-design/components/expandable-section';
 import FormField from '@cloudscape-design/components/form-field';
@@ -18,6 +19,8 @@ import Spinner from '@cloudscape-design/components/spinner';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
 import Textarea from '@cloudscape-design/components/textarea';
 import { api, FileRow, StepItem, Steps } from '../api/client';
+import { Meter } from './charts';
+import { daysBetween } from '../lib/format';
 import { useFlash } from '../lib/flash';
 import { useRole } from '../lib/role';
 import {
@@ -40,6 +43,9 @@ type Stage = Steps['stages'][number];
 
 export type StepsDeepLink = { step?: string | null; action?: string | null };
 
+/** 工期来自项目级日期；没有开工/计划完工就不画这条。 */
+export type StepsSchedule = { start: string | null; end: string | null; active: boolean };
+
 const stageState = (i: number, curIdx: number, complete: boolean) =>
   complete || i < curIdx ? 'done' : i === curIdx ? 'current' : 'future';
 
@@ -52,10 +58,12 @@ export default function StepsPanel({
   projectId,
   onChanged,
   deepLink,
+  schedule,
 }: {
   projectId: number;
   onChanged?: () => void;
   deepLink?: StepsDeepLink;
+  schedule?: StepsSchedule;
 }) {
   const flash = useFlash();
   const navigate = useNavigate();
@@ -101,6 +109,11 @@ export default function StepsPanel({
   const selIdx = Math.max(0, steps.stages.findIndex((s) => s.key === selKey));
   const stage: Stage = steps.stages[selIdx];
   const isFuture = stageState(selIdx, curIdx, complete) === 'future';
+
+  // 工期：只有在建且开工、计划完工都填了才画；缺日期就不画，不留空条。
+  const total = schedule?.active ? daysBetween(schedule.start, schedule.end) : null;
+  const elapsed = schedule?.active ? daysBetween(schedule.start, new Date().toISOString().slice(0, 10)) : null;
+  const days = total && elapsed != null ? { total, elapsed } : null;
 
   const reloadAll = () => {
     load();
@@ -263,14 +276,33 @@ export default function StepsPanel({
 
   return (
     <SpaceBetween size="l">
-      {/* ① 当前阶段 */}
+      {/* ① 当前阶段：两条同形制横条，时间和事实分开读 */}
       <SpaceBetween size="s">
         <Box fontSize="heading-s" fontWeight="bold">
           {complete ? '这套房全流程走完了' : `这套房在${cur.label}`}
-          <Box variant="span" fontWeight="normal" color="text-body-secondary">
-            {`　${stage.label}共 ${stage.total} 项，系统判定已满足 ${stage.done_count} 项`}
-          </Box>
         </Box>
+        <ColumnLayout columns={2} minColumnWidth={240}>
+          {days && (
+            <Meter
+              value={Math.max(0, days.elapsed)}
+              max={days.total}
+              label="工期"
+              reading={`第 ${Math.max(0, days.elapsed)} / ${days.total} 天`}
+              targetLabel="完工"
+              height={6}
+              note={days.elapsed > days.total ? `已超期 ${days.elapsed - days.total} 天` : undefined}
+            />
+          )}
+          <Meter
+            value={stage.done_count}
+            max={stage.total}
+            label={`${stage.label}事项`}
+            reading={`${stage.done_count} / ${stage.total} 项满足`}
+            targetLabel="本段齐"
+            height={6}
+            note="满足指系统按证据判定，不代表这一段已经验收"
+          />
+        </ColumnLayout>
         <Grid gridDefinition={steps.stages.map(() => ({ colspan: { default: 6, xs: 4, s: 2 } }))}>
           {steps.stages.map((st, i) => {
             const state = stageState(i, curIdx, complete);
