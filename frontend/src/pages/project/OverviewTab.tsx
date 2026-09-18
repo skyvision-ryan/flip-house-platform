@@ -48,7 +48,7 @@ export default function OverviewTab({ project, reload, deepLink, focus }: { proj
         </Alert>
       )}
       <Container header={<Header variant="h2" description="这一段有哪些事、谁负责、系统凭什么判定已满足。关键节点要 D、J 各确认一次。点任一件事看详情。"><ReviewTag id="B" />这套房现在怎么走</Header>}>
-        <StepsPanel projectId={project.id} deepLink={deepLink} onChanged={() => { reload(); api.projectUpdates(project.id, 12).then(setUpdates).catch(() => undefined); }} />
+        <StepsPanel projectId={project.id} deepLink={deepLink} schedule={{ start: project.construction_start, end: project.construction_end, active: project.stage === 'active' }} onChanged={() => { reload(); api.projectUpdates(project.id, 12).then(setUpdates).catch(() => undefined); }} />
       </Container>
       <div id="inspections" />
       <Container header={<Header variant="h2" description="一次检查一行，次数每套房不同。做到一个程度约一次；没过写谁整改；最后一次标 final，通过了施工就算结束。"><ReviewTag id="I" /><OwnerTag block="overview.inspections" />检查记录</Header>}>
