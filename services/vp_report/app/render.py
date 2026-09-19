@@ -190,6 +190,17 @@ h1{font-size:26px;font-weight:700;letter-spacing:.01em;margin-bottom:10px}
 .d-review{background:var(--s-review)} .d-done{background:var(--s-done)}
 .chip.risk{background:var(--warn-bg);color:#8d2020}
 .chip.caution{background:var(--caution-bg);color:#7a4b06}
+.chip.ok{background:#e6f4e6;color:#0a5a0a}
+.chip.hold{background:#eef1f5;color:var(--ink-2)}
+.st-meta{font-size:13.5px;color:var(--ink-3);margin-top:6px}
+.st-sec{margin-top:10px;padding-top:10px;border-top:1px solid var(--hair);font-size:15px;line-height:1.6}
+.st-sec b{display:block;font-size:13px;color:var(--ink-3);font-weight:600;margin-bottom:2px}
+.st-sec p{margin:0;white-space:pre-line}
+.dec{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--hair);font-size:14.5px;line-height:1.5}
+.dec:first-of-type{border-top:0}
+.dec .who{flex:0 0 auto;color:var(--ink-2);font-size:13.5px;text-align:right;min-width:88px}
+.hist{margin-top:10px}
+.hist .row{align-items:flex-start}
 .track{position:relative;height:18px}
 .plan{position:absolute;top:6px;height:14px;border-radius:4px;background:var(--plan);
  border-left:3px solid var(--plan-edge)}
@@ -800,6 +811,7 @@ def _attention(snap: dict, today: date) -> str:
                    f'<details><summary>查看具体问题</summary>{raw}</details></span></div>')
 
     gaps = [m for ln in snap.get("lines") or [] for m in (ln.get("missing") or [])]
+    gaps += list(snap.get("notes") or [])
     if gaps:
         raw = "".join(f'<div class="kv">{esc(g)}</div>' for g in gaps)
         blocks += (f'<div class="att"><span class="ic c">○</span><span>'
@@ -812,6 +824,88 @@ def _attention(snap: dict, today: date) -> str:
                   '目前还没有人填写风险判断。<b>这不等于没有风险</b>，'
                   '只说明还没有人给出判断。</span></div>')
     return f'<div class="card sec"><h2>需要关注</h2>{blocks}</div>'
+
+
+# 整体判断 → 芯片样式。key 是快照里的哨兵值，不能改。
+_HEALTH = {
+    "按计划": ("ok", "按计划"),
+    "有风险": ("caution", "有风险"),
+    "已延期": ("risk", "已延期"),
+    "暂停": ("hold", "暂停"),
+    "已完成": ("ok", "已完成"),
+    "待确认": ("caution", "判断待确认"),
+}
+
+
+def _health_chip(health: str) -> str:
+    cls, text = _HEALTH.get(health or "", _HEALTH["待确认"])
+    return f'<span class="chip {cls}">{esc(text)}</span>'
+
+
+def _days_ago(d: date, today: date) -> str:
+    delta = (today - d).days
+    if delta <= 0:
+        return "今天" if delta == 0 else f"{-delta} 天后"
+    return "昨天" if delta == 1 else f"{delta} 天前"
+
+
+def _status_card(snap: dict, today: date) -> str:
+    """本期状态：最新一期「状态更新 v1」原文，往期折叠可查。
+
+    这是**人写的判断**，不是从任务数量算出来的；页面只照抄、排版和转义。
+    没有更新时如实说「还没有人写」，不写成「一切正常」。
+    """
+    updates = snap.get("status_updates") or []
+    if not updates:
+        return ('<div class="card sec"><h2>本期状态</h2>'
+                '<div class="att"><span class="ic c">○</span><span>'
+                '还没有人写状态更新。<b>这不等于按计划</b>，只说明还没有人给出整体判断。'
+                '</span></div></div>')
+
+    latest = updates[0]
+    d = _parse(latest.get("date"))
+    when = f'{esc(latest.get("date"))}（{esc(_days_ago(d, today))}）' if d else "日期待确认"
+    author = esc(latest.get("author") or "更新人待确认")
+    meta = (f'<div class="st-meta">{when}　{author}　'
+            f'{jira_link(latest.get("jira_key"), "原文")}</div>')
+
+    secs = ""
+    for label, key in (("判断依据", "basis"), ("另一面", "counter"),
+                       ("本期完成", "done_since"), ("下一步", "next_steps")):
+        value = latest.get(key)
+        if value and value not in ("待核对", "待确认"):
+            secs += f'<div class="st-sec"><b>{esc(label)}</b><p>{esc(value)}</p></div>'
+
+    decisions = latest.get("decisions") or []
+    if decisions:
+        rows = ""
+        for dec in decisions:
+            who = esc(dec.get("owner") or "待确认")
+            by = esc(dec.get("deadline") or "待确认")
+            rows += (f'<div class="dec"><span>{esc(dec.get("item"))}</span>'
+                     f'<span class="who">{who}<br><small>最晚 {by}</small></span></div>')
+        secs += f'<div class="st-sec"><b>需要决定</b>{rows}</div>'
+
+    for miss in latest.get("missing") or []:
+        secs += f'<div class="kv warn">待确认：{esc(miss)}</div>'
+
+    hist = ""
+    if len(updates) > 1:
+        rows = ""
+        for su in updates[1:]:
+            basis = su.get("basis")
+            basis_html = (f'<div class="sub">{esc(basis)}</div>'
+                          if basis and basis not in ("待核对", "待确认") else "")
+            rows += (f'<div class="row"><div class="dt">{esc((su.get("date") or "")[5:])}</div>'
+                     f'<div class="bd"><div class="nm">{_health_chip(su.get("health"))}　'
+                     f'{esc(su.get("author") or "更新人待确认")}　'
+                     f'{jira_link(su.get("jira_key"), "原文")}</div>{basis_html}</div></div>')
+        hist = (f'<details class="hist"><summary>往期更新（{len(updates) - 1} 期）</summary>'
+                f'{rows}</details>')
+
+    return (f'<div class="card sec"><h2>本期状态</h2>'
+            f'<div class="pname">{_health_chip(latest.get("health"))}</div>{meta}{secs}{hist}'
+            f'</div>')
 
 
 def _head(snap: dict, today: date, state: dict) -> str:
@@ -917,6 +1011,7 @@ def report_page(state: dict, nonce: str) -> str:
 
     # 先生成所有片段，最后才取 sheet.css()——片段生成过程中还在往 sheet 里加规则
     head = _head(snap, today, state)
+    status_card = _status_card(snap, today)    # 人的整体判断
     progress = _progress(snap, sheet)          # 完成多少
     gantt = _gantt(snap, axis, today, sheet)   # 什么时候
     upcoming = _upcoming(snap, today)
@@ -929,6 +1024,7 @@ def report_page(state: dict, nonce: str) -> str:
 <h1>项目进度</h1>
 {_banner(state)}
 {head}
+{status_card}
 {progress}
 {gantt}
 {upcoming}

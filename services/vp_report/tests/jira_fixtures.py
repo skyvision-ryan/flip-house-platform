@@ -94,6 +94,30 @@ def meeting_block(start="14:00", end="", tz="America/Los_Angeles",
     return adf_paragraphs(*text.splitlines())
 
 
+STATUS_TEMPLATE = """状态更新 v1
+整体判断：{health}
+判断依据：{basis}
+另一面：{counter}
+本期完成：{done}
+下一步：{next_steps}
+需要决定：{decisions}
+更新人：{by}"""
+
+
+def status_block(health="有风险",
+                 basis="6 项逾期里有 2 项没有任何进展记录；16 项未关闭工作没有负责人",
+                 counter="主干已合入 3 个改动；逾期 6 项里有 4 项只是状态没回写",
+                 done="账号契约与手机待办第一版已合入主干",
+                 next_steps="给无负责人的工作定人，优先 09-25 试用范围",
+                 decisions="双人确认是否必须｜David｜09-22\n线索是否进平台｜David｜",
+                 by="Ryan", *, shape="code") -> dict[str, Any]:
+    text = STATUS_TEMPLATE.format(health=health, basis=basis, counter=counter, done=done,
+                                  next_steps=next_steps, decisions=decisions, by=by)
+    if shape == "code":
+        return adf_code_block(text)
+    return adf_paragraphs(*text.splitlines())
+
+
 def issue(key: str, summary: str, *, category: str = CAT_NEW, parent: str | None = None,
           due: str | None = None, start: str | None = None, labels: list[str] | None = None,
           subtask: bool = False, epic: bool = False, blocked_by: list[str] | None = None,
@@ -184,6 +208,17 @@ def meetings() -> list[dict[str, Any]]:
     ]
 
 
+def status_updates() -> list[dict[str, Any]]:
+    """两期更新：最新一期有风险，上一期按计划。"""
+    return [
+        issue("KAN-70", "状态更新 09-14", due="2026-09-14", labels=["mgmt-status"],
+              description=status_block(health="按计划", basis="基线已合并，排期无冲突",
+                                       counter="无", done="无", decisions="无")),
+        issue("KAN-71", "状态更新 09-16", due="2026-09-16", labels=["mgmt-status"],
+              description=status_block()),
+    ]
+
+
 # ---------- 恶意输入 ----------
 
 XSS = '<script>alert("x")</script>" onmouseover="alert(1)'
@@ -200,6 +235,14 @@ def hostile_lanes() -> list[dict[str, Any]]:
                   has_now=f"已具备 {XSS}",
                   risk_note=f"风险 {XSS} 详见 {XSS_URL}",
                   decision=f"决定 {XSS}")),
+    ]
+
+
+def hostile_status_updates() -> list[dict[str, Any]]:
+    return [
+        issue("KAN-98", f"状态更新 {XSS}", due="2026-09-16", labels=["mgmt-status"],
+              description=status_block(basis=f"依据 {XSS}", decisions=f"决定 {XSS}｜{XSS}｜{XSS}",
+                                       by=f"人 {XSS}")),
     ]
 
 

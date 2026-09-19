@@ -47,14 +47,16 @@ def make_snapshot(hostile: bool):
                              labels=["mgmt-meeting"],
                              description=fx.meeting_block(
                                  purpose=f"目的 {fx.XSS}", outcome=f"结论 {fx.XSS}"))]
+        updates = fx.hostile_status_updates()
     else:
         lanes, children = fx.lanes(), fx.children() + fx.subtasks()
         milestones, meetings = fx.milestones(), fx.meetings()
+        updates = fx.status_updates()
     return snapshot.assemble(
         lane_raw=lanes, child_raw=children,
         milestone_raw=milestones, meeting_raw=meetings,
         start_field=fx.START_FIELD, today=date(2026, 9, 16),
-        fetched_at="2026-09-16T10:00:00-07:00")
+        fetched_at="2026-09-16T10:00:00-07:00", status_raw=updates)
 
 
 def main_cli() -> int:

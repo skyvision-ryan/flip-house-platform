@@ -63,9 +63,26 @@ class ADFTest(unittest.TestCase):
         self.assertEqual(fields["开始"], "14:00")
         self.assertIn("结束", missing)
 
+    def test_status_block_keeps_one_decision_per_line(self):
+        """「需要决定」一行一条；其余字段仍合成一行。"""
+        for shape in ("code", "paragraph"):
+            fields, missing, found = adf.parse_status(fx.status_block(shape=shape))
+            self.assertTrue(found, shape)
+            self.assertEqual(fields["整体判断"], "有风险")
+            self.assertEqual(fields["需要决定"].splitlines(),
+                             ["双人确认是否必须｜David｜09-22", "线索是否进平台｜David｜"])
+            self.assertEqual(missing, [])
+
+    def test_status_block_missing_is_reported(self):
+        fields, missing, found = adf.parse_status(fx.status_block(health="", by=""))
+        self.assertTrue(found)
+        self.assertNotIn("整体判断", fields)
+        self.assertIn("整体判断", missing)
+        self.assertIn("更新人", missing)
+
 
 def build(today="2026-09-16", lanes=None, children=None, subtasks=None,
-          milestones=None, meetings=None) -> Snapshot:
+          milestones=None, meetings=None, status_updates=None) -> Snapshot:
     return snapshot.assemble(
         lane_raw=fx.lanes() if lanes is None else lanes,
         child_raw=(fx.children() + fx.subtasks()) if children is None
@@ -75,7 +92,74 @@ def build(today="2026-09-16", lanes=None, children=None, subtasks=None,
         start_field=fx.START_FIELD,
         today=date.fromisoformat(today),
         fetched_at="2026-09-16T10:00:00-07:00",
+        status_raw=fx.status_updates() if status_updates is None else status_updates,
     )
+
+
+class StatusUpdateTest(unittest.TestCase):
+    def test_latest_first_and_decisions_are_structured(self):
+        snap = build()
+        keys = [su.jira_key for su in snap.status_updates]
+        self.assertEqual(keys, ["KAN-71", "KAN-70"])
+        latest = snap.status_updates[0]
+        self.assertEqual(latest.health, "有风险")
+        self.assertEqual(latest.author, "Ryan")
+        self.assertEqual([d.item for d in latest.decisions], ["双人确认是否必须", "线索是否进平台"])
+        self.assertEqual(latest.decisions[0].owner, "David")
+        self.assertEqual(latest.decisions[0].deadline, "09-22")
+        # 没写最晚日期就是待确认，不猜
+        self.assertEqual(latest.decisions[1].deadline, "待确认")
+        self.assertEqual(latest.missing, [])
+
+    def test_no_decisions_when_written_as_none(self):
+        snap = build()
+        self.assertEqual(snap.status_updates[1].decisions, [])
+
+    def test_same_day_updates_take_the_later_key_as_latest(self):
+        raws = [
+            fx.issue("KAN-80", "早", due="2026-09-16", labels=["mgmt-status"],
+                     description=fx.status_block(health="按计划")),
+            fx.issue("KAN-81", "晚", due="2026-09-16", labels=["mgmt-status"],
+                     description=fx.status_block(health="已延期")),
+        ]
+        snap = build(status_updates=raws)
+        self.assertEqual(snap.status_updates[0].jira_key, "KAN-81")
+        self.assertEqual(snap.status_updates[0].health, "已延期")
+
+    def test_unknown_health_value_becomes_pending_not_invented(self):
+        raws = [fx.issue("KAN-82", "x", due="2026-09-16", labels=["mgmt-status"],
+                         description=fx.status_block(health="差不多"))]
+        snap = build(status_updates=raws)
+        su = snap.status_updates[0]
+        self.assertEqual(su.health, "待确认")
+        self.assertTrue(any("差不多" in m for m in su.missing))
+        validate_integrity(snap)   # 待确认是合法值，快照不该被拒
+
+    def test_missing_block_is_said_not_guessed(self):
+        raws = [fx.issue("KAN-83", "x", due="2026-09-16", labels=["mgmt-status"],
+                         description=fx.adf_paragraphs("随便写的"))]
+        snap = build(status_updates=raws)
+        su = snap.status_updates[0]
+        self.assertEqual(su.health, "待确认")
+        self.assertTrue(any("状态更新 v1" in m for m in su.missing))
+
+    def test_update_without_a_date_is_dropped_and_noted(self):
+        raws = [fx.issue("KAN-84", "x", due=None, labels=["mgmt-status"],
+                         description=fx.status_block())]
+        snap = build(status_updates=raws)
+        self.assertEqual(snap.status_updates, [])
+        self.assertTrue(any("KAN-84" in n for n in snap.notes))
+
+    def test_no_updates_is_a_valid_snapshot(self):
+        snap = build(status_updates=[])
+        self.assertEqual(snap.status_updates, [])
+        validate_integrity(snap)
+
+    def test_integrity_rejects_an_illegal_health(self):
+        snap = build()
+        snap.status_updates[0].health = "on_track"
+        with self.assertRaises(ContractError):
+            validate_integrity(snap)
 
 
 class AssembleTest(unittest.TestCase):

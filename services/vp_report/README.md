@@ -36,7 +36,7 @@ python tools/preview.py --hostile  # 含 <script>、引号的脏数据，验转�
 | `JIRA_CLOUD_ID` | bearer 模式必填 | scoped token 走网关时需要 |
 | `JIRA_START_FIELD` | 否 | 开始日期自定义字段 id；留空则运行时发现 |
 | `VP_REPORT_JQL` | 否 | 覆盖主线查询，默认 `issuetype = Epic AND labels = "mgmt-lane"` |
-| `VP_REPORT_MILESTONE_JQL` / `VP_REPORT_MEETING_JQL` | 否 | 同上 |
+| `VP_REPORT_MILESTONE_JQL` / `VP_REPORT_MEETING_JQL` / `VP_REPORT_STATUS_JQL` | 否 | 同上（默认按 `mgmt-milestone` / `mgmt-meeting` / `mgmt-status` 标签） |
 | `REPORT_PASSCODE` | 是 | 访问口令 |
 | `REPORT_SECRET` | 是 | 会话签名密钥，**必须固定** |
 | `REPORT_COOKIE_SECURE` | 否 | 线上保持 `1`；本地 http 调试设 `0` |
@@ -86,6 +86,8 @@ GET /healthz?deep=1   →  {"ok": true, "jira": true}
   从未成功过则显示「暂不可用」，并说明这不代表进度为零。
 - **排期冲突不是取数失败。** 日期倒置、依赖矛盾、子项超出承诺日都是真实业务风险，
   快照照常有效，冲突显示在「需要关注」里。
+- 状态更新（`mgmt-status`）与里程碑、会议同级：查询失败标 partial，保留上次完整快照；
+  一条都没有是合法快照，页面写「还没有人写状态更新」。
 
 不要对外说"实时同步"。准确说法是：
 **页面自动检查 Jira 更新，正常情况下最多受 5 分钟缓存和 Jira 索引延迟影响；
@@ -108,7 +110,7 @@ app/
   settings.py     只读自己的环境变量
   auth.py         口令页 + 签名 cookie + 限流（标准库 hmac）
   jira_client.py  /rest/api/3/search/jql、分页、超时、脱敏
-  adf.py          解析描述里的「管理摘要 v1」「会议纪要 v1」区
+  adf.py          解析描述里的「管理摘要 v1」「会议纪要 v1」「状态更新 v1」区
   contract.py     数据契约；validate_integrity（结构）vs check_dates（业务事实）
   snapshot.py     Jira 原始响应 → 快照（assemble 是纯函数，测试直接喂 fixture）
   store.py        上次成功快照 + 单飞刷新 + 冷却

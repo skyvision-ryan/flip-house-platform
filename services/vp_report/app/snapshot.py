@@ -2,7 +2,8 @@
 
 这里**不允许出现任何 issue key、会议日期、试用日期、依赖关系或业务文案**。
 全部来自 Jira：主线来自 mgmt-lane 标签的 Epic，里程碑来自 mgmt-milestone，
-会议来自 mgmt-meeting，业务叙述来自描述里的「管理摘要 v1」区。
+会议来自 mgmt-meeting，状态更新来自 mgmt-status，业务叙述来自描述里的
+「管理摘要 v1」「状态更新 v1」区。
 缺什么就说缺什么，不用旧常量顶替。
 
 取数与组装分开：`assemble()` 是纯函数，测试直接喂 fixture，不需要网络。
@@ -17,7 +18,7 @@ from zoneinfo import ZoneInfo
 from . import adf, settings
 from .contract import (
     FETCH_FAILED, FETCH_OK, FETCH_PARTIAL, SCHEMA_VERSION, UNKNOWN, UNREVIEWED,
-    Issue, Line, Meeting, Milestone, Snapshot, check_dates,
+    HEALTHS, Decision, Issue, Line, Meeting, Milestone, Snapshot, StatusUpdate, check_dates,
 )
 from .jira_client import JiraClient, JiraError
 
@@ -27,6 +28,7 @@ LANE_LABEL = "mgmt-lane"
 MILESTONE_LABEL = "mgmt-milestone"
 MEETING_LABEL = "mgmt-meeting"
 TRIAL_LABEL = "mgmt-trial"
+STATUS_LABEL = "mgmt-status"
 
 _RISK_MAP = {"按计划": "按计划", "有风险": "有风险", "已延期": "已延期", UNREVIEWED: UNKNOWN}
 
@@ -220,6 +222,62 @@ def build_meeting(raw: dict[str, Any]) -> Meeting:
     )
 
 
+def _parse_decisions(text: str) -> list[Decision]:
+    """「需要决定」一行一条：事项｜决策人｜最晚日期。写「无」= 没有待决事项。
+
+    只拆分隔符，不猜：没写决策人或日期就留 UNKNOWN，页面显示「待确认」。
+    """
+    items: list[Decision] = []
+    for line in text.splitlines():
+        line = line.strip()
+        if not line or line in ("无", "无。"):
+            continue
+        parts = [p.strip() for p in line.replace("|", "｜").split("｜")]
+        item = parts[0]
+        if not item:
+            continue
+        owner = parts[1] if len(parts) > 1 and parts[1] else UNKNOWN
+        deadline = parts[2] if len(parts) > 2 and parts[2] else UNKNOWN
+        items.append(Decision(item=item, owner=owner, deadline=deadline))
+    return items
+
+
+def build_status_update(raw: dict[str, Any]) -> StatusUpdate:
+    f = raw.get("fields") or {}
+    key = raw.get("key", "")
+    fields, missing_fields, has_block = adf.parse_status(f.get("description"))
+
+    missing: list[str] = []
+    if not has_block:
+        missing.append(f"{key} 描述里没有「{adf.STATUS_MARKER}」区")
+    elif missing_fields:
+        # 「另一面」「本期完成」可以为空（写「无」），不算缺
+        required = [m for m in missing_fields if m not in ("另一面", "本期完成")]
+        if required:
+            missing.append(f"{key} 状态更新缺：{'、'.join(required)}")
+
+    health = fields.get("整体判断", "")
+    if health and health not in HEALTHS:
+        missing.append(f"{key} 整体判断「{health}」不在可选值内（按计划 / 有风险 / 已延期 / 暂停 / 已完成）")
+        health = UNKNOWN
+    if not health:
+        health = UNKNOWN
+
+    return StatusUpdate(
+        jira_key=key,
+        title=f.get("summary") or key,
+        date=f.get("duedate") or "",
+        health=health,
+        basis=fields.get("判断依据", UNREVIEWED),
+        counter=fields.get("另一面", ""),
+        done_since=fields.get("本期完成", ""),
+        next_steps=fields.get("下一步", UNREVIEWED),
+        decisions=_parse_decisions(fields.get("需要决定", "")),
+        author=fields.get("更新人") or None,
+        missing=missing,
+    )
+
+
 # ---------- 组装 ----------
 
 def assemble(
@@ -231,6 +289,7 @@ def assemble(
     today: date | None = None,
     fetched_at: str | None = None,
     fetch_errors: list[str] | None = None,
+    status_raw: list[dict[str, Any]] | None = None,
 ) -> Snapshot:
     """纯函数：原始 Jira 响应 → 快照。测试直接喂 fixture。"""
     today = today or today_local()
@@ -261,6 +320,14 @@ def assemble(
     meetings = [m for m in meetings if m.date]
     meetings.sort(key=lambda m: m.date)
 
+    # 没有截止日期 = 不知道是哪一期，不进页面，但要记下来
+    updates_all = [build_status_update(r) for r in (status_raw or [])]
+    notes = [f"{su.jira_key} 状态更新缺截止日期（= 更新日期），未纳入"
+             for su in updates_all if not su.date]
+    status_updates = [su for su in updates_all if su.date]
+    # 最新在前；同一天取 key 大的（后建的）为最新
+    status_updates.sort(key=lambda su: (su.date, _key_number(su.jira_key)), reverse=True)
+
     status = FETCH_PARTIAL if errors else FETCH_OK
     snap = Snapshot(
         fetch_status=status,
@@ -272,6 +339,8 @@ def assemble(
         lines=lines,
         milestones=milestones,
         meetings=meetings,
+        status_updates=status_updates,
+        notes=notes,
         issues=all_issues,
         issue_count=sum(1 for i in all_issues if not i.is_subtask),
         source_note="数据来自 Jira；业务叙述来自 Epic 描述的管理摘要区。",
@@ -279,6 +348,13 @@ def assemble(
     # 排期冲突是业务事实，写进快照，**不作为拒绝快照的理由**
     snap.date_check = check_dates(snap)
     return snap
+
+
+def _key_number(key: str) -> int:
+    try:
+        return int(key.rsplit("-", 1)[1])
+    except (IndexError, ValueError):
+        return 0
 
 
 def fetch(client: JiraClient) -> Snapshot:
@@ -309,9 +385,13 @@ def fetch(client: JiraClient) -> Snapshot:
         meeting_raw = client.search(settings.MEETING_JQL)
     except JiraError as exc:
         meeting_raw, _ = [], errors.append(f"会议查询失败：{exc}")
+    try:
+        status_raw = client.search(settings.STATUS_JQL)
+    except JiraError as exc:
+        status_raw, _ = [], errors.append(f"状态更新查询失败：{exc}")
 
     return assemble(lane_raw, child_raw, milestone_raw, meeting_raw, start_field,
-                    fetch_errors=errors)
+                    fetch_errors=errors, status_raw=status_raw)
 
 
 def failed_snapshot(reason: str) -> Snapshot:

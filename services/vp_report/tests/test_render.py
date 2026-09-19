@@ -29,6 +29,7 @@ def snap_dict(**kwargs):
         start_field=fx.START_FIELD,
         today=_pick(kwargs, "today", date(2026, 9, 16)),
         fetched_at="2026-09-16T10:00:00-07:00",
+        status_raw=_pick(kwargs, "status_updates", fx.status_updates()),
     )
     return s.to_dict()
 
@@ -206,3 +207,49 @@ class GatePageTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class StatusCardTest(unittest.TestCase):
+    def test_latest_update_is_shown_with_health_author_and_age(self):
+        html = page()
+        self.assertIn("本期状态", html)
+        self.assertIn("有风险", html)
+        self.assertIn("Ryan", html)
+        self.assertIn("今天", html)                 # 09-16 更新，today=09-16
+        self.assertIn("判断依据", html)
+        self.assertIn("需要决定", html)
+        self.assertIn("双人确认是否必须", html)
+        self.assertIn("David", html)
+        # 没写最晚日期就是待确认，不补
+        self.assertIn("最晚 待确认", html)
+        # 往期折叠可查，且不把上一期的判断混进本期
+        self.assertIn("往期更新（1 期）", html)
+        self.assertIn("按计划", html)
+
+    def test_missing_update_is_stated_not_shown_as_fine(self):
+        html = page(status_updates=[])
+        self.assertIn("还没有人写状态更新", html)
+        self.assertIn("这不等于按计划", html)
+
+    def test_update_age_is_computed_from_today(self):
+        html = page(today=date(2026, 9, 20))
+        self.assertIn("4 天前", html)
+
+    def test_illegal_health_is_flagged_not_rendered_as_a_state(self):
+        raws = [fx.issue("KAN-82", "x", due="2026-09-16", labels=["mgmt-status"],
+                         description=fx.status_block(health="差不多"))]
+        html = page(status_updates=raws)
+        self.assertIn("判断待确认", html)
+        self.assertIn("不在可选值内", html)
+
+    def test_hostile_status_text_is_escaped(self):
+        html = page(status_updates=fx.hostile_status_updates())
+        self.assertNotIn("<script>", html)
+        self.assertNotIn('onmouseover="alert', html)
+        self.assertIn("&lt;script&gt;", html)
+
+    def test_dropped_undated_update_is_listed_under_attention(self):
+        raws = [fx.issue("KAN-84", "x", due=None, labels=["mgmt-status"],
+                         description=fx.status_block())]
+        html = page(status_updates=raws)
+        self.assertIn("KAN-84 状态更新缺截止日期", html)
