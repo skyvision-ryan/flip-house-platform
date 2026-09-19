@@ -190,7 +190,7 @@ h1{font-size:26px;font-weight:700;letter-spacing:.01em;margin-bottom:10px}
 .d-review{background:var(--s-review)} .d-done{background:var(--s-done)}
 .chip.risk{background:var(--warn-bg);color:#8d2020}
 .chip.caution{background:var(--caution-bg);color:#7a4b06}
-.chip.ok{background:#e6f4e6;color:#0a5a0a}
+.chip.ok{background:#e6f4e6;color:#0a8a0a}
 .chip.hold{background:#eef1f5;color:var(--ink-2)}
 .st-meta{font-size:13.5px;color:var(--ink-3);margin-top:6px}
 .st-sec{margin-top:10px;padding-top:10px;border-top:1px solid var(--hair);font-size:15px;line-height:1.6}

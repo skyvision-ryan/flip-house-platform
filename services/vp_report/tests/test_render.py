@@ -209,22 +209,28 @@ if __name__ == "__main__":
     unittest.main()
 
 
+def status_card(html: str) -> str:
+    """只取「本期状态」那张卡，免得断言命中页面别处的同名文字。"""
+    start = html.index("<h2>本期状态</h2>")
+    end = html.index("<h2>各项工作进展</h2>")
+    return html[start:end]
+
+
 class StatusCardTest(unittest.TestCase):
     def test_latest_update_is_shown_with_health_author_and_age(self):
-        html = page()
-        self.assertIn("本期状态", html)
-        self.assertIn("有风险", html)
-        self.assertIn("Ryan", html)
-        self.assertIn("今天", html)                 # 09-16 更新，today=09-16
-        self.assertIn("判断依据", html)
-        self.assertIn("需要决定", html)
-        self.assertIn("双人确认是否必须", html)
-        self.assertIn("David", html)
+        card = status_card(page())
+        self.assertIn('<span class="chip caution">有风险</span>', card)
+        self.assertIn("2026-09-16（今天）　Ryan", card)   # 09-16 更新，today=09-16
+        self.assertIn("判断依据", card)
+        self.assertIn("双人确认是否必须", card)
+        self.assertIn("David", card)
         # 没写最晚日期就是待确认，不补
-        self.assertIn("最晚 待确认", html)
-        # 往期折叠可查，且不把上一期的判断混进本期
-        self.assertIn("往期更新（1 期）", html)
-        self.assertIn("按计划", html)
+        self.assertIn("最晚 待确认", card)
+        # 往期折叠可查，上一期的判断只出现在折叠区里
+        head, _, hist = card.partition("<details")
+        self.assertIn("往期更新（1 期）", hist)
+        self.assertIn('<span class="chip ok">按计划</span>', hist)
+        self.assertNotIn("按计划", head)
 
     def test_missing_update_is_stated_not_shown_as_fine(self):
         html = page(status_updates=[])
@@ -232,8 +238,8 @@ class StatusCardTest(unittest.TestCase):
         self.assertIn("这不等于按计划", html)
 
     def test_update_age_is_computed_from_today(self):
-        html = page(today=date(2026, 9, 20))
-        self.assertIn("4 天前", html)
+        card = status_card(page(today=date(2026, 9, 20)))
+        self.assertIn("2026-09-16（4 天前）", card)
 
     def test_illegal_health_is_flagged_not_rendered_as_a_state(self):
         raws = [fx.issue("KAN-82", "x", due="2026-09-16", labels=["mgmt-status"],

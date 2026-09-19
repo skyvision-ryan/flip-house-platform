@@ -150,6 +150,19 @@ class StatusUpdateTest(unittest.TestCase):
         self.assertEqual(snap.status_updates, [])
         self.assertTrue(any("KAN-84" in n for n in snap.notes))
 
+    def test_status_item_created_under_an_epic_is_not_counted_as_work(self):
+        """从 Epic 下面新建的状态更新带 parent，但它不是执行工作。"""
+        stray = fx.issue("KAN-85", "状态更新 09-16", parent="KAN-35", due="2026-09-16",
+                         labels=["mgmt-status"], description=fx.status_block())
+        base = build()
+        snap = build(children=fx.children() + [stray], subtasks=fx.subtasks())
+        lane = next(ln for ln in snap.lines if ln.jira_key == "KAN-35")
+        base_lane = next(ln for ln in base.lines if ln.jira_key == "KAN-35")
+        self.assertEqual(lane.total_count, base_lane.total_count)
+        self.assertEqual(lane.children, base_lane.children)
+        self.assertEqual(snap.issue_count, base.issue_count)
+        self.assertNotIn("KAN-85", [i.key for i in snap.issues])
+
     def test_no_updates_is_a_valid_snapshot(self):
         snap = build(status_updates=[])
         self.assertEqual(snap.status_updates, [])

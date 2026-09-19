@@ -295,7 +295,11 @@ def assemble(
     today = today or today_local()
     errors = list(fetch_errors or [])
 
-    all_issues = [parse_issue(r, start_field) for r in child_raw]
+    # 状态更新工作项不是执行工作：即使有人从 Epic 下面新建（因而带 parent），
+    # 也不进主线的任务统计和「纳入 N 项工作」。按标签识别，不靠 JQL 排除——
+    # `labels not in` 会把没打标签的执行单一起丢掉。
+    all_issues = [parse_issue(r, start_field) for r in child_raw
+                  if STATUS_LABEL not in _labels(r)]
     by_parent: dict[str, list[Issue]] = {}
     subs_by_parent: dict[str, list[Issue]] = {}
     for iss in all_issues:
