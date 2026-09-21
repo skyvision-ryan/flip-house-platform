@@ -88,6 +88,45 @@ class DecideTest(unittest.TestCase):
         self.assertEqual(jmd.decide(body, "正在进行")["target"], jmd.STATUS_REVIEW)
 
 
+class RealWorldRegressionTest(unittest.TestCase):
+    """PR #19 第一次真实触发时暴露的两个缺陷，钉在这里。"""
+
+    # PR #19 正文的形状：散文里写着规则本身，表格里才是真的验收声明
+    PR19 = (
+        "## 口径：不一律自动 Done\n\n"
+        "- PR 正文**没有**「未验证 / 未测 / 待验证 / ❌」→ 转**已完成**\n"
+        "- **有** → 只转到**审查中**，评论写明命中了哪个词\n\n"
+        "## 验收\n\n"
+        "| 标准 | 结果 | 证据 |\n"
+        "|---|---|---|\n"
+        "| check_local 全绿 | ✅ | 六步 |\n"
+        "| **真实 PR 上触发** | ⚠️ 未验证 | 仓库目前一个 secret 都没有 |\n"
+    )
+
+    def test_prose_describing_the_rule_does_not_self_match(self):
+        """工具不能匹配到自己的说明书。
+
+        实测：修复前这篇 PR 命中四个词（未验证、未测、待验证、❌），
+        因为散文里列着规则本身。修复后只命中表格里那一个。
+        """
+        self.assertEqual(jmd.unverified_markers(self.PR19), ["未验证"])
+
+    def test_no_op_transition_is_skipped(self):
+        """审查中 → 审查中 没有意义，只会在票上留一条噪声评论。"""
+        d = jmd.decide(self.PR19, "审查中")
+        self.assertEqual(d["action"], "skip")
+        self.assertIsNone(d["target"])
+        self.assertIn("就是该去的状态", d["reason"])
+
+    def test_clean_pr_already_done_is_skipped_too(self):
+        clean = "## 验收\n| 全绿 | ✅ | 六步 |\n"
+        self.assertEqual(jmd.decide(clean, "已完成")["action"], "skip")
+
+    def test_still_moves_when_status_differs(self):
+        self.assertEqual(jmd.decide(self.PR19, "正在进行")["target"], jmd.STATUS_REVIEW)
+        self.assertEqual(jmd.decide("| 全绿 | ✅ |", "审查中")["target"], jmd.STATUS_DONE)
+
+
 class PickTransitionTest(unittest.TestCase):
     TRANSITIONS = [
         {"id": "11", "to": {"name": "待办"}},
