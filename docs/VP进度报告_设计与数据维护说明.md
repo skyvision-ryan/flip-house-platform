@@ -1,11 +1,11 @@
 # VP 进度报告：设计与数据维护说明
 
-更新：2026-09-18。对应 Jira [KAN-40](https://skyvisioninsurance.atlassian.net/browse/KAN-40)。
+更新：2026-09-21。对应 Jira [KAN-40](https://skyvisioninsurance.atlassian.net/browse/KAN-40)。
 代码在 [`services/vp_report/`](../services/vp_report/README.md)。
 
 ## 这是什么
 
-Jira 的**管理层阅读入口**。开发和 PM 照常在 Jira 维护项目，这个小应用从同一份数据
+Jira 的**管理层阅读入口**，也是**唯一**的管理层汇报入口，数据只来自 Jira。开发和 PM 照常在 Jira 维护项目，这个小应用从同一份数据
 生成适合手机阅读的进度总览，产出一个可以置顶在微信群里的固定链接。
 
 不懂技术的 VP 打开后应在 30 秒内看懂四件事：

@@ -29,6 +29,7 @@
 - 进度条不再是禁止项；纪律是时间与事实分两条、各自标刻度，不用时间流逝冒充完成。轨道图、甘特图、自动排程仍排除。
 - 三个 Epic：KAN-35 账号/AWS、KAN-36 项目任务、KAN-37 iPhone；执行单 KAN-20–34。KAN-20 已完成。旧 KAN-17/18/19 关闭是结构替换，不代表业务已交付。
 - 先落实 KAN-21 账号/项目成员契约，再接任务和手机；不用等整个 KAN-35 云工作完成。
+- 管理层汇报只保留 VP 进度报告（`services/vp_report`），数据源只有 Jira ticket；不再维护 Asana 或其他汇报看板，也不新建第二套同步。
 - 保留 React/TypeScript/Cloudscape + FastAPI/SQLAlchemy。首版为联网的 iPhone Safari/主屏幕网页应用。AI 接入、原生 App、离线/推送、多租户收费不在本周。
 - AWS 采用 ECS/Fargate + RDS PostgreSQL + 私有 S3 + Cognito + CDK；首期前后端同源，不重新选择云架构。
 - 任务实例接收具体 user_id；后端核验角色、项目与动作。迁移保留稳定 step key、证据、历史、D/J 双确认及最近一次 Final 检查规则。
