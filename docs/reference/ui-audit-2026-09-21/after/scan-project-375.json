@@ -1,0 +1,76 @@
+{
+  "route": "/projects/1",
+  "innerWidth": 375,
+  "scrollWidth": 360,
+  "clientWidth": 360,
+  "sampleCount": 406,
+  "actor": "负责人",
+  "reviewTags": "默认（关）",
+  "bodyFontFamily": "\"Helvetica Neue\", Helvetica, \"PingFang SC\", Arial, sans-serif",
+  "colors": [
+    {
+      "value": "rgb(15, 20, 26)",
+      "n": 138
+    },
+    {
+      "value": "rgb(198, 198, 205)",
+      "n": 130
+    },
+    {
+      "value": "rgb(255, 255, 255)",
+      "n": 32
+    },
+    {
+      "value": "rgb(66, 70, 80)",
+      "n": 23
+    },
+    {
+      "value": "rgb(222, 222, 227)",
+      "n": 20
+    },
+    {
+      "value": "rgb(0, 128, 47)",
+      "n": 12
+    },
+    {
+      "value": "rgb(101, 104, 113)",
+      "n": 12
+    },
+    {
+      "value": "rgb(0, 108, 224)",
+      "n": 11
+    },
+    {
+      "value": "rgb(235, 235, 240)",
+      "n": 10
+    },
+    {
+      "value": "rgb(140, 140, 148)",
+      "n": 7
+    },
+    {
+      "value": "color(srgb 0.900784 0.900784 0.907686)",
+      "n": 3
+    },
+    {
+      "value": "rgb(104, 138, 232)",
+      "n": 3
+    },
+    {
+      "value": "rgb(0, 0, 0)",
+      "n": 2
+    },
+    {
+      "value": "rgb(180, 180, 187)",
+      "n": 1
+    },
+    {
+      "value": "rgb(247, 245, 241)",
+      "n": 1
+    },
+    {
+      "value": "rgb(233, 236, 239)",
+      "n": 1
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import { PAGE_BG } from '../theme';
 import { useState } from 'react';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
@@ -23,7 +24,7 @@ export default function Login({ onLogin, demoMode, onSkip }: { onLogin: (me: Me)
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: '#f2f3f3' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: PAGE_BG }}>
       <div style={{ width: '100%', maxWidth: 420 }}>
         <form onSubmit={(e) => { e.preventDefault(); submit(); }}>
           <Form

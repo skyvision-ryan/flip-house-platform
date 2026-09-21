@@ -31,7 +31,8 @@ import FilesTab from './FilesTab';
 import BudgetTab from './BudgetTab';
 import EditProjectModal from './EditProjectModal';
 
-const STAGE_COLOR: Record<string, 'severity-low' | 'severity-medium' | 'green'> = { lead: 'severity-low', active: 'severity-medium', portfolio: 'green' };
+// 审计 #A12：原先 lead/active/portfolio 用 severity-low/medium/green，拿「严重度」表「阶段」——
+// 线索项目顶着低告警色、在建顶着中告警色。阶段不是状态，区分靠 current_stage.label 的文字。
 
 const short = (d: string | null) => (d ? d.slice(5).replace('-', '/') : '—');
 
@@ -135,7 +136,7 @@ export default function ProjectPage() {
                   <ReviewTag id="A" />
                   <OwnerTag block="project.header" />
                   <span>{project.name}</span>
-                  <Badge color={STAGE_COLOR[project.stage] ?? 'grey'}>{project.current_stage?.label ?? `${labelOf(meta?.stages, project.stage)} · ${labelOf(meta?.substages[project.stage], project.substage)}`}</Badge>
+                  <Badge color="grey">{project.current_stage?.label ?? `${labelOf(meta?.stages, project.stage)} · ${labelOf(meta?.substages[project.stage], project.substage)}`}</Badge>
                   <Badge color="grey">{labelOf(meta?.strategies, project.strategy)}</Badge>
                   <StatusBadge status={project.status} />
                 </div>

@@ -1,15 +1,20 @@
 import Box from '@cloudscape-design/components/box';
 import { useMeta } from '../lib/meta';
 import { useActor } from '../lib/actor';
-import { colorOf } from '../lib/role';
-import { SURFACE, TEXT_2, BORDER } from './charts/palette';
+import { SURFACE, TEXT, TEXT_2, BORDER } from './charts/palette';
 
-/** 负责角色的圆标：单字母画圆，多字（设计师 / 园丁 / 负责人 / ？）画胶囊。颜色来自后端 tier 配置。 */
+/**
+ * 负责角色的圆标：单字母画圆，多字（设计师 / 园丁 / 负责人 / ？）画胶囊。
+ *
+ * 审计 #A09：原先底色取自后端 tier 配置的紫/蓝/青/灰，颜色编码的是**角色层级**，
+ * 属分类信息不是状态，违反「颜色只表状态」。现在一律中性底，层级靠 OwnerNames 的文字。
+ * 圆标宽度刻意不变（22px 单字母）——15 个使用点里有紧凑表格，加文字会全面变宽。
+ * 后端 /api/meta 仍然下发 tiers[].color，只是界面不再消费（审计 #A23）。
+ */
 export function OwnerDot({ code, title }: { code: string; title?: string }) {
   const meta = useMeta();
   const single = [...code].length === 1;
   const unknown = code === '?';
-  const color = unknown ? TEXT_2 : colorOf(meta, code);
   const tierLabel = meta?.tiers?.[meta?.roles.find((r) => r.code === code)?.tier ?? '']?.label;
   return (
     <span
@@ -18,8 +23,8 @@ export function OwnerDot({ code, title }: { code: string; title?: string }) {
       style={{
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
         minWidth: 22, height: 22, borderRadius: 11, padding: single ? 0 : '0 7px',
-        background: unknown ? SURFACE : color, color: unknown ? TEXT_2 : SURFACE,
-        border: unknown ? `1px dashed ${BORDER}` : 'none',
+        background: SURFACE, color: unknown ? TEXT_2 : TEXT,
+        border: unknown ? `1px dashed ${BORDER}` : `1px solid ${BORDER}`,
         fontWeight: 700, fontSize: single ? 13 : 11, lineHeight: 1,
         marginRight: 4, verticalAlign: 'middle', flexShrink: 0, userSelect: 'none', whiteSpace: 'nowrap',
       }}

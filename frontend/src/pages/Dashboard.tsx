@@ -23,6 +23,7 @@ import StatusIndicator from '@cloudscape-design/components/status-indicator';
 import Table from '@cloudscape-design/components/table';
 import TextFilter from '@cloudscape-design/components/text-filter';
 import StatusBadge from '../components/StatusBadge';
+import { BORDER, TEXT_2, TEXT_GOOD } from '../components/charts/palette';
 import CoverImage from '../components/CoverImage';
 import ReviewTag from '../components/ReviewTag';
 import { BulletList, DeltaBadge, HBars, InlineBar, Meter, StackedBar, StatTile, Trend, compactMoney, fullMoney } from '../components/charts';
@@ -206,16 +207,18 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
   const widget = (id: WidgetId) => {
     switch (id) {
       case 'attention': {
-        const bar: Record<string, string> = { error: '#d91515', warning: '#8d6605', info: '#0972d3' };
-        const bg: Record<string, string> = { error: '#fff5f5', warning: '#fffbf0', info: '#f3f8ff' };
+        // 审计 #A01：原先用 6 个硬编码 hex 画整块彩色底，而且抄的是已过期的旧令牌值
+        // （#d91515/#8d6605/#0972d3，令牌现值是 #db0000/#855900/#006ce0）。
+        // 改成白底 + StatusIndicator：状态由图标和文字承担，颜色只做强化。
+        const level: Record<string, 'error' | 'warning' | 'info'> = { error: 'error', warning: 'warning', info: 'info' };
         return insights.length ? (
           <SpaceBetween size="xs">
             {insights.slice(0, 8).map((i, k) => (
               <div key={k} role="button" tabIndex={0} onClick={() => go(i.href)} onKeyDown={(e) => { if (e.key === 'Enter') go(i.href); }}
-                style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 8, alignItems: 'center', padding: '8px 10px 8px 12px', borderLeft: `4px solid ${bar[i.level]}`, background: bg[i.level], borderRadius: 6, cursor: 'pointer' }}>
+                style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 8, alignItems: 'center', padding: '8px 10px', border: `1px solid ${BORDER}`, borderRadius: 6, cursor: 'pointer' }}>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: bar[i.level], border: `1px solid ${bar[i.level]}`, borderRadius: 10, padding: '0 7px', whiteSpace: 'nowrap' }}>{i.tag}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2, flexWrap: 'wrap' }}>
+                    <StatusIndicator type={level[i.level] ?? 'info'}>{i.tag}</StatusIndicator>
                     <span style={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{i.projectName}</span>
                   </div>
                   <div style={{ fontSize: 14 }}>{i.headline}</div>
@@ -302,7 +305,8 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
                     <SpaceBetween size="xxs">
                       {p.next_up.slice(0, 2).map((n) => (
                         <span key={n.key} style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
-                          {n.gate && <span style={{ width: 9, height: 9, transform: 'rotate(45deg)', border: '2px solid #0972d3', borderRadius: 2, marginRight: 6, flexShrink: 0 }} />}
+                          {/* 审计 #A02：菱形原先用硬编码的旧 info 蓝，改中性边框；「是不是关键节点」靠字重表示 */}
+                          {n.gate && <span style={{ width: 9, height: 9, transform: 'rotate(45deg)', border: `2px solid ${TEXT_2}`, borderRadius: 2, marginRight: 6, flexShrink: 0 }} />}
                           {n.owners.map((o) => <OwnerDot key={o} code={o} />)}<span style={{ fontWeight: n.gate ? 700 : 400 }}>{n.title}</span>
                         </span>
                       ))}
@@ -383,9 +387,12 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
         return gs.length ? (
           <SpaceBetween size="xs">
             {gs.map((g) => (
-              <div key={`${g.project_id}-${g.key}`} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 8, alignItems: 'center', padding: '8px 10px', borderRadius: 6, background: g.is_current ? '#f3f8ff' : '#f8f8f8', borderLeft: `4px solid ${g.is_current ? '#0972d3' : '#8d99a8'}` }}>
+              /* 审计 #A03：原先整行铺彩色底 + 彩色左边条表示「是不是当前阶段」，四个值全硬编码。
+                 改中性边框，「当前」用 StatusIndicator 明说。 */
+              <div key={`${g.project_id}-${g.key}`} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 8, alignItems: 'center', padding: '8px 10px', borderRadius: 6, border: `1px solid ${BORDER}` }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontWeight: 700 }}>◆ {g.title} <Box variant="span" fontWeight="normal" color="text-body-secondary">· {g.project_name}</Box></div>
+                  {g.is_current && <StatusIndicator type="in-progress">当前阶段</StatusIndicator>}
                   <Box variant="small" color="text-body-secondary">{g.stage}{g.evidence_hint ? ` · ${g.evidence_hint}` : ''}{g.confirmed.length ? ` · ${g.confirmed.join('、')} 已确认` : ''}</Box>
                 </div>
                 <Button onClick={() => go(`/projects/${g.project_id}?tab=overview&step=${g.key}&action=confirm`)}>去确认</Button>
@@ -432,7 +439,16 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
       }
       case 'utilities': {
         const rs = roleData?.utilities_insurance ?? [];
-        const dot = (st: string) => <span title={st} style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 5, marginRight: 4, background: st === 'on' ? '#037f0c' : st === 'pending' ? '#8d6605' : st === 'off' ? '#5f6b7a' : '#d1d5db' }} />;
+        // 审计 #A04：原先是 10px 纯色圆点，含义**只靠颜色**，唯一补充是 title——
+        // 而 title 要 hover 才出来，iPhone 上没有 hover，等于没有。直接违反官方
+        // 「color should never be the only visual means of conveying information」。
+        // 改 StatusIndicator：图标 + 文字承担含义，颜色只做强化。
+        const UTIL: Record<string, { type: 'success' | 'pending' | 'stopped' | 'info'; label: string }> = {
+          on: { type: 'success', label: '通' }, pending: { type: 'pending', label: '待' },
+          off: { type: 'stopped', label: '停' },
+        };
+        const dot = (st: string) => { const u = UTIL[st] ?? { type: 'info' as const, label: '未知' };
+          return <Box variant="span" margin={{ right: 'xxs' }}><StatusIndicator type={u.type}>{u.label}</StatusIndicator></Box>; };
         return rs.length ? (
           <Table variant="embedded" items={rs} columnDefinitions={[
             { id: 'p', header: '房', cell: (r) => projLink(r.project_id, r.project_name) },
@@ -467,7 +483,8 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
       }
       case 'saledocs': {
         const rs = roleData?.sale_docs ?? [];
-        const ok = (b: boolean) => <span style={{ color: b ? '#037f0c' : '#8d99a8', fontWeight: 700 }}>{b ? '✓' : '○'}</span>;
+        // 审计 #A05：符号本身已是第二通道，只把硬编码的旧色值换成令牌
+        const ok = (b: boolean) => <span style={{ color: b ? TEXT_GOOD : TEXT_2, fontWeight: 700 }}>{b ? '✓' : '○'}</span>;
         return rs.length ? (
           <Table variant="embedded" items={rs} columnDefinitions={[
             { id: 'p', header: '房', cell: (r) => <span>{projLink(r.project_id, r.project_name)}<Box variant="small" color="text-body-secondary">挂牌 {r.list_date ? shortDate(r.list_date) : '—'}</Box></span> },

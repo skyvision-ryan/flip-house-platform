@@ -16,6 +16,8 @@ import AssistantPanel from './components/AssistantPanel';
 import { api, AddressCandidate, AUTH_EVENT, Me } from './api/client';
 import { FlashContext } from './lib/flash';
 import { ReviewContext } from './components/ReviewTag';
+import { readReviewPref, writeReviewPref } from './lib/reviewPref';
+import { BORDER } from './components/charts/palette';
 import { ActorContext, clearActor, getActor, getOverride, setActor as persistActor } from './lib/actor';
 import { useMeta } from './lib/meta';
 import { TIER_FALLBACK, Tier } from './lib/role';
@@ -53,8 +55,8 @@ export default function App() {
   const resetActor = () => { clearActor(); setOverride(null); };
   const onLogin = useCallback((m: Me) => { clearActor(); setOverride(null); setMe(m); navigate('/'); }, [navigate]);
   const logout = async () => { try { await api.logout(); } catch { /* ignore */ } clearActor(); setOverride(null); setMe(null); navigate('/'); };
-  const [reviewOn, setReviewOn] = useState<boolean>(() => { try { return localStorage.getItem('reviewTags') !== 'off'; } catch { return true; } });
-  const toggleReview = () => { const v = !reviewOn; setReviewOn(v); try { localStorage.setItem('reviewTags', v ? 'on' : 'off'); } catch { /* ignore */ } };
+  const [reviewOn, setReviewOn] = useState<boolean>(() => readReviewPref(localStorage));
+  const toggleReview = () => { const v = !reviewOn; setReviewOn(v); writeReviewPref(localStorage, v); };
 
   const pushFlash = (msg: Omit<FlashbarProps.MessageDefinition, 'id' | 'onDismiss' | 'dismissible'>) => {
     const id = String(Date.now());
@@ -68,7 +70,7 @@ export default function App() {
   const canDo = (action: string) => { const ok = meta?.permissions?.[action] ?? ['purple', 'blue']; return ok.includes(tier) || ok.includes(actor); };
   const tierOrder: Tier[] = ['purple', 'blue', 'teal', 'grey'];
   const roleGroups = tierOrder.map((t) => ({
-    id: `g-${t}`, text: `${(meta?.tiers?.[t] ?? TIER_FALLBACK[t]).label}（${{ purple: '紫', blue: '蓝', teal: '青', grey: '灰' }[t]}）`,
+    id: `g-${t}`, text: (meta?.tiers?.[t] ?? TIER_FALLBACK[t]).label,
     items: (meta?.roles ?? []).filter((r) => r.tier === t).map((r) => ({ id: r.code, text: r.label, description: r.duties || undefined })),
   })).filter((g) => g.items.length);
   const activeHref = location.pathname === '/projects/new' ? '/projects/new' : location.pathname.startsWith('/projects') ? '/projects' : location.pathname.startsWith('/users') ? '/users' : '/';
@@ -111,7 +113,9 @@ export default function App() {
     <FlashContext.Provider value={pushFlash}>
     <ReviewContext.Provider value={reviewOn}>
     <ActorContext.Provider value={{ actor, setActor, me, demoMode, logout }}>
-      <div id="top-nav" style={{ position: 'sticky', top: 0, zIndex: 1002, borderBottom: `3px solid ${tierInfo.color}` }}>
+      {/* 审计 #A10：这条底边原先用当前身份的 tier 颜色，颜色编码的是「你是谁」不是状态，
+          而且换个身份整条边就变色。改成中性分隔线。 */}
+      <div id="top-nav" style={{ position: 'sticky', top: 0, zIndex: 1002, borderBottom: `3px solid ${BORDER}` }}>
         <TopNavigation
           identity={{ href: '/', title: '翻新项目平台', onFollow: (e) => { e.preventDefault(); navigate('/'); } }}
           search={

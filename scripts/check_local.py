@@ -64,7 +64,14 @@ def main() -> int:
                   BACKEND, test_env)
     ok &= run("开发工具测试", [sys.executable, ".claude/hooks/test_check_commit.py"], ROOT, env)
     # 前端纯逻辑单测：Node 22 自带 --test 和 TS 剥离，不需要额外依赖。
-    ok &= run("前端单测", [node, "--test", "--experimental-strip-types", "src/lib/stepDisplay.test.ts"], FRONTEND, env)
+    # 按目录发现，不写死文件名——写死的话新增测试不会被跑到，还得记得改这一行。
+    # 排序保证每次命令行一致；一个都找不到判失败，免得测试文件被删光了却静默通过。
+    tests = sorted(p.relative_to(FRONTEND).as_posix() for p in (FRONTEND / "src").rglob("*.test.ts"))
+    if not tests:
+        print("没有找到 frontend/src 下的 *.test.ts")
+        ok = False
+    else:
+        ok &= run("前端单测", [node, "--test", "--experimental-strip-types", *tests], FRONTEND, env)
     ok &= run("前端构建", ["npm", "run", "build"], FRONTEND, env)
     ok &= run("Git diff 格式", ["git", "diff", "--check"], ROOT, env)
     return 0 if ok else 1
