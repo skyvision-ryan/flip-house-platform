@@ -1,0 +1,49 @@
+# PR 合入后把状态回写 Jira（KAN-40）。
+#
+# 为什么要有它：在此之前，「合入 PR」不会触发任何 Jira 动作。ci.yml 只跑测试，
+# jira-deployment.yml 只登记 GitHub Deployment。最后一步「标 Done」一直是纯人工，
+# 漏了票就永远挂在「正在进行」——KAN-40 自己和 KAN-49 都这么挂过。
+#
+# 口径（Ryan 2026-09-21 定）：
+#   PR 验收表里没有「未验证 / ❌」→ 转「已完成」
+#   有                            → 只转到「审查中」，评论说明卡在哪
+# 不一律自动 Done，因为 AGENTS.md 写着「Jira Done、代码合并和测试通过不能互相替代」。
+#
+# 这里刻意只有一行调用：判断在 scripts/jira_merge_decision.py（纯函数，有单测），
+# I/O 在 scripts/jira_on_merge.py（只用标准库）。YAML 里不放逻辑，免得改不动也测不了。
+#
+# 需要三个仓库 secret，缺任何一个就跳过（只打注解，不让 PR 变红）：
+#   JIRA_BASE_URL   https://skyvisioninsurance.atlassian.net
+#   JIRA_EMAIL      建 token 的那个 Atlassian 账号邮箱
+#   JIRA_API_TOKEN  在 id.atlassian.com/manage-profile/security/api-tokens 生成
+
+name: Sync Jira on merge
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    # 只认真的合进去的；关掉而没合的 PR 不动 Jira
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 回写 Jira
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_NUM: ${{ github.event.pull_request.number }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+        run: python3 scripts/jira_on_merge.py
