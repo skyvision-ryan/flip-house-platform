@@ -3,17 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useCollection } from '@cloudscape-design/collection-hooks';
 import Board, { BoardProps } from '@cloudscape-design/board-components/board';
 import BoardItem from '@cloudscape-design/board-components/board-item';
-import Autosuggest from '@cloudscape-design/components/autosuggest';
 import Box from '@cloudscape-design/components/box';
 import BreadcrumbGroup from '@cloudscape-design/components/breadcrumb-group';
 import Button from '@cloudscape-design/components/button';
 import ButtonDropdown from '@cloudscape-design/components/button-dropdown';
 import Cards from '@cloudscape-design/components/cards';
 import ColumnLayout from '@cloudscape-design/components/column-layout';
-import Container from '@cloudscape-design/components/container';
 import ContentLayout from '@cloudscape-design/components/content-layout';
-import FormField from '@cloudscape-design/components/form-field';
-import Grid from '@cloudscape-design/components/grid';
 import Header from '@cloudscape-design/components/header';
 import Link from '@cloudscape-design/components/link';
 import Pagination from '@cloudscape-design/components/pagination';
@@ -26,15 +22,15 @@ import StatusBadge from '../components/StatusBadge';
 import { BORDER, TEXT_2, TEXT_GOOD } from '../components/charts/palette';
 import CoverImage from '../components/CoverImage';
 import ReviewTag from '../components/ReviewTag';
-import { BulletList, DeltaBadge, HBars, InlineBar, Meter, StackedBar, StatTile, Trend, compactMoney, fullMoney } from '../components/charts';
-import { api, AddressCandidate, DashboardRole, DashboardSummary, DashboardWidgets, Project, Update } from '../api/client';
+import { BulletList, DeltaBadge, HBars, InlineBar, Meter, ORDINAL_BLUE, StackedBar, StatTile, Trend, compactMoney, fullMoney } from '../components/charts';
+import { api, DashboardRole, DashboardSummary, DashboardWidgets, Project, Update } from '../api/client';
 import MyTodoTable from '../components/MyTodoTable';
 import { useRole } from '../lib/role';
 import { actionHref } from '../lib/stepActions';
 import UpdatesList from '../components/UpdatesList';
 import { OwnerDot } from '../components/OwnerTag';
 import { dateStr, money, pct } from '../lib/format';
-import { headline, Insight, loadInsights } from '../lib/insights';
+import { Insight, loadInsights } from '../lib/insights';
 import { labelOf, useMeta } from '../lib/meta';
 
 type WidgetId = 'attention' | 'money' | 'stages' | 'recent' | 'list' | 'upcoming' | 'capital' | 'retro' | 'weekly' | 'vendors' | 'funnel' | 'updates' | 'turns'
@@ -67,8 +63,9 @@ const WIDGETS: Record<WidgetId, ItemData & { cols: number; rows: number }> = {
   boss: { title: '老板总览', tag: 'W', cols: 4, rows: 2 },
 };
 const MONEY_WIDGETS: WidgetId[] = ['money', 'capital', 'weekly', 'retro', 'vendors', 'boss'];
-const FALLBACK_ORDER: WidgetId[] = ['mytodo', 'recent', 'list'];
-const layoutKey = (actor: string) => `boardLayout.v6.${actor}`;
+// v8：项目表不再是看板的一项，而是页面固定的一块，所以旧存档里的 list 必须丢掉，
+// 否则会和固定那块重复出现两张表。看板现在只放「额外」小组件。
+const layoutKey = (actor: string) => `boardLayout.v8.${actor}`;
 
 function mkItem(id: WidgetId, extra?: Partial<Item>): Item {
   const w = WIDGETS[id];
@@ -79,7 +76,9 @@ function loadLayout(actor: string, defaults: WidgetId[]): Item[] {
     const raw = localStorage.getItem(layoutKey(actor));
     if (raw) {
       const saved = JSON.parse(raw) as { id: WidgetId; columnSpan?: number; rowSpan?: number; columnOffset?: Record<number, number> }[];
-      const items = saved.filter((s) => WIDGETS[s.id]).map((s) => mkItem(s.id, { columnSpan: s.columnSpan, rowSpan: s.rowSpan, columnOffset: s.columnOffset }));
+      // 丢掉旧存档里的 list：它现在固定渲染在页面上，留在看板里会出现两张表
+      const items = saved.filter((s) => WIDGETS[s.id] && s.id !== 'list')
+        .map((s) => mkItem(s.id, { columnSpan: s.columnSpan, rowSpan: s.rowSpan, columnOffset: s.columnOffset }));
       if (items.length) return items;
     }
   } catch { /* ignore */ }
@@ -112,7 +111,11 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
   const navigate = useNavigate();
   const meta = useMeta();
   const role = useRole();
-  const defaults = ((meta?.dashboard_layouts?.[role.actor] ?? (role.tier === 'purple' || role.actor === '负责人' ? meta?.dashboard_layouts?.['负责人'] : undefined)) ?? FALLBACK_ORDER).filter((id): id is WidgetId => id in WIDGETS);
+  // 项目表已经固定渲染在页面上，看板里只剩「额外」小组件，默认一个都没有。
+  // 注意**不动** DASHBOARD_LAYOUTS 那份后端字典——它同时决定 widget_access，
+  // 动了角色就加不回自己的小组件。下面 canAdd 仍然读 widget_access，
+  // 所以「添加小组件」照样能把关注、门、水电加回来，加回来的出现在表下面。
+  const defaults: WidgetId[] = [];
   const canAdd = (id: WidgetId) => (role.actor === '老板' || role.actor === '负责人' || (meta?.widget_access?.[id] ?? []).includes(role.actor)) && (!MONEY_WIDGETS.includes(id) || role.canReadMoney);
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [roleData, setRoleData] = useState<DashboardRole | null>(null);
@@ -123,9 +126,6 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<ReadonlyArray<Item>>(() => loadLayout(role.actor, defaults));
   const [stage, setStage] = useState<{ label: string; value: string }>({ label: '全部阶段', value: '' });
-  const [q, setQ] = useState('');
-  const [cands, setCands] = useState<AddressCandidate[]>([]);
-  const [searching, setSearching] = useState(false);
 
   const reloadRole = async () => { setRoleData(await api.dashboardRole().catch(() => null)); };
   useEffect(() => {
@@ -150,10 +150,33 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
 
   const recent = [...projects].sort((a, b) => (a.updated_at < b.updated_at ? 1 : -1)).slice(0, 3);
   const stageOptions = [{ label: '全部阶段', value: '' }, ...(meta?.stages ?? [])];
-  const head = headline(insights, projects);
   const active = projects.filter((p) => p.stage === 'active');
   const go = (href: string) => navigate(href);
   const projLink = (id: number, name: string) => <Link href={`/projects/${id}`} onFollow={(e) => { e.preventDefault(); go(`/projects/${id}`); }}>{name}</Link>;
+
+  const projectColumns = [
+    { id: 'name', header: '项目', sortingField: 'name', minWidth: 260, cell: (p: Project) => (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <CoverImage propertyId={p.property.id} width={56} height={40} radius={6} showLabel={false} />
+        <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          {projLink(p.id, p.name)}
+          <Box variant="small" color="text-body-secondary">{p.property.address_std}</Box>
+        </div>
+      </div>
+    ) },
+    { id: 'stage', header: '阶段', sortingField: 'stage', cell: (p: Project) => `${labelOf(meta?.stages, p.stage)} · ${labelOf(meta?.substages[p.stage], p.substage)}` },
+    { id: 'status', header: '状态', sortingField: 'status', cell: (p: Project) => <StatusBadge status={p.status} /> },
+    // 百分比一行、金额一行。原先「99.0%（$81,660 / $82,500）」塞在一格里，
+    // 把最后一列挤成「更」，表底出现横向滚动条。
+    { id: 'budget', header: '预算已用', sortingField: 'budget_used_pct', cell: (p: Project) => ((p.budget_planned ?? 0) > 0 ? (
+      <div>
+        <div>{pct(p.budget_used_pct)}</div>
+        <Box variant="small" color="text-body-secondary">{money(p.budget_spent)} / {money(p.budget_planned)}</Box>
+      </div>
+    ) : '—') },
+    { id: 'arv', header: '目标售价', sortingField: 'target_arv', cell: (p: Project) => money(p.target_arv) },
+    { id: 'updated', header: '更新', sortingField: 'updated_at', cell: (p: Project) => dateStr(p.updated_at) },
+  ];
 
   const table = (
     <Table
@@ -172,22 +195,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
         </SpaceBetween>
       }
       pagination={<Pagination {...paginationProps} />}
-      columnDefinitions={[
-        { id: 'name', header: '项目', sortingField: 'name', minWidth: 260, cell: (p) => (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <CoverImage propertyId={p.property.id} width={56} height={40} radius={6} showLabel={false} />
-            <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-              {projLink(p.id, p.name)}
-              <Box variant="small" color="text-body-secondary">{p.property.address_std}</Box>
-            </div>
-          </div>
-        ) },
-        { id: 'stage', header: '阶段', sortingField: 'stage', cell: (p) => `${labelOf(meta?.stages, p.stage)} · ${labelOf(meta?.substages[p.stage], p.substage)}` },
-        { id: 'status', header: '状态', sortingField: 'status', cell: (p) => <StatusBadge status={p.status} /> },
-        { id: 'budget', header: '预算已用', sortingField: 'budget_used_pct', cell: (p) => ((p.budget_planned ?? 0) > 0 ? `${pct(p.budget_used_pct)}（${money(p.budget_spent)} / ${money(p.budget_planned)}）` : '—') },
-        { id: 'arv', header: '目标售价', sortingField: 'target_arv', cell: (p) => money(p.target_arv) },
-        { id: 'updated', header: '更新', sortingField: 'updated_at', cell: (p) => dateStr(p.updated_at) },
-      ]}
+      columnDefinitions={projectColumns}
     />
   );
 
@@ -207,27 +215,22 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
   const widget = (id: WidgetId) => {
     switch (id) {
       case 'attention': {
-        // 审计 #A01：原先用 6 个硬编码 hex 画整块彩色底，而且抄的是已过期的旧令牌值
-        // （#d91515/#8d6605/#0972d3，令牌现值是 #db0000/#855900/#006ce0）。
-        // 改成白底 + StatusIndicator：状态由图标和文字承担，颜色只做强化。
+        // 审计 #A01 已把整块彩色底换成白底 + StatusIndicator。KAN-63 再进一步：
+        // 手写的一叠圆角卡片改成 Cloudscape Table——同样的五列信息，交给组件去排，
+        // 窄屏折行、表头对齐都不用自己算。
         const level: Record<string, 'error' | 'warning' | 'info'> = { error: 'error', warning: 'warning', info: 'info' };
         return insights.length ? (
-          <SpaceBetween size="xs">
-            {insights.slice(0, 8).map((i, k) => (
-              <div key={k} role="button" tabIndex={0} onClick={() => go(i.href)} onKeyDown={(e) => { if (e.key === 'Enter') go(i.href); }}
-                style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 8, alignItems: 'center', padding: '8px 10px', border: `1px solid ${BORDER}`, borderRadius: 6, cursor: 'pointer' }}>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2, flexWrap: 'wrap' }}>
-                    <StatusIndicator type={level[i.level] ?? 'info'}>{i.tag}</StatusIndicator>
-                    <span style={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{i.projectName}</span>
-                  </div>
-                  <div style={{ fontSize: 14 }}>{i.headline}</div>
-                  {i.detail && <Box variant="small" color="text-body-secondary">{i.detail}</Box>}
-                </div>
-                <Link href={i.href} onFollow={(e) => { e.preventDefault(); go(i.href); }}>去看看</Link>
-              </div>
-            ))}
-          </SpaceBetween>
+          <Table
+            variant="embedded"
+            items={insights.slice(0, 8)}
+            columnDefinitions={[
+              { id: 'level', header: '状态', cell: (i) => <StatusIndicator type={level[i.level] ?? 'info'}>{i.tag}</StatusIndicator> },
+              { id: 'project', header: '项目', minWidth: 140, cell: (i) => projLink(i.projectId, i.projectName) },
+              { id: 'headline', header: '事项', minWidth: 180, cell: (i) => i.headline },
+              { id: 'detail', header: '说明', cell: (i) => (i.detail ? <Box variant="small" color="text-body-secondary">{i.detail}</Box> : '—') },
+              { id: 'act', header: '', cell: (i) => <Link href={i.href} onFollow={(e) => { e.preventDefault(); go(i.href); }}>去看看</Link> },
+            ]}
+          />
         ) : empty('所有项目都在正轨上，没有需要处理的事。');
       }
       case 'money':
@@ -243,7 +246,13 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
       case 'stages':
         return (
           <StackedBar
-            segments={[{ label: '线索', value: summary?.leads ?? 0 }, { label: '在建', value: summary?.active ?? 0 }, { label: '已完成', value: summary?.portfolio ?? 0 }]}
+            /* KAN-63：三段是同一条流水线的前后阶段，属有序数据，用蓝色阶而不是分类色
+               （原先默认取 SERIES 前三位，里面有品红和青）。StackedBar 本体不动，只在这里传色。 */
+            segments={[
+              { label: '线索', value: summary?.leads ?? 0, color: ORDINAL_BLUE[1] },
+              { label: '在建', value: summary?.active ?? 0, color: ORDINAL_BLUE[3] },
+              { label: '已完成', value: summary?.portfolio ?? 0, color: ORDINAL_BLUE[5] },
+            ]}
             format={(n) => `${n} 套`}
             emptyText={loading ? '正在读取…' : '还没有项目'}
           />
@@ -278,19 +287,19 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
         return turns.length ? (
           <Cards variant="full-page" cardsPerRow={[{ cards: 1 }, { minWidth: 520, cards: 2 }, { minWidth: 900, cards: 3 }]} items={turns} loading={loading}
             cardDefinition={{
+              /* KAN-63：状态从盖在封面上的浮标挪到标题行。压在照片上的彩色胶囊
+                 既挡内容又和照片抢，放回标题行跟在项目名后面就够了。 */
               header: (p) => (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
-                  <Link fontSize="heading-s" href={`/projects/${p.id}`} onFollow={(e) => { e.preventDefault(); goProject(p); }}>{p.name}</Link>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 8, minWidth: 0 }}>
+                    <Link fontSize="heading-s" href={`/projects/${p.id}`} onFollow={(e) => { e.preventDefault(); goProject(p); }}>{p.name}</Link>
+                    <StatusBadge status={p.status} />
+                  </span>
                   <Box variant="small" color="text-body-secondary">{p.current_stage?.label}</Box>
                 </div>
               ),
               sections: [
-                { id: 'img', content: (p) => (
-                  <div style={{ position: 'relative' }}>
-                    <CoverImage propertyId={p.property.id} height={96} radius={8} showLabel={false} />
-                    <div style={{ position: 'absolute', top: 8, right: 8 }}><StatusBadge status={p.status} /></div>
-                  </div>
-                ) },
+                { id: 'img', content: (p) => <CoverImage propertyId={p.property.id} height={96} radius={8} showLabel={false} /> },
                 { id: 'track', content: (p) => {
                   const cur = p.stage_progress.find((s) => s.key === p.current_stage?.key);
                   return (
@@ -391,11 +400,16 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
                  改中性边框，「当前」用 StatusIndicator 明说。 */
               <div key={`${g.project_id}-${g.key}`} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 8, alignItems: 'center', padding: '8px 10px', borderRadius: 6, border: `1px solid ${BORDER}` }}>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontWeight: 700 }}>◆ {g.title} <Box variant="span" fontWeight="normal" color="text-body-secondary">· {g.project_name}</Box></div>
+                  {/* KAN-63：去掉行首的 ◆ 和粗体。一屏里主按钮只留页头那一个，
+                      这里的「去确认」降成链接——它是导航，不是本屏的主操作。 */}
+                  <div>{g.title} <Box variant="span" color="text-body-secondary">· {g.project_name}</Box></div>
                   {g.is_current && <StatusIndicator type="in-progress">当前阶段</StatusIndicator>}
                   <Box variant="small" color="text-body-secondary">{g.stage}{g.evidence_hint ? ` · ${g.evidence_hint}` : ''}{g.confirmed.length ? ` · ${g.confirmed.join('、')} 已确认` : ''}</Box>
                 </div>
-                <Button onClick={() => go(`/projects/${g.project_id}?tab=overview&step=${g.key}&action=confirm`)}>去确认</Button>
+                <Link
+                  href={`/projects/${g.project_id}?tab=overview&step=${g.key}&action=confirm`}
+                  onFollow={(e) => { e.preventDefault(); go(`/projects/${g.project_id}?tab=overview&step=${g.key}&action=confirm`); }}
+                >去确认</Link>
               </div>
             ))}
           </SpaceBetween>
@@ -517,7 +531,16 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
     }
   };
 
-  const hidden = (Object.keys(WIDGETS) as WidgetId[]).filter((id) => !items.some((i) => i.id === id) && canAdd(id));
+  // 看板只放额外小组件，list 不在候选里（它已经固定在页面上）
+  const hidden = (Object.keys(WIDGETS) as WidgetId[])
+    .filter((id) => id !== 'list' && !items.some((i) => i.id === id) && canAdd(id));
+
+  // 页头写事实，不喊口号。紧急 = 有 error/warning 级洞察的房子数，按项目去重。
+  const urgent = new Set(insights.filter((i) => i.level !== 'info').map((i) => i.projectId)).size;
+  const pageDescription = [
+    urgent ? `今天有 ${urgent} 套需要处理。` : null,
+    `在建 ${summary?.active ?? '—'} 套，线索 ${summary?.leads ?? '—'} 条，已完成 ${summary?.portfolio ?? '—'} 套。`,
+  ].filter(Boolean).join('');
 
   return (
     <ContentLayout
@@ -525,45 +548,25 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
       header={
         <Header
           variant="h1"
-          description={head.subtitle}
+          description={pageDescription}
           actions={
             <SpaceBetween direction="horizontal" size="xs">
               <ButtonDropdown
-                items={hidden.length ? hidden.map((id) => ({ id, text: `${WIDGETS[id].tag} · ${WIDGETS[id].title}` })) : [{ id: 'none', text: '所有小组件都在看板上', disabled: true }]}
+                items={hidden.length ? hidden.map((id) => ({ id, text: WIDGETS[id].title })) : [{ id: 'none', text: '所有小组件都在看板上', disabled: true }]}
                 onItemClick={({ detail }) => { if (detail.id !== 'none') { const next = [...items, mkItem(detail.id as WidgetId)]; setItems(next); saveLayout(role.actor, next); } }}
               >添加小组件</ButtonDropdown>
               {role.can('create_project') && <Button variant="primary" onClick={() => go('/projects/new')}>新建项目</Button>}
             </SpaceBetween>
           }
         >
-          {head.title}
+          项目
         </Header>
       }
     >
       <SpaceBetween size="l">
-        <Container header={<Header variant="h2"><ReviewTag id="A" />今日概览</Header>}>
-          <Grid gridDefinition={role.can('create_project') ? [{ colspan: { default: 12, m: 5 } }, { colspan: { default: 12, m: 7 } }] : [{ colspan: 12 }]}>
-            {role.can('create_project') && <FormField label="从一个地址开始" description="输入地址，系统自动补全房产数据并预填交易分析。">
-              <Autosuggest
-                value={q}
-                placeholder="例如 4928 NW Fisk Ave"
-                ariaLabel="按地址新建项目"
-                options={cands.map((c) => ({ value: c.label, label: c.label, description: `${c.city}, ${c.state} ${c.zip}` }))}
-                filteringType="manual"
-                statusType={searching ? 'loading' : 'finished'}
-                loadingText="查找中"
-                empty="没有找到地址。试试 Fisk、Parkville、Alvarado。"
-                enteredTextLabel={(v) => `用“${v}”新建`}
-                onChange={({ detail }) => setQ(detail.value)}
-                onLoadItems={async ({ detail }) => {
-                  if (detail.filteringText.length < 2) { setCands([]); return; }
-                  setSearching(true);
-                  try { setCands(await api.lookupAddress(detail.filteringText)); } finally { setSearching(false); }
-                }}
-                onSelect={({ detail }) => { const v = detail.selectedOption?.value ?? detail.value; go(`/projects/new?address=${encodeURIComponent(v)}`); }}
-              />
-            </FormField>}
-            <ColumnLayout columns={4} minColumnWidth={120} variant="text-grid">
+        {/* 四个数字直接跟在页头下面。原先套一层叫「今日概览」的 Container，
+            等于给四个数字单独起了个栏目名——控制台里这层壳没有意义。 */}
+        <ColumnLayout columns={4} minColumnWidth={120} variant="text-grid">
               <Stat label="线索" value={String(summary?.leads ?? '—')} sub={`${projects.filter((p) => p.lead_heat === 'hot_lead').length} 条热线索`} />
               <Stat label="在建" value={String(summary?.active ?? '—')} sub={summary?.money_hidden ? '正在施工或挂牌' : `${summary?.over_budget_count ?? 0} 个超预算`} />
               {summary?.money_hidden ? (
@@ -577,15 +580,33 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
                   <Stat label="预计利润" value={compactMoney(summary?.expected_profit)} sub="在建：目标售价 − 买入 − 装修" />
                 </>
               )}
-            </ColumnLayout>
-          </Grid>
-        </Container>
+        </ColumnLayout>
 
-        <Board
+        {/* 项目表固定渲染，不再是看板的一项：没有拖动手柄、没有关闭按钮。 */}
+        <Table
+          {...collectionProps}
+          items={rows}
+          loading={loading}
+          loadingText="加载中"
+          variant="container"
+          resizableColumns
+          onRowClick={({ detail }) => go(`/projects/${detail.item.id}`)}
+          header={<Header variant="h2" counter={`(${filtered.length})`}>全部项目</Header>}
+          filter={
+            <SpaceBetween direction="horizontal" size="xs">
+              <TextFilter {...filterProps} filteringPlaceholder="按项目名或地址查找" countText={`${rows.length} 个匹配`} />
+              <Select selectedOption={stage} options={stageOptions} onChange={({ detail }) => setStage(detail.selectedOption as any)} />
+            </SpaceBetween>
+          }
+          pagination={<Pagination {...paginationProps} />}
+          columnDefinitions={projectColumns}
+        />
+
+        {items.length > 0 && <Board
           items={items}
           i18nStrings={boardI18n}
           onItemsChange={({ detail }) => { setItems(detail.items); saveLayout(role.actor, detail.items); }}
-          empty={<Box textAlign="center" color="inherit"><b>看板是空的</b><Box variant="p" color="inherit">用右上角“添加小组件”加回来。</Box></Box>}
+          empty={null}
           renderItem={(item, actions) => (
             <BoardItem
               header={<Header variant="h2"><ReviewTag id={item.data.tag} />{item.data.title}</Header>}
@@ -595,7 +616,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
               {widget(item.id as WidgetId)}
             </BoardItem>
           )}
-        />
+        />}
       </SpaceBetween>
     </ContentLayout>
   );

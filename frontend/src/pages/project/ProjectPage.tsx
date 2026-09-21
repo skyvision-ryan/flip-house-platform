@@ -1,11 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import Badge from '@cloudscape-design/components/badge';
 import Box from '@cloudscape-design/components/box';
 import BreadcrumbGroup from '@cloudscape-design/components/breadcrumb-group';
 import Button from '@cloudscape-design/components/button';
 import ButtonDropdown from '@cloudscape-design/components/button-dropdown';
-import ColumnLayout from '@cloudscape-design/components/column-layout';
 import Container from '@cloudscape-design/components/container';
 import ContentLayout from '@cloudscape-design/components/content-layout';
 import Grid from '@cloudscape-design/components/grid';
@@ -15,13 +13,12 @@ import SpaceBetween from '@cloudscape-design/components/space-between';
 import Spinner from '@cloudscape-design/components/spinner';
 import Tabs from '@cloudscape-design/components/tabs';
 import StatusBadge from '../../components/StatusBadge';
+import KeyValuePairs from '@cloudscape-design/components/key-value-pairs';
 import CoverImage from '../../components/CoverImage';
 import ReviewTag from '../../components/ReviewTag';
-import OwnerTag from '../../components/OwnerTag';
-import { Meter } from '../../components/charts';
 import { api, Project } from '../../api/client';
 import { useFlash } from '../../lib/flash';
-import { dateStr, daysBetween, money, num, pct } from '../../lib/format';
+import { money, num } from '../../lib/format';
 import { labelOf, useMeta } from '../../lib/meta';
 import { useRole } from '../../lib/role';
 import OverviewTab from './OverviewTab';
@@ -36,56 +33,48 @@ import EditProjectModal from './EditProjectModal';
 
 const short = (d: string | null) => (d ? d.slice(5).replace('-', '/') : '—');
 
-/** 身份卡右侧“交易”一栏：按阶段说结论。 */
-function DealSummary({ p }: { p: Project }) {
-  const prop = p.property;
-  if (p.money_hidden) return <Box color="text-body-secondary">金额对你的身份不显示</Box>;
+/**
+ * 页头第二组字段：买入价、目标售价、预计利润、关键日期。
+ *
+ * 原先是「交易」「时间」两栏大字，每栏两句话，和下面总览的横条说同一件事。
+ * 改成四个带标签的字段——同样的数，但每个值上面写清楚它是什么，缺数就写「—」。
+ * 三个阶段各自取对应的口径：线索看挂牌与估值，在建看目标与预算，已售看成交与实际利润。
+ */
+function dealFields(p: Project): { label: string; value: string }[] {
+  const dash = '—';
+  if (p.money_hidden) {
+    return [{ label: '交易', value: '金额对你的身份不显示' }];
+  }
   if (p.stage === 'lead') {
-    return (
-      <SpaceBetween size="xxs">
-        <Box fontSize="heading-m" fontWeight="bold">挂牌 {money(prop.list_price)} <Box variant="span" color="text-body-secondary" fontWeight="normal">· 估值 {money(prop.avm_value)}</Box></Box>
-        <Box color="text-body-secondary">{p.target_arv ? `目标售价 ${money(p.target_arv)}${p.purchase_price ? `，意向价 ${money(p.purchase_price)}` : ''}` : '目标售价未定，先在“分析”里算一遍'}</Box>
-      </SpaceBetween>
-    );
+    return [
+      { label: '挂牌价', value: money(p.property.list_price) || dash },
+      { label: '目标售价', value: money(p.target_arv) || dash },
+      { label: '估值', value: money(p.property.avm_value) || dash },
+    ];
   }
   if (p.stage === 'portfolio') {
     const profit = p.sale_price != null ? p.sale_price - (p.purchase_price ?? 0) - (p.budget_spent ?? 0) : null;
-    const cost = (p.purchase_price ?? 0) + (p.budget_spent ?? 0);
-    return (
-      <SpaceBetween size="xxs">
-        <Box fontSize="heading-m" fontWeight="bold">买入 {money(p.purchase_price)} → 成交 {money(p.sale_price)}</Box>
-        <Box color="text-body-secondary">{profit == null ? '成交价未填' : `实际利润 ${money(profit)} · 利润率 ${cost ? pct(profit / cost * 100) : '—'}${p.target_arv ? ` · 目标售价 ${money(p.target_arv)}` : ''}`}</Box>
-      </SpaceBetween>
-    );
+    return [
+      { label: '买入价', value: money(p.purchase_price) || dash },
+      { label: '成交价', value: money(p.sale_price) || dash },
+      { label: '实际利润', value: profit == null ? dash : money(profit) },
+    ];
   }
+  // 在建：预计利润 = 目标售价 − 买入 − 装修（预算和已支出里取大的那个，别低估成本）
   const cost = (p.purchase_price ?? 0) + Math.max(p.budget_planned ?? 0, p.budget_spent ?? 0);
   const profit = p.target_arv != null ? p.target_arv - cost : null;
-  return (
-    <SpaceBetween size="xxs">
-      <Box fontSize="heading-m" fontWeight="bold">买入 {money(p.purchase_price)} → 目标售价 {money(p.target_arv)}</Box>
-      <Box color="text-body-secondary">{profit == null ? '目标售价未定' : `预计利润 ${money(profit)} · 利润率 ${cost ? pct(profit / cost * 100) : '—'} · 装修预算 ${money(p.budget_planned)}`}</Box>
-    </SpaceBetween>
-  );
+  return [
+    { label: '买入价', value: money(p.purchase_price) || dash },
+    { label: '目标售价', value: money(p.target_arv) || dash },
+    { label: '预计利润', value: profit == null ? dash : money(profit) },
+  ];
 }
 
-/** 身份卡右侧“时间”一栏。 */
-function Timeline({ p }: { p: Project }) {
+/** 关键日期一句话。工期进度只留在总览的横条上，这里不重复报「第 n / n 天」。 */
+function keyDates(p: Project): string {
   const steps = ([['买入', p.purchase_date], ['开工', p.construction_start], ['计划完工', p.construction_end], ['挂牌', p.list_date], ['成交', p.sale_date]] as [string, string | null][])
     .filter(([, d]) => d) as [string, string][];
-  const total = daysBetween(p.construction_start, p.construction_end);
-  const elapsed = daysBetween(p.construction_start, new Date().toISOString().slice(0, 10));
-  return (
-    <SpaceBetween size="xxs">
-      <Box fontSize="heading-m" fontWeight="bold">{steps.length ? steps.map(([k, d]) => `${k} ${short(d)}`).join(' → ') : '还没有关键日期'}</Box>
-      {p.stage === 'active' && total && elapsed != null ? (
-        <Meter value={Math.max(0, elapsed)} max={total} label="工期" reading={`第 ${Math.max(0, elapsed)} / ${total} 天`} targetLabel="完工" height={6} note={elapsed > total ? `已超期 ${elapsed - total} 天` : undefined} />
-      ) : p.stage === 'portfolio' && p.list_date && p.sale_date ? (
-        <Box color="text-body-secondary">挂牌到成交 {daysBetween(p.list_date, p.sale_date)} 天{total ? `，工期 ${total} 天` : ''}</Box>
-      ) : (
-        <Box color="text-body-secondary">创建于 {dateStr(p.created_at)}，最近更新 {dateStr(p.updated_at)}</Box>
-      )}
-    </SpaceBetween>
-  );
+  return steps.length ? steps.map(([k, d]) => `${k} ${short(d)}`).join(' → ') : '—';
 }
 
 export default function ProjectPage() {
@@ -118,12 +107,14 @@ export default function ProjectPage() {
       breadcrumbs={<BreadcrumbGroup items={[{ text: '工作台', href: '/' }, { text: '项目', href: '/projects' }, { text: project.name, href: `/projects/${pid}` }]} onFollow={(e) => { e.preventDefault(); navigate(e.detail.href); }} />}
       header={
         <Container>
-          <Grid gridDefinition={[{ colspan: { default: 12, s: 3 } }, { colspan: { default: 12, s: 9 } }]}>
-            <CoverImage propertyId={prop.id} height={150} radius={8} />
+          {/* KAN-63：页头收成资源头——照片 150→96，占 2 列不是 3 列。
+              页头是用来确认「我在哪个项目」的，不是展示位。窄屏仍各占 12。 */}
+          <Grid gridDefinition={[{ colspan: { default: 12, s: 2 } }, { colspan: { default: 12, s: 10 } }]}>
+            <CoverImage propertyId={prop.id} height={96} radius={8} showLabel={false} />
             <SpaceBetween size="m">
               <Header
                 variant="h1"
-                description={<span>{prop.address_std}{specs ? ` · ${specs}` : ''}</span>}
+
                 actions={
                   <SpaceBetween direction="horizontal" size="xs">
                     {role.can('edit_project') && <Button onClick={() => setEditing(true)}>编辑</Button>}
@@ -134,23 +125,24 @@ export default function ProjectPage() {
                 {/* 窄屏要能换行：SpaceBetween 横向不换行，这里用 flex-wrap。 */}
                 <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, minWidth: 0 }}>
                   <ReviewTag id="A" />
-                  <OwnerTag block="project.header" />
                   <span>{project.name}</span>
-                  <Badge color="grey">{project.current_stage?.label ?? `${labelOf(meta?.stages, project.stage)} · ${labelOf(meta?.substages[project.stage], project.substage)}`}</Badge>
-                  <Badge color="grey">{labelOf(meta?.strategies, project.strategy)}</Badge>
                   <StatusBadge status={project.status} />
                 </div>
               </Header>
-              <ColumnLayout columns={2} minColumnWidth={260} variant="text-grid">
-                <div>
-                  <Box variant="awsui-key-label">交易</Box>
-                  <DealSummary p={project} />
-                </div>
-                <div>
-                  <Box variant="awsui-key-label">时间</Box>
-                  <Timeline p={project} />
-                </div>
-              </ColumnLayout>
+              {/* 地址、户型、阶段、策略原先拼成一句用「 · 」串起来的说明，读起来像一行小字。
+                  改成带标签的字段：每个值上面写清楚它是什么。 */}
+              <KeyValuePairs
+                columns={4}
+                items={[
+                  { label: '地址', value: prop.address_std },
+                  { label: '房子', value: specs || '—' },
+                  { label: '阶段', value: project.current_stage?.label ?? `${labelOf(meta?.stages, project.stage)} · ${labelOf(meta?.substages[project.stage], project.substage)}` },
+                  { label: '策略', value: labelOf(meta?.strategies, project.strategy) },
+                ]}
+              />
+              {/* 第二组字段：钱和日期。原先是「交易」「时间」两栏大字，
+                  每栏两句话，还和总览的工期条重复报同一件事。 */}
+              <KeyValuePairs columns={4} items={[...dealFields(project), { label: '关键日期', value: keyDates(project) }]} />
             </SpaceBetween>
           </Grid>
         </Container>

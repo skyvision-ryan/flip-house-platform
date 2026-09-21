@@ -127,7 +127,7 @@ export default function MyTodoTable({ rows, onReload, compact = false }: { rows:
         header={compact ? undefined : <Header variant="h2" counter={rows ? `(${rows.length})` : undefined} description={current.length ? `其中 ${current.length} 件是现在这段的事，其余是前面段落没交的。` : '暂时没有轮到你的事。'}>轮到我做的</Header>}
         empty={<Box textAlign="center" padding="l">暂时没有轮到你的事。</Box>}
         columnDefinitions={[
-          { id: 'p', header: '哪套房', cell: (r) => <div><div style={{ fontWeight: 700 }}>{r.project.project_name}</div><Box variant="small" color="text-body-secondary">{r.project.address}</Box></div> },
+          { id: 'p', header: '哪套房', cell: (r) => <div><div>{r.project.project_name}</div><Box variant="small" color="text-body-secondary">{r.project.address}</Box></div> },
           { id: 's', header: '阶段', cell: (r) => <span>{r.stage}{r.is_current && <Box variant="span" color="text-status-info">　现在这段</Box>}{r.project.stage === 'portfolio' && <Box variant="span" color="text-body-secondary">　已售收尾</Box>}</span> },
           { id: 't', header: '要做什么', cell: (r) => <span style={{ fontWeight: r.item.gate ? 700 : 400 }}>{r.item.owners.map((o) => <OwnerDot key={o} code={o} />)}{r.item.title}</span> },
           { id: 'd', header: '要交什么', cell: (r) => (r.item.deliverable ? `${KIND_LABEL[r.item.deliverable.kind]} · ${r.item.deliverable.label}` : '—') },

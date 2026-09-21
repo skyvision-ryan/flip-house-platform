@@ -34,36 +34,40 @@ export function OwnerDot({ code, title }: { code: string; title?: string }) {
   );
 }
 
-/** 负责角色，圆标 + 可见文字。手机上没有 hover，代号必须直接看得见。 */
+/**
+ * 负责角色，圆标 + 可见代号。手机上没有 hover，代号必须直接看得见。
+ *
+ * 圆标留在这里是因为它用在勾选框旁边——那里要一眼看出是谁点的确认。
+ * 但**不再拼级别词**：原先渲染成「D决策 J决策」，级别是这个人的属性，
+ * 不是这套房的状态，堆在事项卡上只是噪声。级别还在 OwnerDot 的 title 里，悬停可看。
+ */
 export function OwnerNames({ codes, prefix }: { codes: string[]; prefix?: string }) {
-  const meta = useMeta();
   if (!codes.length) return null;
   return (
     <Box variant="span" color="text-body-secondary" fontSize="body-s">
       {prefix}
-      {codes.map((c) => {
-        const tier = meta?.roles.find((r) => r.code === c)?.tier ?? '';
-        const tierLabel = meta?.tiers?.[tier]?.label;
-        return (
-          <Box key={c} variant="span" margin={{ right: 'xs' }}>
-            <OwnerDot code={c} />
-            {tierLabel ?? ''}
-          </Box>
-        );
-      })}
+      {codes.map((c) => (
+        <Box key={c} variant="span" margin={{ right: 'xs' }}>
+          <OwnerDot code={c} />
+        </Box>
+      ))}
     </Box>
   );
 }
 
-/** 按功能块名从字典取负责人；也可直接传 codes。 */
+/**
+ * 按功能块名从字典取负责人；也可直接传 codes。用在各节标题前面。
+ *
+ * 这里不画圆（第三刀）：每个标题前挂一颗 22px 粗体圆标，一屏下来就是一排黑圈，
+ * 比标题本身还抢眼。标题要的只是「这块归谁」，一行次要文字就够了。
+ * 勾选框旁边那种需要辨认「谁点的」的地方仍用 OwnerDot。
+ */
 export default function OwnerTag({ block, codes }: { block?: string; codes?: string[] }) {
   const meta = useMeta();
   const { actor } = useActor();
   const list = (codes ?? (block ? meta?.owner_map?.[block] : undefined) ?? []).map((c) => (c === '当前身份' ? actor : c));
   if (!list.length) return null;
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', marginRight: 6, verticalAlign: 'middle' }}>
-      {list.map((c) => <OwnerDot key={c} code={c} />)}
-    </span>
+    <Box variant="span" color="text-body-secondary" fontSize="body-s">负责 {list.join('、')}</Box>
   );
 }

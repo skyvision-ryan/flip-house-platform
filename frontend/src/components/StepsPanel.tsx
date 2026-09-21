@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Alert from '@cloudscape-design/components/alert';
-import Badge from '@cloudscape-design/components/badge';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
 import Cards from '@cloudscape-design/components/cards';
@@ -300,7 +299,6 @@ export default function StepsPanel({
             reading={`${stage.done_count} / ${stage.total} 项满足`}
             targetLabel="本段齐"
             height={6}
-            note="满足指系统按证据判定，不代表这一段已经验收"
           />
         </ColumnLayout>
         <Grid gridDefinition={steps.stages.map(() => ({ colspan: { default: 6, xs: 4, s: 2 } }))}>
@@ -312,11 +310,17 @@ export default function StepsPanel({
                 <Box fontWeight={on ? 'bold' : 'normal'}>
                   <Link href="#" onFollow={(e) => { e.preventDefault(); setSelected(st.key); }}>{st.short}</Link>
                 </Box>
-                <StatusIndicator type={state === 'done' ? 'success' : state === 'current' ? 'info' : 'pending'}>
-                  {state === 'done' ? '已过' : state === 'current' ? '在这一段' : '还没到'}
-                </StatusIndicator>
+                {/* 只有「当前」用状态色。六段里已过的段本来就配着已过的门，
+                    两层绿色叠在一起，反而看不出现在走到哪。 */}
+                {state === 'current'
+                  ? <StatusIndicator type="in-progress">在这一段</StatusIndicator>
+                  : <Box fontSize="body-s" color="text-body-secondary">{state === 'done' ? '已过' : '还没到'}</Box>}
                 <Box fontSize="body-s" color="text-body-secondary">{st.done_count} / {st.total} 项</Box>
-                {st.gate_title && <Badge color={st.gate_done ? 'green' : 'grey'}>{st.gate_title}</Badge>}
+                {/* KAN-63：门名原先是绿/灰胶囊，绿色胶囊比它旁边真正的状态指示还抢眼。
+                    过了就用指示器，没过就是一行次要文字——没过不是告警，只是还没轮到。 */}
+                {st.gate_title && (st.gate_done
+                  ? <StatusIndicator type="success">{st.gate_title}</StatusIndicator>
+                  : <Box variant="small" color="text-body-secondary">{st.gate_title}</Box>)}
               </SpaceBetween>
             );
           })}

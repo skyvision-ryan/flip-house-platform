@@ -239,9 +239,36 @@ tier 紫与青不再上色，评审黄改默认关。开会态那 1 个色相就
 
 **回退**：删掉 `theme.ts` 里这三行即可，单文件单提交，30 秒。
 
-**验证方法**：比 `getComputedStyle(document.body).fontFamily` 与任一 Cloudscape Header 的
-`fontFamily`，两者必须一致且以 `"Helvetica Neue"` 开头、末尾含 `PingFang SC`；再看中文块无豆腐块。
-**不靠目测。**
+**验证方法**（已按下面的「观感修订」更新）：`getComputedStyle(document.body).fontFamily`
+以 `"Open Sans"` 开头，页面 `h1` 以 `"Helvetica Neue"` 开头，**两者都含 `PingFang SC`**；
+再看中文块无豆腐块。**不靠目测。**
+
+### 6.1 观感修订（KAN-63）
+
+KAN-49 把非状态色相压到 0 之后，界面仍偏「暖」且字体单一。这一轮按 AWS 控制台的安静感再收一遍，
+只改观感，不动任何业务规则。与第 6 节上文的差别有三处：
+
+| | KAN-49 | KAN-63 |
+|---|---|---|
+| 页底 | `#F7F5F1` 暖白 | **`#f2f3f3`** —— Cloudscape `colorBackgroundLayoutMain` 的亮色默认值，冷灰 |
+| `fontFamilyBase` | Helvetica 栈 | **Open Sans 栈**，和官方一致，长段中英文混排更安静 |
+| `fontFamilyHeading` / `Display` | Helvetica 栈 | Helvetica 栈（不变） |
+
+也就是说：**只有标题、展示字和 `StatTile` 的大数字用地铁字体，正文回控制台字体。**
+上文「三个令牌一起覆盖成 Helvetica」的说法到此为止；三个令牌仍必须**分别赋值**，
+因为它们互不引用——这一条没变。两个栈都保留 `PingFang SC` 兜底，否则中文掉字。
+
+大数字同时把 `fontWeight` 从 700 降到 400：字号已经撑起层次，再加粗就过了。
+
+**回退**：把 `theme.ts` 里 `DISPLAY_STACK` 的三处使用改回 `BASE_STACK`，页底改回 `#F7F5F1`。
+
+第二刀补四条（同属 KAN-63）：
+
+* Open Sans 由 `@fontsource/open-sans` **实际加载**（400/600/700，自托管不走外链）。此前只在字体栈里写了名字，macOS 不自带这个字体，`BASE_STACK` 实际落到第二顺位 Helvetica Neue——**从代码上完全看不出来**，只有在浏览器里量 `document.fonts.check()` 才会发现。不装它，「正文控制台字体、标题地铁字体」这个目标只能生效一半。
+  这是本票唯一一个新依赖。KAN-63 票面原有「不加新依赖」的反例，**已于 2026-09-21 经 Ryan 授权修订**，放开且仅放开这一个包（只引三个权重、自托管、不引中文网页字体）。修订记录留在票上，不是绕过验收标准。
+* 首页的项目表不在看板里：它固定渲染、没有拖动手柄和关闭按钮，看板只放额外加回来的小组件。
+* 评审标注从顶栏移进身份菜单，功能不变，只是不再占产品壳的位置。
+* 六段阶段条只有**当前**那一段用状态色，已过和未到都是次要文字——否则已过的段和已过的门叠两层绿。
 
 ---
 

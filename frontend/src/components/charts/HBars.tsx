@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { FONT, ORDINAL_BLUE, SERIES, TEXT, TEXT_2, track } from './palette';
+import { FONT, ORDINAL_BLUE, SERIES, STATUS, TEXT, TEXT_2, track } from './palette';
 import { useTooltip } from './Tooltip';
 
 export interface HBarRow { key: string; label: ReactNode; values: number[]; tooltipTitle?: string }
@@ -21,7 +21,17 @@ export default function HBars({ rows, series = [], ordinal = false, format = (n)
   if (!rows.length) return <div style={{ fontFamily: FONT, color: TEXT_2, fontSize: 12 }}>{emptyText}</div>;
   const totals = rows.map((r) => r.values.reduce((a, b) => a + b, 0));
   const max = Math.max(...totals) || 1;
-  const colorFor = (rowIdx: number, seriesIdx: number) => (ordinal ? ORDINAL_BLUE[Math.min(ORDINAL_BLUE.length - 1, rowIdx)] : SERIES[seriesIdx % SERIES.length]);
+  /**
+   * 两个系列时不用分类系列的前两位（蓝 + 品红）——品红在首屏太跳，而且「买入价 / 已支出」
+   * 是同一笔钱的两段，不是两个并列类别。改成蓝 + 中性灰（KAN-63）。
+   * 三个及以上仍走分类系列；漏斗的 ordinal 蓝阶不动。
+   */
+  const duo = !ordinal && series.length === 2;
+  const DUO = [SERIES[0], STATUS.neutral];
+  const colorFor = (rowIdx: number, seriesIdx: number) => (
+    ordinal ? ORDINAL_BLUE[Math.min(ORDINAL_BLUE.length - 1, rowIdx)]
+      : duo ? DUO[seriesIdx % DUO.length]
+        : SERIES[seriesIdx % SERIES.length]);
 
   return (
     <div style={{ position: 'relative', fontFamily: FONT }}>
@@ -40,7 +50,7 @@ export default function HBars({ rows, series = [], ordinal = false, format = (n)
               <div style={{ position: 'absolute', left: 0, right: 0, height: barHeight, borderRadius: barHeight / 2, background: track(SERIES[0], 8) }} />
               <div style={{ position: 'relative', display: 'flex', height: barHeight, width: `${(totals[i] / max) * 100}%`, gap: 2 }}>
                 {r.values.map((v, j) => (
-                  <div key={j} style={{ flex: `${v} 0 0`, background: colorFor(i, j), height: barHeight, borderRadius: j === r.values.length - 1 ? `0 ${barHeight / 2}px ${barHeight / 2}px 0` : 0 }} />
+                  <div key={j} style={{ flex: `${v} 0 0`, background: colorFor(i, j), height: barHeight, borderRadius: j === r.values.length - 1 ? `0 2px 2px 0` : 0 }} />
                 ))}
               </div>
             </div>
@@ -52,7 +62,7 @@ export default function HBars({ rows, series = [], ordinal = false, format = (n)
         <div style={{ display: 'flex', gap: 16, marginTop: 12, fontSize: 12, color: TEXT_2 }}>
           {series.map((s, j) => (
             <span key={s} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ width: 10, height: 10, borderRadius: 2, background: SERIES[j % SERIES.length] }} />{s}
+              <span style={{ width: 10, height: 10, borderRadius: 2, background: duo ? DUO[j % DUO.length] : SERIES[j % SERIES.length] }} />{s}
             </span>
           ))}
         </div>

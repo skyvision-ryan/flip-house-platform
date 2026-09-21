@@ -112,7 +112,7 @@ export default function BudgetTab({ projectId, reload, section }: { projectId: n
         empty={<Box textAlign="center" color="inherit"><b>还没有预算或支出</b></Box>}
         columnDefinitions={[
           { id: 'c', header: '类别', cell: (c) => c.category },
-          { id: 'bar', header: '实际 vs 预算（灰底 = 预算，红段 = 超出）', minWidth: 300, cell: (c) => <InlineBar value={c.spent} max={Math.max(...(summary?.categories ?? []).map((x) => Math.max(x.planned, x.spent)), 1)} target={c.planned} text={`${compactMoney(c.spent)} / ${compactMoney(c.planned)}`} width={160} /> },
+          { id: 'bar', header: '对比', minWidth: 300, cell: (c) => <InlineBar value={c.spent} max={Math.max(...(summary?.categories ?? []).map((x) => Math.max(x.planned, x.spent)), 1)} target={c.planned} text={`${compactMoney(c.spent)} / ${compactMoney(c.planned)}`} width={160} /> },
           { id: 'p', header: '预算', cell: (c) => money(c.planned) },
           { id: 'pp', header: '预算占比', cell: (c) => pct(c.planned_pct) },
           { id: 's', header: '实际', cell: (c) => money(c.spent) },
