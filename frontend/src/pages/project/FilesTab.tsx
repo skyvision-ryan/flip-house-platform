@@ -82,7 +82,7 @@ export default function FilesTab({ projectId }: { projectId: number }) {
           { id: 'cp', header: '对方', cell: (f) => text(f.counterparty) },
           { id: 'amt', header: '金额', cell: (f) => money(f.amount) },
           { id: 'exp', header: '到期日', cell: (f) => (f.expires_at ? <Badge color={new Date(f.expires_at + 'T00:00:00').getTime() - Date.now() < 30 * 86400000 ? 'red' : 'grey'}>{dateStr(f.expires_at)}</Badge> : '—') },
-          { id: 'src', header: '来源', cell: (f) => <Badge color={f.source === 'lark' ? 'grey' : 'blue'}>{f.source === 'lark' ? 'Lark 迁入' : '上传'}</Badge> },
+          { id: 'src', header: '来源', cell: (f) => <Badge color="grey">{f.source === 'lark' ? 'Lark 迁入' : '上传'}</Badge> },
           { id: 'size', header: '大小', cell: (f) => sizeStr(f.size) },
           { id: 'act', header: '操作', cell: (f) => (
             <SpaceBetween direction="horizontal" size="xs">

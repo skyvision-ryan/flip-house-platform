@@ -1,0 +1,56 @@
+{
+  "route": "/",
+  "innerWidth": 375,
+  "scrollWidth": 360,
+  "clientWidth": 360,
+  "sampleCount": 440,
+  "colors": [
+    {
+      "value": "rgb(66, 70, 80)",
+      "n": 198
+    },
+    {
+      "value": "rgb(15, 20, 26)",
+      "n": 139
+    },
+    {
+      "value": "rgb(0, 0, 0)",
+      "n": 44
+    },
+    {
+      "value": "rgb(252, 204, 10)",
+      "n": 21
+    },
+    {
+      "value": "rgb(222, 222, 227)",
+      "n": 20
+    },
+    {
+      "value": "rgb(198, 198, 205)",
+      "n": 7
+    },
+    {
+      "value": "rgb(0, 108, 224)",
+      "n": 4
+    },
+    {
+      "value": "rgb(180, 180, 187)",
+      "n": 3
+    },
+    {
+      "value": "rgb(101, 104, 113)",
+      "n": 2
+    },
+    {
+      "value": "rgb(9, 114, 211)",
+      "n": 1
+    },
+    {
+      "value": "rgb(247, 245, 241)",
+      "n": 1
+    }
+  ],
+  "actor": "负责人",
+  "reviewTags": "on",
+  "bodyFontFamily": "\"PingFang SC\""
+}

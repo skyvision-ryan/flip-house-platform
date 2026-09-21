@@ -44,7 +44,7 @@ export default function FieldWithSource({ field, onSave, onSetPrimary }: Props) 
                   { id: 'source', header: '来源', cell: (s) => <SourceBadge source={s.source} /> },
                   { id: 'time', header: '时间', cell: (s) => dateTime(s.fetched_at) },
                   { id: 'conf', header: '把握度', cell: (s) => (s.confidence == null ? '—' : pct(s.confidence * 100, 0)) },
-                  { id: 'act', header: '', cell: (s) => (s.is_primary ? <Badge color="green">主值</Badge> : <Button variant="inline-link" onClick={() => onSetPrimary(s.id)}>设为主值</Button>) },
+                  { id: 'act', header: '', cell: (s) => (s.is_primary ? <Badge color="grey">主值</Badge> : <Button variant="inline-link" onClick={() => onSetPrimary(s.id)}>设为主值</Button>) },
                 ]}
               />
             }
