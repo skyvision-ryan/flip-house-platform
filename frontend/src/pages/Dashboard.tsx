@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useCollection } from '@cloudscape-design/collection-hooks';
 import Board, { BoardProps } from '@cloudscape-design/board-components/board';
 import BoardItem from '@cloudscape-design/board-components/board-item';
-import Autosuggest from '@cloudscape-design/components/autosuggest';
 import Box from '@cloudscape-design/components/box';
 import BreadcrumbGroup from '@cloudscape-design/components/breadcrumb-group';
 import Button from '@cloudscape-design/components/button';
@@ -12,8 +11,6 @@ import Cards from '@cloudscape-design/components/cards';
 import ColumnLayout from '@cloudscape-design/components/column-layout';
 import Container from '@cloudscape-design/components/container';
 import ContentLayout from '@cloudscape-design/components/content-layout';
-import FormField from '@cloudscape-design/components/form-field';
-import Grid from '@cloudscape-design/components/grid';
 import Header from '@cloudscape-design/components/header';
 import Link from '@cloudscape-design/components/link';
 import Pagination from '@cloudscape-design/components/pagination';
@@ -26,8 +23,8 @@ import StatusBadge from '../components/StatusBadge';
 import { BORDER, TEXT_2, TEXT_GOOD } from '../components/charts/palette';
 import CoverImage from '../components/CoverImage';
 import ReviewTag from '../components/ReviewTag';
-import { BulletList, DeltaBadge, HBars, InlineBar, Meter, StackedBar, StatTile, Trend, compactMoney, fullMoney } from '../components/charts';
-import { api, AddressCandidate, DashboardRole, DashboardSummary, DashboardWidgets, Project, Update } from '../api/client';
+import { BulletList, DeltaBadge, HBars, InlineBar, Meter, ORDINAL_BLUE, StackedBar, StatTile, Trend, compactMoney, fullMoney } from '../components/charts';
+import { api, DashboardRole, DashboardSummary, DashboardWidgets, Project, Update } from '../api/client';
 import MyTodoTable from '../components/MyTodoTable';
 import { useRole } from '../lib/role';
 import { actionHref } from '../lib/stepActions';
@@ -67,8 +64,9 @@ const WIDGETS: Record<WidgetId, ItemData & { cols: number; rows: number }> = {
   boss: { title: '老板总览', tag: 'W', cols: 4, rows: 2 },
 };
 const MONEY_WIDGETS: WidgetId[] = ['money', 'capital', 'weekly', 'retro', 'vendors', 'boss'];
-const FALLBACK_ORDER: WidgetId[] = ['mytodo', 'recent', 'list'];
-const layoutKey = (actor: string) => `boardLayout.v6.${actor}`;
+// KAN-63 升到 v7：默认布局改成只有项目表，旧的 v6 本地布局必须失效，
+// 否则已经用过的人打开还是老样子，看不到这次的变化。
+const layoutKey = (actor: string) => `boardLayout.v7.${actor}`;
 
 function mkItem(id: WidgetId, extra?: Partial<Item>): Item {
   const w = WIDGETS[id];
@@ -112,7 +110,11 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
   const navigate = useNavigate();
   const meta = useMeta();
   const role = useRole();
-  const defaults = ((meta?.dashboard_layouts?.[role.actor] ?? (role.tier === 'purple' || role.actor === '负责人' ? meta?.dashboard_layouts?.['负责人'] : undefined)) ?? FALLBACK_ORDER).filter((id): id is WidgetId => id in WIDGETS);
+  // KAN-63：没有本地布局时一律只给项目表。原先按 meta.dashboard_layouts 铺一屏小组件，
+  // 第一眼信息量过载。注意**不动** DASHBOARD_LAYOUTS 那份后端字典——它同时决定
+  // widget_access，动了角色就加不回自己的小组件。下面 canAdd 仍然读 widget_access，
+  // 所以「添加小组件」照样能把关注、门、水电加回来。
+  const defaults: WidgetId[] = ['list'];
   const canAdd = (id: WidgetId) => (role.actor === '老板' || role.actor === '负责人' || (meta?.widget_access?.[id] ?? []).includes(role.actor)) && (!MONEY_WIDGETS.includes(id) || role.canReadMoney);
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [roleData, setRoleData] = useState<DashboardRole | null>(null);
@@ -123,9 +125,6 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<ReadonlyArray<Item>>(() => loadLayout(role.actor, defaults));
   const [stage, setStage] = useState<{ label: string; value: string }>({ label: '全部阶段', value: '' });
-  const [q, setQ] = useState('');
-  const [cands, setCands] = useState<AddressCandidate[]>([]);
-  const [searching, setSearching] = useState(false);
 
   const reloadRole = async () => { setRoleData(await api.dashboardRole().catch(() => null)); };
   useEffect(() => {
@@ -207,27 +206,22 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
   const widget = (id: WidgetId) => {
     switch (id) {
       case 'attention': {
-        // 审计 #A01：原先用 6 个硬编码 hex 画整块彩色底，而且抄的是已过期的旧令牌值
-        // （#d91515/#8d6605/#0972d3，令牌现值是 #db0000/#855900/#006ce0）。
-        // 改成白底 + StatusIndicator：状态由图标和文字承担，颜色只做强化。
+        // 审计 #A01 已把整块彩色底换成白底 + StatusIndicator。KAN-63 再进一步：
+        // 手写的一叠圆角卡片改成 Cloudscape Table——同样的五列信息，交给组件去排，
+        // 窄屏折行、表头对齐都不用自己算。
         const level: Record<string, 'error' | 'warning' | 'info'> = { error: 'error', warning: 'warning', info: 'info' };
         return insights.length ? (
-          <SpaceBetween size="xs">
-            {insights.slice(0, 8).map((i, k) => (
-              <div key={k} role="button" tabIndex={0} onClick={() => go(i.href)} onKeyDown={(e) => { if (e.key === 'Enter') go(i.href); }}
-                style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 8, alignItems: 'center', padding: '8px 10px', border: `1px solid ${BORDER}`, borderRadius: 6, cursor: 'pointer' }}>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2, flexWrap: 'wrap' }}>
-                    <StatusIndicator type={level[i.level] ?? 'info'}>{i.tag}</StatusIndicator>
-                    <span style={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{i.projectName}</span>
-                  </div>
-                  <div style={{ fontSize: 14 }}>{i.headline}</div>
-                  {i.detail && <Box variant="small" color="text-body-secondary">{i.detail}</Box>}
-                </div>
-                <Link href={i.href} onFollow={(e) => { e.preventDefault(); go(i.href); }}>去看看</Link>
-              </div>
-            ))}
-          </SpaceBetween>
+          <Table
+            variant="embedded"
+            items={insights.slice(0, 8)}
+            columnDefinitions={[
+              { id: 'level', header: '状态', cell: (i) => <StatusIndicator type={level[i.level] ?? 'info'}>{i.tag}</StatusIndicator> },
+              { id: 'project', header: '项目', minWidth: 140, cell: (i) => projLink(i.projectId, i.projectName) },
+              { id: 'headline', header: '事项', minWidth: 180, cell: (i) => i.headline },
+              { id: 'detail', header: '说明', cell: (i) => (i.detail ? <Box variant="small" color="text-body-secondary">{i.detail}</Box> : '—') },
+              { id: 'act', header: '', cell: (i) => <Link href={i.href} onFollow={(e) => { e.preventDefault(); go(i.href); }}>去看看</Link> },
+            ]}
+          />
         ) : empty('所有项目都在正轨上，没有需要处理的事。');
       }
       case 'money':
@@ -243,7 +237,13 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
       case 'stages':
         return (
           <StackedBar
-            segments={[{ label: '线索', value: summary?.leads ?? 0 }, { label: '在建', value: summary?.active ?? 0 }, { label: '已完成', value: summary?.portfolio ?? 0 }]}
+            /* KAN-63：三段是同一条流水线的前后阶段，属有序数据，用蓝色阶而不是分类色
+               （原先默认取 SERIES 前三位，里面有品红和青）。StackedBar 本体不动，只在这里传色。 */
+            segments={[
+              { label: '线索', value: summary?.leads ?? 0, color: ORDINAL_BLUE[1] },
+              { label: '在建', value: summary?.active ?? 0, color: ORDINAL_BLUE[3] },
+              { label: '已完成', value: summary?.portfolio ?? 0, color: ORDINAL_BLUE[5] },
+            ]}
             format={(n) => `${n} 套`}
             emptyText={loading ? '正在读取…' : '还没有项目'}
           />
@@ -278,19 +278,19 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
         return turns.length ? (
           <Cards variant="full-page" cardsPerRow={[{ cards: 1 }, { minWidth: 520, cards: 2 }, { minWidth: 900, cards: 3 }]} items={turns} loading={loading}
             cardDefinition={{
+              /* KAN-63：状态从盖在封面上的浮标挪到标题行。压在照片上的彩色胶囊
+                 既挡内容又和照片抢，放回标题行跟在项目名后面就够了。 */
               header: (p) => (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
-                  <Link fontSize="heading-s" href={`/projects/${p.id}`} onFollow={(e) => { e.preventDefault(); goProject(p); }}>{p.name}</Link>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 8, minWidth: 0 }}>
+                    <Link fontSize="heading-s" href={`/projects/${p.id}`} onFollow={(e) => { e.preventDefault(); goProject(p); }}>{p.name}</Link>
+                    <StatusBadge status={p.status} />
+                  </span>
                   <Box variant="small" color="text-body-secondary">{p.current_stage?.label}</Box>
                 </div>
               ),
               sections: [
-                { id: 'img', content: (p) => (
-                  <div style={{ position: 'relative' }}>
-                    <CoverImage propertyId={p.property.id} height={96} radius={8} showLabel={false} />
-                    <div style={{ position: 'absolute', top: 8, right: 8 }}><StatusBadge status={p.status} /></div>
-                  </div>
-                ) },
+                { id: 'img', content: (p) => <CoverImage propertyId={p.property.id} height={96} radius={8} showLabel={false} /> },
                 { id: 'track', content: (p) => {
                   const cur = p.stage_progress.find((s) => s.key === p.current_stage?.key);
                   return (
@@ -391,11 +391,16 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
                  改中性边框，「当前」用 StatusIndicator 明说。 */
               <div key={`${g.project_id}-${g.key}`} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 8, alignItems: 'center', padding: '8px 10px', borderRadius: 6, border: `1px solid ${BORDER}` }}>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontWeight: 700 }}>◆ {g.title} <Box variant="span" fontWeight="normal" color="text-body-secondary">· {g.project_name}</Box></div>
+                  {/* KAN-63：去掉行首的 ◆ 和粗体。一屏里主按钮只留页头那一个，
+                      这里的「去确认」降成链接——它是导航，不是本屏的主操作。 */}
+                  <div>{g.title} <Box variant="span" color="text-body-secondary">· {g.project_name}</Box></div>
                   {g.is_current && <StatusIndicator type="in-progress">当前阶段</StatusIndicator>}
                   <Box variant="small" color="text-body-secondary">{g.stage}{g.evidence_hint ? ` · ${g.evidence_hint}` : ''}{g.confirmed.length ? ` · ${g.confirmed.join('、')} 已确认` : ''}</Box>
                 </div>
-                <Button onClick={() => go(`/projects/${g.project_id}?tab=overview&step=${g.key}&action=confirm`)}>去确认</Button>
+                <Link
+                  href={`/projects/${g.project_id}?tab=overview&step=${g.key}&action=confirm`}
+                  onFollow={(e) => { e.preventDefault(); go(`/projects/${g.project_id}?tab=overview&step=${g.key}&action=confirm`); }}
+                >去确认</Link>
               </div>
             ))}
           </SpaceBetween>
@@ -542,28 +547,9 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
     >
       <SpaceBetween size="l">
         <Container header={<Header variant="h2"><ReviewTag id="A" />今日概览</Header>}>
-          <Grid gridDefinition={role.can('create_project') ? [{ colspan: { default: 12, m: 5 } }, { colspan: { default: 12, m: 7 } }] : [{ colspan: 12 }]}>
-            {role.can('create_project') && <FormField label="从一个地址开始" description="输入地址，系统自动补全房产数据并预填交易分析。">
-              <Autosuggest
-                value={q}
-                placeholder="例如 4928 NW Fisk Ave"
-                ariaLabel="按地址新建项目"
-                options={cands.map((c) => ({ value: c.label, label: c.label, description: `${c.city}, ${c.state} ${c.zip}` }))}
-                filteringType="manual"
-                statusType={searching ? 'loading' : 'finished'}
-                loadingText="查找中"
-                empty="没有找到地址。试试 Fisk、Parkville、Alvarado。"
-                enteredTextLabel={(v) => `用“${v}”新建`}
-                onChange={({ detail }) => setQ(detail.value)}
-                onLoadItems={async ({ detail }) => {
-                  if (detail.filteringText.length < 2) { setCands([]); return; }
-                  setSearching(true);
-                  try { setCands(await api.lookupAddress(detail.filteringText)); } finally { setSearching(false); }
-                }}
-                onSelect={({ detail }) => { const v = detail.selectedOption?.value ?? detail.value; go(`/projects/new?address=${encodeURIComponent(v)}`); }}
-              />
-            </FormField>}
-            <ColumnLayout columns={4} minColumnWidth={120} variant="text-grid">
+          {/* KAN-63：删掉「从一个地址开始」的地址框。顶栏已经有搜索，页头有「新建项目」，
+              概览这一块只报数就够了，不再兼做入口。 */}
+          <ColumnLayout columns={4} minColumnWidth={120} variant="text-grid">
               <Stat label="线索" value={String(summary?.leads ?? '—')} sub={`${projects.filter((p) => p.lead_heat === 'hot_lead').length} 条热线索`} />
               <Stat label="在建" value={String(summary?.active ?? '—')} sub={summary?.money_hidden ? '正在施工或挂牌' : `${summary?.over_budget_count ?? 0} 个超预算`} />
               {summary?.money_hidden ? (
@@ -577,8 +563,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
                   <Stat label="预计利润" value={compactMoney(summary?.expected_profit)} sub="在建：目标售价 − 买入 − 装修" />
                 </>
               )}
-            </ColumnLayout>
-          </Grid>
+          </ColumnLayout>
         </Container>
 
         <Board

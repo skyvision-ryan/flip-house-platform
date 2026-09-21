@@ -17,7 +17,6 @@ import { api, AddressCandidate, AUTH_EVENT, Me } from './api/client';
 import { FlashContext } from './lib/flash';
 import { ReviewContext } from './components/ReviewTag';
 import { readReviewPref, writeReviewPref } from './lib/reviewPref';
-import { BORDER } from './components/charts/palette';
 import { ActorContext, clearActor, getActor, getOverride, setActor as persistActor } from './lib/actor';
 import { useMeta } from './lib/meta';
 import { TIER_FALLBACK, Tier } from './lib/role';
@@ -113,9 +112,10 @@ export default function App() {
     <FlashContext.Provider value={pushFlash}>
     <ReviewContext.Provider value={reviewOn}>
     <ActorContext.Provider value={{ actor, setActor, me, demoMode, logout }}>
-      {/* 审计 #A10：这条底边原先用当前身份的 tier 颜色，颜色编码的是「你是谁」不是状态，
-          而且换个身份整条边就变色。改成中性分隔线。 */}
-      <div id="top-nav" style={{ position: 'sticky', top: 0, zIndex: 1002, borderBottom: `3px solid ${BORDER}` }}>
+      {/* 审计 #A10 把这条底边从 tier 色改成了中性线；KAN-63 索性去掉——
+          TopNavigation 自带下边界，再加一条 3px 只是多一道横杠。
+          #top-nav 必须保留，下面 AppLayout 的 headerSelector 依赖它。 */}
+      <div id="top-nav" style={{ position: 'sticky', top: 0, zIndex: 1002 }}>
         <TopNavigation
           identity={{ href: '/', title: '翻新项目平台', onFollow: (e) => { e.preventDefault(); navigate('/'); } }}
           search={
@@ -143,7 +143,6 @@ export default function App() {
             />
           }
           utilities={[
-            ...(canDo('create_project') ? [{ type: 'button' as const, text: '新建项目', iconName: 'add-plus' as const, onClick: () => navigate('/projects/new') }] : []),
             { type: 'button', text: `评审标注：${reviewOn ? '开' : '关'}`, iconName: reviewOn ? 'status-positive' : 'status-stopped', onClick: toggleReview },
             identityMenu,
           ]}

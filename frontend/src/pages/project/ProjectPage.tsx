@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import Badge from '@cloudscape-design/components/badge';
 import Box from '@cloudscape-design/components/box';
 import BreadcrumbGroup from '@cloudscape-design/components/breadcrumb-group';
 import Button from '@cloudscape-design/components/button';
@@ -18,7 +17,6 @@ import StatusBadge from '../../components/StatusBadge';
 import CoverImage from '../../components/CoverImage';
 import ReviewTag from '../../components/ReviewTag';
 import OwnerTag from '../../components/OwnerTag';
-import { Meter } from '../../components/charts';
 import { api, Project } from '../../api/client';
 import { useFlash } from '../../lib/flash';
 import { dateStr, daysBetween, money, num, pct } from '../../lib/format';
@@ -43,7 +41,7 @@ function DealSummary({ p }: { p: Project }) {
   if (p.stage === 'lead') {
     return (
       <SpaceBetween size="xxs">
-        <Box fontSize="heading-m" fontWeight="bold">挂牌 {money(prop.list_price)} <Box variant="span" color="text-body-secondary" fontWeight="normal">· 估值 {money(prop.avm_value)}</Box></Box>
+        <Box>挂牌 {money(prop.list_price)} <Box variant="span" color="text-body-secondary" fontWeight="normal">· 估值 {money(prop.avm_value)}</Box></Box>
         <Box color="text-body-secondary">{p.target_arv ? `目标售价 ${money(p.target_arv)}${p.purchase_price ? `，意向价 ${money(p.purchase_price)}` : ''}` : '目标售价未定，先在“分析”里算一遍'}</Box>
       </SpaceBetween>
     );
@@ -53,7 +51,7 @@ function DealSummary({ p }: { p: Project }) {
     const cost = (p.purchase_price ?? 0) + (p.budget_spent ?? 0);
     return (
       <SpaceBetween size="xxs">
-        <Box fontSize="heading-m" fontWeight="bold">买入 {money(p.purchase_price)} → 成交 {money(p.sale_price)}</Box>
+        <Box>买入 {money(p.purchase_price)} → 成交 {money(p.sale_price)}</Box>
         <Box color="text-body-secondary">{profit == null ? '成交价未填' : `实际利润 ${money(profit)} · 利润率 ${cost ? pct(profit / cost * 100) : '—'}${p.target_arv ? ` · 目标售价 ${money(p.target_arv)}` : ''}`}</Box>
       </SpaceBetween>
     );
@@ -62,7 +60,7 @@ function DealSummary({ p }: { p: Project }) {
   const profit = p.target_arv != null ? p.target_arv - cost : null;
   return (
     <SpaceBetween size="xxs">
-      <Box fontSize="heading-m" fontWeight="bold">买入 {money(p.purchase_price)} → 目标售价 {money(p.target_arv)}</Box>
+      <Box>买入 {money(p.purchase_price)} → 目标售价 {money(p.target_arv)}</Box>
       <Box color="text-body-secondary">{profit == null ? '目标售价未定' : `预计利润 ${money(profit)} · 利润率 ${cost ? pct(profit / cost * 100) : '—'} · 装修预算 ${money(p.budget_planned)}`}</Box>
     </SpaceBetween>
   );
@@ -76,9 +74,13 @@ function Timeline({ p }: { p: Project }) {
   const elapsed = daysBetween(p.construction_start, new Date().toISOString().slice(0, 10));
   return (
     <SpaceBetween size="xxs">
-      <Box fontSize="heading-m" fontWeight="bold">{steps.length ? steps.map(([k, d]) => `${k} ${short(d)}`).join(' → ') : '还没有关键日期'}</Box>
+      <Box>{steps.length ? steps.map(([k, d]) => `${k} ${short(d)}`).join(' → ') : '还没有关键日期'}</Box>
       {p.stage === 'active' && total && elapsed != null ? (
-        <Meter value={Math.max(0, elapsed)} max={total} label="工期" reading={`第 ${Math.max(0, elapsed)} / ${total} 天`} targetLabel="完工" height={6} note={elapsed > total ? `已超期 ${elapsed - total} 天` : undefined} />
+        /* KAN-63：页头这条工期条删掉，只留一句话。总览里 StepsPanel 的两条横条
+           才是工期和事项的正式刻度，页头再画一条等于同一件事量两遍。 */
+        <Box color="text-body-secondary">
+          第 {Math.max(0, elapsed)} / {total} 天{elapsed > total ? ` · 已超期 ${elapsed - total} 天` : ''}
+        </Box>
       ) : p.stage === 'portfolio' && p.list_date && p.sale_date ? (
         <Box color="text-body-secondary">挂牌到成交 {daysBetween(p.list_date, p.sale_date)} 天{total ? `，工期 ${total} 天` : ''}</Box>
       ) : (
@@ -118,12 +120,16 @@ export default function ProjectPage() {
       breadcrumbs={<BreadcrumbGroup items={[{ text: '工作台', href: '/' }, { text: '项目', href: '/projects' }, { text: project.name, href: `/projects/${pid}` }]} onFollow={(e) => { e.preventDefault(); navigate(e.detail.href); }} />}
       header={
         <Container>
-          <Grid gridDefinition={[{ colspan: { default: 12, s: 3 } }, { colspan: { default: 12, s: 9 } }]}>
-            <CoverImage propertyId={prop.id} height={150} radius={8} />
+          {/* KAN-63：页头收成资源头——照片 150→96，占 2 列不是 3 列。
+              页头是用来确认「我在哪个项目」的，不是展示位。窄屏仍各占 12。 */}
+          <Grid gridDefinition={[{ colspan: { default: 12, s: 2 } }, { colspan: { default: 12, s: 10 } }]}>
+            <CoverImage propertyId={prop.id} height={96} radius={8} />
             <SpaceBetween size="m">
               <Header
                 variant="h1"
-                description={<span>{prop.address_std}{specs ? ` · ${specs}` : ''}</span>}
+                description={<span>{prop.address_std}{specs ? ` · ${specs}` : ''}
+                  {` · ${project.current_stage?.label ?? `${labelOf(meta?.stages, project.stage)} · ${labelOf(meta?.substages[project.stage], project.substage)}`}`}
+                  {` · ${labelOf(meta?.strategies, project.strategy)}`}</span>}
                 actions={
                   <SpaceBetween direction="horizontal" size="xs">
                     {role.can('edit_project') && <Button onClick={() => setEditing(true)}>编辑</Button>}
@@ -136,8 +142,8 @@ export default function ProjectPage() {
                   <ReviewTag id="A" />
                   <OwnerTag block="project.header" />
                   <span>{project.name}</span>
-                  <Badge color="grey">{project.current_stage?.label ?? `${labelOf(meta?.stages, project.stage)} · ${labelOf(meta?.substages[project.stage], project.substage)}`}</Badge>
-                  <Badge color="grey">{labelOf(meta?.strategies, project.strategy)}</Badge>
+                  {/* KAN-63：阶段与策略徽章移进 description，跟在地址和户型后面。
+                      它们是这个项目「是什么」，属于描述，不该在标题行占两个灰胶囊。 */}
                   <StatusBadge status={project.status} />
                 </div>
               </Header>

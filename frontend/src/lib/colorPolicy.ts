@@ -92,7 +92,7 @@ export function toHex({ r, g, b }: Rgb): string {
  *
  * 2026-09-21 量了两边（design-tokens 3.0.112 的 light 值 + 我们代码里的硬编码色）：
  *
- *   中性侧最高饱和度  27.3%  #F7F5F1  我们的暖白页底
+ *   中性侧最高饱和度  27.3%  #F7F5F1  旧页底，只用来钉中性亮度兜底
  *                     26.8%  #0f141a  Cloudscape 的 color-text-body-default（近黑）
  *                     15.8%  #e9ecef  占位底
  *                     13.4%  #8d99a8  次要文字灰蓝

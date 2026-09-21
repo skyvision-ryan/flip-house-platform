@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Alert from '@cloudscape-design/components/alert';
-import Badge from '@cloudscape-design/components/badge';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
 import Cards from '@cloudscape-design/components/cards';
@@ -316,7 +315,11 @@ export default function StepsPanel({
                   {state === 'done' ? '已过' : state === 'current' ? '在这一段' : '还没到'}
                 </StatusIndicator>
                 <Box fontSize="body-s" color="text-body-secondary">{st.done_count} / {st.total} 项</Box>
-                {st.gate_title && <Badge color={st.gate_done ? 'green' : 'grey'}>{st.gate_title}</Badge>}
+                {/* KAN-63：门名原先是绿/灰胶囊，绿色胶囊比它旁边真正的状态指示还抢眼。
+                    过了就用指示器，没过就是一行次要文字——没过不是告警，只是还没轮到。 */}
+                {st.gate_title && (st.gate_done
+                  ? <StatusIndicator type="success">{st.gate_title}</StatusIndicator>
+                  : <Box variant="small" color="text-body-secondary">{st.gate_title}</Box>)}
               </SpaceBetween>
             );
           })}

@@ -20,7 +20,7 @@ const KEEP: Record<string, string> = {
     'tok(令牌名, 兜底值) 的第二参数。JS 导出是 var(--x, fallback) 字符串，兜底永不生效，'
     + '只在令牌名拼错时才会暴露（审计 #A20）',
   'theme.ts':
-    '页面底色 PAGE_BG 与深色值，是主题覆盖本身的真值来源（审计 #A17）',
+    '冷灰页底与深色值，是主题覆盖本身的真值来源（审计 #A17，KAN-63 改冷灰）',
   'components/ReviewTag.tsx':
     '评审黄圆标。按既有约定组件保留、字母不变，本票只把它改成默认关（审计 #A07）',
   'lib/role.ts':
