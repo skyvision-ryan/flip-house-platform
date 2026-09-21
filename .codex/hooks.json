@@ -1,0 +1,55 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 '/Users/Ryan/Desktop/GitHub/flip-house-platform/.codex/hooks/check_commit.py'"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/Ryan/Desktop/GitHub/flip-house-platform/.codex/hooks/require-ticket.sh'"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/Ryan/Desktop/GitHub/flip-house-platform/.codex/hooks/post-edit-check.sh'"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/Ryan/Desktop/GitHub/flip-house-platform/.codex/hooks/session-context.sh' full"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/Ryan/Desktop/GitHub/flip-house-platform/.codex/hooks/session-context.sh' brief"
+          }
+        ]
+      }
+    ]
+  }
+}

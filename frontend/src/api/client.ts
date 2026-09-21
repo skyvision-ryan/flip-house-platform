@@ -32,6 +32,8 @@ export interface StepItem {
   key: string; title: string; owners: string[]; gate: boolean; confirm: string[]; confirmed: string[]; done: boolean; how: 'auto' | 'manual' | 'manual_override' | null;
   deliverable: Deliverable | null; evidence_hint: string | null;
   evidence: string | null; can_auto: boolean; done_by: string | null; done_at: string | null; note: string | null;
+  /** 属于哪条工作线；这件事是干嘛的；后端认为怎样才算完成。由后端透传，没有就不显示。 */
+  ws?: string; purpose?: string; done_when?: string;
 }
 export interface StageProgress {
   key: string; label: string; short: string; done: number; total: number; gate_title: string | null; gate_done: boolean; gate_confirmed: string[]; gate_at: string | null;
@@ -105,6 +107,8 @@ export interface ProjectFile {
   id: number; project_id: number; filename: string; mime: string | null; size: number; doc_type: string | null; stage: string | null;
   doc_date: string | null; counterparty: string | null; amount: number | null; source: string; uploaded_by: string | null; step_key: string | null; expires_at: string | null; uploaded_at: string;
 }
+/** 文件列表行；和 ProjectFile 同一个东西，给按“附件”读它的地方用。 */
+export type FileRow = ProjectFile;
 
 export interface Utility {
   id: number; project_id: number; kind: string; company: string | null; account_no: string | null; login: string | null; password: string | null;

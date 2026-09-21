@@ -184,7 +184,7 @@ class ReportPageTest(unittest.TestCase):
     def test_computed_positions_land_in_the_nonced_stylesheet(self):
         html = page()
         # (?s) 让 . 匹配换行——CSS 是多行的
-        self.assertRegex(html, r'(?s)<style nonce="testnonce">.*\.g\d+\{left:')
+        self.assertRegex(html, r'(?s)<style nonce="testnonce">.*\.g\d+\{--start:')
 
     def test_no_horizontal_scroll_hint_for_phone(self):
         html = page()

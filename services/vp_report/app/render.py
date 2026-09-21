@@ -23,6 +23,7 @@ from __future__ import annotations
 import html
 import re
 from datetime import date, timedelta
+from pathlib import Path
 from typing import Any
 
 from . import settings
@@ -141,48 +142,9 @@ h1{font-size:26px;font-weight:700;letter-spacing:.01em;margin-bottom:10px}
 .banner.stale{background:var(--caution-bg);border:1px solid #f0cf86;color:#7a4b06}
 .banner.bad{background:var(--warn-bg);border:1px solid #f0b4b4;color:#8d2020}
 
-/* ---- 主图 ---- */
-.chart{padding:16px 14px 14px}
-.chart h2,.sec h2{font-size:14px;font-weight:600;color:var(--ink-3);margin-bottom:12px}
-.scroller{overflow-x:auto;-webkit-overflow-scrolling:touch}
-.canvas{min-width:100%}
-.weeks{position:relative;height:20px}
-.weeks span{position:absolute;transform:translateX(-50%);font-size:13px;color:var(--ink-2);
- white-space:nowrap;font-weight:600}
-.ticks{position:relative;height:18px;margin-bottom:2px}
-.capline{position:relative;height:24px}
-.ticks span{position:absolute;transform:translateX(-50%);font-size:13px;color:var(--ink-3);
- white-space:nowrap;font-variant-numeric:tabular-nums}
-.plot{position:relative}
-.rules{position:absolute;top:0;bottom:0;left:128px;width:var(--tl);z-index:0;pointer-events:none}
-.rule{position:absolute;top:0;bottom:0;width:1px;background:var(--grid)}
-.weekband{position:absolute;top:0;bottom:0;background:rgba(42,120,214,.055)}
-.todayline{position:absolute;top:0;bottom:0;width:3px;background:#0f1c2e;
- box-shadow:0 0 0 1px rgba(255,255,255,.55)}
-.todaycap{position:absolute;top:0;transform:translateX(-50%);background:#0f1c2e;color:#fff;
- font-size:12.5px;font-weight:700;padding:3px 9px;border-radius:6px;white-space:nowrap;z-index:1}
-
-/* 事件三色（已跑 validate_palette.js：all-pairs 全通过）*/
+/* Shared progress badges and event colours. Schedule layout lives in schedule.css. */
+.sec h2{font-size:14px;font-weight:600;color:var(--ink-3);margin-bottom:12px}
 .k-meeting{color:var(--k-meeting)} .k-target{color:var(--k-target)} .k-trial{color:var(--k-trial)}
-
-/* 统一表格：左边固定名称+日期，右边统一时间轴 */
-.ggroup .gname{font-size:13px;font-weight:600;color:var(--ink-3);padding-top:10px}
-.ggroup{border-top:1px solid var(--hair);margin-top:2px}
-.node{position:absolute;transform:translateX(-50%);top:5px;font-size:15px;line-height:1;
- text-shadow:-2px 0 0 var(--surface),2px 0 0 var(--surface),0 -2px 0 var(--surface),0 2px 0 var(--surface)}
-.todaycap{position:absolute;top:0;transform:translateX(-50%);background:#0f1c2e;color:#fff;
- font-size:12.5px;font-weight:700;padding:3px 9px;border-radius:6px;white-space:nowrap;z-index:1}
-
-/* 三条业务主线 */
-.lanes{position:relative;z-index:1;padding-top:6px}
-.lane{padding:12px 0 4px;border-top:1px solid var(--hair)}
-.lane:first-child{border-top:0}
-/* 标签行盖住网格与今天线：线只在事件带和计划条那几条带子里露出来，
-   不从名称文字上穿过去 */
-.lhead,.lmeta,.nodate,.lane details{position:relative;background:var(--surface)}
-.lhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;
- padding:2px 0}
-.lname{font-size:17px;font-weight:700;line-height:1.35}
 .chip{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:600;
  padding:2px 9px;border-radius:999px;background:#f1f4f8;color:var(--ink);flex:0 0 auto}
 .chip .d{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
@@ -233,26 +195,6 @@ h1{font-size:26px;font-weight:700;letter-spacing:.01em;margin-bottom:10px}
 .pcount i{font-style:normal;display:inline-block;width:10px;height:10px;border-radius:2px;
  margin-right:5px;vertical-align:baseline}
 .basis{font-size:13px;color:var(--ink-3);margin-top:6px}
-
-/* ---- 第二块：排期与关键节点（甘特）---- */
-.ghead .gname{font-size:13px;color:var(--ink-3)}
-.grow{display:flex;align-items:stretch}
-.gname{flex:0 0 128px;position:sticky;left:0;z-index:3;background:var(--surface);
- padding:3px 10px 3px 0;font-size:14px;font-weight:600;line-height:1.35}
-.gname .sub{font-size:12.5px;color:var(--ink-3);font-weight:500;margin-top:2px;
- line-height:1.35;white-space:normal}
-.gname .q{margin-left:6px;display:inline-block}
-.gtrack{flex:0 0 var(--tl);position:relative}
-.gbody{position:relative}
-.gsub .gname{font-weight:500;font-size:13.5px;color:var(--ink-2);padding-left:10px}
-.gsub{margin-bottom:2px}
-/* 和 .gname 一样钉住左边：宽度取内容宽，横滑时才会真正 sticky 住 */
-.gsub summary{position:sticky;left:0;z-index:3;width:128px;
- background:var(--surface);padding:0 10px 0 12px;min-height:44px;font-size:13.5px}
-.grow.sub{min-height:26px}
-.grow-item{min-height:30px}
-.plan.sub{height:9px;top:8px;border-left-width:2px;opacity:.9}
-.plan.sub.done{background:#bfe3bf;border-left-color:var(--s-done)}
 
 /* ---- 图下 ---- */
 .sec{padding:16px}
@@ -363,9 +305,10 @@ class Axis:
             if d:
                 dates.append(d)
         for it in snap.get("issues") or []:
-            d = _parse(it.get("due"))
-            if d:
-                dates.append(d)
+            for key in ("start", "due"):
+                d = _parse(it.get(key))
+                if d:
+                    dates.append(d)
         start, end = min(dates), max(dates)
         start -= timedelta(days=1)
         end += timedelta(days=1)
@@ -575,131 +518,151 @@ def _progress(snap: dict, sheet: StyleSheet) -> str:
             f'</div>')
 
 
-_DAY_PX = 26
-
-
-def _event_subtitle(ev: dict, today: date) -> str:
-    """左栏副标题：日期（区间就写区间）+ 会议时刻 + 暂定标记，一次说清楚。"""
-    d = _parse(ev.get("date"))
-    end_d = _parse(ev.get("end_date"))
-    if d is None:
-        return '<div class="sub warn">日期待确认</div>'
-    when = _md(d) + (f'–{_md(end_d)}' if end_d and end_d > d else "")
-    rel = _relative(d, today)
-    bits = [when]
-    if rel:
-        bits.append(rel)
-    if ev.get("clock"):
-        bits.append(ev["clock"])
-    quals = "".join(f'<span class="q">{esc(q)}</span>' for q in ev.get("quals") or [])
-    return f'<div class="sub">{esc("　".join(bits))}{quals}</div>'
+def _schedule_dates(start: date | None, due: date | None) -> tuple[str, bool]:
+    """Keep incomplete/reversed dates visible; never draw a made-up interval."""
+    if start and due:
+        text = _md(start) if start == due else f"{_md(start)}–{_md(due)}"
+        return (text + " · 日期倒置，待核对", False) if due < start else (text, True)
+    if due:
+        return f"截止 {_md(due)} · 开始待确认", False
+    if start:
+        return f"{_md(start)} 开始 · 截止待确认", False
+    return "计划日期待确认", False
 
 
 def _gantt(snap: dict, axis: Axis, today: date, sheet: StyleSheet) -> str:
-    """排期与关键节点：统一表格。
+    """Phone-first schedule: one native scroller, frozen names and date header.
 
-    左边固定一列事项名称 + 日期副标题，右边是同一条时间轴。
-    分「工作排期」和「关键节点」两组：工作和试用画区间条，会议和交付各占一行画节点。
-    名称一律待在左栏，不在图里左右漂浮——漂浮的长名称正是之前读起来乱的原因。
+    Each date has a full column, including one-day tasks. All coordinates use
+    whole days; reversing or missing a date never creates a misleading bar.
     """
-    tl_px = max(axis.span * _DAY_PX, 260)
-    canvas = sheet.cls(f"--tl:{tl_px}px")
-    tpos = axis.pos(today)
-
-    weeks = "".join(
-        f'<span class="{sheet.label_left((lo + hi) / 2, margin=8)}">{esc(label)}</span>'
-        for lo, hi, label in axis.weeks(today))
-    ticks = "".join(
-        f'<span class="{sheet.label_left(axis.pos(t), margin=4)}">{_md(t)}</span>'
-        for t in axis.ticks())
-    rules = "".join(f'<i class="rule {sheet.left(axis.pos(t))}"></i>' for t in axis.ticks())
-    for lo, hi, label in axis.weeks(today):
-        if label == "本周":
-            rules += (f'<i class="weekband '
-                      f'{sheet.cls(f"left:{lo:.3f}%;width:{max(hi - lo, 1):.3f}%")}"></i>')
-
-    def row(name: str, subtitle: str, track: str, cls: str = "") -> str:
-        return (f'<div class="grow grow-item {cls}">'
-                f'<div class="gname">{name}{subtitle}</div>'
-                f'<div class="gtrack">{track}</div></div>')
-
-    def group(title: str) -> str:
-        return (f'<div class="grow ggroup"><div class="gname">{esc(title)}</div>'
-                f'<div class="gtrack"></div></div>')
+    days = axis.span + 1
+    today_index = (today - axis.start).days
+    canvas = sheet.cls(f"--tl:calc({days} * var(--day));--days:{days};--today:{today_index}")
+    today_line = '<i class="todayline" aria-hidden="true"></i>'
 
     def interval(a: date, b: date, extra: str = "") -> str:
-        lo, hi = axis.pos(a), axis.pos(b)
-        return (f'<div class="plan {extra} '
-                f'{sheet.cls(f"left:{lo:.3f}%;width:{max(hi - lo, 1.6):.3f}%")}"></div>')
+        if b < a:
+            return ""
+        position = sheet.cls(f"--start:{(a - axis.start).days};--length:{(b - a).days + 1}")
+        return f'<span class="plan {extra} {position}" aria-hidden="true"></span>'
 
-    # ---- 工作排期：三条主线，画区间条；子项在展开层里也是区间条 ----
+    def row(name: str, subtitle: str, track: str, cls: str = "", row_id: str = "") -> str:
+        ident = f' id="{esc(row_id)}"' if row_id else ""
+        return (f'<div class="schedule-row {cls}"{ident}>'
+                f'<div class="schedule-name">{name}{subtitle}</div>'
+                f'<div class="schedule-track" aria-hidden="true">{today_line}{track}</div></div>')
+
+    def group(title: str) -> str:
+        return (f'<div class="schedule-group"><div class="schedule-name">{esc(title)}</div>'
+                f'<div class="schedule-track" aria-hidden="true"></div></div>')
+
+    def date_sub(a: date | None, b: date | None) -> tuple[str, bool]:
+        label, valid = _schedule_dates(a, b)
+        return f'<span class="sub{("" if valid else " warn")}">{esc(label)}</span>', valid
+
+    def status(dot: str, label: str) -> str:
+        return f'<span class="schedule-status"><i class="{dot}" aria-hidden="true"></i>{esc(label)}</span>'
+
+    ticks = ""
+    weekdays = "一二三四五六日"
+    for i in range(days):
+        d = axis.start + timedelta(days=i)
+        cls = " is-today" if d == today else (" weekend" if d.weekday() >= 5 else "")
+        word = "今天" if d == today else f"周{weekdays[d.weekday()]}"
+        ticks += (f'<div class="schedule-day{cls}"><small>{word}</small>'
+                  f'<span>{d.day}</span><small>{d.month}月</small></div>')
+
     by_key = {i["key"]: i for i in snap.get("issues") or []}
     work = group("工作排期")
-    for ln in _lanes_sorted(snap):
+    for index, ln in enumerate(_lanes_sorted(snap)):
         stage = ln.get("stage") or "未开始"
         dot_cls, stage_text = _STAGE.get(stage, _STAGE["未开始"])
         start, due = _parse(ln.get("start")), _parse(ln.get("due"))
-        if start and due:
-            track = interval(start, due, _STAGE_BAR.get(stage, "st-todo"))
-            sub = f'<div class="sub"><i class="d {dot_cls}"></i> {_md(start)}–{_md(due)}</div>'
-        else:
-            track, sub = "", '<div class="sub warn">计划日期待确认</div>'
-        work += row(esc(ln.get("title")), sub, track)
-
+        sub, valid = date_sub(start, due)
+        track = interval(start, due, _STAGE_BAR.get(stage, "st-todo")) if valid else ""
+        name = f'<span class="schedule-title">{esc(ln.get("title"))}</span>'
+        sub += status(dot_cls, stage_text)
         subs = ""
-        for key in ln.get("children") or []:
-            k = by_key.get(key)
-            if not k:
-                continue
+        children = [by_key[k] for k in ln.get("children") or [] if k in by_key]
+        children.sort(key=lambda k: (k.get("start") or "9999-12-31", k.get("due") or "9999-12-31"))
+        for k in children:
             ks, kd = _parse(k.get("start")), _parse(k.get("due"))
-            done = k.get("status_category") == "done"
-            kbar = interval(ks, kd, "sub done" if done else "sub") if ks and kd else ""
-            ksub = (f'<div class="sub">{_md(ks)}–{_md(kd)}</div>' if ks and kd
-                    else '<div class="sub warn">无日期</div>')
-            subs += (f'<div class="grow sub"><div class="gname">{esc(k.get("summary"))}'
-                     f'{ksub}</div><div class="gtrack">{kbar}</div></div>')
+            ksub, kvalid = date_sub(ks, kd)
+            cat = k.get("status_category")
+            dot, word, bar = {"done": ("d-done", "已完成", "st-done"),
+                              "indeterminate": ("d-doing", "进行中", "st-doing")}.get(
+                                  cat, ("d-todo", "未开始", "st-todo"))
+            ksub += status(dot, word)
+            kbar = interval(ks, kd, "sub " + bar) if kvalid else ""
+            child_name, qualifiers = short_name(k.get("summary"))
+            ksub += "".join(f'<span class="sub q">{esc(q)}</span>' for q in qualifiers)
+            subs += row(esc(child_name), ksub, kbar, "schedule-child")
         if subs:
-            work += (f'<details class="gsub">'
-                     f'<summary>展开 {len(ln.get("children") or [])} 项工作</summary>'
-                     f'{subs}</details>')
+            # A single summary row is both the lane and its disclosure control.
+            # Its explicit full width is essential for sticky names in Safari.
+            work += (f'<details id="schedule-lane-{esc(ln.get("jira_key") or index)}">'
+                     f'<summary class="schedule-row">'
+                     f'<span class="schedule-name">{name}{sub}<small>{len(children)} 项工作 · <span class="when-closed">展开</span><span class="when-open">收起</span></small></span>'
+                     f'<span class="schedule-track" aria-hidden="true">{today_line}{track}</span>'
+                     f'</summary>{subs}</details>')
+        else:
+            work += row(name, sub, track)
 
-    # ---- 关键节点：会议和交付各占一行画节点，试用画区间条 ----
     nodes = group("关键节点")
     events = build_events(snap)
-    for ev in events:
-        d = _parse(ev.get("date"))
-        end_d = _parse(ev.get("end_date"))
+    upcoming = next_event(events, today)
+    jump = ""
+    for index, ev in enumerate(events):
+        d, end_d = _parse(ev.get("date")), _parse(ev.get("end_date"))
         kind = ev["kind"]
         colour = KIND_CLASS.get(kind, "k-target")
-        if d is None:
+        sub, valid = date_sub(d, end_d or d)
+        if ev.get("clock"):
+            sub += f'<div class="sub">{esc(ev["clock"])}</div>'
+        sub += "".join(f'<span class="sub q">{esc(q)}</span>' for q in ev.get("quals") or [])
+        word = KIND_WORD.get(kind, "交付")
+        if kind != "meeting":
+            word += " · 已完成" if ev.get("done") else " · 未完成"
+        sub += status("d-done" if ev.get("done") else "d-todo", word)
+        if not valid:
             track = ""
         elif end_d and end_d > d:
-            track = interval(d, end_d, "trial" if kind == "trial" else "")
+            track = interval(d, end_d, "st-done" if ev.get("done") else ("trial" if kind == "trial" else ""))
         else:
-            sym = KIND_SYMBOL.get(kind, "●")
-            track = f'<i class="node {colour} {sheet.left(axis.pos(d))}">{sym}</i>'
-        nodes += row(esc(ev["name"]), _event_subtitle(ev, today), track)
+            position = sheet.cls(f"--start:{(d - axis.start).days}")
+            symbol = "✓" if ev.get("done") else KIND_SYMBOL.get(kind, "●")
+            track = f'<i class="schedule-node {colour} {position}">{symbol}</i>'
+        row_id = f"schedule-event-{index}"
+        nodes += row(esc(ev["name"]), sub, track, "schedule-event", row_id)
+        if ev is upcoming:
+            jump = (f'<button class="schedule-jump" data-enhanced hidden data-jump="{(d - axis.start).days}" data-row="{row_id}">'
+                    f'<span>下一节点 ↗</span><b>{_md(d)} {esc(ev["name"])}</b></button>')
     if not events:
         nodes += row("还没有排定的会议或交付节点", "", "")
 
-    return f"""<div class="card chart"><h2>排期与关键节点</h2>
-<div class="swipe">← 左滑查看后续日期</div>
-<div class="scroller"><div class="canvas {canvas}">
-<div class="grow ghead"><div class="gname">事项</div><div class="gtrack">
-  <div class="weeks">{weeks}</div><div class="ticks">{ticks}</div>
-  <div class="capline"><span class="todaycap {sheet.label_left(tpos, margin=9)}">今天 {_md(today)}</span></div>
-  </div></div>
-<div class="gbody">
-  <div class="rules">{rules}<div class="todayline {sheet.left(tpos)}"></div></div>
-  {work}
-  {nodes}
-</div>
+    return f"""<section class="card schedule {canvas}" id="schedule" aria-labelledby="schedule-heading"
+ data-start="{axis.start.isoformat()}" data-today="{today_index}" data-days="{days}">
+<div class="schedule-heading"><h2 id="schedule-heading">排期与关键节点</h2>
+<button type="button" data-enhanced hidden data-expand aria-expanded="false" aria-controls="schedule-scroll">放大</button></div>
+<p class="schedule-context">{axis.start.year}/{_md(axis.start)}–{str(axis.end.year) + "/" if axis.end.year != axis.start.year else ""}{_md(axis.end)} · {esc("洛杉矶时间" if settings.TIMEZONE == "America/Los_Angeles" else settings.TIMEZONE)}</p>
+<div class="schedule-tools" data-enhanced hidden>
+<button type="button" data-move="-1" aria-label="查看更早日期">‹</button>
+<output aria-label="当前可见日期" aria-live="off">{_md(axis.start)}–{_md(axis.end)}</output>
+<button type="button" data-move="1" aria-label="查看后续日期">›</button>
+<button type="button" data-today>今天</button></div>
+{jump}
+<p class="schedule-help" id="schedule-help">左右滑动看日期，上下滑动看事项；点主线展开工作。</p>
+<div class="schedule-scroll" id="schedule-scroll" tabindex="0" role="region" aria-label="项目排期时间表" aria-describedby="schedule-help">
+<div class="schedule-canvas">
+<div class="schedule-head"><div class="schedule-name">事项 / 状态<small>左右滑动日期</small></div>
+<div class="schedule-days">{ticks}</div></div>
+{work}{nodes}
 </div></div>
-<div class="legend"><span><i class="sym k-meeting">◆</i> 会议</span>
-<span><i class="sym k-target">●</i> 交付</span>
-<span><i class="sym k-trial">▬</i> 试用</span>
-<span>横条长度 = 计划时间，不表示完成进度</span></div>
-</div>"""
+<div class="legend"><span class="k-meeting">◆ 会议</span><span class="k-target">● 交付</span>
+<span class="k-trial">▬ 试用</span><span>✓ 节点已完成</span>
+<span class="basis">横条长度 = 计划时间，不表示完成进度</span></div>
+</section>"""
 
 
 def _lane_details(snap: dict, ln: dict) -> str:
@@ -947,6 +910,10 @@ def _banner(state: dict) -> str:
     return ""
 
 
+# Keep static assets separate for review, then inline them with the response nonce.
+SCHEDULE_CSS = Path(__file__).with_name("schedule.css").read_text(encoding="utf-8")
+SCHEDULE_SCRIPT = Path(__file__).with_name("schedule.js").read_text(encoding="utf-8")
+
 # ---- 整页 -------------------------------------------------------------
 
 # 只在状态或成功同步时间真的变了才重载。unavailable 页用同一个脚本也不会自刷循环。
@@ -968,7 +935,7 @@ POLL_SCRIPT = """
         if(!j) return;
         var changed = (j.status || '') !== seenStatus
                    || (j.fetched_at || '') !== seenAt;
-        if(changed){ location.reload(); return; }
+        if(changed){ document.dispatchEvent(new Event('report:before-reload')); location.reload(); return; }
         schedule();
       })
       .catch(function(){ schedule(); });
@@ -1036,7 +1003,7 @@ def report_page(state: dict, nonce: str) -> str:
 业务核对：{esc(reviewed_txt)}　时区 {esc(settings.TIMEZONE)}</div>
 </div>"""
 
-    return _shell("项目进度", body, nonce, extra_css=sheet.css(), script=POLL_SCRIPT,
+    return _shell("项目进度", body, nonce, extra_css=sheet.css() + SCHEDULE_CSS, script=SCHEDULE_SCRIPT + POLL_SCRIPT,
                   status=state.get("status", ""), fetched_at=snap.get("fetched_at") or "")
 
 

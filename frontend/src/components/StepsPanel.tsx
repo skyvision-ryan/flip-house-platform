@@ -1,18 +1,26 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Alert from '@cloudscape-design/components/alert';
+import Badge from '@cloudscape-design/components/badge';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
+import Cards from '@cloudscape-design/components/cards';
 import Checkbox from '@cloudscape-design/components/checkbox';
+import ColumnLayout from '@cloudscape-design/components/column-layout';
 import DatePicker from '@cloudscape-design/components/date-picker';
 import ExpandableSection from '@cloudscape-design/components/expandable-section';
 import FormField from '@cloudscape-design/components/form-field';
+import Grid from '@cloudscape-design/components/grid';
 import Input from '@cloudscape-design/components/input';
+import Link from '@cloudscape-design/components/link';
 import Modal from '@cloudscape-design/components/modal';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import Spinner from '@cloudscape-design/components/spinner';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
 import Textarea from '@cloudscape-design/components/textarea';
-import { api, StepItem, Steps } from '../api/client';
+import { api, FileRow, StepItem, Steps } from '../api/client';
+import { Meter } from './charts';
+import { daysBetween } from '../lib/format';
 import { useFlash } from '../lib/flash';
 import { useRole } from '../lib/role';
 import {
@@ -25,65 +33,47 @@ import {
   findStageKey,
   findStepItem,
   nextUpFlash,
-  statusHint,
 } from '../lib/stepActions';
-import { OwnerDot } from './OwnerTag';
+import { contextNotes, factOf, limitsOf } from '../lib/stepDisplay';
+import { OwnerDot, OwnerNames } from './OwnerTag';
+import TaskDetail from './TaskDetail';
 import UploadForm from './UploadForm';
 
 type Stage = Steps['stages'][number];
-type StageState = 'done' | 'current' | 'future';
-
-const shortDate = (iso: string | null | undefined) => (iso ? iso.slice(5, 10).replace('-', '/') : '');
-const BLUE = '#0972d3', GREEN = '#037f0c', GREY = '#8d99a8', TEXT2 = '#5f6b7a', BORDER = '#e9ebed', WARN = '#8d6605';
-
-function StageCard({ st, index, state, selected, waitingOn, onSelect }: { st: Stage; index: number; state: StageState; selected: boolean; waitingOn: string[]; onSelect: () => void }) {
-  const gateLine = () => {
-    if (st.gate_done) return <span style={{ color: TEXT2 }}>◆ {st.gate_title}{st.gate_at ? ` · ${shortDate(st.gate_at)}` : ''}</span>;
-    if (state === 'current') {
-      const waiting = ['D', 'J'].filter((c) => !st.gate_confirmed.includes(c));
-      return <span style={{ color: WARN, fontWeight: 600 }}>◆ {st.gate_confirmed.length ? `${st.gate_confirmed.join('、')} 已确认，等 ${waiting.join('、')}` : `待 D、J 确认`}</span>;
-    }
-    return <span style={{ color: GREY }}>◆ {st.gate_title}</span>;
-  };
-  return (
-    <div
-      role="button" tabIndex={0} onClick={onSelect} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(); } }}
-      aria-pressed={selected}
-      style={{
-        position: 'relative', flex: '1 1 130px', minWidth: 120, background: '#fff', borderRadius: 12, padding: '10px 12px 10px 14px', cursor: 'pointer',
-        border: `${state === 'current' ? 2 : 1}px solid ${state === 'current' ? BLUE : BORDER}`,
-        boxShadow: selected ? `0 0 0 3px ${state === 'current' ? 'rgba(9,114,211,.18)' : 'rgba(9,114,211,.25)'}` : '0 1px 2px rgba(0,7,22,.06)',
-        color: state === 'future' ? GREY : 'inherit', transition: 'box-shadow .15s',
-      }}
-    >
-      {state === 'done' && <span style={{ position: 'absolute', left: 0, top: 10, bottom: 10, width: 4, borderRadius: 2, background: GREEN }} />}
-      <div style={{ fontWeight: 700, fontSize: 15, display: 'flex', alignItems: 'baseline', gap: 6, whiteSpace: 'nowrap', overflow: 'hidden' }}>
-        <span>{['①', '②', '③', '④', '⑤', '⑥'][index]}</span><span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{st.short}</span>
-      </div>
-      <div style={{ marginTop: 6, fontSize: 13 }}>
-        {state === 'done' ? <span style={{ color: GREEN, fontWeight: 600 }}>✓ 已完成</span>
-          : state === 'current' ? <span style={{ color: BLUE, fontWeight: 700 }}>● 进行中</span>
-          : <span>还没到</span>}
-      </div>
-      <div style={{ marginTop: 2, fontSize: 13, color: state === 'future' ? GREY : TEXT2, display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap', overflow: 'hidden' }}>
-        {state === 'current' ? <><span>{st.done_count} / {st.total} 件</span>{waitingOn.length > 0 && <span>· 轮到 {waitingOn.map((o) => <OwnerDot key={o} code={o} />)}</span>}</> : <span>{st.total} 件</span>}
-      </div>
-      <div style={{ marginTop: 8, fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{gateLine()}</div>
-    </div>
-  );
-}
 
 export type StepsDeepLink = { step?: string | null; action?: string | null };
 
-/** 总览 B：默认眼前工作；完整清单折叠。 */
-export default function StepsPanel({ projectId, onChanged, deepLink }: { projectId: number; onChanged?: () => void; deepLink?: StepsDeepLink }) {
+/** 工期来自项目级日期；没有开工/计划完工就不画这条。 */
+export type StepsSchedule = { start: string | null; end: string | null; active: boolean };
+
+const stageState = (i: number, curIdx: number, complete: boolean) =>
+  complete || i < curIdx ? 'done' : i === curIdx ? 'current' : 'future';
+
+/**
+ * 总览 B：这套房现在怎么走。
+ * 四块——当前阶段 / 我负责的 / 关键节点 / 本段其余事项。
+ * 只陈述后端 compute_steps 给的事实，不推导「进行中」「等待某人」这类状态。
+ */
+export default function StepsPanel({
+  projectId,
+  onChanged,
+  deepLink,
+  schedule,
+}: {
+  projectId: number;
+  onChanged?: () => void;
+  deepLink?: StepsDeepLink;
+  schedule?: StepsSchedule;
+}) {
   const flash = useFlash();
   const navigate = useNavigate();
   const role = useRole();
   const [steps, setSteps] = useState<Steps | null>(null);
+  const [files, setFiles] = useState<FileRow[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
+  const [detail, setDetail] = useState<StepItem | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
-  const [modal, setModal] = useState<{ kind: 'upload'; it: StepItem } | { kind: 'field'; it: StepItem } | null>(null);
+  const [modal, setModal] = useState<{ kind: 'upload' | 'field'; it: StepItem } | null>(null);
   const [fieldVal, setFieldVal] = useState('');
   const [saving, setSaving] = useState(false);
   const appliedDeep = useRef<string | null>(null);
@@ -91,7 +81,9 @@ export default function StepsPanel({ projectId, onChanged, deepLink }: { project
 
   const load = useCallback(() => api.steps(projectId).then(setSteps), [projectId]);
   useEffect(() => { load(); }, [load]);
+  useEffect(() => { api.files(projectId).then(setFiles).catch(() => setFiles([])); }, [projectId]);
 
+  // 深链：工作台「轮到谁」「待我确认的门」和我的待办都靠 ?step=&action= 落到这里。
   useEffect(() => {
     if (!steps || !deepLink?.step) return;
     const token = `${deepLink.step}:${deepLink.action ?? ''}`;
@@ -101,12 +93,11 @@ export default function StepsPanel({ projectId, onChanged, deepLink }: { project
     const sk = findStageKey(steps, deepLink.step);
     if (sk) setSelected(sk);
     appliedDeep.current = token;
-    const act = deepLink.action ?? actionMode(it, { forConfirm: it.gate && it.confirm.length > 0 });
+    const act = deepLink.action;
     if (act === 'upload' && (it.deliverable?.kind === 'file' || it.deliverable?.kind === 'photo')) setModal({ kind: 'upload', it });
     else if (act === 'field' && it.deliverable?.kind === 'field') { setFieldVal(''); setModal({ kind: 'field', it }); }
-    else if (act === 'confirm' || it.gate) {
-      requestAnimationFrame(() => gateRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
-    }
+    else if (act === 'confirm') requestAnimationFrame(() => gateRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+    else setDetail(it);
   }, [steps, deepLink?.step, deepLink?.action]);
 
   if (!steps) return <Box textAlign="center" padding="m"><Spinner /></Box>;
@@ -114,12 +105,21 @@ export default function StepsPanel({ projectId, onChanged, deepLink }: { project
   const cur = steps.current_stage;
   const complete = cur.key === 'done';
   const curIdx = complete ? steps.stages.length : steps.stages.findIndex((s) => s.key === cur.key);
-  const stateOf = (i: number): StageState => (complete || i < curIdx ? 'done' : i === curIdx ? 'current' : 'future');
   const selKey = selected ?? (complete ? steps.stages[steps.stages.length - 1].key : cur.key);
   const selIdx = Math.max(0, steps.stages.findIndex((s) => s.key === selKey));
-  const stage = steps.stages[selIdx];
-  const selState = stateOf(selIdx);
-  const changed = () => { load(); onChanged?.(); };
+  const stage: Stage = steps.stages[selIdx];
+  const isFuture = stageState(selIdx, curIdx, complete) === 'future';
+
+  // 工期：只有在建且开工、计划完工都填了才画；缺日期就不画，不留空条。
+  const total = schedule?.active ? daysBetween(schedule.start, schedule.end) : null;
+  const elapsed = schedule?.active ? daysBetween(schedule.start, new Date().toISOString().slice(0, 10)) : null;
+  const days = total && elapsed != null ? { total, elapsed } : null;
+
+  const reloadAll = () => {
+    load();
+    api.files(projectId).then(setFiles).catch(() => undefined);
+    onChanged?.();
+  };
 
   const toggle = async (key: string, done: boolean, confirmAs?: string, doneTitle?: string) => {
     setBusy(confirmAs ? `${key}:${confirmAs}` : key);
@@ -127,8 +127,9 @@ export default function StepsPanel({ projectId, onChanged, deepLink }: { project
       const next = await api.toggleStep(projectId, key, { done, confirm_as: confirmAs ?? null });
       setSteps(next);
       if (done && doneTitle) flash({ type: 'success', content: nextUpFlash(doneTitle, next) });
-      else flash({ type: 'success', content: confirmAs ? `${confirmAs} ${done ? '已确认' : '取消了确认'}${confirmAs !== role.actor ? `（${role.actor} 代勾）` : ''}` : `${role.actor} ${done ? '已勾' : '已取消'}` });
-      onChanged?.();
+      else flash({ type: 'success', content: confirmAs ? `${confirmAs} ${done ? '已确认' : '取消了确认'}` : `${role.actor} ${done ? '已勾' : '已取消'}` });
+      setDetail(null);
+      reloadAll();
     } catch (e: any) {
       flash({ type: 'error', content: e.message });
     } finally {
@@ -146,7 +147,8 @@ export default function StepsPanel({ projectId, onChanged, deepLink }: { project
       setSteps(next);
       flash({ type: 'success', content: nextUpFlash(modal.it.title, next) });
       setModal(null);
-      onChanged?.();
+      setDetail(null);
+      reloadAll();
     } catch (e: any) {
       flash({ type: 'error', content: e.message });
     } finally {
@@ -155,218 +157,262 @@ export default function StepsPanel({ projectId, onChanged, deepLink }: { project
   };
 
   const openPrimary = (it: StepItem) => {
-    const forConfirm = it.gate || it.deliverable?.kind === 'confirm';
+    const forConfirm = it.gate && it.confirm.length > 0;
     const mode = actionMode(it, { forConfirm });
-    if (mode === 'navigate' || mode === 'view') {
-      navigate(actionHref(projectId, it, { forConfirm }));
-      return;
-    }
+    if (mode === 'navigate' || mode === 'view') { navigate(actionHref(projectId, it, { forConfirm })); return; }
     if (mode === 'tick') { toggle(it.key, true, undefined, it.title); return; }
     if (mode === 'upload') { setModal({ kind: 'upload', it }); return; }
     if (mode === 'field') { setFieldVal(''); setModal({ kind: 'field', it }); return; }
     if (mode === 'confirm') {
-      setSelected(findStageKey(steps, it.key));
+      setDetail(null);
       requestAnimationFrame(() => gateRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
     }
   };
 
-  const action = (it: StepItem) => {
-    const dv = it.deliverable;
-    if (!dv || selState === 'future') return null;
-    if (it.gate) return null;
-    if (!canActOn(it, role)) return <Box color="text-body-secondary" fontSize="body-s">等 {it.owners.join('、')}</Box>;
-    const label = actionLabel(it, { actor: role.actor, canDo: true });
+  /** 关键节点的确认框：D、J 各一个，后端仍会再校验一次。 */
+  const confirmBoxes = (it: StepItem) => (
+    <SpaceBetween direction="horizontal" size="s">
+      {it.confirm.map((c) => {
+        const on = it.confirmed.includes(c);
+        const allowed = !isFuture && (role.actor === c || role.can('confirm_for_others'));
+        return (
+          <Checkbox
+            key={c}
+            checked={on}
+            disabled={!allowed || busy === `${it.key}:${c}`}
+            onChange={({ detail: d }) => toggle(it.key, d.checked, c, it.title)}
+          >
+            <Box variant="span"><OwnerDot code={c} />{on ? '已确认' : '确认'}</Box>
+          </Checkbox>
+        );
+      })}
+    </SpaceBetween>
+  );
+
+  const primaryFor = (it: StepItem) => {
+    if (isFuture) return null;
+    if (it.gate && it.confirm.length > 0) return confirmBoxes(it);
+    if (!it.deliverable || it.done) return null;
+    if (!canActOn(it, role)) return null;
     const mode = actionMode(it);
-    if (mode === 'tick') return <Checkbox checked={false} disabled={busy === it.key} onChange={() => toggle(it.key, true, undefined, it.title)}>标完成</Checkbox>;
-    if (mode === 'upload') return <Button iconName="upload" onClick={() => setModal({ kind: 'upload', it })}>{label}</Button>;
-    if (mode === 'field') return <Button iconName="edit" onClick={() => { setFieldVal(''); setModal({ kind: 'field', it }); }}>{label}</Button>;
-    if (mode === 'navigate') {
-      if (dv.record === 'inspections') return <Button onClick={() => navigate(actionHref(projectId, it))}>{label}</Button>;
-      return <Button iconName="external" onClick={() => navigate(actionHref(projectId, it))}>{label}</Button>;
-    }
-    return null;
-  };
-
-  const segments: ({ kind: 'items'; items: StepItem[] } | { kind: 'gate'; it: StepItem })[] = [];
-  for (const it of stage.items) {
-    if (it.gate && it.confirm.length) segments.push({ kind: 'gate', it });   // 证据型门（如上市）当普通行
-    else {
-      const last = segments[segments.length - 1];
-      if (last && last.kind === 'items') last.items.push(it); else segments.push({ kind: 'items', items: [it] });
-    }
-  }
-
-  const section = (items: StepItem[], suffix: string) => {
-    const dones = items.filter((i) => i.done);
-    const todos = items.filter((i) => !i.done);
+    if (mode === 'view') return null;
     return (
-      <>
-        {dones.length > 0 && (
-          <>
-            <Box variant="small" color="text-body-secondary" padding={{ top: 'xxs' }}>已完成{suffix && <><br />{suffix}</>}</Box>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {dones.map((it) => (
-                <span key={it.key} title={it.how === 'auto' ? (it.evidence ?? '') : it.how === 'manual_override' ? (it.evidence ?? '手工确认，没有交付证据') : `${it.done_by ?? ''} 勾的${it.note ? `：${it.note}` : ''}`}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px 3px 8px', borderRadius: 14, background: '#f2fcf3', border: '1px solid #cfe9d3', fontSize: 13, cursor: 'help' }}>
-                  <span style={{ color: it.how === 'manual_override' ? WARN : GREEN, fontWeight: 700 }}>{it.how === 'manual_override' ? '✓?' : '✓'}</span>{it.title}
-                  <span style={{ color: TEXT2, fontSize: 12 }}>{it.done_by?.replace(/（.*）/, '') ?? it.owners[0]}{it.done_at ? ` ${shortDate(it.done_at)}` : ''}</span>
-                </span>
-              ))}
-            </div>
-          </>
-        )}
-        {todos.length > 0 && (
-          <>
-            <Box variant="small" color="text-body-secondary" padding={{ top: 'xs' }}>{selState === 'future' ? '要做的' : '还差'}{suffix && <><br />{suffix}</>}</Box>
-            <div>
-              {todos.map((it) => (
-                <div key={it.key} style={{ display: 'grid', gridTemplateColumns: 'minmax(160px, 1fr) minmax(120px, 1fr) auto', gap: 12, alignItems: 'center', padding: '8px 4px', borderTop: `1px solid ${BORDER}` }}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: selState === 'future' ? GREY : 'inherit' }}>{it.owners.map((o) => <OwnerDot key={o} code={o} />)}<span style={{ marginLeft: 2 }}>{it.title}</span></span>
-                  <Box variant="small" color="text-body-secondary">{it.deliverable && it.deliverable.kind !== 'tick' ? `要交：${it.deliverable.label}` : '做完打勾'}</Box>
-                  <span>{action(it)}</span>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-      </>
+      <Button
+        iconName={mode === 'upload' ? 'upload' : mode === 'field' ? 'edit' : undefined}
+        disabled={busy === it.key}
+        onClick={() => openPrimary(it)}
+      >
+        {actionLabel(it, { actor: role.actor, canDo: true })}
+      </Button>
     );
   };
 
-  const gateRow = (gate: StepItem) => (
-    <>
-      <Box variant="small" color="text-body-secondary" padding={{ top: 's' }}>大节点</Box>
-      <div ref={deepLink?.step === gate.key ? gateRef : undefined} style={{ display: 'grid', gridTemplateColumns: 'minmax(160px, 1fr) minmax(120px, 1fr) auto', gap: 12, alignItems: 'center', padding: '10px 12px', background: gate.done ? '#f2fcf3' : '#f8f8f8', borderRadius: 8, border: `1px solid ${gate.done ? '#cfe9d3' : BORDER}` }}>
-        <span style={{ fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ width: 10, height: 10, transform: 'rotate(45deg)', background: gate.done ? GREEN : '#fff', border: `2px solid ${gate.done ? GREEN : BLUE}`, borderRadius: 1, flexShrink: 0 }} />
-          {gate.title}
-        </span>
-        <Box variant="small" color="text-body-secondary">{gate.evidence_hint ?? (gate.deliverable?.label ? `交付物：${gate.deliverable.label}` : '')}</Box>
-        <SpaceBetween direction="horizontal" size="s" alignItems="center">
-          {gate.confirm.map((c) => {
-            const on = gate.confirmed.includes(c);
-            const allowed = selState !== 'future' && (role.actor === c || role.can('confirm_for_others'));
-            return (
-              <Checkbox key={c} checked={on} disabled={!allowed || busy === `${gate.key}:${c}`} onChange={({ detail }) => toggle(gate.key, detail.checked, c, gate.title)}>
-                <span style={{ display: 'inline-flex', alignItems: 'center' }}><OwnerDot code={c} />{on ? '已确认' : '确认'}</span>
-              </Checkbox>
-            );
-          })}
-        </SpaceBetween>
-      </div>
-    </>
+  /** 一组事项，每张卡一件事。Cards 自己按宽度收，窄屏一列。 */
+  const taskCards = (items: StepItem[], empty: string) => (
+    <Cards
+      items={items}
+      trackBy="key"
+      cardsPerRow={[{ cards: 1 }, { minWidth: 820, cards: 2 }]}
+      empty={<Box color="text-body-secondary" padding="s">{empty}</Box>}
+      cardDefinition={{
+        header: (it: StepItem) => (
+          <Link href="#" onFollow={(e) => { e.preventDefault(); setDetail(it); }}>{it.title}</Link>
+        ),
+        sections: [
+          {
+            id: 'who',
+            content: (it: StepItem) => (
+              <SpaceBetween size="xxs">
+                <OwnerNames codes={it.owners} prefix="负责角色：" />
+                {it.ws && <Box fontSize="body-s" color="text-body-secondary">{it.ws}</Box>}
+              </SpaceBetween>
+            ),
+          },
+          {
+            id: 'fact',
+            content: (it: StepItem) => {
+              const fact = factOf(it);
+              return (
+                <SpaceBetween size="xxs">
+                  <StatusIndicator type={fact.indicator}>{fact.label}</StatusIndicator>
+                  {fact.basis.map((b) => (
+                    <Box key={b} fontSize="body-s" color="text-body-secondary">依据：{b}</Box>
+                  ))}
+                  {fact.hint && <Box fontSize="body-s" color="text-body-secondary">{fact.hint}</Box>}
+                </SpaceBetween>
+              );
+            },
+          },
+          {
+            id: 'act',
+            content: (it: StepItem) => {
+              // 已经判定满足的项不再提示操作限制——那只是取消勾会被拒，对看页面的人是噪音。
+              const limits = it.done ? [] : limitsOf(it, role.actor, role.can('tick_any'), it.owners.includes(role.actor));
+              const btn = primaryFor(it);
+              if (!btn && !limits.length && !it.deliverable) return null;
+              return (
+                <SpaceBetween size="xs">
+                  {it.deliverable && !it.done && it.deliverable.kind !== 'confirm' && (
+                    <Box fontSize="body-s" color="text-body-secondary">要交：{it.deliverable.label}</Box>
+                  )}
+                  {btn}
+                  {limits.map((l) => (
+                    <Box key={l} fontSize="body-s" color="text-status-info">{l}</Box>
+                  ))}
+                </SpaceBetween>
+              );
+            },
+          },
+        ],
+      }}
+    />
   );
 
-  const firstUndoneOwners = (st: Stage) => st.items.find((i) => !i.done)?.owners ?? [];
-  const nextKey = steps.next_up[0]?.key;
-  const focusItem = (nextKey && findStepItem(steps, nextKey)) || null;
-  const primaryCan = focusItem ? (focusItem.gate ? canConfirm(focusItem, role) : canActOn(focusItem, role)) : false;
+  const gates = stage.items.filter((i) => i.gate && i.confirm.length > 0);
+  const mine = stage.items.filter((i) => !i.done && !i.gate && i.owners.includes(role.actor));
+  const mineKeys = new Set(mine.map((i) => i.key));
+  const rest = stage.items.filter((i) => !gates.includes(i) && !mineKeys.has(i.key));
+  const notes = contextNotes(steps, stage.key);
 
   return (
     <SpaceBetween size="l">
-      {/* 当前工作（逻辑层）：保留主操作，不替代原五步卡视觉 */}
-      <div>
-        <Box fontSize="heading-s" fontWeight="bold" margin={{ bottom: 's' }}>
-          {complete ? '这套房全流程走完了'
-            : !focusItem && steps.earlier_undone.length > 0 ? <>最后一段做完了<Box variant="span" fontWeight="normal" color="text-status-warning">，但前面还有 {steps.earlier_undone.length} 项没确认</Box></>
-            : <>现在在{cur.label}{focusItem && <Box variant="span" fontWeight="normal" color="text-body-secondary"> · 轮到 {focusItem.owners.map((o) => <OwnerDot key={o} code={o} />)}{focusItem.title}</Box>}</>}
+      {/* ① 当前阶段：两条同形制横条，时间和事实分开读 */}
+      <SpaceBetween size="s">
+        <Box fontSize="heading-s" fontWeight="bold">
+          {complete ? '这套房全流程走完了' : `这套房在${cur.label}`}
         </Box>
+        <ColumnLayout columns={2} minColumnWidth={240}>
+          {days && (
+            <Meter
+              value={Math.max(0, days.elapsed)}
+              max={days.total}
+              label="工期"
+              reading={`第 ${Math.max(0, days.elapsed)} / ${days.total} 天`}
+              targetLabel="完工"
+              height={6}
+              note={days.elapsed > days.total ? `已超期 ${days.elapsed - days.total} 天` : undefined}
+            />
+          )}
+          <Meter
+            value={stage.done_count}
+            max={stage.total}
+            label={`${stage.label}事项`}
+            reading={`${stage.done_count} / ${stage.total} 项满足`}
+            targetLabel="本段齐"
+            height={6}
+            note="满足指系统按证据判定，不代表这一段已经验收"
+          />
+        </ColumnLayout>
+        <Grid gridDefinition={steps.stages.map(() => ({ colspan: { default: 6, xs: 4, s: 2 } }))}>
+          {steps.stages.map((st, i) => {
+            const state = stageState(i, curIdx, complete);
+            const on = st.key === selKey;
+            return (
+              <SpaceBetween size="xxs" key={st.key}>
+                <Box fontWeight={on ? 'bold' : 'normal'}>
+                  <Link href="#" onFollow={(e) => { e.preventDefault(); setSelected(st.key); }}>{st.short}</Link>
+                </Box>
+                <StatusIndicator type={state === 'done' ? 'success' : state === 'current' ? 'info' : 'pending'}>
+                  {state === 'done' ? '已过' : state === 'current' ? '在这一段' : '还没到'}
+                </StatusIndicator>
+                <Box fontSize="body-s" color="text-body-secondary">{st.done_count} / {st.total} 项</Box>
+                {st.gate_title && <Badge color={st.gate_done ? 'green' : 'grey'}>{st.gate_title}</Badge>}
+              </SpaceBetween>
+            );
+          })}
+        </Grid>
+      </SpaceBetween>
 
-        {focusItem && (
-          <div style={{ border: `1px solid ${BORDER}`, borderRadius: 8, padding: '12px 14px', background: '#fff', marginBottom: 8 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-              <Box variant="small" color="text-body-secondary">{statusHint(focusItem)}</Box>
-              <span>
-                {focusItem.gate ? (
-                  <SpaceBetween direction="horizontal" size="s">
-                    {focusItem.confirm.map((c) => {
-                      const on = focusItem.confirmed.includes(c);
-                      const allowed = role.actor === c || role.can('confirm_for_others');
-                      return (
-                        <Checkbox key={c} checked={on} disabled={!allowed || busy === `${focusItem.key}:${c}`} onChange={({ detail }) => toggle(focusItem.key, detail.checked, c, focusItem.title)}>
-                          <span style={{ display: 'inline-flex', alignItems: 'center' }}><OwnerDot code={c} />{on ? '已确认' : '确认'}</span>
-                        </Checkbox>
-                      );
-                    })}
-                  </SpaceBetween>
-                ) : primaryCan ? (
-                  <Button variant="primary" onClick={() => openPrimary(focusItem)}>
-                    {actionLabel(focusItem, { actor: role.actor, canDo: true })}
-                  </Button>
-                ) : (
-                  <Box color="text-body-secondary" fontSize="body-s">等 {focusItem.owners.join('、')} 处理</Box>
-                )}
-              </span>
-            </div>
-          </div>
-        )}
+      {/* ② 我负责的 */}
+      {mine.length > 0 && (
+        <SpaceBetween size="xs">
+          <Box fontSize="heading-xs" fontWeight="bold">我负责的（{mine.length}）</Box>
+          {taskCards(mine, '')}
+        </SpaceBetween>
+      )}
 
-        {steps.earlier_undone.length > 0 && (
-          <ExpandableSection variant="footer" headerText={<StatusIndicator type="warning">前面还有 {steps.earlier_undone.length} 项没确认</StatusIndicator> as any}>
-            <SpaceBetween size="xxs">
-              {steps.earlier_undone.map((e) => {
-                const k = steps.stages.find((s) => s.items.some((i) => i.key === e.key))?.key;
-                return (
-                  <Box key={e.key} fontSize="body-s">
-                    {e.owners.map((o) => <OwnerDot key={o} code={o} />)}
-                    <Button variant="inline-link" onClick={() => k && setSelected(k)}>{e.title}</Button>
-                    <Box variant="span" color="text-body-secondary">　{e.stage}</Box>
-                  </Box>
-                );
-              })}
-            </SpaceBetween>
-          </ExpandableSection>
-        )}
-      </div>
+      {/* ③ 关键节点 */}
+      {gates.length > 0 && (
+        <SpaceBetween size="xs">
+          <Box fontSize="heading-xs" fontWeight="bold">关键节点</Box>
+          <div ref={gateRef}>{taskCards(gates, '')}</div>
+        </SpaceBetween>
+      )}
 
-      {/* 原视觉：五张步卡常显；段明细默认折叠，避免与上方当前事项重复抢注意力 */}
-      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-        {steps.stages.map((st, i) => (
-          <StageCard key={st.key} st={st} index={i} state={stateOf(i)} selected={st.key === selKey} waitingOn={stateOf(i) === 'current' ? firstUndoneOwners(st) : []} onSelect={() => setSelected(st.key)} />
-        ))}
-      </div>
+      {/* ④ 本段其余事项 */}
+      {rest.length > 0 && (
+        <ExpandableSection
+          variant="footer"
+          headerText={`${stage.label}其余事项（${rest.length}）`}
+          defaultExpanded={Boolean(deepLink?.step)}
+        >
+          {taskCards(rest, '')}
+        </ExpandableSection>
+      )}
 
-      <ExpandableSection
-        variant="container"
-        headerText={`${stage.label} · 明细 ${stage.done_count}/${stage.total}`}
-        defaultExpanded={Boolean(deepLink?.step)}
+      {/* 上下文提醒：不是阻塞，只是让人知道同一时间还有什么在等人确认 */}
+      {notes.length > 0 && (
+        <Alert type="info">
+          <SpaceBetween size="xxs">
+            {notes.map((n) => <Box key={n}>{n}</Box>)}
+          </SpaceBetween>
+        </Alert>
+      )}
+
+      <TaskDetail
+        item={detail}
+        stageLabel={stage.label}
+        files={files}
+        onPrimary={(it) => openPrimary(it)}
+        onDismiss={() => setDetail(null)}
+      />
+
+      <Modal
+        visible={modal?.kind === 'upload'}
+        onDismiss={() => setModal(null)}
+        header={modal?.kind === 'upload' ? `${modal.it.deliverable?.kind === 'photo' ? '交照片' : '交文件'}：${modal.it.title}` : ''}
       >
-        <div>
-          <Box fontWeight="bold" fontSize="heading-xs" margin={{ bottom: 's' }}>
-            {selState === 'done' ? '已完成' : selState === 'current' ? '进行中' : '还没到'}
-          </Box>
-          <div style={{ display: 'grid', gridTemplateColumns: '56px minmax(0, 1fr)', rowGap: 12, columnGap: 8, alignItems: 'start' }}>
-            {segments.map((seg, si) => seg.kind === 'items' ? (
-              <span key={`s${si}`} style={{ display: 'contents' }}>{section(seg.items, si > 0 ? '过门之后' : '')}</span>
-            ) : (
-              <span key={`g${si}`} style={{ display: 'contents' }}>{gateRow(seg.it)}</span>
-            ))}
-          </div>
-          {selState === 'future' && <Box margin={{ top: 's' }} color="text-body-secondary" fontSize="body-s">这一步还没到，先把前面的走完。</Box>}
-        </div>
-      </ExpandableSection>
-
-      <Modal visible={modal?.kind === 'upload'} onDismiss={() => setModal(null)} size="large"
-        header={modal?.kind === 'upload' ? `${modal.it.deliverable?.kind === 'photo' ? '交照片' : '交文件'}：${modal.it.title} · ${modal.it.deliverable?.label}` : ''}>
         {modal?.kind === 'upload' && (
-          <UploadForm projectId={projectId} docType={modal.it.deliverable?.doc_type ?? 'other'} lockType stepKey={modal.it.key} photoOnly={modal.it.deliverable?.kind === 'photo'} compact onDone={async () => {
-            const title = modal.it.title;
-            setModal(null);
-            const next = await api.steps(projectId);
-            setSteps(next);
-            flash({ type: 'success', content: nextUpFlash(title, next) });
-            onChanged?.();
-          }} />
+          <UploadForm
+            projectId={projectId}
+            docType={modal.it.deliverable?.doc_type ?? 'other'}
+            lockType
+            stepKey={modal.it.key}
+            photoOnly={modal.it.deliverable?.kind === 'photo'}
+            compact
+            onDone={async () => {
+              const title = modal.it.title;
+              setModal(null);
+              setDetail(null);
+              const next = await api.steps(projectId);
+              setSteps(next);
+              flash({ type: 'success', content: nextUpFlash(title, next) });
+              reloadAll();
+            }}
+          />
         )}
       </Modal>
-      <Modal visible={modal?.kind === 'field'} onDismiss={() => setModal(null)}
+
+      <Modal
+        visible={modal?.kind === 'field'}
+        onDismiss={() => setModal(null)}
         header={modal?.kind === 'field' ? `${modal.it.title}：${FIELD_LABEL[modal.it.deliverable?.field ?? ''] ?? ''}` : ''}
-        footer={<Box float="right"><SpaceBetween direction="horizontal" size="xs"><Button variant="link" onClick={() => setModal(null)}>取消</Button><Button variant="primary" loading={saving} disabled={!fieldVal} onClick={saveField}>保存</Button></SpaceBetween></Box>}>
+        footer={
+          <Box float="right">
+            <SpaceBetween direction="horizontal" size="xs">
+              <Button variant="link" onClick={() => setModal(null)}>取消</Button>
+              <Button variant="primary" loading={saving} disabled={!fieldVal} onClick={saveField}>保存</Button>
+            </SpaceBetween>
+          </Box>
+        }
+      >
         {modal?.kind === 'field' && (
           <FormField label={FIELD_LABEL[modal.it.deliverable?.field ?? ''] ?? ''}>
-            {modal.it.deliverable?.field?.endsWith('_date') ? <DatePicker value={fieldVal} onChange={({ detail }) => setFieldVal(detail.value)} placeholder="YYYY/MM/DD" />
-              : modal.it.deliverable?.field === 'risks' ? <Textarea value={fieldVal} rows={3} onChange={({ detail }) => setFieldVal(detail.value)} placeholder="死亡记录、unpermitted sqft、其他常见风险" />
-              : <Input type="number" value={fieldVal} onChange={({ detail }) => setFieldVal(detail.value)} />}
+            {modal.it.deliverable?.field?.endsWith('_date')
+              ? <DatePicker value={fieldVal} onChange={({ detail: d }) => setFieldVal(d.value)} placeholder="YYYY/MM/DD" />
+              : modal.it.deliverable?.field === 'risks'
+                ? <Textarea value={fieldVal} rows={3} onChange={({ detail: d }) => setFieldVal(d.value)} placeholder="死亡记录、unpermitted sqft、其他常见风险" />
+                : <Input type="number" value={fieldVal} onChange={({ detail: d }) => setFieldVal(d.value)} />}
           </FormField>
         )}
       </Modal>
