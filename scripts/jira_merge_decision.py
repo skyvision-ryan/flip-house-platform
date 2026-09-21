@@ -51,11 +51,21 @@ def strip_code_blocks(body: str) -> str:
     return re.sub(r"```.*?```", "", body, flags=re.S)
 
 
+def table_rows(body: str) -> str:
+    """只取表格行。
+
+    验收是写在**表格**里的，散文不是声明。不加这条限制，任何一篇讨论验证的 PR 都会被
+    误判——实测第一次真实触发时就中招了：PR 正文里写着这条规则本身
+    （「没有『未验证 / 未测 / 待验证 / ❌』」），工具于是匹配到了自己的说明书，四个词全命中。
+    """
+    return "\n".join(line for line in body.splitlines() if line.lstrip().startswith("|"))
+
+
 def unverified_markers(body: str | None) -> list[str]:
-    """PR 正文里出现了哪些「还没验」的声明。返回命中的字面，便于评论里写清楚。"""
+    """PR 验收表里出现了哪些「还没验」的声明。返回命中的字面，便于评论里写清楚。"""
     if not body:
         return []
-    text = strip_code_blocks(body)
+    text = table_rows(strip_code_blocks(body))
     return [m for m in UNVERIFIED_MARKERS if m in text]
 
 
@@ -73,6 +83,16 @@ def decide(body: str | None, current_status: str | None) -> dict:
         }
 
     markers = unverified_markers(body)
+    target = STATUS_REVIEW if markers else STATUS_DONE
+    if target == current_status:
+        # 转到自己没有意义，只会在票上留一条「审查中 → 审查中」的噪声评论
+        return {
+            "action": "skip",
+            "target": None,
+            "reason": f"票已经是「{current_status}」，就是该去的状态，不重复转。",
+            "markers": markers,
+        }
+
     if markers:
         return {
             "action": "transition",
