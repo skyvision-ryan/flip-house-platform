@@ -62,7 +62,11 @@ def main() -> int:
         test_env.update({"DATA_DIR": data_dir, "SEED_DEMO": "0", "DEMO_MODE": "1"})
         ok &= run("后端测试", [str(python), "-m", "unittest", "discover", "-s", "tests"],
                   BACKEND, test_env)
+    # 开发工具测试：hooks 的守卫测试 + scripts/tests 下的工具测试。
+    # 后者按目录发现，新增工具测试不用改这里。
     ok &= run("开发工具测试", [sys.executable, ".claude/hooks/test_check_commit.py"], ROOT, env)
+    ok &= run("脚本工具测试", [sys.executable, "-m", "unittest", "discover", "-s", "scripts/tests"],
+              ROOT, env)
     # 前端纯逻辑单测：Node 22 自带 --test 和 TS 剥离，不需要额外依赖。
     # 按目录发现，不写死文件名——写死的话新增测试不会被跑到，还得记得改这一行。
     # 排序保证每次命令行一致；一个都找不到判失败，免得测试文件被删光了却静默通过。
