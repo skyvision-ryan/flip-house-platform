@@ -39,7 +39,7 @@ RISKS = ("按计划", "有风险", "已延期", UNKNOWN)
 FETCH_OK, FETCH_PARTIAL, FETCH_FAILED = "ok", "partial", "failed"
 
 # 状态更新的整体判断：人的判断，不由任务数量推导。
-# 「暂停」「已完成」是整个项目层面的状态（对齐 Asana 的 on hold / complete）。
+# 「暂停」「已完成」是整个项目层面的状态，不是某条主线的阶段。
 HEALTHS = ("按计划", "有风险", "已延期", "暂停", "已完成", UNKNOWN)
 
 MILESTONE_KINDS = ("meeting", "target", "trial")
