@@ -14,6 +14,7 @@ from typing import Any
 
 SUMMARY_MARKER = "管理摘要 v1"
 MEETING_MARKER = "会议纪要 v1"
+STATUS_MARKER = "状态更新 v1"
 
 # 全角/半角冒号都接受——中文输入法下两种都会出现
 _COLONS = ("：", ":")
@@ -25,6 +26,12 @@ SUMMARY_FIELDS = (
 MEETING_FIELDS = (
     "开始", "结束", "时区", "参与人", "目的", "待决问题", "决议",
 )
+# 状态更新：一条工作项 = 一期更新，只新增不改写，历史自然保留（对齐 Asana 的做法）。
+# 「需要决定」一行一条，行内用「｜」分隔 事项｜决策人｜最晚日期，所以要保留换行。
+STATUS_FIELDS = (
+    "整体判断", "判断依据", "另一面", "本期完成", "下一步", "需要决定", "更新人",
+)
+STATUS_MULTILINE = ("需要决定",)
 
 
 def node_text(node: Any) -> str:
@@ -99,10 +106,12 @@ def extract_block(description: Any, marker: str) -> list[str]:
     return [line.strip() for line in collected if line.strip()]
 
 
-def parse_fields(lines: list[str], expected: tuple[str, ...]) -> tuple[dict[str, str], list[str]]:
+def parse_fields(lines: list[str], expected: tuple[str, ...],
+                 multiline: tuple[str, ...] = ()) -> tuple[dict[str, str], list[str]]:
     """把「字段：值」的行解析成字典，并报告哪些字段缺失。
 
     支持值写在下一行（`已经具备：` 换行后写内容），也支持多行值累加。
+    `multiline` 里的字段保留换行（一行一条），其余字段多行合成一行。
     返回 (字段字典, 缺失字段列表)。
     """
     found: dict[str, list[str]] = {}
@@ -128,7 +137,8 @@ def parse_fields(lines: list[str], expected: tuple[str, ...]) -> tuple[dict[str,
     result = {}
     missing = []
     for name in expected:
-        value = " ".join(found.get(name, [])).strip()
+        joiner = "\n" if name in multiline else " "
+        value = joiner.join(found.get(name, [])).strip()
         # 模板占位符 <...> 不算已填
         if value.startswith("<") and value.endswith(">"):
             value = ""
@@ -154,4 +164,13 @@ def parse_meeting(description: Any) -> tuple[dict[str, str], list[str], bool]:
     if not lines:
         return {}, list(MEETING_FIELDS), False
     fields, missing = parse_fields(lines, MEETING_FIELDS)
+    return fields, missing, True
+
+
+def parse_status(description: Any) -> tuple[dict[str, str], list[str], bool]:
+    """解析「状态更新 v1」区。返回 (字段, 缺失字段, 模板区是否存在)。"""
+    lines = extract_block(description, STATUS_MARKER)
+    if not lines:
+        return {}, list(STATUS_FIELDS), False
+    fields, missing = parse_fields(lines, STATUS_FIELDS, multiline=STATUS_MULTILINE)
     return fields, missing, True

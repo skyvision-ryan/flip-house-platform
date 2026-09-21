@@ -38,6 +38,10 @@ RISKS = ("按计划", "有风险", "已延期", UNKNOWN)
 
 FETCH_OK, FETCH_PARTIAL, FETCH_FAILED = "ok", "partial", "failed"
 
+# 状态更新的整体判断：人的判断，不由任务数量推导。
+# 「暂停」「已完成」是整个项目层面的状态（对齐 Asana 的 on hold / complete）。
+HEALTHS = ("按计划", "有风险", "已延期", "暂停", "已完成", UNKNOWN)
+
 MILESTONE_KINDS = ("meeting", "target", "trial")
 
 
@@ -121,6 +125,34 @@ class Meeting:
 
 
 @dataclass
+class Decision:
+    """待管理层决定的一件事。缺决策人或最晚日期就如实显示「待确认」。"""
+    item: str
+    owner: str = UNKNOWN
+    deadline: str = UNKNOWN
+
+
+@dataclass
+class StatusUpdate:
+    """一期状态更新：带 `mgmt-status` 标签的工作项，截止日期 = 更新日期。
+
+    只新增、不改写：每期一条工作项，页面只把最新一期放在顶部，往期折叠可查。
+    所有叙述只从描述里的「状态更新 v1」区读，页面不从任务状态推断整体判断。
+    """
+    jira_key: str
+    title: str
+    date: str                     # duedate = 更新日期
+    health: str = UNKNOWN         # HEALTHS 之一
+    basis: str = UNREVIEWED       # 判断依据：可数的事实
+    counter: str = ""             # 另一面：相反方向的事实
+    done_since: str = ""          # 本期完成
+    next_steps: str = UNREVIEWED  # 下一步
+    decisions: list[Decision] = field(default_factory=list)
+    author: str | None = None     # 更新人
+    missing: list[str] = field(default_factory=list)
+
+
+@dataclass
 class Deployment:
     environment: str
     sha: str
@@ -140,6 +172,8 @@ class Snapshot:
     lines: list[Line] = field(default_factory=list)
     milestones: list[Milestone] = field(default_factory=list)
     meetings: list[Meeting] = field(default_factory=list)
+    status_updates: list[StatusUpdate] = field(default_factory=list)  # 最新在前
+    notes: list[str] = field(default_factory=list)   # 数据维护提示（不是取数失败）
     deployments: list[Deployment] = field(default_factory=list)
     issues: list[Issue] = field(default_factory=list)
     date_check: dict[str, Any] = field(default_factory=dict)
@@ -186,6 +220,10 @@ def validate_integrity(snap: Snapshot) -> None:
         _require_date(ms.date, f"里程碑 {ms.title}")
     for m in snap.meetings:
         _require_date(m.date, f"会议 {m.title}")
+    for su in snap.status_updates:
+        if su.health not in HEALTHS:
+            raise ContractError(f"状态更新 {su.jira_key} 整体判断非法：{su.health!r}")
+        _require_date(su.date, f"状态更新 {su.jira_key}")
 
 
 def _require_date(value: str, what: str) -> None:

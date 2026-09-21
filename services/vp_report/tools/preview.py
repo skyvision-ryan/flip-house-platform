@@ -47,23 +47,16 @@ def make_snapshot(hostile: bool):
                              labels=["mgmt-meeting"],
                              description=fx.meeting_block(
                                  purpose=f"目的 {fx.XSS}", outcome=f"结论 {fx.XSS}"))]
+        updates = fx.hostile_status_updates()
     else:
         lanes, children = fx.lanes(), fx.children() + fx.subtasks()
         milestones, meetings = fx.milestones(), fx.meetings()
-        # Three lanes and a one-day task exercise the actual phone layout.
-        lanes.append(fx.issue(
-            "KAN-37", "手机协作演示", epic=True, start="2026-09-17", due="2026-09-18",
-            labels=["mgmt-lane"], description=fx.summary_block(name="手机协作演示")))
-        children.extend([
-            fx.issue(f"KAN-{31 + i}", title, parent="KAN-37", start="2026-09-18", due="2026-09-18")
-            for i, title in enumerate(["手机任务列表", "拍照和上传", "登录与主屏幕", "演示准备"])
-        ])
-        milestones[-1]["fields"]["summary"] = "首批房屋内部试用（日期暂定）"
+        updates = fx.status_updates()
     return snapshot.assemble(
         lane_raw=lanes, child_raw=children,
         milestone_raw=milestones, meeting_raw=meetings,
         start_field=fx.START_FIELD, today=date(2026, 9, 16),
-        fetched_at="2026-09-16T10:00:00-07:00")
+        fetched_at="2026-09-16T10:00:00-07:00", status_raw=updates)
 
 
 def main_cli() -> int:

@@ -22,6 +22,7 @@ JIRA_CLOUD_ID = os.getenv("JIRA_CLOUD_ID", "").strip()
 LANE_JQL = os.getenv("VP_REPORT_JQL", 'issuetype = Epic AND labels = "mgmt-lane"').strip()
 MILESTONE_JQL = os.getenv("VP_REPORT_MILESTONE_JQL", 'labels = "mgmt-milestone"').strip()
 MEETING_JQL = os.getenv("VP_REPORT_MEETING_JQL", 'labels = "mgmt-meeting"').strip()
+STATUS_JQL = os.getenv("VP_REPORT_STATUS_JQL", 'labels = "mgmt-status"').strip()
 
 # 开始日期是自定义字段，字段号因站点而异。留空则运行时按字段类型+名称发现。
 JIRA_START_FIELD = os.getenv("JIRA_START_FIELD", "").strip()
