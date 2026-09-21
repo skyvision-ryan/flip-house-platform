@@ -91,11 +91,14 @@ export default function App() {
           ...(canSwitch ? [...roleGroups, ...(override ? [{ id: '__reset', text: `回到自己（${me.role_code}）` }] : [])] : []),
           ...(me.is_admin ? [{ id: '__users', text: '用户管理', iconName: 'group' as const }] : []),
           { id: '__logout', text: '退出登录', iconName: 'unlocked' as const },
+          // 评审标注是开会用的内部工具，不该占产品顶栏的位置。功能不变，换个入口。
+          { id: '__review', text: `评审标注：${reviewOn ? '开' : '关'}` },
         ],
         onItemClick: ({ detail }: { detail: { id: string } }) => {
           if (detail.id === '__logout') logout();
           else if (detail.id === '__reset') resetActor();
           else if (detail.id === '__users') navigate('/users');
+          else if (detail.id === '__review') toggleReview();
           else setActor(detail.id);
         },
       }
@@ -104,8 +107,16 @@ export default function App() {
         text: `我是：${actor} · ${tierInfo.label}`,
         iconName: 'user-profile' as const,
         title: `演示模式：谁在填，就选谁。当前级别：${tierInfo.label}`,
-        items: [...(roleGroups.length ? roleGroups : [{ id: '负责人', text: '负责人' }]), { id: '__login', text: '用账号登录', iconName: 'lock-private' as const }],
-        onItemClick: ({ detail }: { detail: { id: string } }) => { if (detail.id === '__login') navigate('/login'); else setActor(detail.id); },
+        items: [
+          ...(roleGroups.length ? roleGroups : [{ id: '负责人', text: '负责人' }]),
+          { id: '__login', text: '用账号登录', iconName: 'lock-private' as const },
+          { id: '__review', text: `评审标注：${reviewOn ? '开' : '关'}` },
+        ],
+        onItemClick: ({ detail }: { detail: { id: string } }) => {
+          if (detail.id === '__login') navigate('/login');
+          else if (detail.id === '__review') toggleReview();
+          else setActor(detail.id);
+        },
       };
 
   return (
@@ -121,7 +132,7 @@ export default function App() {
           search={
             <Autosuggest
               value={q}
-              placeholder="输入地址，开始一套新房子"
+              placeholder="输入地址新建项目"
               ariaLabel="按地址新建项目"
               options={cands.map((c) => ({ value: c.label, label: c.label, description: `${c.city}, ${c.state} ${c.zip}` }))}
               filteringType="manual"
@@ -143,7 +154,6 @@ export default function App() {
             />
           }
           utilities={[
-            { type: 'button', text: `评审标注：${reviewOn ? '开' : '关'}`, iconName: reviewOn ? 'status-positive' : 'status-stopped', onClick: toggleReview },
             identityMenu,
           ]}
         />
@@ -166,9 +176,9 @@ export default function App() {
         ]}
         activeDrawerId={drawer}
         onDrawerChange={({ detail }) => setDrawer(detail.activeDrawerId)}
+        // 侧栏不再重复写一遍产品名：顶栏左上角已经有了。
         navigation={
           <SideNavigation
-            header={{ href: '/', text: '翻新项目平台' }}
             activeHref={activeHref}
             onFollow={(e) => { if (!e.detail.external) { e.preventDefault(); navigate(e.detail.href); } }}
             items={[
@@ -177,8 +187,6 @@ export default function App() {
               { type: 'link', text: '我的待办', href: '/todo' },
               ...(canDo('create_project') ? [{ type: 'link' as const, text: '新建项目', href: '/projects/new' }] : []),
               ...(me?.is_admin ? [{ type: 'divider' as const }, { type: 'link' as const, text: '用户', href: '/users' }] : []),
-              { type: 'divider' },
-              { type: 'link', text: '接口文档', href: 'http://127.0.0.1:8000/docs', external: true },
             ]}
           />
         }
