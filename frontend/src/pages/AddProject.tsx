@@ -84,8 +84,10 @@ export default function AddProject() {
     try { setCandidates(await api.lookupAddress(q)); } finally { setLoadingCands(false); }
   };
 
-  /** 地址变了就把上一套房子的东西全清掉——A 查到、改成 B 失败、再手动建 B，不能残留 A 的字段。 */
-  const clearHouse = () => { setLookup(null); setManualAddr(null); setFields([]); };
+  /** 地址变了就把上一套房子的东西全清掉——A 查到、改成 B 失败、再手动建 B，不能残留 A 的字段。
+   *  两个金额也清：点「采用」填进去的是 A 的估值，换了房子就不该还挂在 B 上。手填的数字同样会被清，
+   *  这是有意的——金额是这套房子的，换房子就重填；日期、风险、备注不动。 */
+  const clearHouse = () => { setLookup(null); setManualAddr(null); setFields([]); setDeal((d) => ({ ...d, purchase_price: '', target_arv: '' })); };
 
   const doLookup = async (label: string) => {
     setLookingUp(true);
