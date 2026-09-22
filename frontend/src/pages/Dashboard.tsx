@@ -222,11 +222,16 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
         return insights.length ? (
           <Table
             variant="embedded"
+            // 只去掉 minWidth 不够：Cloudscape 单元格默认 white-space: nowrap，
+            // 文字不换行照样把表撑到 998px（卡片只有 633px）。wrapLines 才是让它折行的开关。
+            wrapLines
             items={insights.slice(0, 8)}
             columnDefinitions={[
               { id: 'level', header: '状态', cell: (i) => <StatusIndicator type={level[i.level] ?? 'info'}>{i.tag}</StatusIndicator> },
-              { id: 'project', header: '项目', minWidth: 140, cell: (i) => projLink(i.projectId, i.projectName) },
-              { id: 'headline', header: '事项', minWidth: 180, cell: (i) => i.headline },
+              // 不设 minWidth：这块小组件在看板里只占 2 列（约 573px），
+              // 硬给两列留 140 + 180 会把内容撑到 998px，卡片里就出现横滚。让它们自己换行。
+              { id: 'project', header: '项目', cell: (i) => projLink(i.projectId, i.projectName) },
+              { id: 'headline', header: '事项', cell: (i) => i.headline },
               { id: 'detail', header: '说明', cell: (i) => (i.detail ? <Box variant="small" color="text-body-secondary">{i.detail}</Box> : '—') },
               { id: 'act', header: '', cell: (i) => <Link href={i.href} onFollow={(e) => { e.preventDefault(); go(i.href); }}>去看看</Link> },
             ]}

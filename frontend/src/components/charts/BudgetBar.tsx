@@ -27,6 +27,18 @@ export default function BudgetBar({ actual, target, scaleMax, height = 10, warnA
   const labelSpace = targetLabel || markers.some((m) => m.label) ? 14 : 0;
   const r = height / 2;
 
+  /**
+   * 刻度标签的水平对齐。默认以刻度为中心，但刻度贴着两端时，居中会让一半字画到
+   * 组件外面——工期条的目标就在右端，实测「完工」和「本段齐」各有一半跑出去、
+   * 在两根条中间叠成一团。靠边就朝内对齐，字留在自己的条里。
+   */
+  const labelShift = (v: number) => {
+    const at = S > 0 ? (v / S) * 100 : 0;
+    if (at > 85) return 'translateX(-100%)';   // 贴右端：右对齐
+    if (at < 15) return 'translateX(0)';       // 贴左端：左对齐
+    return 'translateX(-50%)';
+  };
+
   return (
     <div style={{ position: 'relative', height: height + labelSpace, width: '100%' }}>
       {/* 底槛 = 目标 */}
@@ -41,13 +53,13 @@ export default function BudgetBar({ actual, target, scaleMax, height = 10, warnA
       {target > 0 && (
         <div style={{ position: 'absolute', left: pct(target), top: -2, transform: 'translateX(-1px)', textAlign: 'center' }}>
           <div style={{ width: 2, height: height + 4, background: TEXT, borderRadius: 1 }} />
-          {targetLabel && <div style={{ fontSize: 10, color: TEXT_2, whiteSpace: 'nowrap', transform: 'translateX(-50%)', marginLeft: 1, marginTop: 1 }}>{targetLabel}</div>}
+          {targetLabel && <div style={{ fontSize: 10, color: TEXT_2, whiteSpace: 'nowrap', transform: labelShift(target), marginLeft: 1, marginTop: 1 }}>{targetLabel}</div>}
         </div>
       )}
       {markers.map((m, i) => (
         <div key={i} style={{ position: 'absolute', left: pct(m.at), top: 0, transform: 'translateX(-1px)', textAlign: 'center' }}>
           <div style={{ width: 2, height, background: TEXT_2, opacity: 0.7, borderRadius: 1 }} />
-          {m.label && <div style={{ fontSize: 10, color: TEXT_2, whiteSpace: 'nowrap', transform: 'translateX(-50%)', marginLeft: 1, marginTop: 3 }}>{m.label}</div>}
+          {m.label && <div style={{ fontSize: 10, color: TEXT_2, whiteSpace: 'nowrap', transform: labelShift(m.at), marginLeft: 1, marginTop: 3 }}>{m.label}</div>}
         </div>
       ))}
     </div>

@@ -316,11 +316,9 @@ export default function StepsPanel({
                   ? <StatusIndicator type="in-progress">在这一段</StatusIndicator>
                   : <Box fontSize="body-s" color="text-body-secondary">{state === 'done' ? '已过' : '还没到'}</Box>}
                 <Box fontSize="body-s" color="text-body-secondary">{st.done_count} / {st.total} 项</Box>
-                {/* KAN-63：门名原先是绿/灰胶囊，绿色胶囊比它旁边真正的状态指示还抢眼。
-                    过了就用指示器，没过就是一行次要文字——没过不是告警，只是还没轮到。 */}
-                {st.gate_title && (st.gate_done
-                  ? <StatusIndicator type="success">{st.gate_title}</StatusIndicator>
-                  : <Box variant="small" color="text-body-secondary">{st.gate_title}</Box>)}
+                {/* 这里不再放门名。宽屏每段只占 2/12（约 150px），而门的全称像
+                    「Open escrow（决定买）」「final（City 验收通过）」都不换行，会伸进邻格。
+                    门在下面的「关键节点」卡片上有完整呈现，那里宽度够。 */}
               </SpaceBetween>
             );
           })}
