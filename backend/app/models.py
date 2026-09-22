@@ -58,7 +58,7 @@ class PropertyFieldSource(Base):
     property_id: Mapped[int] = mapped_column(ForeignKey("properties.id"), index=True)
     field: Mapped[str] = mapped_column(String, index=True)
     value: Mapped[Optional[str]] = mapped_column(String)
-    source: Mapped[str] = mapped_column(String)  # manual / public_record / lark / model / ai
+    source: Mapped[str] = mapped_column(String)  # manual / public_record / lark / model / ai / demo / unverified（词表在 dictionaries.SOURCES）
     fetched_at: Mapped[str] = mapped_column(String, default=now_iso)
     confidence: Mapped[Optional[float]] = mapped_column(Float)
     is_primary: Mapped[bool] = mapped_column(Boolean, default=False)

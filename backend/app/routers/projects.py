@@ -52,8 +52,6 @@ def create_project(body: schemas.ProjectCreate, db: Session = Depends(get_db), a
         db.flush()
         for f in body.fields:
             set_field_with_source(db, prop, f.field, f.value, f.source, f.confidence, f.note, make_primary=True)
-        if body.apn and not any(f.field == "apn" for f in body.fields):
-            set_field_with_source(db, prop, "apn", body.apn, "public_record", 0.99)
         if body.owner:
             db.add(models.Owner(property_id=prop.id, **{k: body.owner.get(k) for k in ("name", "mailing_address", "phone", "email", "owner_since")}))
         for m in body.mortgages:

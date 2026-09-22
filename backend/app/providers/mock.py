@@ -38,6 +38,11 @@ def _norm(s: str) -> str:
     return re.sub(r"\s+", " ", s.strip().lower())
 
 
+# KAN-71：这里所有数字都是随机生成的，来源一律标「演示数据」，把握度不给——
+# 随机值谈不上把握度。真实 provider 接上后各自发自己的来源，这里不改写。
+DEMO_SOURCE = "demo"
+
+
 class MockProvider(PropertyDataProvider):
     name = "mock"
 
@@ -74,19 +79,19 @@ class MockProvider(PropertyDataProvider):
         apn = f"{rnd.randint(10, 99)}-{rnd.randint(100, 999)}-{rnd.randint(10, 99)}-{rnd.randint(10, 99)}-{rnd.randint(0, 9)}.000"
 
         fields = [
-            FieldValue("property_type", rnd.choice(PROPERTY_TYPES), "public_record", 0.95),
-            FieldValue("style", style, "public_record", 0.7, "公共记录里的风格字段常不准确，建议结合街景确认"),
-            FieldValue("year_built", str(year_built), "public_record", 0.95),
-            FieldValue("sqft", str(sqft), "public_record", 0.9),
-            FieldValue("beds", str(beds), "public_record", 0.9),
-            FieldValue("baths_full", str(baths_full), "public_record", 0.9),
-            FieldValue("baths_half", str(baths_half), "public_record", 0.8),
-            FieldValue("stories", str(rnd.choice([1, 1, 2, 2, 3])), "public_record", 0.85),
-            FieldValue("garage_spaces", str(rnd.choice([0, 1, 2, 2, 3])), "public_record", 0.8),
-            FieldValue("basement", rnd.choice(BASEMENTS), "public_record", 0.8),
-            FieldValue("lot_sqft", str(rnd.randint(4000, 14000)), "public_record", 0.95),
-            FieldValue("land_use", "Residential", "public_record", 0.95),
-            FieldValue("apn", apn, "public_record", 0.99),
+            FieldValue("property_type", rnd.choice(PROPERTY_TYPES), DEMO_SOURCE, None),
+            FieldValue("style", style, DEMO_SOURCE, None, "公共记录里的风格字段常不准确，建议结合街景确认"),
+            FieldValue("year_built", str(year_built), DEMO_SOURCE, None),
+            FieldValue("sqft", str(sqft), DEMO_SOURCE, None),
+            FieldValue("beds", str(beds), DEMO_SOURCE, None),
+            FieldValue("baths_full", str(baths_full), DEMO_SOURCE, None),
+            FieldValue("baths_half", str(baths_half), DEMO_SOURCE, None),
+            FieldValue("stories", str(rnd.choice([1, 1, 2, 2, 3])), DEMO_SOURCE, None),
+            FieldValue("garage_spaces", str(rnd.choice([0, 1, 2, 2, 3])), DEMO_SOURCE, None),
+            FieldValue("basement", rnd.choice(BASEMENTS), DEMO_SOURCE, None),
+            FieldValue("lot_sqft", str(rnd.randint(4000, 14000)), DEMO_SOURCE, None),
+            FieldValue("land_use", "Residential", DEMO_SOURCE, None),
+            FieldValue("apn", apn, DEMO_SOURCE, None),
         ]
 
         owner_name = f"{rnd.choice(SURNAMES)}, {rnd.choice(GIVEN)}"
@@ -139,9 +144,9 @@ class MockProvider(PropertyDataProvider):
             annual_tax=round(avm * tax_rate * rnd.uniform(0.85, 1.0) / 10) * 10,
             provider=self.name,
         )
-        fields.append(FieldValue("avm_value", str(int(valuation.avm_value)), "model", 0.75, "模型估值，接 HouseCanary 后替换为带置信区间的真值"))
-        fields.append(FieldValue("list_price", str(int(valuation.list_price)), "public_record", 0.9, "当前挂牌价"))
-        fields.append(FieldValue("annual_tax", str(int(valuation.annual_tax)), "public_record", 0.95))
+        fields.append(FieldValue("avm_value", str(int(valuation.avm_value)), DEMO_SOURCE, None, "模型估值，接 HouseCanary 后替换为带置信区间的真值"))
+        fields.append(FieldValue("list_price", str(int(valuation.list_price)), DEMO_SOURCE, None, "当前挂牌价"))
+        fields.append(FieldValue("annual_tax", str(int(valuation.annual_tax)), DEMO_SOURCE, None))
 
         return PropertyLookupResult(
             address=cand, apn=apn, fields=fields, owner=owner,

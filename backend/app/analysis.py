@@ -144,15 +144,35 @@ def _src(source: str, note: str | None = None, confidence: float | None = None) 
 
 
 def build_prefill(*, sqft: int | None, avm_value: float | None, list_price: float | None, annual_tax: float | None,
-                  purchase_price: float | None = None, target_arv: float | None = None, tier: str = "medium") -> dict:
-    """用已知数据 + 行业默认值拼出一份完整 inputs，并逐字段标来源。"""
+                  purchase_price: float | None = None, target_arv: float | None = None, tier: str = "medium",
+                  field_sources: dict[str, dict] | None = None) -> dict:
+    """用已知数据 + 行业默认值拼出一份完整 inputs，并逐字段标来源。
+
+    KAN-71：`field_sources` 是房产字段的**真实**来源（{field: {source, confidence, note}}），由调用方从
+    PropertyFieldSource 的主值行读来。以前这里把挂牌价写死成 public_record/0.9、估值写死成 model/0.75——
+    数据来自模拟源时这两个标签就是假的。现在有真实来源就继承，没有才落到保守值。
+    """
     sources: dict[str, dict] = {}
+    fs = field_sources or {}
+
+    def inherit(field: str, fallback_note: str) -> dict:
+        got = fs.get(field)
+        if got:
+            return _src(got.get("source") or "unverified", got.get("note") or fallback_note, got.get("confidence"))
+        return _src("unverified", fallback_note)
 
     sale = target_arv if target_arv else (avm_value or 0)
-    sources["sale_price"] = _src("manual", "来自项目的目标售价") if target_arv else _src("model", "模型估值，建议核对可比房", 0.75)
+    sources["sale_price"] = _src("manual", "来自项目的目标售价") if target_arv else inherit("avm_value", "自动估值，建议核对可比房")
 
-    price = purchase_price if purchase_price else (list_price or (round(sale * 0.7, -3) if sale else 0))
-    sources["purchase_price"] = _src("manual", "来自项目的买入价") if purchase_price else (_src("public_record", "当前挂牌价", 0.9) if list_price else _src("manual", "无挂牌价，按售价七折起算"))
+    # 以前没有挂牌价时会按售价七折**凭空造一个买入价**并标成 manual（人工）——伪装成人填的。
+    # 现在没有就是 0，来源标「待核实」，让人自己填。
+    price = purchase_price if purchase_price else (list_price or 0)
+    if purchase_price:
+        sources["purchase_price"] = _src("manual", "来自项目的买入价")
+    elif list_price:
+        sources["purchase_price"] = inherit("list_price", "当前挂牌价")
+    else:
+        sources["purchase_price"] = _src("unverified", "没有买入价也没有挂牌价，请填写")
 
     closing = round(price * D["closing_pct"] / 100, 0)
     purchase_extras = [
@@ -170,7 +190,7 @@ def build_prefill(*, sqft: int | None, avm_value: float | None, list_price: floa
         {"label": "保险", "amount": ins_m},
         {"label": "水电", "amount": util},
     ]
-    sources["monthly_costs.房产税"] = _src("public_record", "年税 ÷ 12", 0.95) if annual_tax else _src("manual", "无税务记录")
+    sources["monthly_costs.房产税"] = inherit("annual_tax", "年税 ÷ 12") if annual_tax else _src("unverified", "无税务记录")
     sources["monthly_costs.保险"] = _src("manual", f"行业默认：售价 × {D['insurance_pct_annual']}% ÷ 12")
     sources["monthly_costs.水电"] = _src("manual", "行业默认：按面积档")
 

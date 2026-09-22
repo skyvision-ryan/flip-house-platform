@@ -112,7 +112,7 @@ class ProjectOut(ORM):
 class FieldIn(BaseModel):
     field: str
     value: Optional[str]
-    source: str = "public_record"
+    source: str = "manual"   # KAN-71：客户端不带 source 就按人工，不能默认冒充公共记录
     confidence: Optional[float] = None
     note: Optional[str] = None
 
@@ -323,6 +323,7 @@ class DashboardSummary(BaseModel):
     total_budget: Optional[float] = None
     expected_profit: Optional[float] = None
     over_budget_count: Optional[int] = None
+    profit_incomplete_count: Optional[int] = None   # KAN-71：买入价或目标售价缺一项、没算进预计利润的在建项目数
     money_hidden: bool = False
 
 

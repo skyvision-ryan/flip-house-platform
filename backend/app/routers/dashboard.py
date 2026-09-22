@@ -24,13 +24,18 @@ def summary(db: Session = Depends(get_db), actor: str = Depends(get_actor)):
     budget = 0.0
     profit = 0.0
     over = 0
+    incomplete = 0
     for p in projects:
         planned, spent = budget_totals(db, p.id)
         if p.stage == "active":
             invested += (p.purchase_price or 0) + spent
             budget += planned
-            if p.target_arv:
-                profit += p.target_arv - (p.purchase_price or 0) - max(planned, spent)
+            # KAN-71：买入价或目标售价缺任一项都不算这套房的利润。以前只看 ARV，
+            # 买入价为空时 `or 0` 把成本当成 0，利润虚高。缺数的另计数，让界面说出来。
+            if p.target_arv is not None and p.purchase_price is not None:
+                profit += p.target_arv - p.purchase_price - max(planned, spent)
+            else:
+                incomplete += 1
             if planned > 0 and spent > planned * 1.05:
                 over += 1
     if not can_read_money(actor):
@@ -38,6 +43,7 @@ def summary(db: Session = Depends(get_db), actor: str = Depends(get_actor)):
     return schemas.DashboardSummary(
         leads=leads, active=active, portfolio=portfolio, total=len(projects),
         total_invested=invested, total_budget=budget, expected_profit=profit, over_budget_count=over,
+        profit_incomplete_count=incomplete,
     )
 
 
@@ -293,19 +299,23 @@ def role_widgets(db: Session = Depends(get_db), actor: str = Depends(get_actor))
         out["sale_docs"] = rows
 
     if widget_allowed(actor, "boss") and not hide:
-        invested = 0.0; expected = 0.0; realized = 0.0; over = 0
+        invested = 0.0; expected = 0.0; realized = 0.0; over = 0; incomplete = 0
         for p in projects:
             planned, spent = budget_totals(db, p.id)
             if p.stage == "active":
                 invested += (p.purchase_price or 0) + spent
-                if p.target_arv:
-                    expected += p.target_arv - (p.purchase_price or 0) - max(planned, spent)
+                # 同 /summary：缺任一金额不算利润，另计数（KAN-71）
+                if p.target_arv is not None and p.purchase_price is not None:
+                    expected += p.target_arv - p.purchase_price - max(planned, spent)
+                else:
+                    incomplete += 1
                 if planned > 0 and spent > planned * 1.05:
                     over += 1
             elif p.stage == "portfolio" and p.sale_price:
                 realized += p.sale_price - (p.purchase_price or 0) - spent
         out["boss"] = {"active": len(active), "leads": sum(1 for p in projects if p.stage == "lead"),
                        "portfolio": sum(1 for p in projects if p.stage == "portfolio"),
-                       "total_invested": round(invested, 2), "expected_profit": round(expected, 2), "realized_profit": round(realized, 2), "over_budget_count": over}
+                       "total_invested": round(invested, 2), "expected_profit": round(expected, 2), "realized_profit": round(realized, 2), "over_budget_count": over,
+                       "profit_incomplete_count": incomplete}
 
     return schemas.DashboardRole(**out)

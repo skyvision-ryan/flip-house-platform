@@ -19,7 +19,7 @@ class AddressCandidate:
 class FieldValue:
     field: str
     value: Optional[str]
-    source: str  # public_record / model / ai
+    source: str  # 取值见 dictionaries.SOURCES；模拟源发 demo，真实源才发 public_record / model
     confidence: Optional[float] = None
     note: Optional[str] = None
 

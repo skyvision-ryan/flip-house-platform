@@ -26,9 +26,12 @@ def _out(a: models.DealAnalysis) -> schemas.AnalysisOut:
 
 def prefill_for_project(p: models.Project, tier: str = "medium") -> dict:
     prop = p.property
+    # KAN-71：把房产字段的真实来源（主值行）交给预填，不让它自己写死 public_record/model。
+    primary = {s.field: {"source": s.source, "confidence": s.confidence, "note": s.note}
+               for s in prop.field_sources if s.is_primary}
     return build_prefill(
         sqft=prop.sqft, avm_value=prop.avm_value, list_price=prop.list_price, annual_tax=prop.annual_tax,
-        purchase_price=p.purchase_price, target_arv=p.target_arv, tier=tier,
+        purchase_price=p.purchase_price, target_arv=p.target_arv, tier=tier, field_sources=primary,
     )
 
 

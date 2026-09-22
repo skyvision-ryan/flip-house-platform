@@ -64,6 +64,9 @@ const WIDGETS: Record<WidgetId, ItemData & { cols: number; rows: number }> = {
   saledocs: { title: '卖出文件', tag: 'V', cols: 3, rows: 4 },
   boss: { title: '老板总览', tag: 'W', cols: 4, rows: 2 },
 };
+/** KAN-71：买入价或目标售价缺一项的项目没算进预计利润，汇总要说出来，不能把「未知」表达成 0。 */
+const incompleteNote = (n: number | null | undefined) => (n ? `${n} 套买入价或目标售价未齐，未计入` : null);
+
 const MONEY_WIDGETS: WidgetId[] = ['money', 'capital', 'weekly', 'retro', 'vendors', 'boss'];
 // v8：项目表不再是看板的一项，而是页面固定的一块，所以旧存档里的 list 必须丢掉，
 // 否则会和固定那块重复出现两张表。看板现在只放「额外」小组件。
@@ -530,7 +533,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
           <ColumnLayout columns={5} variant="text-grid">
             <StatTile label="在手" value={`${b.active + b.leads}`} sub={`${b.active} 在建 · ${b.leads} 线索`} />
             <StatTile label="总投入" value={compactMoney(b.total_invested)} sub="在建买入价 + 已支出" />
-            <StatTile label="预计利润" value={compactMoney(b.expected_profit)} sub="在建" />
+            <StatTile label="预计利润" value={compactMoney(b.expected_profit)} sub={incompleteNote(b.profit_incomplete_count) ?? '在建'} />
             <StatTile label="已实现利润" value={compactMoney(b.realized_profit)} sub={`${b.portfolio} 套已售`} />
             <StatTile label="超预算" value={`${b.over_budget_count}`} sub="套" tone={b.over_budget_count > 0 ? 'bad' : undefined} />
           </ColumnLayout>
@@ -591,7 +594,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
               ) : (
                 <>
                   <Stat label="已投入" value={compactMoney(summary?.total_invested)} sub="在建项目买入价 + 已支出" />
-                  <Stat label="预计利润" value={compactMoney(summary?.expected_profit)} sub="在建：目标售价 − 买入 − 装修" />
+                  <Stat label="预计利润" value={compactMoney(summary?.expected_profit)} sub={incompleteNote(summary?.profit_incomplete_count) ?? '在建：目标售价 − 买入 − 装修'} />
                 </>
               )}
         </ColumnLayout>

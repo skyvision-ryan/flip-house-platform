@@ -11,14 +11,22 @@ from sqlalchemy import select
 from . import models
 from .auth import ensure_admin
 from .db import SessionLocal, init_db
+from .migrations import run_migrations
+from .providers import get_provider
 from .routers import analyses, auth, budget, dashboard, files, lookup, meta, ops, procurement, projects, property_data, steps
 from .settings import ADMIN_PASSWORD, ADMIN_USER, CORS_ORIGINS, SEED_DEMO
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # KAN-71：先校验数据源配置。未实现的 PROVIDER 在这里就抛，服务起不来，
+    # 部署直接失败、旧版本继续在线——不能等到首次查询才出错。
+    get_provider()
     init_db()
     with SessionLocal() as db:
+        # 一次性数据迁移。不放 init_db()：那里只管建表，测试也会调它。
+        for rep in run_migrations(db):
+            print(f"迁移 {rep.key}：{rep.status}，影响 {rep.affected} 行")
         if SEED_DEMO and db.scalar(select(models.Project).limit(1)) is None:
             from .seed import seed
             seed(db)
