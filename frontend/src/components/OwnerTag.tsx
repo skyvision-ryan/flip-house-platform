@@ -68,6 +68,10 @@ export default function OwnerTag({ block, codes }: { block?: string; codes?: str
   const list = (codes ?? (block ? meta?.owner_map?.[block] : undefined) ?? []).map((c) => (c === '当前身份' ? actor : c));
   if (!list.length) return null;
   return (
-    <Box variant="span" color="text-body-secondary" fontSize="body-s">负责 {list.join('、')}</Box>
+    // 调用处紧接着就是标题文字（<OwnerTag />检查记录），中间没有空格，
+    // 不留间距会读成「负责 Z检查记录」。
+    <Box variant="span" color="text-body-secondary" fontSize="body-s">
+      <span style={{ display: 'inline-block', marginRight: 8 }}>负责 {list.join('、')}</span>
+    </Box>
   );
 }
