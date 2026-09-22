@@ -12,7 +12,6 @@ import SpaceBetween from '@cloudscape-design/components/space-between';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
 import Table from '@cloudscape-design/components/table';
 import { api, UserRow } from '../api/client';
-import OwnerTag from '../components/OwnerTag';
 import { useActor } from '../lib/actor';
 import { useFlash } from '../lib/flash';
 import { dateStr } from '../lib/format';
@@ -92,7 +91,7 @@ export default function Users() {
         columnDefinitions={[
           { id: 'username', header: '账号', cell: (u) => <Box fontWeight="bold">{u.username}</Box> },
           { id: 'name', header: '姓名', cell: (u) => u.display_name },
-          { id: 'role', header: '角色', cell: (u) => <OwnerTag codes={[u.role_code]} /> },
+          { id: 'role', header: '角色', cell: (u) => u.role_code },
           { id: 'tier', header: '级别', cell: (u) => u.tier_label },
           { id: 'admin', header: '管理员', cell: (u) => (u.is_admin ? '是' : '—') },
           { id: 'status', header: '状态', cell: (u) => (u.active ? <StatusIndicator type="success">在用</StatusIndicator> : <StatusIndicator type="stopped">已停用</StatusIndicator>) },

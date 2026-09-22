@@ -70,11 +70,31 @@ function dealFields(p: Project): { label: string; value: string }[] {
   ];
 }
 
+/**
+ * 把若干段文字拼成一行，**每段内部不断行**，只允许在分隔符处换行。
+ *
+ * 中文没有词边界，浏览器可以在任意字之间折行——实测「计划完工 11/05」被折成
+ * 「计划完 / 工 11/05」。整段 nowrap 又会撑破格子，所以只锁每一段。
+ */
+function segments(parts: string[], sep: string) {
+  return (
+    <span>
+      {parts.map((t, i) => (
+        <span key={t}>
+          {i > 0 && sep}
+          <span style={{ whiteSpace: 'nowrap' }}>{t}</span>
+        </span>
+      ))}
+    </span>
+  );
+}
+
 /** 关键日期一句话。工期进度只留在总览的横条上，这里不重复报「第 n / n 天」。 */
-function keyDates(p: Project): string {
+function keyDates(p: Project) {
   const steps = ([['买入', p.purchase_date], ['开工', p.construction_start], ['计划完工', p.construction_end], ['挂牌', p.list_date], ['成交', p.sale_date]] as [string, string | null][])
     .filter(([, d]) => d) as [string, string][];
-  return steps.length ? steps.map(([k, d]) => `${k} ${short(d)}`).join(' → ') : '—';
+  if (!steps.length) return '—';
+  return segments(steps.map(([k, d]) => `${k} ${short(d)}`), ' → ');
 }
 
 export default function ProjectPage() {
@@ -100,7 +120,7 @@ export default function ProjectPage() {
   const section = params.get('section');
   const focus = params.get('focus');
   const prop = project.property;
-  const specs = [prop.year_built ? `${prop.year_built} 年` : null, prop.sqft ? `${num(prop.sqft)} sqft` : null, prop.beds != null ? `${prop.beds} 卧 ${prop.baths_full ?? 0} 卫` : null, prop.style].filter(Boolean).join(' · ');
+  const specParts = [prop.year_built ? `${prop.year_built} 年` : null, prop.sqft ? `${num(prop.sqft)} sqft` : null, prop.beds != null ? `${prop.beds} 卧 ${prop.baths_full ?? 0} 卫` : null, prop.style].filter(Boolean) as string[];
 
   return (
     <ContentLayout
@@ -135,7 +155,7 @@ export default function ProjectPage() {
                 columns={4}
                 items={[
                   { label: '地址', value: prop.address_std },
-                  { label: '房子', value: specs || '—' },
+                  { label: '房子', value: specParts.length ? segments(specParts, ' · ') : '—' },
                   { label: '阶段', value: project.current_stage?.label ?? `${labelOf(meta?.stages, project.stage)} · ${labelOf(meta?.substages[project.stage], project.substage)}` },
                   { label: '策略', value: labelOf(meta?.strategies, project.strategy) },
                 ]}
