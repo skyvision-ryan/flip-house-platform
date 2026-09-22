@@ -156,6 +156,7 @@ PERMISSIONS = {
     "read_money":        ["purple", "blue"],          # 看买卖价、预算、利润、分析
     "dashboard":         ["purple", "blue", "teal", "grey"],   # 人人能进工作台，看到的小组件按身份定（DASHBOARD_LAYOUTS）
     "create_project":    ["purple", "blue"],
+    "leads":             ["purple", "blue"],        # 线索房独立入口（KAN-50）；显式登记才会经 /api/meta 下发给前端 canDo
     "delete_project":    ["purple", "负责人"],
     "edit_project":      ["purple", "blue"],          # 日期、阶段、风险、备注
     "edit_money":        ["purple", "blue"],          # 买入价、目标售价、成交价
