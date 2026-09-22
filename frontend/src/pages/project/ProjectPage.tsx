@@ -21,6 +21,7 @@ import { useFlash } from '../../lib/flash';
 import { money, num } from '../../lib/format';
 import { labelOf, useMeta } from '../../lib/meta';
 import { useRole } from '../../lib/role';
+import { stageText } from '../../lib/stepDisplay';
 import OverviewTab from './OverviewTab';
 import AnalysisTab from './AnalysisTab';
 import DataTab from './DataTab';
@@ -156,7 +157,8 @@ export default function ProjectPage() {
                 items={[
                   { label: '地址', value: prop.address_std },
                   { label: '房子', value: specParts.length ? segments(specParts, ' · ') : '—' },
-                  { label: '阶段', value: project.current_stage?.label ?? `${labelOf(meta?.stages, project.stage)} · ${labelOf(meta?.substages[project.stage], project.substage)}` },
+                  // KAN-65：与工作台、项目列表共用同一个 stageText，三处口径一致。
+                  { label: '阶段', value: stageText(project, meta) },
                   { label: '策略', value: labelOf(meta?.strategies, project.strategy) },
                 ]}
               />
