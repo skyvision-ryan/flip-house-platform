@@ -105,6 +105,7 @@
     clientWidth: document.documentElement.clientWidth,
     actor: localStorage.getItem('actor'),
     reviewTags: localStorage.getItem('reviewTags'),
+    roleColors: localStorage.getItem('roleColors'),
     bodyFontFamily: getComputedStyle(document.body).fontFamily,
     sampleCount: samples.length,
     samples,
