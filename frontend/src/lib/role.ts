@@ -23,6 +23,14 @@ export function useRole() {
 export function tierOf(meta: ReturnType<typeof useMeta>, code: string): Tier {
   return (meta?.roles.find((r) => r.code === code)?.tier as Tier) ?? 'grey';
 }
-// colorOf() 已删：审计 #A09 之后界面不再按角色层级上色，全仓零调用点。
-// TIER_FALLBACK 里的 color 字段保留，因为它是后端 /api/meta 契约的镜像（审计 #A23）；
-// label 仍在用——层级现在靠文字表示。
+/**
+ * 角色 → tier 颜色。后端 /api/meta 的 tiers[].color 优先，取不到才用本地镜像。
+ *
+ * 审计 #A09 判「违反」并删掉过这个函数，理由是颜色编码的是角色层级、属分类信息。
+ * KAN-64 把它请回来，但只服务**默认关的讲解开关**（见 lib/rolePref.ts）：
+ * 日常使用一个色圈都不出现，#A09 对默认态的判定仍然成立。
+ */
+export function colorOf(meta: ReturnType<typeof useMeta>, code: string): string {
+  const t = tierOf(meta, code);
+  return meta?.tiers?.[t]?.color ?? TIER_FALLBACK[t].color;
+}

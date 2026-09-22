@@ -44,6 +44,8 @@ interface Digest {
   clientWidth: number;
   actor: string | null;
   reviewTags: string | null;
+  /** KAN-64 起两个讲解开关各自记一条，光看 reviewTags 分不出四种组合。 */
+  roleColors?: string | null;
   bodyFontFamily: string;
   sampleCount: number;
   colors: { value: string; n: number; eg?: string }[];

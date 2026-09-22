@@ -16,7 +16,9 @@ import AssistantPanel from './components/AssistantPanel';
 import { api, AddressCandidate, AUTH_EVENT, Me } from './api/client';
 import { FlashContext } from './lib/flash';
 import { ReviewContext } from './components/ReviewTag';
+import { RoleColorContext } from './components/OwnerTag';
 import { readReviewPref, writeReviewPref } from './lib/reviewPref';
+import { readRolePref, writeRolePref } from './lib/rolePref';
 import { ActorContext, clearActor, getActor, getOverride, setActor as persistActor } from './lib/actor';
 import { useMeta } from './lib/meta';
 import { TIER_FALLBACK, Tier } from './lib/role';
@@ -56,6 +58,9 @@ export default function App() {
   const logout = async () => { try { await api.logout(); } catch { /* ignore */ } clearActor(); setOverride(null); setMe(null); navigate('/'); };
   const [reviewOn, setReviewOn] = useState<boolean>(() => readReviewPref(localStorage));
   const toggleReview = () => { const v = !reviewOn; setReviewOn(v); writeReviewPref(localStorage, v); };
+  // 两个讲解开关各自一个键、各自一份 state，开会时可以只开其中一个（KAN-64）
+  const [roleColorsOn, setRoleColorsOn] = useState<boolean>(() => readRolePref(localStorage));
+  const toggleRoleColors = () => { const v = !roleColorsOn; setRoleColorsOn(v); writeRolePref(localStorage, v); };
 
   const pushFlash = (msg: Omit<FlashbarProps.MessageDefinition, 'id' | 'onDismiss' | 'dismissible'>) => {
     const id = String(Date.now());
@@ -91,14 +96,16 @@ export default function App() {
           ...(canSwitch ? [...roleGroups, ...(override ? [{ id: '__reset', text: `回到自己（${me.role_code}）` }] : [])] : []),
           ...(me.is_admin ? [{ id: '__users', text: '用户管理', iconName: 'group' as const }] : []),
           { id: '__logout', text: '退出登录', iconName: 'unlocked' as const },
-          // 评审标注是开会用的内部工具，不该占产品顶栏的位置。功能不变，换个入口。
+          // 两个讲解开关都是开会用的内部工具，不该占产品顶栏的位置。功能不变，换个入口。
           { id: '__review', text: `评审标注：${reviewOn ? '开' : '关'}` },
+          { id: '__roleColors', text: `角色色圈：${roleColorsOn ? '开' : '关'}` },
         ],
         onItemClick: ({ detail }: { detail: { id: string } }) => {
           if (detail.id === '__logout') logout();
           else if (detail.id === '__reset') resetActor();
           else if (detail.id === '__users') navigate('/users');
           else if (detail.id === '__review') toggleReview();
+          else if (detail.id === '__roleColors') toggleRoleColors();
           else setActor(detail.id);
         },
       }
@@ -111,10 +118,12 @@ export default function App() {
           ...(roleGroups.length ? roleGroups : [{ id: '负责人', text: '负责人' }]),
           { id: '__login', text: '用账号登录', iconName: 'lock-private' as const },
           { id: '__review', text: `评审标注：${reviewOn ? '开' : '关'}` },
+          { id: '__roleColors', text: `角色色圈：${roleColorsOn ? '开' : '关'}` },
         ],
         onItemClick: ({ detail }: { detail: { id: string } }) => {
           if (detail.id === '__login') navigate('/login');
           else if (detail.id === '__review') toggleReview();
+          else if (detail.id === '__roleColors') toggleRoleColors();
           else setActor(detail.id);
         },
       };
@@ -122,6 +131,7 @@ export default function App() {
   return (
     <FlashContext.Provider value={pushFlash}>
     <ReviewContext.Provider value={reviewOn}>
+    <RoleColorContext.Provider value={roleColorsOn}>
     <ActorContext.Provider value={{ actor, setActor, me, demoMode, logout }}>
       {/* 审计 #A10 把这条底边从 tier 色改成了中性线；KAN-63 索性去掉——
           TopNavigation 自带下边界，再加一条 3px 只是多一道横杠。
@@ -204,6 +214,7 @@ export default function App() {
         }
       />
     </ActorContext.Provider>
+    </RoleColorContext.Provider>
     </ReviewContext.Provider>
     </FlashContext.Provider>
   );
