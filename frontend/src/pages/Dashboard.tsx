@@ -32,6 +32,7 @@ import { OwnerDot } from '../components/OwnerTag';
 import { dateStr, money, pct } from '../lib/format';
 import { Insight, loadInsights } from '../lib/insights';
 import { useMeta } from '../lib/meta';
+import { isLead } from '../lib/leads';
 import { stageText } from '../lib/stepDisplay';
 
 type WidgetId = 'attention' | 'money' | 'stages' | 'recent' | 'list' | 'upcoming' | 'capital' | 'retro' | 'weekly' | 'vendors' | 'funnel' | 'updates' | 'turns'
@@ -138,7 +139,11 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [role.actor, meta]);
 
-  const filtered = useMemo(() => (stage.value ? projects.filter((p) => p.stage === stage.value) : projects), [projects, stage]);
+  // KAN-50：线索有自己的入口（/leads），项目列表只留在建与已完成。
+  // **只在这里筛，不动 projects state**——下面的 recent、active、热线索计数和 loadInsights 都直接读它。
+  // 判据走 lib/leads 的 isLead，和线索页是同一个函数，两边不会口径打架。
+  const notLead = useMemo(() => projects.filter((p) => !isLead(p)), [projects]);
+  const filtered = useMemo(() => (stage.value ? notLead.filter((p) => p.stage === stage.value) : notLead), [notLead, stage]);
   const { items: rows, collectionProps, filterProps, paginationProps } = useCollection(filtered, {
     filtering: {
       filteringFunction: (item, s) => { const t = s.toLowerCase(); return item.name.toLowerCase().includes(t) || item.property.address_std.toLowerCase().includes(t); },
@@ -150,7 +155,8 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
   });
 
   const recent = [...projects].sort((a, b) => (a.updated_at < b.updated_at ? 1 : -1)).slice(0, 3);
-  const stageOptions = [{ label: '全部阶段', value: '' }, ...(meta?.stages ?? [])];
+  // 线索归 /leads，这里不再提供该选项，免得选了得到一张空表。
+  const stageOptions = [{ label: '全部阶段', value: '' }, ...(meta?.stages ?? []).filter((s) => s.value !== 'lead')];
   const active = projects.filter((p) => p.stage === 'active');
   const go = (href: string) => navigate(href);
   const projLink = (id: number, name: string) => <Link href={`/projects/${id}`} onFollow={(e) => { e.preventDefault(); go(`/projects/${id}`); }}>{name}</Link>;

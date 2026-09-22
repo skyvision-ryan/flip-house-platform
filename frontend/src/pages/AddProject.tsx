@@ -53,7 +53,8 @@ export default function AddProject() {
   const [lookingUp, setLookingUp] = useState(false);
   const [fields, setFields] = useState<FieldState[]>([]);
   const [strategy, setStrategy] = useState('flip');
-  const [stage, setStage] = useState('lead');
+  // 新建一律是线索（阶段由清单派生，后端会重置任何别的取值）。留成常量，提交时照发。
+  const stage = 'lead';
   const [substage, setSubstage] = useState<string | null>('new_lead');
   const [heat, setHeat] = useState('warm_lead');
   const [name, setName] = useState('');
@@ -104,7 +105,7 @@ export default function AddProject() {
     try {
       const p = await api.createProject({
         name: name || lookup.address.street,
-        strategy, stage, substage, lead_heat: stage === 'lead' ? heat : null,
+        strategy, stage, substage, lead_heat: heat,
         address: lookup.address, apn: lookup.apn,
         fields: fields.map((f) => ({ field: f.field, value: f.value === '' ? null : f.value, source: f.source, confidence: f.confidence, note: f.note })),
         owner: lookup.owner, mortgages: lookup.mortgages, sales_history: lookup.sales_history, valuation: lookup.valuation,
@@ -273,19 +274,18 @@ export default function AddProject() {
                         ]}
                       />
                     </FormField>
-                    <ColumnLayout columns={3}>
-                      <FormField label="阶段">
-                        <Select selectedOption={meta?.stages.find((s) => s.value === stage) ?? null} options={meta?.stages ?? []}
-                          onChange={({ detail }) => { const v = detail.selectedOption.value!; setStage(v); setSubstage(meta?.substages[v]?.[0]?.value ?? null); }} />
-                      </FormField>
-                      <FormField label="子阶段">
+                    {/* KAN-50：原来这里有一个「阶段」下拉，但它是死的——实测选「在建」建出来仍然是
+                        线索，连子阶段也被重置成「新线索」。原因是阶段由六阶段清单派生
+                        （`steps.py:206-212` 的 sync_legacy_stage 每次读项目都会重算），
+                        新项目没有任何 gate 确认，必然停在 ① 预买房。摆一个选了不算数的控件是骗人。
+                        新建一律落成线索，要推进得去项目里确认 Open escrow。 */}
+                    <ColumnLayout columns={2}>
+                      <FormField label="跟进档位" description="新房子先进「线索」，确认 Open escrow 之后才进入买房流程。">
                         <Select selectedOption={substageOptions.find((s) => s.value === substage) ?? null} options={substageOptions} onChange={({ detail }) => setSubstage(detail.selectedOption.value ?? null)} />
                       </FormField>
-                      {stage === 'lead' && (
-                        <FormField label="线索热度">
-                          <Select selectedOption={heatOptions.find((h) => h.value === heat) ?? null} options={heatOptions} onChange={({ detail }) => setHeat(detail.selectedOption.value!)} />
-                        </FormField>
-                      )}
+                      <FormField label="线索热度">
+                        <Select selectedOption={heatOptions.find((h) => h.value === heat) ?? null} options={heatOptions} onChange={({ detail }) => setHeat(detail.selectedOption.value!)} />
+                      </FormField>
                     </ColumnLayout>
                   </SpaceBetween>
                 </Container>

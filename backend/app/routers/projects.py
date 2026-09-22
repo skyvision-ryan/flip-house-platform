@@ -94,6 +94,8 @@ def patch_project(project_id: int, body: schemas.ProjectPatch, db: Session = Dep
     data.pop("stage", None)                      # 阶段由清单派生，不再手改
     if p.stage != "lead":
         data.pop("substage", None)               # 只有线索段的子阶段（联系卖家 / 约看 / 已出价）还手改
+        data.pop("lead_heat", None)              # 热度只对线索有意义。KAN-50 之前这里不挡，
+                                                 # EditProjectModal 会把非线索项目的热度默认成 warm_lead 一起发过来
     if MONEY_FIELDS & set(data):
         require(actor, "edit_money", what="改价格")
     if set(data) - MONEY_FIELDS or clear:
