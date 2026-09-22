@@ -31,7 +31,8 @@ import UpdatesList from '../components/UpdatesList';
 import { OwnerDot } from '../components/OwnerTag';
 import { dateStr, money, pct } from '../lib/format';
 import { Insight, loadInsights } from '../lib/insights';
-import { labelOf, useMeta } from '../lib/meta';
+import { useMeta } from '../lib/meta';
+import { stageText } from '../lib/stepDisplay';
 
 type WidgetId = 'attention' | 'money' | 'stages' | 'recent' | 'list' | 'upcoming' | 'capital' | 'retro' | 'weekly' | 'vendors' | 'funnel' | 'updates' | 'turns'
   | 'gates' | 'mytodo' | 'procurement' | 'site' | 'utilities' | 'permits' | 'design' | 'saledocs' | 'boss';
@@ -164,7 +165,9 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
         </div>
       </div>
     ) },
-    { id: 'stage', header: '阶段', sortingField: 'stage', cell: (p: Project) => `${labelOf(meta?.stages, p.stage)} · ${labelOf(meta?.substages[p.stage], p.substage)}` },
+    // KAN-65：阶段只认六阶段清单算出来的 current_stage。旧的 stage/substage 是派生缓存，
+    // 「② 买房与过户」会被 STAGE_TO_LEGACY 映射成「在建 · 施工中」，在列表上读起来是错的。
+    { id: 'stage', header: '阶段', sortingField: 'stage', cell: (p: Project) => stageText(p, meta) },
     { id: 'status', header: '状态', sortingField: 'status', cell: (p: Project) => <StatusBadge status={p.status} /> },
     // 百分比一行、金额一行。原先「99.0%（$81,660 / $82,500）」塞在一格里，
     // 把最后一列挤成「更」，表底出现横向滚动条。
@@ -272,7 +275,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
                 { id: 'meta', content: (p) => (
                   <SpaceBetween size="xxs">
                     <Box variant="small" color="text-body-secondary">{p.property.address_std}</Box>
-                    <SpaceBetween direction="horizontal" size="xs"><StatusBadge status={p.status} /><Box variant="small">{labelOf(meta?.stages, p.stage)} · {labelOf(meta?.substages[p.stage], p.substage)}</Box></SpaceBetween>
+                    <SpaceBetween direction="horizontal" size="xs"><StatusBadge status={p.status} /><Box variant="small">{stageText(p, meta)}</Box></SpaceBetween>
                     {(p.budget_planned ?? 0) > 0 && <Meter value={p.budget_spent ?? 0} max={p.budget_planned ?? 0} label="预算已用" reading={`${compactMoney(p.budget_spent)} / ${compactMoney(p.budget_planned)}`} height={6} />}
                   </SpaceBetween>
                 ) },

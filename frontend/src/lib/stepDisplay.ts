@@ -120,3 +120,46 @@ export function contextNotes(steps: Steps, stageKey: string): string[] {
   if (steps.earlier_undone.length > 0) out.push(`前面段落还有 ${steps.earlier_undone.length} 项系统未判定满足`);
   return out;
 }
+
+/**
+ * 项目列表/卡片上那一行「阶段」文字（KAN-65）。
+ *
+ * **唯一依据是 `current_stage`**，也就是六阶段清单算出来的实际业务阶段。
+ * 旧的 `stage` / `substage` 两列**不再参与展示**——它们是派生缓存（`steps.py:206-212`
+ * 每次读项目都会重算并回写），而 `dictionaries.py:281` 的 `STAGE_TO_LEGACY` 把
+ * 「② 买房与过户」直接映射成 `("active","construction")`，于是一套刚 open escrow、
+ * 还没过户的房子会在列表上显示「在建 · 施工中」。
+ *
+ * **线索段是例外，子阶段要留着。** `derive_legacy_stage`（`steps.py:197-203`）只在
+ * lead 段保留人工填的 substage（新线索/联系卖家/约看/已出价/谈判中/待成交），
+ * 那是真信息，漏斗小组件在用，KAN-50 也要用。非 lead 段的 substage 是查表查出来的，
+ * 正是要藏掉的那一个。
+ *
+ * 所以规则只有两条：
+ * - 线索段：`① 预买房 · 已出价`
+ * - 其余：`② 买房与过户`
+ *
+ * 拿不到 `current_stage` 时回落到旧字段——那是接口没返回的异常情况，
+ * 显示旧值也好过显示空白，但**不是正常路径**。
+ */
+export function stageText(
+  p: { stage: string; substage: string | null; current_stage: { key: string; label: string } | null },
+  meta: { stages: { value: string; label: string }[]; substages: Record<string, { value: string; label: string }[]> } | null | undefined,
+): string {
+  const sub = (v: string | null) =>
+    (meta?.substages?.[p.stage] ?? []).find((s) => s.value === v)?.label ?? v ?? '';
+
+  if (!p.current_stage) {
+    // 兜底：接口没给 current_stage。用旧字段，行为与改动前一致。
+    const stage = (meta?.stages ?? []).find((s) => s.value === p.stage)?.label ?? p.stage;
+    const s = sub(p.substage);
+    return s ? `${stage} · ${s}` : stage;
+  }
+
+  // 线索段的子阶段是人工维护的，接着显示；其余段的 substage 是派生值，不显示。
+  if (p.stage === 'lead' && p.substage) {
+    const s = sub(p.substage);
+    if (s) return `${p.current_stage.label} · ${s}`;
+  }
+  return p.current_stage.label;
+}

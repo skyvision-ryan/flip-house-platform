@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
 import type { FileRow, StepItem, Steps } from '../api/client.ts';
-import { attachmentsFor, contextNotes, factOf, limitsOf } from './stepDisplay.ts';
+import { attachmentsFor, contextNotes, factOf, limitsOf, stageText } from './stepDisplay.ts';
 
 // 跑法（Node 22，零依赖）：
 //   PATH="/opt/homebrew/opt/node@22/bin:$PATH" node --test --experimental-strip-types frontend/src/lib/stepDisplay.test.ts
@@ -338,4 +338,58 @@ test('contextNotes：前面段落未判定满足的条数（项目 3 的真实�
 
 test('contextNotes：段落不存在就是空', () => {
   assert.deepStrictEqual(contextNotes(mkSteps([stage('s1', '① 预买房', [])], []), 's9'), []);
+});
+
+// ---- stageText（KAN-65）----
+
+const META = {
+  stages: [{ value: 'lead', label: '线索' }, { value: 'active', label: '在建' }, { value: 'portfolio', label: '已完成' }],
+  substages: {
+    lead: [{ value: 'new_lead', label: '新线索' }, { value: 'offer_made', label: '已出价' }],
+    active: [{ value: 'construction', label: '施工中' }, { value: 'listing', label: '挂牌中' }],
+    portfolio: [{ value: 'sold', label: '已售出' }],
+  },
+};
+
+const proj = (stage: string, substage: string | null, cur: { key: string; label: string } | null) =>
+  ({ stage, substage, current_stage: cur });
+
+test('KAN-65 本票要修的那个场景：刚 open escrow、没过户，不能显示「施工中」', () => {
+  // 派生链把 s2 映射成 ("active","construction")，旧写法会拼出「在建 · 施工中」
+  const p = proj('active', 'construction', { key: 's2', label: '② 买房与过户' });
+  const text = stageText(p, META);
+  assert.equal(text, '② 买房与过户');
+  assert.ok(!text.includes('施工中'), '过户还没完成，不能出现「施工中」');
+  assert.ok(!text.includes('在建'), '不能再拼旧的 stage 标签');
+});
+
+test('线索段保留人工填的子阶段——漏斗和 KAN-50 都要用', () => {
+  assert.equal(stageText(proj('lead', 'offer_made', { key: 's1', label: '① 预买房' }), META), '① 预买房 · 已出价');
+});
+
+test('线索段没填子阶段就只显示阶段', () => {
+  assert.equal(stageText(proj('lead', null, { key: 's1', label: '① 预买房' }), META), '① 预买房');
+});
+
+test('非线索段一律不显示 substage（那是查表派生的）', () => {
+  assert.equal(stageText(proj('active', 'listing', { key: 's5', label: '⑤ 卖房上市' }), META), '⑤ 卖房上市');
+  assert.equal(stageText(proj('portfolio', 'sold', { key: 's6', label: '⑥ 售出收尾' }), META), '⑥ 售出收尾');
+});
+
+test('推进到真正开工后才会出现施工相关说法——由 current_stage 自己决定', () => {
+  assert.equal(stageText(proj('active', 'construction', { key: 's3', label: '③ 装修' }), META), '③ 装修');
+});
+
+test('拿不到 current_stage 时回落旧字段，行为与改动前一致', () => {
+  assert.equal(stageText(proj('active', 'construction', null), META), '在建 · 施工中');
+  assert.equal(stageText(proj('lead', 'new_lead', null), META), '线索 · 新线索');
+});
+
+test('meta 还没加载也不能崩', () => {
+  assert.equal(stageText(proj('active', 'construction', { key: 's2', label: '② 买房与过户' }), null), '② 买房与过户');
+  assert.equal(stageText(proj('active', 'construction', null), null), 'active · construction');
+});
+
+test('子阶段值不在字典里时原样显示，不吞掉', () => {
+  assert.equal(stageText(proj('lead', 'unknown_sub', { key: 's1', label: '① 预买房' }), META), '① 预买房 · unknown_sub');
 });
