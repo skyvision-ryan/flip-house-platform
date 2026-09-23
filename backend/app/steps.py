@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from . import models
-from .dictionaries import FILE_TYPES, MONEY_FIELDS, STAGE_CHECKLIST, STAGE_TO_LEGACY, UTILITY_KINDS
+from .dictionaries import FILE_TYPES, GROUP_BY_KEY, GROUP_OF_STAGE, MONEY_FIELDS, STAGE_CHECKLIST, STAGE_GROUPS, STAGE_TO_LEGACY, SUB_OF_STAGE, SUBSTAGES, UTILITY_KINDS
 
 UTILITY_LABEL = {u["value"]: u["label"] for u in UTILITY_KINDS}
 
@@ -191,7 +191,35 @@ def compute_steps(db: Session, p: models.Project, hide_money: bool = False) -> d
         next_up = [{"key": i["key"], "title": i["title"], "owners": i["owners"], "gate": i["gate"]} for i in undone_here[:3]]
     progress = [{"key": s["key"], "label": s["label"], "short": s["short"], "done": s["done_count"], "total": s["total"],
                  "gate_title": s["gate_title"], "gate_done": s["gate_done"], "gate_confirmed": s["gate_confirmed"], "gate_at": s["gate_at"], "gates": s["gates"]} for s in stages]
-    return {"stages": stages, "current_stage": current, "next_up": next_up, "earlier_undone": earlier, "stage_progress": progress}
+    return {"stages": stages, "current_stage": current, "next_up": next_up, "earlier_undone": earlier, "stage_progress": progress,
+            "group_position": group_position(current["key"], p)}
+
+
+_LEAD_SUB_LABEL = {s["value"]: s["label"] for s in SUBSTAGES["lead"]}
+
+
+def group_position(current_key: str, p: models.Project) -> dict:
+    """当前段 → 展示分组里的位置（KAN-75 块 2）。只是把 s1…s6 翻译成五格 + 买房子位置，不另存状态。
+
+    done：全流程走完，落在最后一组、sub 为空、`complete` 为 True。
+    买房组：s1 = 未购入（带人工档位），s2 = escrow 中（带过门前档位快照）。
+    """
+    complete = current_key == "done"
+    stage_key = STAGE_CHECKLIST[-1]["key"] if complete else current_key
+    gkey = GROUP_OF_STAGE.get(stage_key, STAGE_GROUPS[-1]["key"])
+    g = GROUP_BY_KEY[gkey]
+    sub = SUB_OF_STAGE.get(stage_key) if not complete else None
+    lead_sub = p.substage if (sub and sub["key"] == "pre") else None
+    frozen = p.lead_substage_at_escrow if (sub and sub["key"] == "escrow") else None
+    label = g["label"] + (f" · {sub['label']}" if sub else "")
+    return {
+        "group_key": gkey, "group_label": g["label"], "group_index": next(i for i, x in enumerate(STAGE_GROUPS) if x["key"] == gkey) + 1,
+        "group_count": len(STAGE_GROUPS),
+        "sub_key": sub["key"] if sub else None, "sub_label": sub["label"] if sub else None,
+        "lead_substage": lead_sub, "lead_substage_label": _LEAD_SUB_LABEL.get(lead_sub, lead_sub) if lead_sub else None,
+        "frozen_substage": frozen, "frozen_substage_label": _LEAD_SUB_LABEL.get(frozen, frozen) if frozen else None,
+        "label": label, "complete": complete,
+    }
 
 
 def derive_legacy_stage(steps: dict, p: models.Project) -> tuple[str, str | None]:

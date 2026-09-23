@@ -105,8 +105,10 @@ class ProjectOut(ORM):
     analysis_count: int = 0
     current_stage: Optional[dict] = None
     next_up: list[dict] = []
-    stage_progress: list[dict] = []      # 五段各自 done/total 与大节点状态，工作台卡片用
+    stage_progress: list[dict] = []      # 六段各自 done/total 与大节点状态，工作台卡片用
     earlier_undone_count: int = 0
+    group_position: Optional[dict] = None   # KAN-75 块 2：五格位置条 + 买房子位置
+    lead_substage_at_escrow: Optional[str] = None
 
 
 class FieldIn(BaseModel):
@@ -514,6 +516,7 @@ class StepsOut(BaseModel):
     next_up: list[dict]
     earlier_undone: list[dict] = []
     stage_progress: list[dict] = []
+    group_position: Optional[dict] = None
 
 
 # ---------- KAN-75：任务实例、成员、事件 ----------

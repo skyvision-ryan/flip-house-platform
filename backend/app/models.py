@@ -118,6 +118,9 @@ class Project(Base):
     stage: Mapped[str] = mapped_column(String, default="lead")
     substage: Mapped[Optional[str]] = mapped_column(String)
     lead_heat: Mapped[Optional[str]] = mapped_column(String)  # hot_lead / warm_lead
+    # KAN-75 块 2：open_escrow 双确认成立那一刻的跟进档位快照。substage 列过门后会被 sync_legacy_stage
+    # 覆盖成 construction（status.py / dashboard.py 还依赖它），所以历史档位另存一列，不改旧逻辑。
+    lead_substage_at_escrow: Mapped[Optional[str]] = mapped_column(String)
     status_override: Mapped[Optional[str]] = mapped_column(String)
     status_override_reason: Mapped[Optional[str]] = mapped_column(String)
     purchase_price: Mapped[Optional[float]] = mapped_column(Float)

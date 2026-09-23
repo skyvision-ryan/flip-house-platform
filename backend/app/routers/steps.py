@@ -1,16 +1,18 @@
 """阶段清单与更新记录。"""
 
+import json
 import re
 from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .. import models, schemas
 from ..db import get_db
-from ..dictionaries import ITEM_EVIDENCE, STAGE_CHECKLIST
+from ..auth import current_user
+from ..dictionaries import ITEM_EVIDENCE, STAGE_CHECKLIST, SUBSTAGES
 from ..steps import compute_steps
 from .common import allowed, can_read_money, get_actor, log_update
 
@@ -36,7 +38,7 @@ def get_steps(project_id: int, db: Session = Depends(get_db), actor: str = Depen
 
 
 @router.post("/projects/{project_id}/steps/{key}", response_model=schemas.StepsOut)
-def toggle_step(project_id: int, key: str, body: schemas.StepToggleIn, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
+def toggle_step(project_id: int, key: str, body: schemas.StepToggleIn, request: Request, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
     p = _project(db, project_id)
     if key not in ITEM_TITLE:
         raise HTTPException(400, "未知清单项")
@@ -82,8 +84,33 @@ def toggle_step(project_id: int, key: str, body: schemas.StepToggleIn, db: Sessi
     else:
         text = f"{'完成了' if body.done else '取消了'}“{ITEM_TITLE[key]}”"
     log_update(db, project_id, actor, "step", text + (f"：{body.note}" if body.note else ""))
+    if key == "open_escrow" and body.done:
+        _freeze_lead_substage(db, p, request, actor)
     db.commit()
     return compute_steps(db, p, hide_money=not can_read_money(actor))
+
+
+_LEAD_SUB_LABEL = {s["value"]: s["label"] for s in SUBSTAGES["lead"]}
+
+
+def _freeze_lead_substage(db: Session, p: models.Project, request: Request, actor: str) -> None:
+    """open_escrow 的 D、J 都确认了：把此刻的人工跟进档位存一份快照并记事件（KAN-75 块 2，配合 KAN-74）。
+
+    写在确认那一次，不写在 GET 路径；substage 列本身随后仍会被 sync_legacy_stage 覆盖，这里不拦它。
+    只记第一次；已有快照不覆盖。
+    """
+    db.flush()  # 应用的 Session 关了 autoflush：刚 add 的那条确认要先 flush，下面的查询才看得到
+    recs = db.scalars(select(models.ProjectStep).where(models.ProjectStep.project_id == p.id,
+                                                       models.ProjectStep.key.in_(["open_escrow:D", "open_escrow:J"]))).all()
+    if len([r for r in recs if r.done]) < 2 or p.lead_substage_at_escrow is not None:
+        return
+    snap = p.substage if p.stage == "lead" and p.substage else "new_lead"
+    p.lead_substage_at_escrow = snap
+    u = current_user(request, db)
+    db.add(models.TaskEvent(task_id=None, project_id=p.id, kind="lead_substage_frozen",
+                            actor_user_id=u.id if u else None, actor_role_snapshot=actor,
+                            after_json=json.dumps({"substage": snap, "label": _LEAD_SUB_LABEL.get(snap, snap)}, ensure_ascii=False)))
+    log_update(db, p.id, actor, "project", f"Open escrow 双确认成立，过门前档位记为「{_LEAD_SUB_LABEL.get(snap, snap)}」")
 
 
 def _with_names(db: Session, rows: list[models.ProjectUpdate], actor: str = "负责人") -> list[schemas.UpdateOut]:

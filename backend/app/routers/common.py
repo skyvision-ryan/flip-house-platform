@@ -112,6 +112,7 @@ def project_out(db: Session, p: models.Project, actor: str = "负责人") -> sch
         analysis_count=0 if hide else len(p.analyses),
         current_stage=steps["current_stage"], next_up=steps["next_up"],
         stage_progress=steps["stage_progress"], earlier_undone_count=len(steps["earlier_undone"]),
+        group_position=steps["group_position"], lead_substage_at_escrow=p.lead_substage_at_escrow,
     )
 
 

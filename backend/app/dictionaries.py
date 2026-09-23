@@ -296,6 +296,22 @@ STAGE_CHECKLIST = [
         {"key": "services_off", "title": "关水电瓦斯、退保险", "ws": "收尾", "owners": ["K"], "evidence": "utilities:off", "deliverable": _r("三家账户都关闭", "utilities"), "purpose": "卖掉后关掉水、电、瓦斯，退保险。", "done_when": "判定只看水、电、瓦斯三条记录的状态都是已关闭。"},
     ]},
 ]
+# ---------------- KAN-75 块 2：展示分组 ----------------
+# 底层六段 s1…s6 与 31 个 step key 不动；界面的位置条按这五组画。买房组内部再分「未购入 / escrow 中」，
+# 判据只有两道既有门：open_escrow 没过 = 未购入；open_escrow 过、close_escrow 没过 = escrow 中。
+# 阶段变化仍只由门触发；分派、切页签、时间流逝都不改位置。
+STAGE_GROUPS = [
+    {"key": "buying", "label": "买房", "stages": ["s1", "s2"],
+     "subs": [{"key": "pre", "label": "未购入", "stage": "s1"}, {"key": "escrow", "label": "escrow 中", "stage": "s2"}]},
+    {"key": "renovation", "label": "装修", "stages": ["s3"], "subs": []},
+    {"key": "prelisting", "label": "预上市", "stages": ["s4"], "subs": []},
+    {"key": "selling", "label": "卖房上市", "stages": ["s5"], "subs": []},
+    {"key": "closeout", "label": "售出收尾", "stages": ["s6"], "subs": []},
+]
+GROUP_OF_STAGE = {sk: g["key"] for g in STAGE_GROUPS for sk in g["stages"]}
+GROUP_BY_KEY = {g["key"]: g for g in STAGE_GROUPS}
+SUB_OF_STAGE = {sub["stage"]: sub for g in STAGE_GROUPS for sub in g["subs"]}
+
 # 旧五段 → 新六段（旧 stage key 没有持久化，仅供文档与调试）
 LEGACY_STAGE_MAP = {"s1": "s1", "s2": "s2", "s3": "s3", "s4": "s3", "s5": "s5"}
 # 派生旧模型：清单当前段 → projects.stage / substage（旧字段只为筛选与状态规则兼容，不再手改）
@@ -415,6 +431,7 @@ def meta() -> dict:
         "owner_map": OWNER_MAP,
         "file_default_owner": FILE_DEFAULT_OWNER,
         "stage_checklist": STAGE_CHECKLIST,
+        "stage_groups": STAGE_GROUPS,
         "stage_to_legacy": STAGE_TO_LEGACY,
         "permit_rule": PERMIT_RULE,
         "dashboard_layouts": DASHBOARD_LAYOUTS,
