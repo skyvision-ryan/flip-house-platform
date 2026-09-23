@@ -15,12 +15,12 @@ import InspectionsPanel from '../../components/InspectionsPanel';
 import UpdatesList from '../../components/UpdatesList';
 import OwnerTag from '../../components/OwnerTag';
 import { BulletList, Meter, compactMoney } from '../../components/charts';
-import { api, BudgetSummary, Project, Update } from '../../api/client';
+import { api, BudgetSummary, Project, TaskList, Update } from '../../api/client';
 import { useFlash } from '../../lib/flash';
 import { dateStr, money, num, text } from '../../lib/format';
 import ReviewTag from '../../components/ReviewTag';
 
-export default function OverviewTab({ project, reload, deepLink, focus }: { project: Project; reload: () => Promise<any>; deepLink?: StepsDeepLink; focus?: string | null }) {
+export default function OverviewTab({ project, reload, deepLink, focus, tasks, tasksErr, reloadTasks }: { project: Project; reload: () => Promise<any>; deepLink?: StepsDeepLink; focus?: string | null; tasks: TaskList | null; tasksErr: string | null; reloadTasks: () => Promise<any> }) {
   const flash = useFlash();
   const navigate = useNavigate();
   const [summary, setSummary] = useState<BudgetSummary | null>(null);
@@ -54,6 +54,9 @@ export default function OverviewTab({ project, reload, deepLink, focus }: { proj
       )}
       <ProjectTasks
         project={project}
+        data={tasks}
+        error={tasksErr}
+        reload={reloadTasks}
         onChanged={() => { api.projectUpdates(project.id, 12).then(setUpdates).catch(() => undefined); }}
         onGotoGates={() => { setStepsOpen(true); requestAnimationFrame(() => document.getElementById('gates')?.scrollIntoView({ behavior: 'smooth', block: 'start' })); }}
       />

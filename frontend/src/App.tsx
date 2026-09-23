@@ -12,6 +12,7 @@ import Login from './pages/Login';
 import Users from './pages/Users';
 import AddProject from './pages/AddProject';
 import ProjectPage from './pages/project/ProjectPage';
+import TaskHistoryPage from './pages/project/TaskHistoryPage';
 import AssistantPanel from './components/AssistantPanel';
 import { api, AddressCandidate, AUTH_EVENT, Me } from './api/client';
 import { FlashContext } from './lib/flash';
@@ -209,6 +210,7 @@ export default function App() {
             <Route path="/projects" element={canDo('read_money') ? <Dashboard listOnly /> : <MyTodo />} />
             <Route path="/projects/new" element={<AddProject />} />
             <Route path="/projects/:id" element={<ProjectPage />} />
+            <Route path="/projects/:id/tasks/:taskId" element={<TaskHistoryPage />} />
             <Route path="/users" element={me?.is_admin ? <Users /> : <Dashboard />} />
             <Route path="/login" element={<Dashboard />} />
             <Route path="*" element={<Dashboard />} />

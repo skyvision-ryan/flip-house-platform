@@ -33,6 +33,8 @@ import { dateStr, money, pct } from '../lib/format';
 import { Insight, loadInsights } from '../lib/insights';
 import { useMeta } from '../lib/meta';
 import { isLead } from '../lib/leads';
+import { useActor } from '../lib/actor';
+import WorkbenchFocus from '../components/WorkbenchFocus';
 import LeadGroups from '../components/LeadGroups';
 import { filterFromParams, groupFilterOptions, matchesGroupFilter } from '../lib/stageGroups';
 import { stageText } from '../lib/stepDisplay';
@@ -118,6 +120,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
   const navigate = useNavigate();
   const meta = useMeta();
   const role = useRole();
+  const { me } = useActor();
   // 项目表已经固定渲染在页面上，看板里只剩「额外」小组件，默认一个都没有。
   // 注意**不动** DASHBOARD_LAYOUTS 那份后端字典——它同时决定 widget_access，
   // 动了角色就加不回自己的小组件。下面 canAdd 仍然读 widget_access，
@@ -594,14 +597,17 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
             </SpaceBetween>
           }
         >
-          项目
+          {me ? `${me.display_name} 的工作台` : '项目'}
         </Header>
       }
     >
       <SpaceBetween size="l">
+        {/* KAN-75 块 4：登录后工作台先看「项目关注」——每套房走到哪、下一动作是谁的、等我确认的交付；
+            数据来自任务表。没登录（演示访客）保留原来的四个数与项目表。 */}
+        {me && <WorkbenchFocus refreshKey={projects.length} />}
         {/* 四个数字直接跟在页头下面。原先套一层叫「今日概览」的 Container，
             等于给四个数字单独起了个栏目名——控制台里这层壳没有意义。 */}
-        <ColumnLayout columns={4} minColumnWidth={120} variant="text-grid">
+        {!me && <ColumnLayout columns={4} minColumnWidth={120} variant="text-grid">
               <Stat label="买房 · 未购入" value={String(summary?.leads ?? '—')} sub={`${projects.filter((p) => isLead(p) && p.lead_heat === 'hot_lead').length} 套热线索`} />
               <Stat label="在建" value={String(summary?.active ?? '—')} sub={summary?.money_hidden ? '正在施工或挂牌' : `${summary?.over_budget_count ?? 0} 个超预算`} />
               {summary?.money_hidden ? (
@@ -615,10 +621,10 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
                   <Stat label="预计利润" value={compactMoney(summary?.expected_profit)} sub={incompleteNote(summary?.profit_incomplete_count) ?? '在建：目标售价 − 买入 − 装修'} />
                 </>
               )}
-        </ColumnLayout>
+        </ColumnLayout>}
 
-        {/* 项目表固定渲染，不再是看板的一项：没有拖动手柄、没有关闭按钮。 */}
-        {showLeadGroups ? leadView : (
+        {/* 项目表固定渲染，不再是看板的一项：没有拖动手柄、没有关闭按钮。登录后由「项目关注」承担，这里只给未登录访客。 */}
+        {!me && (showLeadGroups ? leadView : (
           <Table
             {...collectionProps}
             items={rows}
@@ -637,7 +643,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
             pagination={<Pagination {...paginationProps} />}
             columnDefinitions={projectColumns}
           />
-        )}
+        ))}
 
         {items.length > 0 && <Board
           items={items}

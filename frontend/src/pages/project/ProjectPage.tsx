@@ -17,7 +17,7 @@ import KeyValuePairs from '@cloudscape-design/components/key-value-pairs';
 import CoverImage from '../../components/CoverImage';
 import StagePositionBar from '../../components/StagePositionBar';
 import ReviewTag from '../../components/ReviewTag';
-import { api, Project } from '../../api/client';
+import { api, Project, TaskList } from '../../api/client';
 import { useFlash } from '../../lib/flash';
 import { money, num } from '../../lib/format';
 import { labelOf, useMeta } from '../../lib/meta';
@@ -110,10 +110,15 @@ export default function ProjectPage() {
   const role = useRole();
   const [params, setParams] = useSearchParams();
   const [project, setProject] = useState<Project | null>(null);
+  // KAN-75 块 4：任务表在页面层加载一次，头卡三条事实与总览任务区共用同一份数据
+  const [tasks, setTasks] = useState<TaskList | null>(null);
+  const [tasksErr, setTasksErr] = useState<string | null>(null);
+  const reloadTasks = useCallback(() => api.projectTasks(pid).then((d) => { setTasks(d); setTasksErr(null); }).catch((e) => setTasksErr(e.message)), [pid]);
+  useEffect(() => { reloadTasks(); }, [reloadTasks]);
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const reload = useCallback(() => api.project(pid).then(setProject), [pid]);
+  const reload = useCallback(() => api.project(pid).then(setProject).then(() => reloadTasks()), [pid, reloadTasks]);
   useEffect(() => { reload(); }, [reload]);
 
   if (!project) return <Box padding="xxl" textAlign="center"><Spinner size="large" /></Box>;
@@ -168,6 +173,10 @@ export default function ProjectPage() {
               {/* 第二组字段：钱和日期。原先是「交易」「时间」两栏大字，
                   每栏两句话，还和总览的工期条重复报同一件事。 */}
               <KeyValuePairs columns={4} items={[...dealFields(project), { label: '关键日期', value: keyDates(project) }]} />
+              {/* KAN-75 块 4：头卡三条事实按当前位置动态给（下一动作 / 目标过户 / 当前重点 …），只陈述任务表、日期与关键节点里已有的数据 */}
+              {tasks && tasks.focus.length > 0 && (
+                <KeyValuePairs columns={3} items={tasks.focus.map((f) => ({ label: f.label, value: f.tone === 'warning' ? <Box color="text-status-warning" fontWeight="bold">{f.value}</Box> : <Box fontWeight="bold">{f.value}</Box> }))} />
+              )}
               {/* KAN-75 块 2：五格位置条。买房格里写未购入 / escrow 中；位置只由关键节点推进。 */}
               <StagePositionBar position={project.group_position} />
             </SpaceBetween>
@@ -180,7 +189,7 @@ export default function ProjectPage() {
           activeTabId={tab}
           onChange={({ detail }) => setParams((prev) => { const n = new URLSearchParams(prev); n.set('tab', detail.activeTabId); return n; })}
           tabs={[
-            { id: 'overview', label: '总览', content: <OverviewTab project={project} reload={reload} deepLink={{ step, action }} focus={focus} /> },
+            { id: 'overview', label: '总览', content: <OverviewTab project={project} reload={reload} deepLink={{ step, action }} focus={focus} tasks={tasks} tasksErr={tasksErr} reloadTasks={reloadTasks} /> },
             ...(role.canReadMoney ? [{ id: 'analysis', label: '分析', content: <AnalysisTab project={project} reload={reload} /> }] : []),
             ...(role.tier !== 'grey' ? [{ id: 'data', label: '数据', content: <DataTab projectId={pid} reload={reload} section={section} /> }] : []),
             { id: 'files', label: '文件', content: <FilesTab projectId={pid} /> },

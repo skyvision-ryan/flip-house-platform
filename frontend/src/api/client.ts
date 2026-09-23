@@ -205,7 +205,14 @@ export interface Task {
   satisfied: boolean; satisfied_how: string | null; satisfied_evidence: string | null; evidence_hint: string | null;
   last_event: TaskEvent | null; created_at: string; updated_at: string;
 }
-export interface TaskList { tasks: Task[]; stages: { key: string; label: string; short: string; index: number }[]; current_stage_index: number; template_missing: boolean; can_assign: boolean }
+export interface FocusFact { label: string; value: string; tone: 'normal' | 'warning' }
+export interface TaskList { tasks: Task[]; stages: { key: string; label: string; short: string; index: number }[]; current_stage_index: number; template_missing: boolean; can_assign: boolean; focus: FocusFact[] }
+export interface WorkbenchProject {
+  project_id: number; project_name: string; address: string; group_position: GroupPosition; position_label: string;
+  next_action: { task_id: number; title: string; exec_status: TaskExecStatus; exec_status_label: string; due_at: string | null; actor: UserBrief | null; kind: 'review' | 'assign' | 'do' } | null;
+  waiting_count: number; unassigned_current_count: number;
+}
+export interface Workbench { projects: WorkbenchProject[]; my_pending: Task[]; counts: { projects: number; pending_review_mine: number; unassigned_current: number; waiting: number } }
 export interface ProjectMember extends UserBrief { role_snapshot: string | null; added_at: string | null }
 export interface ProjectMembers { members: ProjectMember[]; others: UserBrief[]; can_assign: boolean; can_add_member: boolean }
 export interface MyTasks { assigned: Task[]; reviewing: Task[] }
@@ -248,6 +255,8 @@ export const api = {
   // KAN-75：任务实例
   projectTasks: (id: number) => req<TaskList>(`/api/projects/${id}/tasks`),
   projectMembers: (id: number) => req<ProjectMembers>(`/api/projects/${id}/members`),
+  task: (id: number, taskId: number) => req<Task>(`/api/projects/${id}/tasks/${taskId}`),
+  workbench: () => req<Workbench>('/api/me/workbench'),
   taskEvents: (id: number, taskId: number) => req<TaskEvent[]>(`/api/projects/${id}/tasks/${taskId}/events`),
   assignTask: (id: number, taskId: number, body: TaskAssignIn) => req<Task>(`/api/projects/${id}/tasks/${taskId}/assign`, { method: 'POST', body: JSON.stringify(body) }),
   taskStatus: (id: number, taskId: number, body: TaskStatusIn) => req<Task>(`/api/projects/${id}/tasks/${taskId}/status`, { method: 'POST', body: JSON.stringify(body) }),

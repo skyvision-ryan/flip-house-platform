@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Alert from '@cloudscape-design/components/alert';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
@@ -42,7 +42,9 @@ export default function MyTodo() {
   const { me } = useActor();
   const [data, setData] = useState<MyTasks | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [params] = useSearchParams();
+  const wanted = Number(params.get('task')) || null;
+  const [selectedId, setSelectedId] = useState<number | null>(wanted);
   const [tab, setTab] = useState('mine');
   const [waiting, setWaiting] = useState<Task | null>(null);
   const [busy, setBusy] = useState(false);
@@ -57,6 +59,8 @@ export default function MyTodo() {
   const loadLegacy = useCallback(async () => { setLegacy((await api.dashboardRole()).my_todo ?? []); }, []);
 
   const all = [...(data?.assigned ?? []), ...(data?.reviewing ?? [])];
+  // 从项目总览 / 活动记录页带 ?task= 过来：落到对应页签
+  useEffect(() => { if (data && wanted && data.reviewing.some((t) => t.id === wanted) && !data.assigned.some((t) => t.id === wanted)) setTab('review'); }, [data, wanted]);
   const selected = all.find((t) => t.id === selectedId) ?? null;
   const groups = groupMyTasks(data?.assigned ?? []);
   const replace = (t: Task) => {

@@ -9,7 +9,9 @@ import KeyValuePairs from '@cloudscape-design/components/key-value-pairs';
 import Link from '@cloudscape-design/components/link';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
+import { useNavigate } from 'react-router-dom';
 import { api, Project, Task } from '../api/client';
+import { useActor } from '../lib/actor';
 import { dateTime } from '../lib/format';
 import { useFlash } from '../lib/flash';
 import { useMeta } from '../lib/meta';
@@ -29,6 +31,8 @@ export default function TaskSummaryPanel({ task, project, canAssign, onAssign, o
 }) {
   const flash = useFlash();
   const meta = useMeta();
+  const navigate = useNavigate();
+  const { me } = useActor();
   const [editDue, setEditDue] = useState(false);
   const [due, setDue] = useState('');
   const [saving, setSaving] = useState(false);
@@ -76,7 +80,11 @@ export default function TaskSummaryPanel({ task, project, canAssign, onAssign, o
               ]}
             />
             {task.exec_status !== 'done' && task.satisfied && <Box fontSize="body-s" color="text-status-info">证据已满足但任务还没确认完成——确认在「我的事项」里做（块 5）。</Box>}
-            {canAssign && <Button onClick={() => onAssign(task)} iconName={task.assignee ? 'edit' : 'add-plus'}>{task.assignee ? '改派 / 调整安排' : '分派'}</Button>}
+            <SpaceBetween direction="horizontal" size="xs">
+              {canAssign && <Button onClick={() => onAssign(task)} iconName={task.assignee ? 'edit' : 'add-plus'}>{task.assignee ? '改派 / 调整安排' : '分派'}</Button>}
+              {me && (task.assignee?.id === me.id || task.reviewer?.id === me.id) && <Button onClick={() => navigate(`/todo?task=${task.id}`)}>{task.exec_status === 'pending_review' && task.reviewer?.id === me.id ? '去我的事项审核' : '去我的事项处理'}</Button>}
+              <Button variant="link" onClick={() => navigate(`/projects/${task.project_id}/tasks/${task.id}`)}>完整活动记录</Button>
+            </SpaceBetween>
             <ExpandableSection headerText="活动记录" variant="footer" defaultExpanded>
               <TaskTimeline projectId={task.project_id} taskId={task.id} refreshKey={refreshKey} limit={6} />
             </ExpandableSection>

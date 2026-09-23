@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
 import Header from '@cloudscape-design/components/header';
@@ -23,8 +23,12 @@ const ALL = '__all__';
  * 「状态」是人的执行状态，「满足」是证据判定，并列显示、互不替代。
  */
 export default function TaskTable({ data, selectedId, onSelect, canAssign, onAssign }: {
-  data: TaskList; selectedId: number | null; onSelect: (t: Task) => void; canAssign: boolean; onAssign: (t: Task) => void;
+  data: TaskList; selectedId: number | null; onSelect: (t: Task) => void; canAssign: boolean; onAssign: (ts: Task[]) => void;
 }) {
+  // 勾选框用于批量分派，点行用于看摘要，负责人列的按钮用于单项分派——三件事分开，互不误触
+  const [checked, setChecked] = useState<Task[]>([]);
+  // 保存分派后表格整体重读，勾选清掉，免得再点「分派」把刚分好的又派一遍
+  useEffect(() => { setChecked([]); }, [data.tasks]);
   const meta = useMeta();
   const current = data.stages.find((s) => s.index === data.current_stage_index);
   const [stage, setStage] = useState<string>(current?.key ?? ALL);
@@ -35,27 +39,29 @@ export default function TaskTable({ data, selectedId, onSelect, canAssign, onAss
     ...data.stages.map((s) => { const l = stageKeyLabel(meta?.stage_groups, s.key, s.short); return { value: s.key, label: s.index === data.current_stage_index ? `当前：${l}` : l }; }),
   ];
   const rows = useMemo(() => data.tasks.filter((t) => (stage === ALL || t.stage_key === stage) && (!q || t.title.toLowerCase().includes(q.toLowerCase()) || (t.assignee?.display_name ?? '').includes(q))), [data.tasks, stage, q]);
-  const selected = rows.filter((t) => t.id === selectedId);
   const unassigned = rows.filter((t) => !t.assignee).length;
+  const checkedVisible = checked.filter((c) => rows.some((r) => r.id === c.id));
 
   return (
     <Table
       variant="embedded"
       items={rows}
       trackBy="id"
-      selectionType="single"
-      selectedItems={selected}
-      onSelectionChange={({ detail }) => { const t = detail.selectedItems[0]; if (t) onSelect(t); }}
+      selectionType={canAssign ? 'multi' : undefined}
+      selectedItems={checkedVisible}
+      onSelectionChange={({ detail }) => setChecked(detail.selectedItems)}
       onRowClick={({ detail }) => onSelect(detail.item)}
-      ariaLabels={{ selectionGroupLabel: '选中一项任务查看摘要', itemSelectionLabel: (_, t) => t.title }}
+      isItemDisabled={(t) => t.exec_status === 'done'}
+      ariaLabels={{ selectionGroupLabel: '勾选后批量分派', allItemsSelectionLabel: () => '全选本页', itemSelectionLabel: (_, t) => t.title }}
       header={
         <Header
           variant="h2"
           counter={`(${rows.length})`}
-          description={`${unassigned ? `${unassigned} 项待分派 · ` : ''}点一行看右侧摘要；分派只改负责人，不推进阶段。`}
+          description={`${unassigned ? `${unassigned} 项待分派 · ` : ''}点一行看右侧摘要，勾选多行可一起分派；分派只改负责人，不推进阶段。`}
           actions={
             <SpaceBetween direction="horizontal" size="xs">
               <Select selectedOption={stageOptions.find((o) => o.value === stage) ?? stageOptions[0]} options={stageOptions} onChange={({ detail }) => setStage(detail.selectedOption.value ?? ALL)} ariaLabel="按阶段筛选" />
+              {canAssign && <Button disabled={!checkedVisible.length} iconName="user-profile" onClick={() => onAssign(checkedVisible)}>{checkedVisible.length ? `分派 ${checkedVisible.length} 项` : '分派任务'}</Button>}
             </SpaceBetween>
           }
         >
@@ -69,7 +75,7 @@ export default function TaskTable({ data, selectedId, onSelect, canAssign, onAss
           id: 'title', header: '任务', minWidth: 220,
           cell: (t) => (
             <div>
-              <div>{t.title}</div>
+              <div style={{ fontWeight: t.id === selectedId ? 700 : 400 }}>{t.title}</div>
               <Box variant="small" color="text-body-secondary">
                 {stage === ALL ? `${stageKeyLabel(meta?.stage_groups, t.stage_key, t.stage_short)} · ` : ''}{t.ws ?? ''}　<OwnerNames codes={t.owners} prefix="角色 " />
               </Box>
@@ -82,7 +88,7 @@ export default function TaskTable({ data, selectedId, onSelect, canAssign, onAss
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }} onClick={(e) => e.stopPropagation()}>
               <PersonAvatar user={t.assignee} size="small" />
               {canAssign && (
-                <Button variant="inline-link" iconName={t.assignee ? 'edit' : 'add-plus'} onClick={() => onAssign(t)} ariaLabel={`${t.assignee ? '改派' : '分派'}：${t.title}`}>
+                <Button variant="inline-link" iconName={t.assignee ? 'edit' : 'add-plus'} onClick={() => onAssign([t])} ariaLabel={`${t.assignee ? '改派' : '分派'}：${t.title}`}>
                   {t.assignee ? '改派' : '分派'}
                 </Button>
               )}
