@@ -8,6 +8,8 @@ import StatusIndicator from '@cloudscape-design/components/status-indicator';
 import Table from '@cloudscape-design/components/table';
 import TextFilter from '@cloudscape-design/components/text-filter';
 import type { Task, TaskList } from '../api/client';
+import { useMeta } from '../lib/meta';
+import { stageKeyLabel } from '../lib/stageGroups';
 import { dueText, statusIndicator } from '../lib/taskGroups';
 import { OwnerNames } from './OwnerTag';
 import PersonAvatar from './PersonAvatar';
@@ -23,12 +25,14 @@ const ALL = '__all__';
 export default function TaskTable({ data, selectedId, onSelect, canAssign, onAssign }: {
   data: TaskList; selectedId: number | null; onSelect: (t: Task) => void; canAssign: boolean; onAssign: (t: Task) => void;
 }) {
+  const meta = useMeta();
   const current = data.stages.find((s) => s.index === data.current_stage_index);
   const [stage, setStage] = useState<string>(current?.key ?? ALL);
   const [q, setQ] = useState('');
   const stageOptions = [
     { value: ALL, label: '全部阶段' },
-    ...data.stages.map((s) => ({ value: s.key, label: s.index === data.current_stage_index ? `当前阶段：${s.short}` : s.label })),
+    // 六段 key 翻成位置条的说法（买房 · 未购入 / escrow 中 / 装修 …），不硬编码六段名
+    ...data.stages.map((s) => { const l = stageKeyLabel(meta?.stage_groups, s.key, s.short); return { value: s.key, label: s.index === data.current_stage_index ? `当前：${l}` : l }; }),
   ];
   const rows = useMemo(() => data.tasks.filter((t) => (stage === ALL || t.stage_key === stage) && (!q || t.title.toLowerCase().includes(q.toLowerCase()) || (t.assignee?.display_name ?? '').includes(q))), [data.tasks, stage, q]);
   const selected = rows.filter((t) => t.id === selectedId);
@@ -67,7 +71,7 @@ export default function TaskTable({ data, selectedId, onSelect, canAssign, onAss
             <div>
               <div>{t.title}</div>
               <Box variant="small" color="text-body-secondary">
-                {stage === ALL ? `${t.stage_short} · ` : ''}{t.ws ?? ''}　<OwnerNames codes={t.owners} prefix="角色 " />
+                {stage === ALL ? `${stageKeyLabel(meta?.stage_groups, t.stage_key, t.stage_short)} · ` : ''}{t.ws ?? ''}　<OwnerNames codes={t.owners} prefix="角色 " />
               </Box>
             </div>
           ),

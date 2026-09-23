@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import Spinner from '@cloudscape-design/components/spinner';
 import AppLayout from '@cloudscape-design/components/app-layout';
 import Autosuggest from '@cloudscape-design/components/autosuggest';
@@ -8,7 +8,6 @@ import SideNavigation from '@cloudscape-design/components/side-navigation';
 import Flashbar, { FlashbarProps } from '@cloudscape-design/components/flashbar';
 import Dashboard from './pages/Dashboard';
 import MyTodo from './pages/MyTodo';
-import Leads from './pages/Leads';
 import Login from './pages/Login';
 import Users from './pages/Users';
 import AddProject from './pages/AddProject';
@@ -78,7 +77,7 @@ export default function App() {
     id: `g-${t}`, text: (meta?.tiers?.[t] ?? TIER_FALLBACK[t]).label,
     items: (meta?.roles ?? []).filter((r) => r.tier === t).map((r) => ({ id: r.code, text: r.label, description: r.duties || undefined })),
   })).filter((g) => g.items.length);
-  const activeHref = location.pathname === '/projects/new' ? '/projects/new' : location.pathname.startsWith('/projects') ? '/projects' : location.pathname.startsWith('/leads') ? '/leads' : location.pathname.startsWith('/users') ? '/users' : '/';
+  const activeHref = location.pathname === '/projects/new' ? '/projects/new' : location.pathname.startsWith('/projects') ? '/projects' : location.pathname.startsWith('/users') ? '/users' : '/';
 
   if (demoMode === null) {
     return <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}><Spinner size="large" /></div>;
@@ -194,7 +193,6 @@ export default function App() {
             onFollow={(e) => { if (!e.detail.external) { e.preventDefault(); navigate(e.detail.href); } }}
             items={[
               { type: 'link', text: '工作台', href: '/' },
-              ...(canDo('leads') ? [{ type: 'link' as const, text: '线索', href: '/leads' }] : []),
               ...(canDo('read_money') ? [{ type: 'link' as const, text: '项目', href: '/projects' }] : []),
               { type: 'link', text: '我的事项', href: '/todo' },
               ...(canDo('create_project') ? [{ type: 'link' as const, text: '新建项目', href: '/projects/new' }] : []),
@@ -206,7 +204,8 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/todo" element={<MyTodo />} />
-            <Route path="/leads" element={canDo('leads') ? <Leads /> : <MyTodo />} />
+            {/* KAN-75 块 2：独立线索入口并入买房管理。旧链接 /leads 跳到项目列表的「买房 · 未购入」筛选；s1 段、档位、热度都还在。 */}
+            <Route path="/leads" element={<Navigate to="/projects?group=buying&sub=pre" replace />} />
             <Route path="/projects" element={canDo('read_money') ? <Dashboard listOnly /> : <MyTodo />} />
             <Route path="/projects/new" element={<AddProject />} />
             <Route path="/projects/:id" element={<ProjectPage />} />

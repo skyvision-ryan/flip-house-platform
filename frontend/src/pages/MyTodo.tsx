@@ -24,6 +24,8 @@ import { useActor } from '../lib/actor';
 import { dateTime } from '../lib/format';
 import { useFlash } from '../lib/flash';
 import { useRole } from '../lib/role';
+import { useMeta } from '../lib/meta';
+import { stageKeyLabel } from '../lib/stageGroups';
 import { GROUP_LABEL, MyGroupKey, dueText, groupMyTasks, statusActions, statusIndicator } from '../lib/taskGroups';
 
 /**
@@ -36,6 +38,7 @@ export default function MyTodo() {
   const navigate = useNavigate();
   const flash = useFlash();
   const role = useRole();
+  const meta = useMeta();
   const { me } = useActor();
   const [data, setData] = useState<MyTasks | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -87,7 +90,7 @@ export default function MyTodo() {
             >
               <div style={{ minWidth: 0 }}>
                 <Box fontWeight="bold">{t.title}</Box>
-                <Box variant="small" color="text-body-secondary">{t.project_name} · {t.stage_short}{key === 'later' ? ' · 项目还没走到这一段' : ''}</Box>
+                <Box variant="small" color="text-body-secondary">{t.project_name} · {stageKeyLabel(meta?.stage_groups, t.stage_key, t.stage_short)}{key === 'later' ? ' · 项目还没走到这一段' : ''}</Box>
               </div>
               <div style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                 <div><StatusIndicator type={statusIndicator(t.exec_status)}>{t.exec_status_label}</StatusIndicator></div>
@@ -110,7 +113,7 @@ export default function MyTodo() {
             { label: '截止日期', value: selected.due_at ? dueText(selected.due_at) : <Box color="text-body-secondary">未设定</Box> },
             { label: '负责人', value: <PersonAvatar user={selected.assignee} /> },
             { label: '审核人', value: selected.reviewer ? <PersonAvatar user={selected.reviewer} /> : '—' },
-            { label: '所属阶段', value: `${selected.stage_label}${selected.stage_index > selected.project_current_stage_index ? '（项目现在在 ' + selected.project_current_stage_label + '，可提前准备）' : ''}` },
+            { label: '所属位置', value: `${stageKeyLabel(meta?.stage_groups, selected.stage_key, selected.stage_label)}${selected.stage_index > selected.project_current_stage_index ? '（项目还没走到这里，可提前准备）' : ''}` },
             { label: '证据判定', value: selected.satisfied ? <StatusIndicator type="success">已满足</StatusIndicator> : <Box color="text-body-secondary">未满足</Box> },
           ]}
         />

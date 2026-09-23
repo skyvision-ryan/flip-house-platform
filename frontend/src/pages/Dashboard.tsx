@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useCollection } from '@cloudscape-design/collection-hooks';
 import Board, { BoardProps } from '@cloudscape-design/board-components/board';
 import BoardItem from '@cloudscape-design/board-components/board-item';
@@ -33,6 +33,8 @@ import { dateStr, money, pct } from '../lib/format';
 import { Insight, loadInsights } from '../lib/insights';
 import { useMeta } from '../lib/meta';
 import { isLead } from '../lib/leads';
+import LeadGroups from '../components/LeadGroups';
+import { filterFromParams, groupFilterOptions, matchesGroupFilter } from '../lib/stageGroups';
 import { stageText } from '../lib/stepDisplay';
 
 type WidgetId = 'attention' | 'money' | 'stages' | 'recent' | 'list' | 'upcoming' | 'capital' | 'retro' | 'weekly' | 'vendors' | 'funnel' | 'updates' | 'turns'
@@ -51,7 +53,7 @@ const WIDGETS: Record<WidgetId, ItemData & { cols: number; rows: number }> = {
   retro: { title: '估算准不准（已完成项目）', tag: 'I', cols: 4, rows: 3 },
   weekly: { title: '近 12 周支出', tag: 'J', cols: 2, rows: 4 },
   vendors: { title: '供应商支出前五', tag: 'K', cols: 2, rows: 4 },
-  funnel: { title: '线索漏斗', tag: 'L', cols: 1, rows: 4 },
+  funnel: { title: '未购入房子的跟进档位', tag: 'L', cols: 1, rows: 4 },
   updates: { title: '谁更新了什么', tag: 'M', cols: 2, rows: 4 },
   turns: { title: '每套房轮到谁', tag: 'N', cols: 4, rows: 7 },
   gates: { title: '待我确认的门', tag: 'O', cols: 2, rows: 4 },
@@ -130,7 +132,11 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
   const [updates, setUpdates] = useState<Update[]>([]);
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<ReadonlyArray<Item>>(() => loadLayout(role.actor, defaults));
-  const [stage, setStage] = useState<{ label: string; value: string }>({ label: '全部阶段', value: '' });
+  // KAN-75 块 2：列表按「位置」筛（买房 · 未购入 / escrow 中 / 装修 …），从 URL ?group=&sub= 取初值；
+  // 旧的 /leads 入口就跳到 ?group=buying&sub=pre。工作台（非 listOnly）默认不列未购入的房。
+  const [params, setParams] = useSearchParams();
+  const groupFilter = filterFromParams(params.get('group'), params.get('sub'));
+  const setGroupFilter = (v: string) => setParams((prev) => { const n = new URLSearchParams(prev); if (!v) { n.delete('group'); n.delete('sub'); } else { const [g, sub] = v.split(':'); n.set('group', g); if (sub) n.set('sub', sub); else n.delete('sub'); } return n; }, { replace: true });
 
   const reloadRole = async () => { setRoleData(await api.dashboardRole().catch(() => null)); };
   useEffect(() => {
@@ -142,11 +148,12 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [role.actor, meta]);
 
-  // KAN-50：线索有自己的入口（/leads），项目列表只留在建与已完成。
+  // 工作台默认不列「买房 · 未购入」的房子（没买的房不是项目）；要看它们用位置筛选，或从旧 /leads 链接跳过来。
   // **只在这里筛，不动 projects state**——下面的 recent、active、热线索计数和 loadInsights 都直接读它。
-  // 判据走 lib/leads 的 isLead，和线索页是同一个函数，两边不会口径打架。
+  // 判据走 lib/leads 的 isLead（current_stage 停在 s1），和分组视图是同一个函数。
   const notLead = useMemo(() => projects.filter((p) => !isLead(p)), [projects]);
-  const filtered = useMemo(() => (stage.value ? notLead.filter((p) => p.stage === stage.value) : notLead), [notLead, stage]);
+  const showLeadGroups = groupFilter === 'buying:pre';
+  const filtered = useMemo(() => (groupFilter ? projects.filter((p) => matchesGroupFilter(p.group_position, groupFilter)) : notLead), [projects, notLead, groupFilter]);
   const { items: rows, collectionProps, filterProps, paginationProps } = useCollection(filtered, {
     filtering: {
       filteringFunction: (item, s) => { const t = s.toLowerCase(); return item.name.toLowerCase().includes(t) || item.property.address_std.toLowerCase().includes(t); },
@@ -158,8 +165,8 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
   });
 
   const recent = [...projects].sort((a, b) => (a.updated_at < b.updated_at ? 1 : -1)).slice(0, 3);
-  // 线索归 /leads，这里不再提供该选项，免得选了得到一张空表。
-  const stageOptions = [{ label: '全部阶段', value: '' }, ...(meta?.stages ?? []).filter((s) => s.value !== 'lead')];
+  const groupOptions = groupFilterOptions(meta?.stage_groups);
+  const groupSelected = groupOptions.find((o) => o.value === groupFilter) ?? groupOptions[0];
   const active = projects.filter((p) => p.stage === 'active');
   const go = (href: string) => navigate(href);
   const projLink = (id: number, name: string) => <Link href={`/projects/${id}`} onFollow={(e) => { e.preventDefault(); go(`/projects/${id}`); }}>{name}</Link>;
@@ -190,7 +197,18 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
     { id: 'updated', header: '更新', sortingField: 'updated_at', cell: (p: Project) => dateStr(p.updated_at) },
   ];
 
-  const table = (
+  const groupSelect = <Select selectedOption={groupSelected} options={groupOptions} onChange={({ detail }) => setGroupFilter(detail.selectedOption.value ?? '')} ariaLabel="按位置筛选" />;
+  const onLeadPatched = (updated: Project) => setProjects((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+  // KAN-75 块 2：筛到「买房 · 未购入」时按跟进档位分组（原线索页的形态，复用 LeadGroups）；其余位置用表。
+  const leadView = (
+    <SpaceBetween size="m">
+      <Header variant="h2" counter={`(${filtered.length})`} description="还没确认 Open escrow 的房子，按跟进档位分组；确认后它会进入「买房 · escrow 中」。" actions={<SpaceBetween direction="horizontal" size="xs">{groupSelect}{listOnly && role.can('create_project') && <Button variant="primary" onClick={() => go('/projects/new')}>新建项目</Button>}</SpaceBetween>}>买房 · 未购入</Header>
+      <LeadGroups projects={loading ? null : filtered} meta={meta} canEdit={role.can('edit_project')} onPatched={onLeadPatched} />
+      <Box variant="small" color="text-body-secondary">挂牌价与自动估值是参考数据，不是可成交价格；「待办参考」按清单顺序取，显示的是负责角色不是具体的人。</Box>
+    </SpaceBetween>
+  );
+
+  const table = showLeadGroups ? leadView : (
     <Table
       {...collectionProps}
       items={rows}
@@ -203,7 +221,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
       filter={
         <SpaceBetween direction="horizontal" size="xs">
           <TextFilter {...filterProps} filteringPlaceholder="按项目名或地址查找" countText={`${rows.length} 个匹配`} />
-          <Select selectedOption={stage} options={stageOptions} onChange={({ detail }) => setStage(detail.selectedOption as any)} />
+          {groupSelect}
         </SpaceBetween>
       }
       pagination={<Pagination {...paginationProps} />}
@@ -266,7 +284,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
             /* KAN-63：三段是同一条流水线的前后阶段，属有序数据，用蓝色阶而不是分类色
                （原先默认取 SERIES 前三位，里面有品红和青）。StackedBar 本体不动，只在这里传色。 */
             segments={[
-              { label: '线索', value: summary?.leads ?? 0, color: ORDINAL_BLUE[1] },
+              { label: '未购入', value: summary?.leads ?? 0, color: ORDINAL_BLUE[1] },
               { label: '在建', value: summary?.active ?? 0, color: ORDINAL_BLUE[3] },
               { label: '已完成', value: summary?.portfolio ?? 0, color: ORDINAL_BLUE[5] },
             ]}
@@ -322,7 +340,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
                   return (
                     <SpaceBetween size="xxs">
                       <Box variant="small" color="text-body-secondary">{p.property.address_std}</Box>
-                      <Box fontSize="body-s">{cur ? `${cur.label} · 这段做了 ${cur.done}/${cur.total}` : p.current_stage?.label}<Box variant="span" color="text-body-secondary">　大节点过了 {p.stage_progress.filter((s) => s.gate_done).length}/5</Box></Box>
+                      <Box fontSize="body-s">{cur ? `${cur.label} · 这段做了 ${cur.done}/${cur.total}` : p.current_stage?.label}<Box variant="span" color="text-body-secondary">　大节点过了 {p.stage_progress.filter((s) => s.gate_done).length}/{p.stage_progress.length}</Box></Box>
                     </SpaceBetween>
                   );
                 } },
@@ -531,7 +549,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
         const b = roleData?.boss;
         return b ? (
           <ColumnLayout columns={5} variant="text-grid">
-            <StatTile label="在手" value={`${b.active + b.leads}`} sub={`${b.active} 在建 · ${b.leads} 线索`} />
+            <StatTile label="在手" value={`${b.active + b.leads}`} sub={`${b.active} 在建 · ${b.leads} 未购入`} />
             <StatTile label="总投入" value={compactMoney(b.total_invested)} sub="在建买入价 + 已支出" />
             <StatTile label="预计利润" value={compactMoney(b.expected_profit)} sub={incompleteNote(b.profit_incomplete_count) ?? '在建'} />
             <StatTile label="已实现利润" value={compactMoney(b.realized_profit)} sub={`${b.portfolio} 套已售`} />
@@ -543,7 +561,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
         const fs = widgets?.funnel ?? [];
         return fs.length ? (
           <HBars rows={fs.map((r) => ({ key: r.substage, label: r.label, values: [r.count] }))} ordinal format={(n) => `${n} 条`} labelWidth={72} />
-        ) : empty('没有线索');
+        ) : empty('没有未购入的房子');
       }
     }
   };
@@ -556,7 +574,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
   const urgent = new Set(insights.filter((i) => i.level !== 'info').map((i) => i.projectId)).size;
   const pageDescription = [
     urgent ? `今天有 ${urgent} 套需要处理。` : null,
-    `在建 ${summary?.active ?? '—'} 套，线索 ${summary?.leads ?? '—'} 条，已完成 ${summary?.portfolio ?? '—'} 套。`,
+    `在建 ${summary?.active ?? '—'} 套，未购入 ${summary?.leads ?? '—'} 套，收尾 ${summary?.portfolio ?? '—'} 套。`,
   ].filter(Boolean).join('');
 
   return (
@@ -584,12 +602,12 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
         {/* 四个数字直接跟在页头下面。原先套一层叫「今日概览」的 Container，
             等于给四个数字单独起了个栏目名——控制台里这层壳没有意义。 */}
         <ColumnLayout columns={4} minColumnWidth={120} variant="text-grid">
-              <Stat label="线索" value={String(summary?.leads ?? '—')} sub={`${projects.filter((p) => p.lead_heat === 'hot_lead').length} 条热线索`} />
+              <Stat label="买房 · 未购入" value={String(summary?.leads ?? '—')} sub={`${projects.filter((p) => isLead(p) && p.lead_heat === 'hot_lead').length} 套热线索`} />
               <Stat label="在建" value={String(summary?.active ?? '—')} sub={summary?.money_hidden ? '正在施工或挂牌' : `${summary?.over_budget_count ?? 0} 个超预算`} />
               {summary?.money_hidden ? (
                 <>
                   <Stat label="轮到我" value={String(roleData?.my_todo?.length ?? '—')} sub={`${roleData?.my_todo?.filter((r) => r.is_current).length ?? 0} 件是现在这段的`} />
-                  <Stat label="已完成" value={String(summary?.portfolio ?? '—')} sub="已售出的房子" />
+                  <Stat label="售出收尾" value={String(summary?.portfolio ?? '—')} sub="已交割、在收尾或已走完" />
                 </>
               ) : (
                 <>
@@ -600,24 +618,26 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
         </ColumnLayout>
 
         {/* 项目表固定渲染，不再是看板的一项：没有拖动手柄、没有关闭按钮。 */}
-        <Table
-          {...collectionProps}
-          items={rows}
-          loading={loading}
-          loadingText="加载中"
-          variant="container"
-          resizableColumns
-          onRowClick={({ detail }) => go(`/projects/${detail.item.id}`)}
-          header={<Header variant="h2" counter={`(${filtered.length})`}>全部项目</Header>}
-          filter={
-            <SpaceBetween direction="horizontal" size="xs">
-              <TextFilter {...filterProps} filteringPlaceholder="按项目名或地址查找" countText={`${rows.length} 个匹配`} />
-              <Select selectedOption={stage} options={stageOptions} onChange={({ detail }) => setStage(detail.selectedOption as any)} />
-            </SpaceBetween>
-          }
-          pagination={<Pagination {...paginationProps} />}
-          columnDefinitions={projectColumns}
-        />
+        {showLeadGroups ? leadView : (
+          <Table
+            {...collectionProps}
+            items={rows}
+            loading={loading}
+            loadingText="加载中"
+            variant="container"
+            resizableColumns
+            onRowClick={({ detail }) => go(`/projects/${detail.item.id}`)}
+            header={<Header variant="h2" counter={`(${filtered.length})`}>全部项目</Header>}
+            filter={
+              <SpaceBetween direction="horizontal" size="xs">
+                <TextFilter {...filterProps} filteringPlaceholder="按项目名或地址查找" countText={`${rows.length} 个匹配`} />
+                {groupSelect}
+              </SpaceBetween>
+            }
+            pagination={<Pagination {...paginationProps} />}
+            columnDefinitions={projectColumns}
+          />
+        )}
 
         {items.length > 0 && <Board
           items={items}

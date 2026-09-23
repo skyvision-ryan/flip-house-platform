@@ -12,6 +12,8 @@ import StatusIndicator from '@cloudscape-design/components/status-indicator';
 import { api, Project, Task } from '../api/client';
 import { dateTime } from '../lib/format';
 import { useFlash } from '../lib/flash';
+import { useMeta } from '../lib/meta';
+import { stageKeyLabel } from '../lib/stageGroups';
 import { dueText, statusIndicator } from '../lib/taskGroups';
 import { OwnerDot } from './OwnerTag';
 import PersonAvatar from './PersonAvatar';
@@ -26,6 +28,7 @@ export default function TaskSummaryPanel({ task, project, canAssign, onAssign, o
   task: Task | null; project: Project; canAssign: boolean; onAssign: (t: Task) => void; onChanged: (t: Task) => void; onGotoGates: () => void; refreshKey: number;
 }) {
   const flash = useFlash();
+  const meta = useMeta();
   const [editDue, setEditDue] = useState(false);
   const [due, setDue] = useState('');
   const [saving, setSaving] = useState(false);
@@ -52,7 +55,7 @@ export default function TaskSummaryPanel({ task, project, canAssign, onAssign, o
             <KeyValuePairs
               columns={1}
               items={[
-                { label: '任务', value: <div><Box fontWeight="bold">{task.title}</Box><Box variant="small" color="text-body-secondary">{task.stage_label}{task.ws ? ` · ${task.ws}` : ''}</Box></div> },
+                { label: '任务', value: <div><Box fontWeight="bold">{task.title}</Box><Box variant="small" color="text-body-secondary">{stageKeyLabel(meta?.stage_groups, task.stage_key, task.stage_label)}{task.ws ? ` · ${task.ws}` : ''}</Box></div> },
                 { label: '状态', value: <div><StatusIndicator type={statusIndicator(task.exec_status)}>{task.exec_status_label}</StatusIndicator>{task.exec_status === 'waiting' && <Box variant="small" color="text-body-secondary">等 {task.wait_for || '—'}：{task.wait_reason}{task.wait_until ? `（预计 ${dueText(task.wait_until)}）` : ''}</Box>}</div> },
                 { label: '主要负责人', value: <PersonAvatar user={task.assignee} /> },
                 { label: '审核人', value: task.reviewer ? <PersonAvatar user={task.reviewer} /> : <Box color="text-body-secondary">分派时默认为分派的人</Box> },

@@ -27,6 +27,16 @@ export interface Meta {
   procurement_statuses: Option[];
   task_exec_statuses?: (Option & { kind: string })[];
   task_event_kinds?: Record<string, string>;
+  /** KAN-75 块 2：五格展示分组；底层仍是 s1…s6 */
+  stage_groups?: StageGroup[];
+}
+export interface StageGroup { key: string; label: string; stages: string[]; subs: { key: string; label: string; stage: string }[] }
+export interface GroupPosition {
+  group_key: string; group_label: string; group_index: number; group_count: number;
+  sub_key: string | null; sub_label: string | null;
+  lead_substage: string | null; lead_substage_label: string | null;
+  frozen_substage: string | null; frozen_substage_label: string | null;
+  label: string; complete: boolean;
 }
 
 export interface Deliverable { kind: 'file' | 'photo' | 'field' | 'record' | 'confirm' | 'tick'; label: string; doc_type?: string | null; field?: string | null; record?: string | null }
@@ -87,6 +97,7 @@ export interface Project {
   budget_planned: number | null; budget_spent: number | null; budget_used_pct: number | null; money_hidden: boolean; missing_fields: string[]; analysis_count: number;
   current_stage: { key: string; label: string } | null; next_up: { key: string; title: string; owners: string[]; gate: boolean }[];
   stage_progress: StageProgress[]; earlier_undone_count: number;
+  group_position?: GroupPosition | null; lead_substage_at_escrow?: string | null;
 }
 
 export interface SourceRec {

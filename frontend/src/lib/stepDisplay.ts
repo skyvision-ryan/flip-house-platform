@@ -142,12 +142,25 @@ export function contextNotes(steps: Steps, stageKey: string): string[] {
  * 拿不到 `current_stage` 时回落到旧字段——那是接口没返回的异常情况，
  * 显示旧值也好过显示空白，但**不是正常路径**。
  */
+export interface GroupPositionLike {
+  group_label: string; label: string; sub_key: string | null; lead_substage_label: string | null; frozen_substage_label: string | null; complete: boolean;
+}
+
 export function stageText(
-  p: { stage: string; substage: string | null; current_stage: { key: string; label: string } | null },
+  p: { stage: string; substage: string | null; current_stage: { key: string; label: string } | null; group_position?: GroupPositionLike | null },
   meta: { stages: { value: string; label: string }[]; substages: Record<string, { value: string; label: string }[]> } | null | undefined,
 ): string {
   const sub = (v: string | null) =>
     (meta?.substages?.[p.stage] ?? []).find((s) => s.value === v)?.label ?? v ?? '';
+
+  // KAN-75 块 2：后端给了分组位置就按五格说——「买房 · 未购入 · 已出价」「买房 · escrow 中」「装修」。
+  // 底层 s1…s6 仍在 current_stage 里，只是不再直接当标题。
+  if (p.group_position) {
+    const gp = p.group_position;
+    if (gp.complete) return `${gp.group_label} · 已走完`;
+    if (gp.sub_key === 'pre') return gp.lead_substage_label ? `${gp.label} · ${gp.lead_substage_label}` : gp.label;
+    return gp.label;
+  }
 
   if (!p.current_stage) {
     // 兜底：接口没给 current_stage。用旧字段，行为与改动前一致。

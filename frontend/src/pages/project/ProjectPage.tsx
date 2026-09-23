@@ -15,6 +15,7 @@ import Tabs from '@cloudscape-design/components/tabs';
 import StatusBadge from '../../components/StatusBadge';
 import KeyValuePairs from '@cloudscape-design/components/key-value-pairs';
 import CoverImage from '../../components/CoverImage';
+import StagePositionBar from '../../components/StagePositionBar';
 import ReviewTag from '../../components/ReviewTag';
 import { api, Project } from '../../api/client';
 import { useFlash } from '../../lib/flash';
@@ -167,6 +168,8 @@ export default function ProjectPage() {
               {/* 第二组字段：钱和日期。原先是「交易」「时间」两栏大字，
                   每栏两句话，还和总览的工期条重复报同一件事。 */}
               <KeyValuePairs columns={4} items={[...dealFields(project), { label: '关键日期', value: keyDates(project) }]} />
+              {/* KAN-75 块 2：五格位置条。买房格里写未购入 / escrow 中；位置只由关键节点推进。 */}
+              <StagePositionBar position={project.group_position} />
             </SpaceBetween>
           </Grid>
         </Container>
