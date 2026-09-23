@@ -5,14 +5,12 @@ description: "验收、提交并把当前执行单送入评审"
 
 # source-command-jira-finish
 
-Use this skill when the user asks to run the migrated source command `jira-finish`.
+Use this skill when the user asks to run the source command `jira-finish`.
 
-## Command Template
+这是薄入口，不复制流程。执行时：
 
-从当前 Git 分支解析 KAN-编号，并读取 Jira 验收标准。
+1. 读取并按 `.claude/commands/jira/finish.md` 的步骤执行（相对仓库根目录）。
+2. 规则来源是 `docs/仓库与协作约定.md`「执行单边界与需求变更」一节：提 PR 前做范围核对，没有依据的改动标「待确认」。
+3. PR 正文模板是 `.claude/templates/pr-body.md`（含范围核对表与本票关闭 / 后续集成两张验收表）。
 
-1. 逐条运行可执行证据；记录实际命令、关键输出和未验证项。设备或云环境没有实测时必须标明。
-2. 运行相关测试，业务代码默认执行 `python3 scripts/check_local.py`。检查 `git diff --check` 和改动范围。
-3. 只暂存本票文件，禁止 `git add -A` 混入他人内容。提交标题以当前 KAN-编号开头。
-4. 使用 .Codex/templates/pr-body.md 创建 PR，显式指定 `skyvision-ryan/flip-house-platform`。
-5. PR 创建成功后转 In Review，并将 PR、逐条证据与未验证项评论到 Jira。默认不自行合入 main；合入且票内验收完成后才转 Done。
+以上路径若不存在，停止并报告，不凭记忆复述旧流程。

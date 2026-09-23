@@ -3,10 +3,13 @@ description: 验收、提交并把当前执行单送入评审
 argument-hint: 无参数
 ---
 
-从当前 Git 分支解析 KAN-编号，并读取 Jira 验收标准。
+规则来源：docs/仓库与协作约定.md「执行单边界与需求变更」。
 
-1. 逐条运行可执行证据；记录实际命令、关键输出和未验证项。设备或云环境没有实测时必须标明。
-2. 运行相关测试，业务代码默认执行 `python3 scripts/check_local.py`。检查 `git diff --check` 和改动范围。
-3. 只暂存本票文件，禁止 `git add -A` 混入他人内容。提交标题以当前 KAN-编号开头。
-4. 使用 .claude/templates/pr-body.md 创建 PR，显式指定 `skyvision-ryan/flip-house-platform`。
-5. PR 创建成功后转 In Review，并将 PR、逐条证据与未验证项评论到 Jira。默认不自行合入 main；合入且票内验收完成后才转 Done。
+从当前 Git 分支解析 KAN-编号，并读取 Jira 的当前范围基线与验收标准。
+
+1. **范围核对**：把实际 diff 与已批准范围按有意义的业务行为或交付项对照（不逐文件），每项写依据（票面哪一条 / 哪条评论 / 哪天的用户指令）。没有依据的标「待确认」，在 PR 里提问；不写「顺手修了」「按同一规则延伸」。范围因用户决定变过的，先同步票面正文与变更记录。
+2. 逐条运行本票关闭验收的可执行证据；记录实际命令、关键输出和未验证项。设备或云环境没有实测时标明，并写清归哪张票或里程碑做后续集成验证。
+3. 运行相关测试，业务代码默认执行 `python3 scripts/check_local.py`。检查 `git diff --check` 和改动范围。
+4. 只暂存本票文件，禁止 `git add -A` 混入他人内容。提交标题以当前 KAN-编号开头。
+5. 使用 .claude/templates/pr-body.md 创建 PR（含范围核对表），显式指定 `skyvision-ryan/flip-house-platform`。
+6. PR 创建成功后转 In Review，并把 PR、范围核对结果、逐条证据与未验证项评论到 Jira。默认不自行合入 main；合入且票内验收完成后才转 Done。

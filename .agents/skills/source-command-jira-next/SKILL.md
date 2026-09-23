@@ -5,12 +5,12 @@ description: "从 Jira 选择下一张可执行单并开始工作"
 
 # source-command-jira-next
 
-Use this skill when the user asks to run the migrated source command `jira-next`.
+Use this skill when the user asks to run the source command `jira-next`.
 
-## Command Template
+这是薄入口，不复制流程。执行时：
 
-1. 读取 Jira 中 KAN-35/36/37 下未完成的故事/任务，跳过未完成阻塞、In Review 和他人正在处理的票。
-2. 用户当前明确指定优先；否则按 docs/Jira执行清单_2026-09-15.md 的交付链、截止日期，再按 backlog rank 选择。Jira 实际状态优先于文档快照。
-3. 核对最小开工条件：目标、范围、可验证结果、真实依赖。能从代码和现行文档补清的直接补；只有缺少会改变实现的业务决定时才询问。
-4. 检查工作区，保留未提交内容。从最新可用 main 创建 KAN-编号分支；把票转 In Progress，并评论分支与简短实施范围。
-5. 实施并验证，不等待重复确认。Epic 只保存整体目标，不直接当开发单。
+1. 读取并按 `.claude/commands/jira/next.md` 的步骤执行（相对仓库根目录）。
+2. 规则来源是 `docs/仓库与协作约定.md`「执行单边界与需求变更」一节：开工前写范围基线、实施中按四类分类、影响范围/行为/迁移/权限/验收/成本/排期的先问用户。
+3. 票面模板 `.claude/templates/ticket-story.md`、缺陷模板 `.claude/templates/ticket-bug.md`。
+
+以上路径若不存在，停止并报告，不凭记忆复述旧流程。

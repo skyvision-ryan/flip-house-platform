@@ -127,6 +127,53 @@ class RealWorldRegressionTest(unittest.TestCase):
         self.assertEqual(jmd.decide("| 全绿 | ✅ |", "审查中")["target"], jmd.STATUS_DONE)
 
 
+class NewTemplateSectionsTest(unittest.TestCase):
+    """2026-09-22 新 PR 模板：本票关闭验收 / 后续集成验证 / 范围核对 三节分开判。
+
+    实测过的坑（Ryan 09-22）：同一个「真机」项，只写归属就判 Done、加个「未验证」就留审查中；
+    范围表写「待确认」也拦不住 Done。规则要跟模板一起改。
+    """
+
+    BODY = (
+        "## 改动\n- 一些改动\n\n"
+        "## 范围核对\n| 改动 | 依据 |\n|---|---|\n| 去预填 | 票面第 1 项 |\n\n"
+        "## 本票关闭验收\n| 标准 | 结果 | 证据 |\n|---|---|---|\n| 六步全绿 | ✅ | check_local |\n\n"
+        "## 后续集成验证\n| 项 | 归属 |\n|---|---|\n| 真机 iPhone | KAN-34，未验证 |\n"
+    )
+
+    def test_followup_section_does_not_block_done(self):
+        """后续集成表里的「未验证」是归属声明，不是本票失败。"""
+        self.assertEqual(jmd.unverified_markers(self.BODY), [])
+        self.assertEqual(jmd.decide(self.BODY, "审查中")["target"], jmd.STATUS_DONE)
+
+    def test_closing_section_unverified_stops_at_review(self):
+        body = self.BODY.replace("| 六步全绿 | ✅ | check_local |", "| 六步全绿 | ✅ | check_local |\n| 换地址复验 | 未验证 | 浏览器没跑 |")
+        d = jmd.decide(body, "正在进行")
+        self.assertEqual(d["target"], jmd.STATUS_REVIEW)
+        self.assertEqual(d["markers"], ["未验证"])
+
+    def test_scope_pending_stops_at_review_even_when_acceptance_clean(self):
+        body = self.BODY.replace("| 去预填 | 票面第 1 项 |", "| 去预填 | 票面第 1 项 |\n| 实际利润口径 | 待确认 |")
+        d = jmd.decide(body, "正在进行")
+        self.assertEqual(d["target"], jmd.STATUS_REVIEW)
+        self.assertEqual(d["scope_pending"], ["待确认"])
+        self.assertIn("范围核对", d["reason"])
+
+    def test_pending_word_outside_scope_table_is_ignored(self):
+        """「待确认」出现在验收表或散文里不算范围问题。"""
+        body = self.BODY.replace("| 六步全绿 | ✅ | check_local |", "| 六步全绿 | ✅ | 待确认的口径见评论 |")
+        self.assertEqual(jmd.scope_pending(body), [])
+
+    def test_heading_prefix_and_level_are_tolerated(self):
+        body = self.BODY.replace("## 本票关闭验收", "### 本票关闭验收（演示身份）")
+        self.assertEqual(jmd.section(body, jmd.SECTION_CLOSING).strip().splitlines()[0], "| 标准 | 结果 | 证据 |")
+
+    def test_old_template_falls_back_to_all_tables(self):
+        old = "## 验收\n| 五步 | ✅ | ok |\n\n## 未验证\n| 真机 | 未验证 | - |\n"
+        self.assertEqual(jmd.unverified_markers(old), ["未验证"])
+        self.assertEqual(jmd.decide(old, "正在进行")["target"], jmd.STATUS_REVIEW)
+
+
 class PickTransitionTest(unittest.TestCase):
     TRANSITIONS = [
         {"id": "11", "to": {"name": "待办"}},
