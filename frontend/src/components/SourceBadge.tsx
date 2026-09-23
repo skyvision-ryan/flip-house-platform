@@ -2,14 +2,18 @@ import Badge from '@cloudscape-design/components/badge';
 import Popover from '@cloudscape-design/components/popover';
 import KeyValuePairs from '@cloudscape-design/components/key-value-pairs';
 import { dateTime, pct } from '../lib/format';
+import { useMeta } from '../lib/meta';
+import { sourceLabel } from '../lib/sources';
 
-const LABEL: Record<string, string> = { manual: '人工', public_record: '公共记录', lark: 'Lark', model: '估算', ai: 'AI' };
+// KAN-71：标签走 lib/sources 的三级回退（后端词表 → 内置表 → 原值），这里不再自己维护一张表。
 // 审计 #A13：原先 manual=green、public_record=blue、model/ai=severity-low/medium，
 // 拿状态色和严重度令牌表「数据来源」。来源是分类信息不是状态，一律中性；
 // 来源差异靠 LABEL 的文字和下面的 Popover 说清楚。
 
 export default function SourceBadge({ source, fetchedAt, confidence, note }: { source: string; fetchedAt?: string; confidence?: number | null; note?: string | null }) {
-  const badge = <Badge color="grey">{LABEL[source] ?? source}</Badge>;
+  const meta = useMeta();
+  const label = sourceLabel(source, meta?.sources);
+  const badge = <Badge color="grey">{label}</Badge>;
   if (!fetchedAt && confidence == null && !note) return badge;
   return (
     <Popover
@@ -21,7 +25,7 @@ export default function SourceBadge({ source, fetchedAt, confidence, note }: { s
         <KeyValuePairs
           columns={1}
           items={[
-            { label: '来源', value: LABEL[source] ?? source },
+            { label: '来源', value: label },
             { label: '获取时间', value: dateTime(fetchedAt) },
             { label: '把握度', value: confidence == null ? '—' : pct(confidence * 100, 0) },
             ...(note ? [{ label: '备注', value: note }] : []),

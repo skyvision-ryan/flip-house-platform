@@ -100,8 +100,8 @@ function LeadRow({ p, meta, canEdit, onPatched }: {
 
           {/* 两个金额并排很容易被读成「低买高卖的价差」，所以各自写全名、标清是参考数据。 */}
           <Box fontSize="body-s">
-            挂牌价 {money(p.property.list_price) || '未提供'}
-            <Box variant="span" color="text-body-secondary">　·　自动估值 {money(p.property.avm_value) || '未提供'}</Box>
+            挂牌价 {p.property.list_price == null ? '未提供' : money(p.property.list_price)}
+            <Box variant="span" color="text-body-secondary">　·　自动估值 {p.property.avm_value == null ? '未提供' : money(p.property.avm_value)}</Box>
           </Box>
 
           {/* 「待办参考」不是「轮到谁」：next_up 按模板顺序取，判定看证据规则，

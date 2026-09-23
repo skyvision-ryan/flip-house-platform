@@ -79,6 +79,10 @@ SOURCES = [
     {"value": "lark", "label": "Lark 迁入"},
     {"value": "model", "label": "模型估算"},
     {"value": "ai", "label": "AI 判断"},
+    # KAN-71：模拟数据源必须有自己的取值，不能冒充公共记录。
+    {"value": "demo", "label": "演示数据"},
+    # 历史迁移里来源无法确认的行用这一档，不重新猜一个来源。
+    {"value": "unverified", "label": "待核实"},
 ]
 
 # 房产字段：字段名 → 中文标签、类型

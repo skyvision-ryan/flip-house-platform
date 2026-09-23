@@ -150,6 +150,8 @@ export interface DashboardWidgets {
 
 export interface DashboardSummary {
   leads: number; active: number; portfolio: number; total: number; total_invested: number | null; total_budget: number | null; expected_profit: number | null; over_budget_count: number | null; money_hidden: boolean;
+  /** KAN-71：买入价或目标售价缺一项、没算进预计利润的在建项目数。 */
+  profit_incomplete_count?: number | null;
 }
 
 export interface ProjectBrief { project_id: number; project_name: string; address: string; stage: string }
@@ -163,7 +165,7 @@ export interface DashboardRole {
   permits?: (ProjectBrief & { permit: 'none' | 'applied' | 'issued'; applied_days: number | null; next_inspection: { name: string; date: string | null } | null; failed: string[]; final_passed: boolean })[] | null;
   design?: (ProjectBrief & { drawing: boolean; drawing_final: boolean; measure_note: boolean })[] | null;
   sale_docs?: (ProjectBrief & { list_date: string | null; offer: boolean; sale_docs: boolean; disclosure: boolean; sale_signed: boolean; sale_closing: boolean })[] | null;
-  boss?: { active: number; leads: number; portfolio: number; total_invested: number; expected_profit: number; realized_profit: number; over_budget_count: number } | null;
+  boss?: { active: number; leads: number; portfolio: number; total_invested: number; expected_profit: number; realized_profit: number; over_budget_count: number; profit_incomplete_count?: number | null } | null;
 }
 
 export interface Me { id: number; username: string; display_name: string; role_code: string; role_label: string; tier: string; tier_label: string; is_admin: boolean; active: boolean; created_at: string; last_login_at: string | null; demo_mode: boolean }

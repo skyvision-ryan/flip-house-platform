@@ -119,6 +119,9 @@ def set_field_with_source(db: Session, prop: models.Property, field: str, value,
         source=source, confidence=confidence, note=note, is_primary=make_primary,
     )
     db.add(rec)
+    # KAN-71：同时挂到集合上。建项目时 create_analysis 在同一事务里读 prop.field_sources 取来源，
+    # 只 db.add 不 append 的话它读到的是空集合，分析器就会退回「待核实」。
+    prop.field_sources.append(rec)
     if make_primary and hasattr(prop, field):
         setattr(prop, field, cast_value(field, value))
     return rec

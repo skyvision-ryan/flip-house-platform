@@ -40,6 +40,7 @@ const short = (d: string | null) => (d ? d.slice(5).replace('-', '/') : '—');
  * 原先是「交易」「时间」两栏大字，每栏两句话，和下面总览的横条说同一件事。
  * 改成四个带标签的字段——同样的数，但每个值上面写清楚它是什么，缺数就写「—」。
  * 三个阶段各自取对应的口径：线索看挂牌与估值，在建看目标与预算，已售看成交与实际利润。
+ * KAN-71：利润是缺失数据判断，不是公式——买入价或售价缺任一项就显示「—」，不把缺的当 0。
  */
 function dealFields(p: Project): { label: string; value: string }[] {
   const dash = '—';
@@ -48,25 +49,26 @@ function dealFields(p: Project): { label: string; value: string }[] {
   }
   if (p.stage === 'lead') {
     return [
-      { label: '挂牌价', value: money(p.property.list_price) || dash },
-      { label: '目标售价', value: money(p.target_arv) || dash },
-      { label: '估值', value: money(p.property.avm_value) || dash },
+      { label: '挂牌价', value: money(p.property.list_price) },
+      { label: '目标售价', value: money(p.target_arv) },
+      { label: '估值', value: money(p.property.avm_value) },
     ];
   }
   if (p.stage === 'portfolio') {
-    const profit = p.sale_price != null ? p.sale_price - (p.purchase_price ?? 0) - (p.budget_spent ?? 0) : null;
+    const profit = p.sale_price != null && p.purchase_price != null ? p.sale_price - p.purchase_price - (p.budget_spent ?? 0) : null;
     return [
-      { label: '买入价', value: money(p.purchase_price) || dash },
-      { label: '成交价', value: money(p.sale_price) || dash },
+      { label: '买入价', value: money(p.purchase_price) },
+      { label: '成交价', value: money(p.sale_price) },
       { label: '实际利润', value: profit == null ? dash : money(profit) },
     ];
   }
   // 在建：预计利润 = 目标售价 − 买入 − 装修（预算和已支出里取大的那个，别低估成本）
-  const cost = (p.purchase_price ?? 0) + Math.max(p.budget_planned ?? 0, p.budget_spent ?? 0);
-  const profit = p.target_arv != null ? p.target_arv - cost : null;
+  const profit = p.target_arv != null && p.purchase_price != null
+    ? p.target_arv - p.purchase_price - Math.max(p.budget_planned ?? 0, p.budget_spent ?? 0)
+    : null;
   return [
-    { label: '买入价', value: money(p.purchase_price) || dash },
-    { label: '目标售价', value: money(p.target_arv) || dash },
+    { label: '买入价', value: money(p.purchase_price) },
+    { label: '目标售价', value: money(p.target_arv) },
     { label: '预计利润', value: profit == null ? dash : money(profit) },
   ];
 }
