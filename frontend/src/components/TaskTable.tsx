@@ -11,7 +11,6 @@ import type { Task, TaskList } from '../api/client';
 import { useMeta } from '../lib/meta';
 import { stageKeyLabel } from '../lib/stageGroups';
 import { dueText, statusIndicator } from '../lib/taskGroups';
-import { OwnerNames } from './OwnerTag';
 import PersonAvatar from './PersonAvatar';
 
 const ALL = '__all__';
@@ -77,7 +76,7 @@ export default function TaskTable({ data, selectedId, onSelect, canAssign, onAss
             <div>
               <div style={{ fontWeight: t.id === selectedId ? 700 : 400 }}>{t.title}</div>
               <Box variant="small" color="text-body-secondary">
-                {stage === ALL ? `${stageKeyLabel(meta?.stage_groups, t.stage_key, t.stage_short)} · ` : ''}{t.ws ?? ''}　<OwnerNames codes={t.owners} prefix="角色 " />
+                {stage === ALL ? `${stageKeyLabel(meta?.stage_groups, t.stage_key, t.stage_short)} · ` : ''}{t.ws ?? ''}{t.owners.length ? ` · 默认角色 ${t.owners.join('、')}` : ''}
               </Box>
             </div>
           ),

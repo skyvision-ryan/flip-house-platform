@@ -57,7 +57,7 @@ export default function TaskSummaryPanel({ task, project, canAssign, onAssign, o
         {task ? (
           <SpaceBetween size="m">
             <KeyValuePairs
-              columns={1}
+              columns={2}
               items={[
                 { label: '任务', value: <div><Box fontWeight="bold">{task.title}</Box><Box variant="small" color="text-body-secondary">{stageKeyLabel(meta?.stage_groups, task.stage_key, task.stage_label)}{task.ws ? ` · ${task.ws}` : ''}</Box></div> },
                 { label: '状态', value: <div><StatusIndicator type={statusIndicator(task.exec_status)}>{task.exec_status_label}</StatusIndicator>{task.exec_status === 'waiting' && <Box variant="small" color="text-body-secondary">等 {task.wait_for || '—'}：{task.wait_reason}{task.wait_until ? `（预计 ${dueText(task.wait_until)}）` : ''}</Box>}</div> },

@@ -15,6 +15,7 @@ import { api, Workbench, WorkbenchProject } from '../api/client';
 import { StatTile } from './charts';
 import PersonAvatar from './PersonAvatar';
 import StagePositionBar from './StagePositionBar';
+import { dateTime } from '../lib/format';
 import { dueText, statusIndicator } from '../lib/taskGroups';
 
 /**
@@ -61,18 +62,31 @@ export default function WorkbenchFocus({ refreshKey = 0 }: { refreshKey?: number
             { id: 'due', header: '截止', width: 80, cell: (p) => (p.next_action?.due_at ? dueText(p.next_action.due_at) : <Box color="text-body-secondary">未设定</Box>) },
           ]}
         />
-        <Container header={<Header variant="h2" counter={data ? `(${data.my_pending.length})` : undefined} description="已提交、等你审核；点开在我的事项处理。">待我处理</Header>}>
-          {data && data.my_pending.length === 0 && <Box color="text-body-secondary">现在没有等你确认的交付。</Box>}
-          <SpaceBetween size="s">
-            {(data?.my_pending ?? []).map((t) => (
-              <div key={t.id} style={{ display: 'grid', gap: 4 }}>
-                <div><Box fontWeight="bold" variant="span">{t.title}</Box>　<StatusIndicator type="pending">待我审核</StatusIndicator></div>
-                <Box variant="small" color="text-body-secondary">{t.project_name} · {t.assignee?.display_name ?? '待分派'} · 截止 {dueText(t.due_at)}</Box>
-                <div><Button variant="primary" onClick={() => navigate(`/todo?task=${t.id}`)}>开始审核</Button></div>
-              </div>
-            ))}
-          </SpaceBetween>
-        </Container>
+        <SpaceBetween size="l">
+          <Container header={<Header variant="h2" counter={data ? `(${data.my_pending.length})` : undefined} description="已提交、等你审核；在我的事项里退回或确认。">待我处理</Header>}>
+            {data && data.my_pending.length === 0 && <Box color="text-body-secondary">现在没有等你确认的交付。</Box>}
+            <SpaceBetween size="s">
+              {(data?.my_pending ?? []).map((t) => (
+                <div key={t.id} style={{ display: 'grid', gap: 4 }}>
+                  <div><Box fontWeight="bold" variant="span">{t.title}</Box>　<StatusIndicator type="pending">待我审核</StatusIndicator></div>
+                  <Box variant="small" color="text-body-secondary">{t.project_name} · {t.assignee?.display_name ?? '待分派'} 已提交 · 截止 {dueText(t.due_at)}</Box>
+                  <div><Button variant="primary" onClick={() => navigate(`/todo?task=${t.id}`)}>开始审核</Button></div>
+                </div>
+              ))}
+            </SpaceBetween>
+          </Container>
+          <Container header={<Header variant="h2" description="谁把什么交给了谁。">最近交接</Header>}>
+            {data && data.recent_handoffs.length === 0 && <Box color="text-body-secondary">还没有提交、退回或改派。</Box>}
+            <SpaceBetween size="xs">
+              {(data?.recent_handoffs ?? []).map((e) => (
+                <div key={e.id}>
+                  <div><Box variant="span" fontWeight="bold">{e.actor?.display_name ?? '系统'}</Box> {e.text}</div>
+                  <Box variant="small" color="text-body-secondary">{e.project_name} · {e.task_title} · {dateTime(e.created_at)}</Box>
+                </div>
+              ))}
+            </SpaceBetween>
+          </Container>
+        </SpaceBetween>
       </Grid>
     </SpaceBetween>
   );

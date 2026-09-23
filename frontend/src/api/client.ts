@@ -191,6 +191,12 @@ export interface TaskEvent {
   reason: string | null; created_at: string; text: string;
 }
 export type TaskExecStatus = 'not_started' | 'in_progress' | 'waiting' | 'pending_review' | 'done';
+export interface SubmissionFile { id: number; filename: string; mime: string | null; size: number; doc_type: string | null; uploaded_at: string | null }
+export interface Submission {
+  id: number; task_id: number; seq: number; note: string | null; submitted_by: UserBrief | null; submitted_at: string;
+  decision: 'pending' | 'confirmed' | 'returned'; decision_label: string; decided_by: UserBrief | null; decided_at: string | null; decision_reason: string | null;
+  files: SubmissionFile[];
+}
 export interface Task {
   id: number; project_id: number; project_name: string; project_address: string;
   step_key: string | null; source: string; stage_key: string; stage_label: string; stage_short: string; stage_index: number;
@@ -203,7 +209,7 @@ export interface Task {
   version: number;
   /** 证据派生的「满足」，与执行状态并列，不互相替代 */
   satisfied: boolean; satisfied_how: string | null; satisfied_evidence: string | null; evidence_hint: string | null;
-  last_event: TaskEvent | null; created_at: string; updated_at: string;
+  last_event: TaskEvent | null; done_at: string | null; requires_file: boolean; submissions: Submission[]; created_at: string; updated_at: string;
 }
 export interface FocusFact { label: string; value: string; tone: 'normal' | 'warning' }
 export interface TaskList { tasks: Task[]; stages: { key: string; label: string; short: string; index: number }[]; current_stage_index: number; template_missing: boolean; can_assign: boolean; focus: FocusFact[] }
@@ -212,7 +218,7 @@ export interface WorkbenchProject {
   next_action: { task_id: number; title: string; exec_status: TaskExecStatus; exec_status_label: string; due_at: string | null; actor: UserBrief | null; kind: 'review' | 'assign' | 'do' } | null;
   waiting_count: number; unassigned_current_count: number;
 }
-export interface Workbench { projects: WorkbenchProject[]; my_pending: Task[]; counts: { projects: number; pending_review_mine: number; unassigned_current: number; waiting: number } }
+export interface Workbench { projects: WorkbenchProject[]; my_pending: Task[]; counts: { projects: number; pending_review_mine: number; unassigned_current: number; waiting: number }; recent_handoffs: (TaskEvent & { project_name: string | null; task_title: string | null })[] }
 export interface ProjectMember extends UserBrief { role_snapshot: string | null; added_at: string | null }
 export interface ProjectMembers { members: ProjectMember[]; others: UserBrief[]; can_assign: boolean; can_add_member: boolean }
 export interface MyTasks { assigned: Task[]; reviewing: Task[] }
@@ -261,6 +267,9 @@ export const api = {
   assignTask: (id: number, taskId: number, body: TaskAssignIn) => req<Task>(`/api/projects/${id}/tasks/${taskId}/assign`, { method: 'POST', body: JSON.stringify(body) }),
   taskStatus: (id: number, taskId: number, body: TaskStatusIn) => req<Task>(`/api/projects/${id}/tasks/${taskId}/status`, { method: 'POST', body: JSON.stringify(body) }),
   myTasks: () => req<MyTasks>('/api/me/tasks'),
+  submitTask: (id: number, taskId: number, body: { version: number; note?: string | null; file_ids: number[] }) => req<Task>(`/api/projects/${id}/tasks/${taskId}/submit`, { method: 'POST', body: JSON.stringify(body) }),
+  returnTask: (id: number, taskId: number, body: { version: number; reason: string }) => req<Task>(`/api/projects/${id}/tasks/${taskId}/return`, { method: 'POST', body: JSON.stringify(body) }),
+  confirmTask: (id: number, taskId: number, body: { version: number; reason?: string | null }) => req<Task>(`/api/projects/${id}/tasks/${taskId}/confirm`, { method: 'POST', body: JSON.stringify(body) }),
   dashboard: () => req<DashboardSummary>('/api/dashboard/summary'),
   widgets: () => req<DashboardWidgets>('/api/dashboard/widgets'),
   dashboardRole: () => req<DashboardRole>('/api/dashboard/role'),
