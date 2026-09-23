@@ -516,6 +516,10 @@ def seed(db: Session) -> None:
             r.updated_by = "J"
 
     db.commit()
+    # KAN-75：每套示例房的普通任务实例。未分派——示例里没有账号，分派要用真实登录账号做。
+    from .routers.tasks import ensure_tasks
+    for pr in (pr1, pr2, pr3, pr4, pr5, pr6, pr7, pr8, pr9, pr10):
+        ensure_tasks(db, pr.id)
 
 
 if __name__ == "__main__":

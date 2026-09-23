@@ -174,6 +174,22 @@ PERMISSIONS = {
     "upload_any":        ["purple", "blue"],          # 传任何类型的文件
     "tick_any":          ["purple", "blue"],          # 代任何人打勾
     "confirm_for_others": ["负责人"],                  # 代 D/J 确认大节点
+    "assign_tasks":      ["purple", "blue"],          # KAN-75：把任务分派给具体账号、改派、改截止；也能「加入项目并分派」
+}
+
+# ---------------- KAN-75：任务实例的执行状态与事件 ----------------
+# 执行状态只描述人在做什么；「满足」由证据派生、「过门」由 D/J 确认，三者并列显示，互不替代。
+TASK_EXEC_STATUSES = [
+    {"value": "not_started", "label": "未开始", "kind": "stopped"},
+    {"value": "in_progress", "label": "进行中", "kind": "in-progress"},
+    {"value": "waiting", "label": "等待", "kind": "pending"},
+    {"value": "pending_review", "label": "待确认", "kind": "pending"},
+    {"value": "done", "label": "已完成", "kind": "success"},
+]
+TASK_EVENT_KINDS = {
+    "assigned": "分派", "reassigned": "改派", "unassigned": "取消分派", "rescheduled": "改截止",
+    "started": "开始", "waiting": "等待", "resumed": "恢复", "member_added": "加入项目",
+    "created": "新建", "submitted": "提交", "returned": "退回", "confirmed": "确认",
 }
 
 # 每个功能块由谁负责（块 → 代号列表）。"?" 表示流程里没写，待确认。
@@ -409,4 +425,6 @@ def meta() -> dict:
         "procurement_waves": PROCUREMENT_WAVES,
         "procurement_statuses": PROCUREMENT_STATUSES,
         "analysis_defaults": {k: v for k, v in ANALYSIS_DEFAULTS.items() if k != "utilities_by_sqft"},
+        "task_exec_statuses": TASK_EXEC_STATUSES,
+        "task_event_kinds": TASK_EVENT_KINDS,
     }

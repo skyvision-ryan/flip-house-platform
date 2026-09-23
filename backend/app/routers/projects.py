@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -37,7 +37,7 @@ def list_projects(stage: Optional[str] = None, q: Optional[str] = None, db: Sess
 
 
 @router.post("", response_model=schemas.ProjectOut, status_code=201)
-def create_project(body: schemas.ProjectCreate, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
+def create_project(body: schemas.ProjectCreate, request: Request, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
     require(actor, "create_project", what="新建项目")
     prop = None
     if body.reuse_property_id:
@@ -73,6 +73,13 @@ def create_project(body: schemas.ProjectCreate, db: Session = Depends(get_db), a
         create_analysis(db, project, None, None)
     from .procurement import ensure_procurement
     ensure_procurement(db, project.id)
+    # KAN-75：所有普通模板任务都建成实例（未分派也建），创建者自动成为项目成员。
+    from ..auth import current_user
+    from .tasks import ensure_member, ensure_tasks
+    ensure_tasks(db, project.id)
+    creator = current_user(request, db)
+    if creator is not None:
+        ensure_member(db, project.id, creator, creator)
     log_update(db, project.id, actor, "project", f"新建了项目：{project.name}")
     db.commit()
     db.refresh(project)

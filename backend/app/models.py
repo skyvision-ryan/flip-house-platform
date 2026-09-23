@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import Boolean, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Float, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import Base
@@ -289,5 +289,70 @@ class User(Base):
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
     password_hash: Mapped[str] = mapped_column(String)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
+    email: Mapped[Optional[str]] = mapped_column(String)  # KAN-75：邮件提醒的收件地址；管理员在用户页维护，可空
     created_at: Mapped[str] = mapped_column(String, default=now_iso)
     last_login_at: Mapped[Optional[str]] = mapped_column(String)
+
+
+# ---------------- KAN-75：任务实例、项目成员、任务事件 ----------------
+# 这三张表是 KAN-21（成员）/ KAN-27（实例）/ KAN-28（事件）的最小切片，列名按那三张票的字段清单起，
+# 以后只搬不改。分派层只描述「人在做什么」，不拥有「完成」：满足仍由 steps.compute_steps 按证据派生，
+# 关键节点仍走 project_steps 的 D/J 确认。
+
+
+class ProjectMember(Base):
+    """项目成员：谁参与这套房。建项目时创建者自动加入；「加入项目并分派」时再加。"""
+    __tablename__ = "project_members"
+    __table_args__ = (UniqueConstraint("project_id", "user_id", name="uq_project_member"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    role_snapshot: Mapped[Optional[str]] = mapped_column(String)  # 加入时的角色代号，只用于解释当时分工
+    added_by_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"))
+    added_at: Mapped[str] = mapped_column(String, default=now_iso)
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+
+class Task(Base):
+    """任务实例：每套房每个普通清单项一条（step_key 唯一）；临时事项 step_key 为空（块 7）。"""
+    __tablename__ = "tasks"
+    __table_args__ = (UniqueConstraint("project_id", "step_key", name="uq_task_step"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), index=True)
+    step_key: Mapped[Optional[str]] = mapped_column(String, index=True)  # 模板项的稳定 key；临时事项为空
+    source: Mapped[str] = mapped_column(String, default="template")  # template / adhoc / change
+    stage_key: Mapped[str] = mapped_column(String)  # s1…s6，展示分组由前端按 meta 映射
+    title: Mapped[str] = mapped_column(String)
+    description: Mapped[Optional[str]] = mapped_column(Text)
+    deliverable_note: Mapped[Optional[str]] = mapped_column(Text)
+    assignee_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), index=True)
+    reviewer_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), index=True)
+    exec_status: Mapped[str] = mapped_column(String, default="not_started")  # not_started / in_progress / waiting / pending_review / done
+    due_at: Mapped[Optional[str]] = mapped_column(String)  # YYYY-MM-DD，可空
+    wait_for: Mapped[Optional[str]] = mapped_column(String)
+    wait_reason: Mapped[Optional[str]] = mapped_column(Text)
+    wait_until: Mapped[Optional[str]] = mapped_column(String)
+    version: Mapped[int] = mapped_column(Integer, default=1)  # 每次写递增；客户端带旧值就 409
+    requirement_version: Mapped[int] = mapped_column(Integer, default=1)
+    linked_task_id: Mapped[Optional[int]] = mapped_column(ForeignKey("tasks.id"))
+    created_by_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[str] = mapped_column(String, default=now_iso)
+    updated_at: Mapped[str] = mapped_column(String, default=now_iso, onupdate=now_iso)
+
+
+class TaskEvent(Base):
+    """任务事件：分派 / 改派 / 改期 / 开始 / 等待 / 恢复 / 加入成员……与业务写同一事务，GET 不写。"""
+    __tablename__ = "task_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    task_id: Mapped[Optional[int]] = mapped_column(ForeignKey("tasks.id"), index=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), index=True)
+    kind: Mapped[str] = mapped_column(String, index=True)
+    actor_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"))
+    actor_role_snapshot: Mapped[Optional[str]] = mapped_column(String)
+    before_json: Mapped[Optional[str]] = mapped_column(Text)
+    after_json: Mapped[Optional[str]] = mapped_column(Text)
+    reason: Mapped[Optional[str]] = mapped_column(Text)
+    created_at: Mapped[str] = mapped_column(String, default=now_iso, index=True)

@@ -32,6 +32,7 @@ class UserOut(BaseModel):
     tier_label: str
     is_admin: bool
     active: bool
+    email: Optional[str] = None
     created_at: str
     last_login_at: Optional[str] = None
 
@@ -46,6 +47,7 @@ class UserIn(BaseModel):
     role_code: str
     password: str
     is_admin: bool = False
+    email: Optional[str] = None
 
 
 class UserPatch(BaseModel):
@@ -54,6 +56,17 @@ class UserPatch(BaseModel):
     is_admin: Optional[bool] = None
     active: Optional[bool] = None
     password: Optional[str] = None
+    email: Optional[str] = None
+
+
+def _clean_email(v: Optional[str]) -> Optional[str]:
+    """只做最基本的形状检查；真正能不能收到，由邮件块的发送记录说话。"""
+    v = (v or "").strip()
+    if not v:
+        return None
+    if "@" not in v or v.startswith("@") or v.endswith("@") or " " in v:
+        raise HTTPException(400, "邮箱格式不对")
+    return v
 
 
 def _out(u: models.User) -> dict:
@@ -62,7 +75,7 @@ def _out(u: models.User) -> dict:
         id=u.id, username=u.username, display_name=u.display_name, role_code=u.role_code,
         role_label=ROLE_BY_CODE.get(u.role_code, {}).get("label", u.role_code),
         tier=t, tier_label=TIERS.get(t, {}).get("label", t),
-        is_admin=u.is_admin, active=u.active, created_at=u.created_at, last_login_at=u.last_login_at,
+        is_admin=u.is_admin, active=u.active, email=u.email, created_at=u.created_at, last_login_at=u.last_login_at,
     )
 
 
@@ -128,7 +141,7 @@ def create_user(body: UserIn, db: Session = Depends(get_db), _: models.User = De
     if db.scalar(select(models.User).where(models.User.username == name)):
         raise HTTPException(409, "账号已存在")
     u = models.User(username=name, display_name=body.display_name.strip() or name, role_code=body.role_code,
-                    is_admin=body.is_admin, password_hash=hash_password(body.password))
+                    is_admin=body.is_admin, password_hash=hash_password(body.password), email=_clean_email(body.email))
     db.add(u)
     db.commit()
     db.refresh(u)
@@ -157,6 +170,8 @@ def patch_user(user_id: int, body: UserPatch, db: Session = Depends(get_db), me_
         if len(body.password) < 6:
             raise HTTPException(400, "密码至少 6 位")
         u.password_hash = hash_password(body.password)
+    if "email" in body.model_fields_set:
+        u.email = _clean_email(body.email)
     db.commit()
     db.refresh(u)
     return _out(u)
