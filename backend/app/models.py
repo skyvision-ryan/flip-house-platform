@@ -341,8 +341,35 @@ class Task(Base):
     requirement_version: Mapped[int] = mapped_column(Integer, default=1)
     linked_task_id: Mapped[Optional[int]] = mapped_column(ForeignKey("tasks.id"))
     created_by_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"))
+    done_at: Mapped[Optional[str]] = mapped_column(String)  # 审核人确认本次交付的时间；只有确认才写
     created_at: Mapped[str] = mapped_column(String, default=now_iso)
     updated_at: Mapped[str] = mapped_column(String, default=now_iso, onupdate=now_iso)
+
+
+class TaskSubmission(Base):
+    """一次提交 = 一个批次（第 n 次）。文件只引用 files 表的行，不复制；退回、确认都记在批次上，旧批次不改。"""
+    __tablename__ = "task_submissions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id"), index=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), index=True)
+    seq: Mapped[int] = mapped_column(Integer, default=1)
+    note: Mapped[Optional[str]] = mapped_column(Text)
+    submitted_by_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"))
+    submitted_at: Mapped[str] = mapped_column(String, default=now_iso)
+    decision: Mapped[str] = mapped_column(String, default="pending")  # pending / confirmed / returned
+    decided_by_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"))
+    decided_at: Mapped[Optional[str]] = mapped_column(String)
+    decision_reason: Mapped[Optional[str]] = mapped_column(Text)
+
+
+class SubmissionFile(Base):
+    __tablename__ = "submission_files"
+    __table_args__ = (UniqueConstraint("submission_id", "file_id", name="uq_submission_file"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    submission_id: Mapped[int] = mapped_column(ForeignKey("task_submissions.id"), index=True)
+    file_id: Mapped[int] = mapped_column(ForeignKey("files.id"), index=True)
 
 
 class TaskEvent(Base):

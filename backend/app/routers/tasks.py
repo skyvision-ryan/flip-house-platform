@@ -21,6 +21,7 @@ from ..dictionaries import STAGE_CHECKLIST, STEP_BY_KEY, TASK_EVENT_KINDS, TASK_
 from ..models import now_iso
 from ..steps import compute_steps
 from .common import allowed, can_read_money, get_actor, log_update, require, require_user
+from .files import _can_download
 
 router = APIRouter(prefix="/api", tags=["tasks"])
 
@@ -28,6 +29,8 @@ STAGE_INDEX = {st["key"]: i + 1 for i, st in enumerate(STAGE_CHECKLIST)}
 STAGE_LABEL = {st["key"]: st["label"] for st in STAGE_CHECKLIST}
 STAGE_SHORT = {st["key"]: st.get("short", st["label"]) for st in STAGE_CHECKLIST}
 STATUS_LABEL = {s["value"]: s["label"] for s in TASK_EXEC_STATUSES}
+DECISION_LABEL = {"pending": "待确认", "confirmed": "已确认", "returned": "已退回"}
+FILE_KINDS = {"file", "photo"}   # 这两类交付物提交时至少要一个文件；其余交说明即可
 ORDINARY_ITEMS = [(st["key"], it) for st in STAGE_CHECKLIST for it in st["items"] if not it.get("gate")]
 
 
@@ -95,6 +98,12 @@ def _event_text(ev: models.TaskEvent, names: dict[int, str]) -> str:
         t = "恢复处理"
     elif k == "member_added":
         t = f"{who(after.get('user_id'))} 加入了项目"
+    elif k == "submitted":
+        t = f"第 {after.get('seq')} 次提交" + (f"，{after.get('files')} 个文件" if after.get("files") else "，只交了说明")
+    elif k == "returned":
+        t = f"退回第 {after.get('seq')} 次提交"
+    elif k == "confirmed":
+        t = f"确认第 {after.get('seq')} 次交付，任务完成"
     else:
         t = TASK_EVENT_KINDS.get(k, k)
     if ev.reason:
@@ -122,7 +131,30 @@ def _users_by_id(db: Session, ids: set[int]) -> dict[int, models.User]:
     return {u.id: u for u in db.scalars(select(models.User).where(models.User.id.in_(ids))).all()}
 
 
-def _task_out(t: models.Task, p: models.Project, steps: dict, users: dict[int, models.User], last: Optional[models.TaskEvent]) -> dict:
+def _submissions(db: Session, task_ids: list[int]) -> dict[int, list[models.TaskSubmission]]:
+    if not task_ids:
+        return {}
+    out: dict[int, list[models.TaskSubmission]] = {}
+    for sub in db.scalars(select(models.TaskSubmission).where(models.TaskSubmission.task_id.in_(task_ids)).order_by(models.TaskSubmission.seq.desc(), models.TaskSubmission.id.desc())).all():
+        out.setdefault(sub.task_id, []).append(sub)
+    return out
+
+
+def _submission_out(db: Session, sub: models.TaskSubmission, users: dict[int, models.User]) -> dict:
+    links = db.scalars(select(models.SubmissionFile).where(models.SubmissionFile.submission_id == sub.id)).all()
+    files = []
+    for l in links:
+        f = db.get(models.ProjectFile, l.file_id)
+        if f:
+            files.append({"id": f.id, "filename": f.filename, "mime": f.mime, "size": f.size, "doc_type": f.doc_type, "uploaded_at": f.uploaded_at})
+    return {"id": sub.id, "task_id": sub.task_id, "seq": sub.seq, "note": sub.note,
+            "submitted_by": _brief(users.get(sub.submitted_by_user_id)) if sub.submitted_by_user_id else None, "submitted_at": sub.submitted_at,
+            "decision": sub.decision, "decision_label": DECISION_LABEL.get(sub.decision, sub.decision),
+            "decided_by": _brief(users.get(sub.decided_by_user_id)) if sub.decided_by_user_id else None, "decided_at": sub.decided_at,
+            "decision_reason": sub.decision_reason, "files": files}
+
+
+def _task_out(t: models.Task, p: models.Project, steps: dict, users: dict[int, models.User], last: Optional[models.TaskEvent], subs: Optional[list[dict]] = None) -> dict:
     it = STEP_BY_KEY.get(t.step_key or "", {})
     step_item = None
     for st in steps["stages"]:
@@ -148,6 +180,8 @@ def _task_out(t: models.Task, p: models.Project, steps: dict, users: dict[int, m
         "satisfied": bool(step_item and step_item["done"]), "satisfied_how": (step_item or {}).get("how"),
         "satisfied_evidence": (step_item or {}).get("evidence"), "evidence_hint": (step_item or {}).get("evidence_hint"),
         "last_event": _event_out(last, users) if last else None,
+        "done_at": t.done_at, "requires_file": (it.get("deliverable") or {}).get("kind") in FILE_KINDS,
+        "submissions": subs or [],
         "created_at": t.created_at, "updated_at": t.updated_at,
     }
 
@@ -180,10 +214,13 @@ def _tasks_payload(db: Session, p: models.Project, tasks: list[models.Task], act
     ids = {t.assignee_user_id for t in tasks} | {t.reviewer_user_id for t in tasks}
     last = _last_events(db, [t.id for t in tasks])
     ids |= {ev.actor_user_id for ev in last.values()}
+    subs = _submissions(db, [t.id for t in tasks])
+    for lst in subs.values():
+        ids |= {x.submitted_by_user_id for x in lst} | {x.decided_by_user_id for x in lst}
     users = _users_by_id(db, ids)
     order = {it["key"]: i for i, (_, it) in enumerate(ORDINARY_ITEMS)}
     tasks = sorted(tasks, key=lambda t: (order.get(t.step_key, 999), t.id))
-    return [_task_out(t, p, steps, users, last.get(t.id)) for t in tasks]
+    return [_task_out(t, p, steps, users, last.get(t.id), [_submission_out(db, x, users) for x in subs.get(t.id, [])]) for t in tasks]
 
 
 def _event(db: Session, task: Optional[models.Task], project_id: int, kind: str, actor: models.User,
@@ -272,11 +309,13 @@ def focus_facts(p: models.Project, steps: dict, rows: list[dict]) -> list[dict]:
 
 
 def next_action(rows: list[dict], cur_key: str) -> Optional[dict]:
-    """这套房现在最该动的一项：待审核 > 进行中（最早截止）> 已分派未开始（最早截止）> 等待 > 待分派。"""
-    cur = [r for r in rows if r["stage_key"] == cur_key and r["exec_status"] != "done"]
+    """这套房现在最该动的一项：待审核（任何段，等人确认就是最要紧的）> 当前段进行中（最早截止）> 已分派未开始 > 等待 > 待分派。"""
     by_due = lambda r: (r["due_at"] or "9999", r["id"])  # noqa: E731
+    pending = sorted([r for r in rows if r["exec_status"] == "pending_review"], key=by_due)
+    if pending:
+        return pending[0]
+    cur = [r for r in rows if r["stage_key"] == cur_key and r["exec_status"] != "done"]
     for pick in (
-        lambda r: r["exec_status"] == "pending_review",
         lambda r: r["exec_status"] == "in_progress",
         lambda r: r["exec_status"] == "not_started" and r["assignee"],
         lambda r: r["exec_status"] == "waiting",
@@ -343,8 +382,22 @@ def my_workbench(db: Session = Depends(get_db), me: models.User = Depends(requir
             "unassigned_current_count": sum(1 for r in cur_rows if not r["assignee"]),
         })
     pending_mine.sort(key=lambda r: (r["due_at"] or "9999", r["id"]))
+    # 最近交接：提交 / 退回 / 确认 / 改派，跨项目取最近 6 条
+    evs = list(db.scalars(select(models.TaskEvent).where(models.TaskEvent.kind.in_(["submitted", "returned", "confirmed", "reassigned"]))
+                          .order_by(models.TaskEvent.created_at.desc(), models.TaskEvent.id.desc()).limit(6)).all())
+    ids = {e.actor_user_id for e in evs}
+    for e in evs:
+        for blob in (e.before_json, e.after_json):
+            if blob:
+                d = json.loads(blob)
+                ids |= {d.get("assignee_user_id"), d.get("user_id")}
+    users = _users_by_id(db, ids)
+    names = {p.id: p.name for p in projects}
+    titles = {t.id: t.title for t in db.scalars(select(models.Task).where(models.Task.id.in_([e.task_id for e in evs if e.task_id]))).all()} if evs else {}
+    handoffs = [{**_event_out(e, users), "project_name": names.get(e.project_id), "task_title": titles.get(e.task_id)} for e in evs]
     return {"projects": rows_out, "my_pending": pending_mine,
-            "counts": {"projects": len(rows_out), "pending_review_mine": len(pending_mine), "unassigned_current": unassigned, "waiting": waiting}}
+            "counts": {"projects": len(rows_out), "pending_review_mine": len(pending_mine), "unassigned_current": unassigned, "waiting": waiting},
+            "recent_handoffs": handoffs}
 
 
 @router.get("/projects/{project_id}/members", response_model=schemas.MembersOut)
@@ -489,3 +542,106 @@ def task_status(project_id: int, task_id: int, body: schemas.TaskStatusIn, db: S
     db.commit()
     db.refresh(t)
     return _tasks_payload(db, p, [t], me.role_code)[0]
+
+
+# ---------------- 交付：提交批次、退回、确认（KAN-75 块 5） ----------------
+
+def _latest_submission(db: Session, task_id: int) -> Optional[models.TaskSubmission]:
+    return db.scalar(select(models.TaskSubmission).where(models.TaskSubmission.task_id == task_id).order_by(models.TaskSubmission.seq.desc(), models.TaskSubmission.id.desc()))
+
+
+@router.post("/projects/{project_id}/tasks/{task_id}/submit", response_model=schemas.TaskOut)
+def submit_task(project_id: int, task_id: int, body: schemas.TaskSubmitIn, db: Session = Depends(get_db), me: models.User = Depends(require_user)):
+    """负责人提交本次交付。文件 / 照片类交付物至少一个文件；联系、协调、确认类交说明即可。
+    引用的文件必须属于本项目且当前账号能访问；上传本身还是走文件接口，这里不复制文件。"""
+    p = _project(db, project_id)
+    t = _task(db, project_id, task_id)
+    if t.assignee_user_id != me.id:
+        raise HTTPException(403, "只有这项任务的负责人能提交")
+    if t.version != body.version:
+        _conflict(db, p, t, me.role_code)
+    if t.exec_status in ("pending_review", "done"):
+        raise HTTPException(400, "已经提交过，等审核结果；不能重复提交")
+    if t.reviewer_user_id is None:
+        raise HTTPException(400, "这项任务还没有审核人，先让统筹指定")
+    it = STEP_BY_KEY.get(t.step_key or "", {})
+    requires_file = (it.get("deliverable") or {}).get("kind") in FILE_KINDS
+    file_ids = list(dict.fromkeys(body.file_ids))
+    if requires_file and not file_ids:
+        raise HTTPException(400, f"这项任务要交「{(it.get('deliverable') or {}).get('label', '文件')}」，至少选一个文件再提交")
+    if not (body.note or "").strip() and not file_ids:
+        raise HTTPException(400, "提交说明不能为空")
+    files: list[models.ProjectFile] = []
+    for fid in file_ids:
+        f = db.get(models.ProjectFile, fid)
+        if f is None or f.project_id != project_id:
+            raise HTTPException(400, f"文件 {fid} 不属于这个项目")
+        if not _can_download(me.role_code, f):
+            raise HTTPException(403, f"你没有权限使用文件「{f.filename}」")
+        files.append(f)
+    prev = _latest_submission(db, t.id)
+    sub = models.TaskSubmission(task_id=t.id, project_id=project_id, seq=(prev.seq + 1 if prev else 1),
+                                note=(body.note or "").strip() or None, submitted_by_user_id=me.id)
+    db.add(sub)
+    db.flush()
+    for f in files:
+        db.add(models.SubmissionFile(submission_id=sub.id, file_id=f.id))
+    before = {"exec_status": t.exec_status}
+    t.exec_status = "pending_review"
+    t.wait_for = t.wait_reason = t.wait_until = None
+    _event(db, t, project_id, "submitted", me, before=before, after={"exec_status": t.exec_status, "submission_id": sub.id, "seq": sub.seq, "files": len(files)})
+    log_update(db, project_id, me.role_code, "task", f"提交了“{t.title}”第 {sub.seq} 次交付" + (f"（{len(files)} 个文件）" if files else ""))
+    t.version += 1
+    t.updated_at = now_iso()
+    db.commit()
+    db.refresh(t)
+    return _tasks_payload(db, p, [t], me.role_code)[0]
+
+
+def _decide(db: Session, project_id: int, task_id: int, body: schemas.TaskDecisionIn, me: models.User, decision: str):
+    p = _project(db, project_id)
+    t = _task(db, project_id, task_id)
+    if t.reviewer_user_id != me.id:
+        owner = db.get(models.User, t.reviewer_user_id) if t.reviewer_user_id else None
+        raise HTTPException(403, f"这项任务的审核人是 {owner.display_name if owner else '未指定'}，你不能{'退回' if decision == 'returned' else '确认'}")
+    if t.version != body.version:
+        _conflict(db, p, t, me.role_code)
+    if t.exec_status != "pending_review":
+        raise HTTPException(400, "现在没有待审核的提交")
+    sub = _latest_submission(db, t.id)
+    if sub is None or sub.decision != "pending":
+        raise HTTPException(400, "找不到待审核的提交批次")
+    if decision == "returned" and not (body.reason or "").strip():
+        raise HTTPException(400, "退回要写修改要求，负责人才知道改什么")
+    sub.decision = decision
+    sub.decided_by_user_id = me.id
+    sub.decided_at = now_iso()
+    sub.decision_reason = (body.reason or "").strip() or None
+    before = {"exec_status": t.exec_status}
+    if decision == "confirmed":
+        t.exec_status = "done"
+        t.done_at = sub.decided_at
+        kind = "confirmed"
+        log_update(db, project_id, me.role_code, "task", f"确认了“{t.title}”第 {sub.seq} 次交付，任务完成")
+    else:
+        t.exec_status = "in_progress"
+        kind = "returned"
+        log_update(db, project_id, me.role_code, "task", f"退回了“{t.title}”第 {sub.seq} 次交付：{sub.decision_reason}")
+    _event(db, t, project_id, kind, me, before=before, after={"exec_status": t.exec_status, "submission_id": sub.id, "seq": sub.seq}, reason=sub.decision_reason)
+    t.version += 1
+    t.updated_at = now_iso()
+    db.commit()
+    db.refresh(t)
+    return _tasks_payload(db, p, [t], me.role_code)[0]
+
+
+@router.post("/projects/{project_id}/tasks/{task_id}/return", response_model=schemas.TaskOut)
+def return_task(project_id: int, task_id: int, body: schemas.TaskDecisionIn, db: Session = Depends(get_db), me: models.User = Depends(require_user)):
+    """审核人退回：原因必填；批次保留、意见可查；任务回到进行中。普通审核与 D/J、Final 无关。"""
+    return _decide(db, project_id, task_id, body, me, "returned")
+
+
+@router.post("/projects/{project_id}/tasks/{task_id}/confirm", response_model=schemas.TaskOut)
+def confirm_task(project_id: int, task_id: int, body: schemas.TaskDecisionIn, db: Session = Depends(get_db), me: models.User = Depends(require_user)):
+    """审核人确认本次交付：任务完成、记时间。**不补 ProjectStep 手工勾**——证据满足仍由 compute_steps 派生，两者并列显示。"""
+    return _decide(db, project_id, task_id, body, me, "confirmed")

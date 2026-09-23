@@ -543,6 +543,30 @@ class TaskEventOut(BaseModel):
     text: str
 
 
+class SubmissionFileOut(BaseModel):
+    id: int
+    filename: str
+    mime: Optional[str] = None
+    size: int = 0
+    doc_type: Optional[str] = None
+    uploaded_at: Optional[str] = None
+
+
+class SubmissionOut(BaseModel):
+    id: int
+    task_id: int
+    seq: int
+    note: Optional[str] = None
+    submitted_by: Optional[UserBrief] = None
+    submitted_at: str
+    decision: str
+    decision_label: str
+    decided_by: Optional[UserBrief] = None
+    decided_at: Optional[str] = None
+    decision_reason: Optional[str] = None
+    files: list[SubmissionFileOut] = []
+
+
 class TaskOut(BaseModel):
     id: int
     project_id: int
@@ -578,8 +602,22 @@ class TaskOut(BaseModel):
     satisfied_evidence: Optional[str] = None
     evidence_hint: Optional[str] = None
     last_event: Optional[TaskEventOut] = None
+    done_at: Optional[str] = None
+    requires_file: bool = False        # 交付物是文件 / 照片时才要求至少一个文件
+    submissions: list[SubmissionOut] = []
     created_at: str
     updated_at: str
+
+
+class TaskSubmitIn(BaseModel):
+    version: int
+    note: Optional[str] = None
+    file_ids: list[int] = []
+
+
+class TaskDecisionIn(BaseModel):
+    version: int
+    reason: Optional[str] = None
 
 
 class TaskListOut(BaseModel):
@@ -595,6 +633,7 @@ class WorkbenchOut(BaseModel):
     projects: list[dict]
     my_pending: list[TaskOut]
     counts: dict
+    recent_handoffs: list[dict] = []
 
 
 class MemberOut(UserBrief):
