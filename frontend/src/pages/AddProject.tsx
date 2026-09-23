@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Alert from '@cloudscape-design/components/alert';
 import Autosuggest from '@cloudscape-design/components/autosuggest';
@@ -23,7 +23,7 @@ import Tiles from '@cloudscape-design/components/tiles';
 import Wizard from '@cloudscape-design/components/wizard';
 import SourceBadge from '../components/SourceBadge';
 import { api, AddressCandidate, LookupResult } from '../api/client';
-import { EMPTY_MANUAL, ManualAddress, toCandidate, validateManualAddress } from '../lib/address';
+import { EMPTY_MANUAL, ManualAddress, shouldClearAmounts, toCandidate, validateManualAddress } from '../lib/address';
 import { useFlash } from '../lib/flash';
 import { dateStr, money, pct, text } from '../lib/format';
 import { useMeta } from '../lib/meta';
@@ -85,9 +85,18 @@ export default function AddProject() {
   };
 
   /** 地址变了就把上一套房子的东西全清掉——A 查到、改成 B 失败、再手动建 B，不能残留 A 的字段。
-   *  两个金额也清：点「采用」填进去的是 A 的估值，换了房子就不该还挂在 B 上。手填的数字同样会被清，
-   *  这是有意的——金额是这套房子的，换房子就重填；日期、风险、备注不动。 */
-  const clearHouse = () => { setLookup(null); setManualAddr(null); setFields([]); setDeal((d) => ({ ...d, purchase_price: '', target_arv: '' })); };
+   *  两个金额**不在这里清**：这里每敲一个字都会触发，普通的文字修正不该丢掉已填的数。 */
+  const clearHouse = () => { setLookup(null); setManualAddr(null); setFields([]); };
+  // 上一次真正选定的房子（查到的或手动的）。敲字不清它，只有再次选定时才比较——用来判断是不是换了房子。
+  const lastHouse = useRef<string | null>(null);
+  /** 确认切换到另一套房：把上一套房的买入价／目标售价清掉并明确提示（Ryan 09-22）。同一套房重选不动。 */
+  const settleHouse = (label: string) => {
+    if (shouldClearAmounts(lastHouse.current, label, deal)) {
+      setDeal((d) => ({ ...d, purchase_price: '', target_arv: '' }));
+      flash({ type: 'info', content: `已切换到另一套房（${label}），上一套房的买入价与目标售价已清空，请重新填写。` });
+    }
+    lastHouse.current = label;
+  };
 
   const doLookup = async (label: string) => {
     setLookingUp(true);
@@ -99,6 +108,7 @@ export default function AddProject() {
       setQuery(r.address.label);
       setFields(r.fields.map((f) => ({ field: f.field, label: f.label, value: f.value ?? '', source: f.source, confidence: f.confidence ?? null, note: f.note ?? null })));
       setName(r.address.street);
+      settleHouse(r.address.label);
       // KAN-71：不再把挂牌价/估值预填成买入价/目标售价。两个金额框默认空，参考值并排放在旁边，点「采用」才填。
     } catch (e: any) {
       setError(e.message);
@@ -116,6 +126,7 @@ export default function AddProject() {
     setManualAddr(cand);
     setQuery(cand.label);
     setName(cand.street);
+    settleHouse(cand.label);
     // 第二步用同一套字段：从 meta.property_fields 生成，全空、来源人工、不给把握度
     setFields((meta?.property_fields ?? []).map((f) => ({ field: f.key, label: f.label, value: '', source: 'manual', confidence: null, note: null })));
   };

@@ -30,3 +30,18 @@ export function validateManualAddress(a: ManualAddress): (keyof ManualAddress)[]
 export function toCandidate(a: ManualAddress): AddressCandidate {
   return { label: composeLabel(a), street: clean(a.street), city: clean(a.city), state: clean(a.state), zip: clean(a.zip), lat: null, lng: null };
 }
+
+/**
+ * 换房子时要不要清掉团队填的两个金额（KAN-71，Ryan 09-22 决定）。
+ *
+ * 只有**确认切换到另一套房**（上一套房的标准地址与新的不同）且当时已经填了金额，才清。
+ * 普通的地址文字修正后重选同一套房、或第一次选房，都不清——金额是这套房的，房子没变就不该动。
+ */
+export function shouldClearAmounts(
+  prevLabel: string | null | undefined,
+  nextLabel: string,
+  deal: { purchase_price: string; target_arv: string },
+): boolean {
+  if (!prevLabel || prevLabel === nextLabel) return false;
+  return deal.purchase_price !== '' || deal.target_arv !== '';
+}
