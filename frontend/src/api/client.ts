@@ -25,6 +25,8 @@ export interface Meta {
   widget_access: Record<string, string[]>;
   procurement_waves: Option[];
   procurement_statuses: Option[];
+  task_exec_statuses?: (Option & { kind: string })[];
+  task_event_kinds?: Record<string, string>;
 }
 
 export interface Deliverable { kind: 'file' | 'photo' | 'field' | 'record' | 'confirm' | 'tick'; label: string; doc_type?: string | null; field?: string | null; record?: string | null }
@@ -168,7 +170,36 @@ export interface DashboardRole {
   boss?: { active: number; leads: number; portfolio: number; total_invested: number; expected_profit: number; realized_profit: number; over_budget_count: number; profit_incomplete_count?: number | null } | null;
 }
 
-export interface Me { id: number; username: string; display_name: string; role_code: string; role_label: string; tier: string; tier_label: string; is_admin: boolean; active: boolean; created_at: string; last_login_at: string | null; demo_mode: boolean }
+export interface Me { id: number; username: string; display_name: string; role_code: string; role_label: string; tier: string; tier_label: string; is_admin: boolean; active: boolean; email: string | null; created_at: string; last_login_at: string | null; demo_mode: boolean }
+
+// ---------- KAN-75：任务实例、成员、事件 ----------
+export interface UserBrief { id: number; username: string; display_name: string; role_code: string; active: boolean }
+export interface TaskEvent {
+  id: number; task_id: number | null; project_id: number; kind: string; kind_label: string;
+  actor: UserBrief | null; actor_role_snapshot: string | null; before: Record<string, any> | null; after: Record<string, any> | null;
+  reason: string | null; created_at: string; text: string;
+}
+export type TaskExecStatus = 'not_started' | 'in_progress' | 'waiting' | 'pending_review' | 'done';
+export interface Task {
+  id: number; project_id: number; project_name: string; project_address: string;
+  step_key: string | null; source: string; stage_key: string; stage_label: string; stage_short: string; stage_index: number;
+  project_current_stage_index: number; project_current_stage_label: string;
+  title: string; ws: string | null; purpose: string | null; done_when: string | null; owners: string[]; deliverable: Deliverable | null;
+  description: string | null; deliverable_note: string | null;
+  assignee: UserBrief | null; reviewer: UserBrief | null;
+  exec_status: TaskExecStatus; exec_status_label: string;
+  due_at: string | null; wait_for: string | null; wait_reason: string | null; wait_until: string | null;
+  version: number;
+  /** 证据派生的「满足」，与执行状态并列，不互相替代 */
+  satisfied: boolean; satisfied_how: string | null; satisfied_evidence: string | null; evidence_hint: string | null;
+  last_event: TaskEvent | null; created_at: string; updated_at: string;
+}
+export interface TaskList { tasks: Task[]; stages: { key: string; label: string; short: string; index: number }[]; current_stage_index: number; template_missing: boolean; can_assign: boolean }
+export interface ProjectMember extends UserBrief { role_snapshot: string | null; added_at: string | null }
+export interface ProjectMembers { members: ProjectMember[]; others: UserBrief[]; can_assign: boolean; can_add_member: boolean }
+export interface MyTasks { assigned: Task[]; reviewing: Task[] }
+export interface TaskAssignIn { version: number; assignee_user_id?: number | null; due_at?: string | null; reason?: string | null; join_project?: boolean }
+export interface TaskStatusIn { version: number; action: 'start' | 'wait' | 'resume'; wait_for?: string | null; wait_reason?: string | null; wait_until?: string | null }
 export type UserRow = Omit<Me, 'demo_mode'>;
 
 /** 演示模式下顶栏“我是”选的身份；登录后只有管理员的选择才会被后端采纳。 */
@@ -184,7 +215,10 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
   if (res.status === 401 && !path.startsWith('/api/auth/')) window.dispatchEvent(new Event(AUTH_EVENT));
   if (!res.ok) {
     let msg = `${res.status} ${res.statusText}`;
-    try { const j = await res.json(); if (j.detail) msg = typeof j.detail === 'string' ? j.detail : JSON.stringify(j.detail); } catch { /* ignore */ }
+    try {
+      const j = await res.json();
+      if (j.detail) msg = typeof j.detail === 'string' ? j.detail : (typeof j.detail?.message === 'string' ? j.detail.message : JSON.stringify(j.detail));
+    } catch { /* ignore */ }
     throw new Error(msg);
   }
   if (res.status === 204) return undefined as T;
@@ -198,8 +232,15 @@ export const api = {
   login: (username: string, password: string) => req<Me>('/api/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) }),
   logout: () => req<{ ok: boolean }>('/api/auth/logout', { method: 'POST' }),
   users: () => req<UserRow[]>('/api/users'),
-  createUser: (body: { username: string; display_name: string; role_code: string; password: string; is_admin: boolean }) => req<UserRow>('/api/users', { method: 'POST', body: JSON.stringify(body) }),
-  patchUser: (id: number, body: Partial<{ display_name: string; role_code: string; is_admin: boolean; active: boolean; password: string }>) => req<UserRow>(`/api/users/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  createUser: (body: { username: string; display_name: string; role_code: string; password: string; is_admin: boolean; email?: string | null }) => req<UserRow>('/api/users', { method: 'POST', body: JSON.stringify(body) }),
+  patchUser: (id: number, body: Partial<{ display_name: string; role_code: string; is_admin: boolean; active: boolean; password: string; email: string | null }>) => req<UserRow>(`/api/users/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  // KAN-75：任务实例
+  projectTasks: (id: number) => req<TaskList>(`/api/projects/${id}/tasks`),
+  projectMembers: (id: number) => req<ProjectMembers>(`/api/projects/${id}/members`),
+  taskEvents: (id: number, taskId: number) => req<TaskEvent[]>(`/api/projects/${id}/tasks/${taskId}/events`),
+  assignTask: (id: number, taskId: number, body: TaskAssignIn) => req<Task>(`/api/projects/${id}/tasks/${taskId}/assign`, { method: 'POST', body: JSON.stringify(body) }),
+  taskStatus: (id: number, taskId: number, body: TaskStatusIn) => req<Task>(`/api/projects/${id}/tasks/${taskId}/status`, { method: 'POST', body: JSON.stringify(body) }),
+  myTasks: () => req<MyTasks>('/api/me/tasks'),
   dashboard: () => req<DashboardSummary>('/api/dashboard/summary'),
   widgets: () => req<DashboardWidgets>('/api/dashboard/widgets'),
   dashboardRole: () => req<DashboardRole>('/api/dashboard/role'),

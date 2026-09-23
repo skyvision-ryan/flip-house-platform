@@ -34,3 +34,13 @@ export function colorOf(meta: ReturnType<typeof useMeta>, code: string): string 
   const t = tierOf(meta, code);
   return meta?.tiers?.[t]?.color ?? TIER_FALLBACK[t].color;
 }
+
+/**
+ * KAN-75：写任务的按钮按**登录账号**判断，不按顶栏「我是」的临时身份——
+ * 后端写接口只认 Cookie 里的账号（require_user），管理员切身份看到的按钮会 403。
+ */
+export function userCan(meta: ReturnType<typeof useMeta>, me: { role_code: string } | null, action: string): boolean {
+  if (!me) return false;
+  const ok = meta?.permissions?.[action] ?? ['purple', 'blue'];
+  return ok.includes(tierOf(meta, me.role_code)) || ok.includes(me.role_code);
+}

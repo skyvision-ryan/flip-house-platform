@@ -17,8 +17,8 @@ import { useFlash } from '../lib/flash';
 import { dateStr } from '../lib/format';
 import { useMeta } from '../lib/meta';
 
-type Draft = { username: string; display_name: string; role_code: string; password: string; is_admin: boolean };
-const EMPTY: Draft = { username: '', display_name: '', role_code: '', password: '', is_admin: false };
+type Draft = { username: string; display_name: string; role_code: string; password: string; is_admin: boolean; email: string };
+const EMPTY: Draft = { username: '', display_name: '', role_code: '', password: '', is_admin: false, email: '' };
 
 /** 用户管理：只有管理员能进。一个人一个账号，账号绑一个角色代号，代号决定权限。 */
 export default function Users() {
@@ -40,7 +40,7 @@ export default function Users() {
   const open = (m: 'create' | 'edit' | 'password') => {
     setErr(null);
     if (m === 'create') setDraft(EMPTY);
-    else if (sel) setDraft({ username: sel.username, display_name: sel.display_name, role_code: sel.role_code, password: '', is_admin: sel.is_admin });
+    else if (sel) setDraft({ username: sel.username, display_name: sel.display_name, role_code: sel.role_code, password: '', is_admin: sel.is_admin, email: sel.email ?? '' });
     setModal(m);
   };
   const submit = async () => {
@@ -49,8 +49,8 @@ export default function Users() {
     if (modal !== 'edit' && draft.password.length < 6) { setErr('密码至少 6 位'); return; }
     setBusy(true); setErr(null);
     try {
-      if (modal === 'create') { await api.createUser(draft); flash({ type: 'success', content: `已建账号 ${draft.username}（${draft.role_code}）` }); }
-      else if (modal === 'edit' && sel) { await api.patchUser(sel.id, { display_name: draft.display_name, role_code: draft.role_code, is_admin: draft.is_admin }); flash({ type: 'success', content: `已更新 ${sel.username}` }); }
+      if (modal === 'create') { await api.createUser({ ...draft, email: draft.email.trim() || null }); flash({ type: 'success', content: `已建账号 ${draft.username}（${draft.role_code}）` }); }
+      else if (modal === 'edit' && sel) { await api.patchUser(sel.id, { display_name: draft.display_name, role_code: draft.role_code, is_admin: draft.is_admin, email: draft.email.trim() || null }); flash({ type: 'success', content: `已更新 ${sel.username}` }); }
       else if (modal === 'password' && sel) { await api.patchUser(sel.id, { password: draft.password }); flash({ type: 'success', content: `已重置 ${sel.username} 的密码` }); }
       setModal(null); setSelected([]); await load();
     } catch (e: any) { setErr(e.message); } finally { setBusy(false); }
@@ -92,6 +92,7 @@ export default function Users() {
           { id: 'username', header: '账号', cell: (u) => <Box fontWeight="bold">{u.username}</Box> },
           { id: 'name', header: '姓名', cell: (u) => u.display_name },
           { id: 'role', header: '角色', cell: (u) => u.role_code },
+          { id: 'email', header: '邮箱', cell: (u) => (u.email ? u.email : <Box color="text-body-secondary">无邮箱 · 收不到提醒</Box>) },
           { id: 'tier', header: '级别', cell: (u) => u.tier_label },
           { id: 'admin', header: '管理员', cell: (u) => (u.is_admin ? '是' : '—') },
           { id: 'status', header: '状态', cell: (u) => (u.active ? <StatusIndicator type="success">在用</StatusIndicator> : <StatusIndicator type="stopped">已停用</StatusIndicator>) },
@@ -131,6 +132,9 @@ export default function Users() {
                   options={roleOptions}
                   placeholder="选一个角色"
                 />
+              </FormField>
+              <FormField label="邮箱" description="任务分派、待审核、确认完成的提醒发到这里；空着就收不到邮件（KAN-75）">
+                <Input type="email" value={draft.email} onChange={({ detail }) => setDraft({ ...draft, email: detail.value })} placeholder="name@company.com" />
               </FormField>
               <Checkbox checked={draft.is_admin} onChange={({ detail }) => setDraft({ ...draft, is_admin: detail.checked })} description="能建账号、改角色、重置密码">管理员</Checkbox>
             </>

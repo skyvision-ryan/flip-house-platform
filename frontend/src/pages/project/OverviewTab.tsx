@@ -10,6 +10,7 @@ import SpaceBetween from '@cloudscape-design/components/space-between';
 import Textarea from '@cloudscape-design/components/textarea';
 import { useNavigate } from 'react-router-dom';
 import StepsPanel, { StepsDeepLink } from '../../components/StepsPanel';
+import ProjectTasks from '../../components/ProjectTasks';
 import InspectionsPanel from '../../components/InspectionsPanel';
 import UpdatesList from '../../components/UpdatesList';
 import OwnerTag from '../../components/OwnerTag';
@@ -26,6 +27,10 @@ export default function OverviewTab({ project, reload, deepLink, focus }: { proj
   const [updates, setUpdates] = useState<Update[]>([]);
   const [risks, setRisks] = useState(project.risks ?? '');
   const [savingRisks, setSavingRisks] = useState(false);
+  // KAN-75：任务区是唯一的任务入口；原 B 区（证据清单 + 关键节点 D/J + 工期条）收进下方可展开区，
+  // 有深链（?step=）或点了「去确认」时自动展开。
+  const [stepsOpen, setStepsOpen] = useState<boolean>(Boolean(deepLink?.step));
+  useEffect(() => { if (deepLink?.step) setStepsOpen(true); }, [deepLink?.step]);
 
   useEffect(() => { if (!project.money_hidden) api.budgetSummary(project.id).then(setSummary).catch(() => setSummary(null)); }, [project.id, project.updated_at, project.money_hidden]);
   useEffect(() => { api.projectUpdates(project.id, 12).then(setUpdates).catch(() => setUpdates([])); }, [project.id, project.updated_at]);
@@ -47,9 +52,21 @@ export default function OverviewTab({ project, reload, deepLink, focus }: { proj
           以下关键字段还没有值：{project.missing_fields.join('、')}。可在“数据”页或“编辑”中补充。
         </Alert>
       )}
-      <Container header={<Header variant="h2" description="关键节点要 D、J 各确认一次。事项满足只表示证据齐了，还不是验收。"><ReviewTag id="B" />这套房现在怎么走</Header>}>
+      <ProjectTasks
+        project={project}
+        onChanged={() => { api.projectUpdates(project.id, 12).then(setUpdates).catch(() => undefined); }}
+        onGotoGates={() => { setStepsOpen(true); requestAnimationFrame(() => document.getElementById('gates')?.scrollIntoView({ behavior: 'smooth', block: 'start' })); }}
+      />
+      <div id="gates" />
+      <ExpandableSection
+        variant="container"
+        expanded={stepsOpen}
+        onChange={({ detail }) => setStepsOpen(detail.expanded)}
+        headerText={<><ReviewTag id="B" />关键节点、证据清单与工期</> as any}
+        headerDescription="关键节点要 D、J 各确认一次。事项满足只表示证据齐了，不是验收；上面任务表的「满足」列就来自这里。"
+      >
         <StepsPanel projectId={project.id} deepLink={deepLink} schedule={{ start: project.construction_start, end: project.construction_end, active: project.stage === 'active' }} onChanged={() => { reload(); api.projectUpdates(project.id, 12).then(setUpdates).catch(() => undefined); }} />
-      </Container>
+      </ExpandableSection>
       <div id="inspections" />
       <Container header={<Header variant="h2" description="一次检查一行，次数每套房不同。做到一个程度约一次；没过写谁整改；最后一次标 final，通过了施工就算结束。"><ReviewTag id="I" /><OwnerTag block="overview.inspections" />检查记录</Header>}>
         <InspectionsPanel projectId={project.id} onChanged={() => { reload(); api.projectUpdates(project.id, 12).then(setUpdates).catch(() => undefined); }} />

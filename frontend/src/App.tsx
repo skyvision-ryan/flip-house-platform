@@ -196,7 +196,7 @@ export default function App() {
               { type: 'link', text: '工作台', href: '/' },
               ...(canDo('leads') ? [{ type: 'link' as const, text: '线索', href: '/leads' }] : []),
               ...(canDo('read_money') ? [{ type: 'link' as const, text: '项目', href: '/projects' }] : []),
-              { type: 'link', text: '我的待办', href: '/todo' },
+              { type: 'link', text: '我的事项', href: '/todo' },
               ...(canDo('create_project') ? [{ type: 'link' as const, text: '新建项目', href: '/projects/new' }] : []),
               ...(me?.is_admin ? [{ type: 'divider' as const }, { type: 'link' as const, text: '用户', href: '/users' }] : []),
             ]}
