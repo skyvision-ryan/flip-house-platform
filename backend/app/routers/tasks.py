@@ -353,7 +353,14 @@ def get_task(project_id: int, task_id: int, db: Session = Depends(get_db), actor
 def my_workbench(db: Session = Depends(get_db), me: models.User = Depends(require_user)):
     """工作台「项目关注」：每套房一行（位置、下一动作、行动者、截止），加待我确认 / 待分派 / 等待回复三个数。
     只看概况，不在这里做事；处理入口指向我的事项与项目总览。未购入的房也列（它们也要跟进）。"""
-    projects = db.scalars(select(models.Project).order_by(models.Project.updated_at.desc())).all()
+    # 使用真实账号的角色与有效成员关系；项目、指标、待审、交接共用同一可见范围。
+    project_query = select(models.Project)
+    if not allowed(me.role_code, "workbench_all_projects"):
+        member_projects = select(models.ProjectMember.project_id).where(
+            models.ProjectMember.user_id == me.id, models.ProjectMember.active.is_(True))
+        project_query = project_query.where(models.Project.id.in_(member_projects))
+    projects = db.scalars(project_query.order_by(models.Project.updated_at.desc())).all()
+    visible_project_ids = [p.id for p in projects]
     hide = not can_read_money(me.role_code)
     rows_out: list[dict] = []
     pending_mine: list[dict] = []
@@ -382,8 +389,10 @@ def my_workbench(db: Session = Depends(get_db), me: models.User = Depends(requir
             "unassigned_current_count": sum(1 for r in cur_rows if not r["assignee"]),
         })
     pending_mine.sort(key=lambda r: (r["due_at"] or "9999", r["id"]))
-    # 最近交接：提交 / 退回 / 确认 / 改派，跨项目取最近 6 条
-    evs = list(db.scalars(select(models.TaskEvent).where(models.TaskEvent.kind.in_(["submitted", "returned", "confirmed", "reassigned"]))
+    # 最近交接先按项目范围过滤，再取最近 6 条，避免其他项目的事件挤掉可见记录。
+    evs = list(db.scalars(select(models.TaskEvent).where(
+                          models.TaskEvent.project_id.in_(visible_project_ids),
+                          models.TaskEvent.kind.in_(["submitted", "returned", "confirmed", "reassigned"]))
                           .order_by(models.TaskEvent.created_at.desc(), models.TaskEvent.id.desc()).limit(6)).all())
     ids = {e.actor_user_id for e in evs}
     for e in evs:

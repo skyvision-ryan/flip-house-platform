@@ -159,6 +159,7 @@ def tier_of(code: str) -> str:
 PERMISSIONS = {
     "read_money":        ["purple", "blue"],          # 看买卖价、预算、利润、分析
     "dashboard":         ["purple", "blue", "teal", "grey"],   # 人人能进工作台，看到的小组件按身份定（DASHBOARD_LAYOUTS）
+    "workbench_all_projects": ["purple", "blue"],    # 项目关注的全局范围；其余账号只看有效项目成员关系
     "create_project":    ["purple", "blue"],
     "leads":             ["purple", "blue"],        # 线索房独立入口（KAN-50）；显式登记才会经 /api/meta 下发给前端 canDo
     "delete_project":    ["purple", "负责人"],
