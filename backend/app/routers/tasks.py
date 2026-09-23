@@ -203,6 +203,91 @@ def _conflict(db: Session, p: models.Project, t: models.Task, actor: str):
     raise HTTPException(409, {"message": "这项任务刚被别人改过，已刷新为最新安排，请再确认一次", "task": payload})
 
 
+# ---------------- 头卡三条事实（按分组动态） ----------------
+
+def _gate(steps: dict, key: str) -> Optional[dict]:
+    for st in steps["stages"]:
+        for it in st["items"]:
+            if it["key"] == key:
+                return it
+    return None
+
+
+def _gate_text(g: Optional[dict]) -> str:
+    if not g:
+        return "—"
+    if g["done"]:
+        return "已过" + (f"（{g['done_at'][5:10].replace('-', '/')}）" if g.get("done_at") else "")
+    if g["confirm"]:
+        missing = [c for c in g["confirm"] if c not in g["confirmed"]]
+        return f"{'、'.join(g['confirmed'])} 已确认，等 {'、'.join(missing)}" if g["confirmed"] else f"待 {'、'.join(g['confirm'])} 确认"
+    return "尚未满足"
+
+
+def _mmdd(v: Optional[str]) -> str:
+    return v[5:10].replace("-", "/") if v else "未填"
+
+
+def focus_facts(p: models.Project, steps: dict, rows: list[dict]) -> list[dict]:
+    """项目头卡右侧三条事实。只陈述已有数据：任务表、项目日期、关键节点；没有的写「未填」，不推导。"""
+    gp = steps["group_position"]
+    cur_key = steps["current_stage"]["key"]
+    cur = [r for r in rows if r["stage_key"] == cur_key]
+    waiting = [r for r in rows if r["exec_status"] == "waiting"]
+    unassigned = [r for r in cur if not r["assignee"] and r["exec_status"] != "done"]
+    pending = [r for r in rows if r["exec_status"] == "pending_review"]
+    running = sorted([r for r in cur if r["exec_status"] == "in_progress"], key=lambda r: r["due_at"] or "9999")
+    unsatisfied = [r for r in cur if not r["satisfied"] and r["exec_status"] != "done"]
+    nxt = next_action(rows, cur_key)
+
+    def fact(label, value, tone="normal"):
+        return {"label": label, "value": value, "tone": tone}
+
+    g, sub = gp["group_key"], gp["sub_key"]
+    if g == "buying" and sub == "pre":
+        return [fact("下一动作", nxt["title"] if nxt else "本段任务都已安排"),
+                fact("跟进档位", gp["lead_substage_label"] or "未填"),
+                fact("待安排", f"{len(unassigned)} 项", "warning" if unassigned else "normal")]
+    if g == "buying":
+        return [fact("目标过户", _mmdd(p.purchase_date)),
+                fact("Close escrow", _gate_text(_gate(steps, "close_escrow"))),
+                fact("当前待协调", f"{len(waiting)} 项", "warning" if waiting else "normal")]
+    if g == "renovation":
+        focus = pending[0]["title"] + " 待审核" if pending else (running[0]["title"] + " 进行中" if running else (nxt["title"] if nxt else "本段任务都已安排"))
+        return [fact("当前重点", focus),
+                fact("计划开工", _mmdd(p.construction_start)),
+                fact("待协调", f"{len(waiting)} 项等待", "warning" if waiting else "normal")]
+    if g == "prelisting":
+        return [fact("City Final", _gate_text(_gate(steps, "final"))),
+                fact("计划挂牌", _mmdd(p.list_date)),
+                fact("待补资料", f"{len(unsatisfied)} 项", "warning" if unsatisfied else "normal")]
+    if g == "selling":
+        return [fact("挂牌日期", _mmdd(p.list_date)),
+                fact("收到 Offer", _gate_text(_gate(steps, "offer"))),
+                fact("目标交割", _mmdd(p.sale_date))]
+    dues = sorted([r["due_at"] for r in cur if r["due_at"]])
+    return [fact("交割确认", _gate_text(_gate(steps, "closed"))),
+            fact("收尾截止", _mmdd(dues[-1]) if dues else "未设定"),
+            fact("待核对", f"{len(unsatisfied)} 项", "warning" if unsatisfied else "normal")]
+
+
+def next_action(rows: list[dict], cur_key: str) -> Optional[dict]:
+    """这套房现在最该动的一项：待审核 > 进行中（最早截止）> 已分派未开始（最早截止）> 等待 > 待分派。"""
+    cur = [r for r in rows if r["stage_key"] == cur_key and r["exec_status"] != "done"]
+    by_due = lambda r: (r["due_at"] or "9999", r["id"])  # noqa: E731
+    for pick in (
+        lambda r: r["exec_status"] == "pending_review",
+        lambda r: r["exec_status"] == "in_progress",
+        lambda r: r["exec_status"] == "not_started" and r["assignee"],
+        lambda r: r["exec_status"] == "waiting",
+        lambda r: not r["assignee"],
+    ):
+        hit = sorted([r for r in cur if pick(r)], key=by_due)
+        if hit:
+            return hit[0]
+    return None
+
+
 # ---------------- 读 ----------------
 
 @router.get("/projects/{project_id}/tasks", response_model=schemas.TaskListOut)
@@ -212,8 +297,54 @@ def list_tasks(project_id: int, db: Session = Depends(get_db), actor: str = Depe
     steps_stages = [{"key": st["key"], "label": st["label"], "short": st.get("short", st["label"]), "index": i + 1} for i, st in enumerate(STAGE_CHECKLIST)]
     payload = _tasks_payload(db, p, tasks, actor)
     cur = payload[0]["project_current_stage_index"] if payload else 1
+    steps = compute_steps(db, p, hide_money=not can_read_money(actor))
     return {"tasks": payload, "stages": steps_stages, "current_stage_index": cur,
-            "template_missing": not tasks, "can_assign": allowed(actor, "assign_tasks")}
+            "template_missing": not tasks, "can_assign": allowed(actor, "assign_tasks"),
+            "focus": focus_facts(p, steps, payload) if payload else []}
+
+
+@router.get("/projects/{project_id}/tasks/{task_id}", response_model=schemas.TaskOut)
+def get_task(project_id: int, task_id: int, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
+    p = _project(db, project_id)
+    t = _task(db, project_id, task_id)
+    return _tasks_payload(db, p, [t], actor)[0]
+
+
+@router.get("/me/workbench", response_model=schemas.WorkbenchOut)
+def my_workbench(db: Session = Depends(get_db), me: models.User = Depends(require_user)):
+    """工作台「项目关注」：每套房一行（位置、下一动作、行动者、截止），加待我确认 / 待分派 / 等待回复三个数。
+    只看概况，不在这里做事；处理入口指向我的事项与项目总览。未购入的房也列（它们也要跟进）。"""
+    projects = db.scalars(select(models.Project).order_by(models.Project.updated_at.desc())).all()
+    hide = not can_read_money(me.role_code)
+    rows_out: list[dict] = []
+    pending_mine: list[dict] = []
+    unassigned = waiting = 0
+    for p in projects:
+        steps = compute_steps(db, p, hide_money=hide)
+        if steps["group_position"]["complete"]:
+            continue
+        tasks = list(db.scalars(select(models.Task).where(models.Task.project_id == p.id)).all())
+        payload = _tasks_payload(db, p, tasks, me.role_code) if tasks else []
+        cur_key = steps["current_stage"]["key"]
+        nxt = next_action(payload, cur_key)
+        cur_rows = [r for r in payload if r["stage_key"] == cur_key and r["exec_status"] != "done"]
+        unassigned += sum(1 for r in cur_rows if not r["assignee"])
+        waiting += sum(1 for r in payload if r["exec_status"] == "waiting")
+        pending_mine.extend(r for r in payload if r["exec_status"] == "pending_review" and r["reviewer"] and r["reviewer"]["id"] == me.id)
+        actor_brief = None
+        if nxt:
+            actor_brief = nxt["reviewer"] if nxt["exec_status"] == "pending_review" else nxt["assignee"]
+        rows_out.append({
+            "project_id": p.id, "project_name": p.name, "address": p.property.address_std,
+            "group_position": steps["group_position"], "position_label": steps["group_position"]["label"],
+            "next_action": ({"task_id": nxt["id"], "title": nxt["title"], "exec_status": nxt["exec_status"], "exec_status_label": nxt["exec_status_label"],
+                             "due_at": nxt["due_at"], "actor": actor_brief, "kind": "review" if nxt["exec_status"] == "pending_review" else ("assign" if not nxt["assignee"] else "do")} if nxt else None),
+            "waiting_count": sum(1 for r in payload if r["exec_status"] == "waiting"),
+            "unassigned_current_count": sum(1 for r in cur_rows if not r["assignee"]),
+        })
+    pending_mine.sort(key=lambda r: (r["due_at"] or "9999", r["id"]))
+    return {"projects": rows_out, "my_pending": pending_mine,
+            "counts": {"projects": len(rows_out), "pending_review_mine": len(pending_mine), "unassigned_current": unassigned, "waiting": waiting}}
 
 
 @router.get("/projects/{project_id}/members", response_model=schemas.MembersOut)

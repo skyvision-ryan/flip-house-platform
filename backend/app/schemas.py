@@ -588,6 +588,13 @@ class TaskListOut(BaseModel):
     current_stage_index: int
     template_missing: bool = False
     can_assign: bool = False
+    focus: list[dict] = []   # 头卡三条事实：{label, value, tone}
+
+
+class WorkbenchOut(BaseModel):
+    projects: list[dict]
+    my_pending: list[TaskOut]
+    counts: dict
 
 
 class MemberOut(UserBrief):

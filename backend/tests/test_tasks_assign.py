@@ -21,7 +21,9 @@ from app.routers.tasks import ORDINARY_ITEMS, ensure_member, ensure_tasks, route
 from app.steps import compute_steps
 
 
-class TaskAssignTests(unittest.TestCase):
+class _TaskBase(unittest.TestCase):
+    """公共布置：一套房、四个账号、24 项任务实例；J 与 A 是成员。"""
+
     def setUp(self):
         self.engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
         self.addCleanup(self.engine.dispose)
@@ -67,6 +69,9 @@ class TaskAssignTests(unittest.TestCase):
         self.assertEqual(r.status_code, 200, r.text)
         return next(t for t in r.json()["tasks"] if t["step_key"] == step_key)
 
+
+
+class TaskAssignTests(_TaskBase):
     # ---- 预建 ----
     def test_ensure_tasks_builds_24_ordinary_items_and_is_idempotent(self):
         with Session(self.engine) as s:
@@ -218,3 +223,43 @@ class TaskAssignTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class WorkbenchAndFocusTests(_TaskBase):
+    """KAN-75 块 4：头卡三条事实、下一动作、工作台项目关注。复用上面的账号与项目布置。"""
+
+    def test_focus_for_unpurchased_house_names_next_action_and_unassigned_count(self):
+        j = self.login("jessie")
+        r = j.get(f"/api/projects/{self.pid}/tasks").json()
+        labels = [f["label"] for f in r["focus"]]
+        self.assertEqual(labels, ["下一动作", "跟进档位", "待安排"])
+        self.assertEqual(r["focus"][2]["value"], "4 项", "s1 的四项普通任务都没分派")
+        self.assertEqual(r["focus"][0]["value"], "筛选房源", "没人分派时按模板顺序取第一项")
+
+    def test_next_action_prefers_assigned_in_progress_over_unassigned(self):
+        j = self.login("jessie")
+        t = self.task(j, "view")
+        t = j.post(f"/api/projects/{self.pid}/tasks/{t['id']}/assign", json={"version": t["version"], "assignee_user_id": self.uid["a"], "due_at": "2026-09-26"}).json()
+        a = self.login("a")
+        a.post(f"/api/projects/{self.pid}/tasks/{t['id']}/status", json={"version": t["version"], "action": "start"})
+        r = j.get(f"/api/projects/{self.pid}/tasks").json()
+        self.assertEqual(r["focus"][0]["value"], "看房")
+        wb = j.get("/api/me/workbench").json()
+        row = next(x for x in wb["projects"] if x["project_id"] == self.pid)
+        self.assertEqual((row["next_action"]["title"], row["next_action"]["kind"], row["next_action"]["actor"]["id"]), ("看房", "do", self.uid["a"]))
+        self.assertEqual(row["position_label"], "买房 · 未购入")
+        self.assertEqual(wb["counts"]["unassigned_current"], 3)
+        self.assertEqual(wb["counts"]["waiting"], 0)
+
+    def test_workbench_requires_login_and_counts_waiting(self):
+        anon = TestClient(self.app, headers={"X-Actor": quote("负责人")})
+        self.addCleanup(anon.close)
+        self.assertEqual(anon.get("/api/me/workbench").status_code, 401)
+        j = self.login("jessie"); t = self.task(j)
+        t = j.post(f"/api/projects/{self.pid}/tasks/{t['id']}/assign", json={"version": t["version"], "assignee_user_id": self.uid["a"]}).json()
+        a = self.login("a")
+        a.post(f"/api/projects/{self.pid}/tasks/{t['id']}/status", json={"version": t["version"], "action": "wait", "wait_reason": "等图"})
+        wb = j.get("/api/me/workbench").json()
+        self.assertEqual(wb["counts"]["waiting"], 1)
+        single = j.get(f"/api/projects/{self.pid}/tasks/{t['id']}").json()
+        self.assertEqual(single["exec_status"], "waiting")
