@@ -1,4 +1,6 @@
 from typing import Optional
+from datetime import date
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, HttpUrl, field_validator
 
@@ -119,6 +121,12 @@ class FieldIn(BaseModel):
     note: Optional[str] = None
 
 
+class TaskPreplanIn(BaseModel):
+    step_key: str
+    assignee_user_id: Optional[int] = None
+    due_at: Optional[date] = None
+
+
 class ProjectCreate(BaseModel):
     name: str
     strategy: str = "flip"
@@ -141,6 +149,9 @@ class ProjectCreate(BaseModel):
     risks: Optional[str] = None
     notes: Optional[str] = None
     create_analysis: bool = True
+    request_key: Optional[UUID] = None
+    task_plan: list[TaskPreplanIn] = []
+    join_assignees: bool = False
 
 
 class ProjectPatch(BaseModel):

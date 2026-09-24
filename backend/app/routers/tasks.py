@@ -36,7 +36,7 @@ ORDINARY_ITEMS = [(st["key"], it) for st in STAGE_CHECKLIST for it in st["items"
 
 # ---------------- 预建与成员 ----------------
 
-def ensure_tasks(db: Session, project_id: int) -> list[models.Task]:
+def ensure_tasks(db: Session, project_id: int, *, commit: bool = True) -> list[models.Task]:
     """按模板给这套房建普通任务实例（建项目 / seed / 启动回填用）；已有的不动。幂等靠 (project_id, step_key) 唯一。"""
     rows = list(db.scalars(select(models.Task).where(models.Task.project_id == project_id)).all())
     have = {t.step_key for t in rows if t.step_key}
@@ -47,7 +47,7 @@ def ensure_tasks(db: Session, project_id: int) -> list[models.Task]:
         db.add(models.Task(project_id=project_id, step_key=it["key"], source="template", stage_key=stage_key, title=it["title"]))
         added = True
     if added:
-        db.commit()
+        db.commit() if commit else db.flush()
         rows = list(db.scalars(select(models.Task).where(models.Task.project_id == project_id)).all())
     return rows
 

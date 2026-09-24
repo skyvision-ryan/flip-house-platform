@@ -11,6 +11,20 @@ def now_iso() -> str:
     return datetime.now().isoformat(timespec="seconds")
 
 
+class ProjectCreation(Base):
+    """创建请求凭据：相同账号与请求键只提交一次，和房屋、任务在同一事务。"""
+    __tablename__ = "project_creations"
+    __table_args__ = (UniqueConstraint("user_id", "request_key"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    request_key: Mapped[str] = mapped_column(String(36))
+    fingerprint: Mapped[str] = mapped_column(String(64))
+    # 保留请求凭据；项目被删除后重试不能悄悄新建第二套。
+    project_id: Mapped[Optional[int]] = mapped_column(Integer)
+    created_at: Mapped[str] = mapped_column(String, default=now_iso)
+
+
 class Property(Base):
     __tablename__ = "properties"
 

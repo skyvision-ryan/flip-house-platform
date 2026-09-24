@@ -28,14 +28,14 @@ def _rows(db: Session, project_id: int) -> list[models.ProcurementItem]:
     return list(db.scalars(select(models.ProcurementItem).where(models.ProcurementItem.project_id == project_id).order_by(models.ProcurementItem.sort_order, models.ProcurementItem.id)).all())
 
 
-def ensure_procurement(db: Session, project_id: int) -> list[models.ProcurementItem]:
+def ensure_procurement(db: Session, project_id: int, *, commit: bool = True) -> list[models.ProcurementItem]:
     """按模板灌入行（建项目 / 初始化接口 / seed 用）；已有则原样返回。不在 GET 里调。"""
     rows = list(db.scalars(select(models.ProcurementItem).where(models.ProcurementItem.project_id == project_id).order_by(models.ProcurementItem.sort_order, models.ProcurementItem.id)).all())
     if rows:
         return rows
     for i, t in enumerate(PROCUREMENT_TEMPLATE):
         db.add(models.ProcurementItem(project_id=project_id, wave=t["wave"], name=t["name"], status="pending_spec", sort_order=i))
-    db.commit()
+    db.commit() if commit else db.flush()
     return list(db.scalars(select(models.ProcurementItem).where(models.ProcurementItem.project_id == project_id).order_by(models.ProcurementItem.sort_order, models.ProcurementItem.id)).all())
 
 
