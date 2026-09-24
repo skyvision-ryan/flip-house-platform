@@ -26,13 +26,13 @@ export default function Meter({ value, max, label, reading, markers = [], warnAt
   return (
     <div style={{ fontFamily: FONT }}>
       {(label || reading) && (
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: TEXT_2, marginBottom: 6, gap: 8 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: TEXT_2, marginBottom: 6, gap: 8 }}>
           <span>{label}</span>
           <span style={{ color: over ? TEXT_BAD : TEXT, fontWeight: 400, fontVariantNumeric: 'tabular-nums' }}>{reading}</span>
         </div>
       )}
       <BudgetBar actual={value} target={max} scaleMax={scaleMax} height={height} warnAt={warnAt} targetLabel={tl} markers={extra} />
-      {note && <div style={{ fontSize: 12, color: over ? TEXT_BAD : TEXT_2, marginTop: 4 }}>{note}</div>}
+      {note && <div style={{ fontSize: 13, color: over ? TEXT_BAD : TEXT_2, marginTop: 4 }}>{note}</div>}
     </div>
   );
 }

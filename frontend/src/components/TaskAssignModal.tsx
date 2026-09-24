@@ -1,15 +1,15 @@
-import { useEffect, useMemo, useState } from 'react';
 import Alert from '@cloudscape-design/components/alert';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
 import DatePicker from '@cloudscape-design/components/date-picker';
-import FormField from '@cloudscape-design/components/form-field';
 import Modal from '@cloudscape-design/components/modal';
 import Select, { SelectProps } from '@cloudscape-design/components/select';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import Textarea from '@cloudscape-design/components/textarea';
+import { useEffect, useMemo, useState } from 'react';
 import { api, ProjectMembers, Task, UserBrief } from '../api/client';
 import { useFlash } from '../lib/flash';
+import FormField from './ui/FormField';
 
 const UNASSIGN = '__none__';
 
@@ -136,7 +136,7 @@ export default function TaskAssignModal({ projectId, tasks, onDone, onConflict, 
         <FormField label={isReassign ? '改派原因（必填）' : '说明（可选）'} description="会写进活动记录。">
           <Textarea value={reason} rows={2} onChange={({ detail }) => setReason(detail.value)} placeholder={isReassign ? '例如：员工 A 休假，由 A2 接手' : ''} />
         </FormField>
-        <Box fontSize="body-s" color="text-body-secondary">审核人{task.reviewer ? `仍是 ${task.reviewer.display_name}` : '为空时默认记为你自己'}；分派只改负责人，不改审核规则、不改关键节点。保存成功后工作台、项目总览、我的事项一起更新。</Box>
+        <Box fontSize="body-s" color="text-body-secondary">审核人{task.reviewer ? `仍是 ${task.reviewer.display_name}` : '为空时默认记为你自己'}；关键节点规则不变。</Box>
         {err && <Alert type="error">{err}</Alert>}
       </SpaceBetween>
     </Modal>

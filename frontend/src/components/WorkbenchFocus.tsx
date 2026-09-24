@@ -1,22 +1,21 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Alert from '@cloudscape-design/components/alert';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
-import ColumnLayout from '@cloudscape-design/components/column-layout';
-import Container from '@cloudscape-design/components/container';
-import css from './CollaborationLayout.module.css';
-import Header from '@cloudscape-design/components/header';
 import Link from '@cloudscape-design/components/link';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
-import Table from '@cloudscape-design/components/table';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api, Workbench, WorkbenchProject } from '../api/client';
-import { StatTile } from './charts';
-import PersonAvatar from './PersonAvatar';
-import StagePositionBar from './StagePositionBar';
 import { dateTime } from '../lib/format';
 import { dueText, statusIndicator } from '../lib/taskGroups';
+import css from './CollaborationLayout.module.css';
+import HelpText from './HelpText';
+import PersonAvatar from './PersonAvatar';
+import StagePositionBar from './StagePositionBar';
+import Header from './ui/Header';
+import Container, { CardFrame } from './ui/Surface';
+import Table from './ui/Table';
 
 /**
  * 工作台「项目关注」（KAN-75 块 4，目标图 01）。四个数 + 每套房一行 + 右侧待我处理。
@@ -38,14 +37,16 @@ export default function WorkbenchFocus({ refreshKey = 0 }: { refreshKey?: number
   };
   return (
     <SpaceBetween size="l">
-      <ColumnLayout columns={4} minColumnWidth={120} variant="text-grid">
-        <StatTile label="关注项目" value={String(c?.projects ?? '—')} sub="还没走完的房子" />
-        <StatTile label="待我确认" value={String(c?.pending_review_mine ?? '—')} sub="已提交、等我审核" />
-        <StatTile label="待分派" value={String(c?.unassigned_current ?? '—')} sub="当前段还没有负责人" />
-        <StatTile label="等待回复" value={String(c?.waiting ?? '—')} sub="进行中、等外部反馈" />
-      </ColumnLayout>
+      <div className="ui-metrics">
+        {[
+          { label: '关注项目', value: c?.projects, help: '尚未走完流程的房屋。' },
+          { label: '待我确认', value: c?.pending_review_mine, help: '已提交、等你审核的任务。' },
+          { label: '待分派', value: c?.unassigned_current, help: '当前阶段尚无负责人的任务。' },
+          { label: '等待回复', value: c?.waiting, help: '正在等待反馈的任务。' },
+        ].map((m) => <CardFrame key={m.label} cardId="workbench-metrics" cardContext={m.label}><div className="ui-metric"><div className="ui-metric-label">{m.label}</div><div className="ui-metric-value">{m.value ?? '—'}</div><HelpText inline>{m.help}</HelpText></div></CardFrame>)}
+      </div>
       <div className={css.scope}><div className={css.wideSplit}>
-        <Table
+        <Table cardId="workbench-projects"
           variant="container"
           loading={!data}
           loadingText="正在看每套房走到哪"
@@ -55,7 +56,7 @@ export default function WorkbenchFocus({ refreshKey = 0 }: { refreshKey?: number
           header={<Header variant="h2" counter={data ? `(${data.projects.length})` : undefined} actions={<Button onClick={() => navigate('/projects')}>查看全部项目</Button>}>项目关注</Header>}
           empty={<Box textAlign="center" padding="l" color="text-body-secondary">还没有项目。</Box>}
           columnDefinitions={[
-            { id: 'p', header: '项目', width: 170, cell: (p) => <div title={p.address} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}><Link href={`/projects/${p.project_id}`} onFollow={(e) => { e.preventDefault(); navigate(`/projects/${p.project_id}?tab=overview`); }}>{p.project_name}</Link></div> },
+            { id: 'p', header: '项目', minWidth: 160, cell: (p) => <div title={p.address} style={{ overflowWrap: 'anywhere' }}><Link href={`/projects/${p.project_id}`} onFollow={(e) => { e.preventDefault(); navigate(`/projects/${p.project_id}?tab=overview`); }}>{p.project_name}</Link></div> },
             { id: 'pos', header: '当前位置', width: 150, cell: (p) => <div onClick={(e) => e.stopPropagation()}><StagePositionBar position={p.group_position} compact /></div> },
             { id: 'next', header: '下一动作', minWidth: 150, cell: (p) => <div onClick={(e) => e.stopPropagation()}><div>{actionText(p)}</div>{p.next_action && <StatusIndicator type={statusIndicator(p.next_action.exec_status)}>{p.next_action.exec_status_label}</StatusIndicator>}</div> },
             { id: 'who', header: '行动者', width: 130, cell: (p) => (p.next_action ? <PersonAvatar user={p.next_action.actor} size="small" showRole={false} /> : '—') },
@@ -63,23 +64,23 @@ export default function WorkbenchFocus({ refreshKey = 0 }: { refreshKey?: number
           ]}
         />
         <SpaceBetween size="l">
-          <Container header={<Header variant="h2" counter={data ? `(${data.my_pending.length})` : undefined} description="已提交、等你审核；在我的事项里退回或确认。">待我处理</Header>}>
+          <Container cardId="workbench-pending" header={<Header variant="h2" counter={data ? `(${data.my_pending.length})` : undefined} help="已提交、等你审核；在我的事项里退回或确认。">待我处理</Header>}>
             {data && data.my_pending.length === 0 && <Box color="text-body-secondary">现在没有等你确认的交付。</Box>}
             <SpaceBetween size="s">
               {(data?.my_pending ?? []).map((t) => (
-                <div key={t.id} style={{ display: 'grid', gap: 4 }}>
+                <div key={t.id} className="ui-list-item">
                   <div><Box fontWeight="bold" variant="span">{t.title}</Box>　<StatusIndicator type="pending">待我审核</StatusIndicator></div>
                   <Box variant="small" color="text-body-secondary">{t.project_name} · {t.assignee?.display_name ?? '待分派'} 已提交 · 截止 {dueText(t.due_at)}</Box>
-                  <div><Button variant="primary" onClick={() => navigate(`/todo?task=${t.id}`)}>开始审核</Button></div>
+                  <div><Button variant="normal" onClick={() => navigate(`/todo?task=${t.id}`)}>开始审核</Button></div>
                 </div>
               ))}
             </SpaceBetween>
           </Container>
-          <Container header={<Header variant="h2" description="谁把什么交给了谁。">最近交接</Header>}>
+          <Container cardId="workbench-handoffs" header={<Header variant="h2" help="谁把什么交给了谁。">最近交接</Header>}>
             {data && data.recent_handoffs.length === 0 && <Box color="text-body-secondary">还没有提交、退回或改派。</Box>}
             <SpaceBetween size="xs">
               {(data?.recent_handoffs ?? []).map((e) => (
-                <div key={e.id}>
+                <div key={e.id} className="ui-list-item">
                   <div><Box variant="span" fontWeight="bold">{e.actor?.display_name ?? '系统'}</Box> {e.text}</div>
                   <Box variant="small" color="text-body-secondary">{e.project_name} · {e.task_title} · {dateTime(e.created_at)}</Box>
                 </div>

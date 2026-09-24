@@ -1,5 +1,3 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Avatar from '@cloudscape-design/chat-components/avatar';
 import ChatBubble from '@cloudscape-design/chat-components/chat-bubble';
 import SupportPromptGroup from '@cloudscape-design/chat-components/support-prompt-group';
@@ -9,9 +7,10 @@ import Link from '@cloudscape-design/components/link';
 import PromptInput from '@cloudscape-design/components/prompt-input';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api, Project } from '../api/client';
 import { answer, headline, Insight, loadInsights } from '../lib/insights';
-import ReviewTag from './ReviewTag';
 
 type Msg = { id: number; from: 'ai' | 'me'; text: string; items?: Insight[] };
 
@@ -73,14 +72,14 @@ export default function AssistantPanel() {
   return (
     <Drawer header={<span>助手</span>}>
       <SpaceBetween size="l">
-        <Box variant="small" color="text-body-secondary">回答由规则从项目数据生成，不是大模型。接入后升级为真实推理，界面不变。</Box>
+        <Box variant="small" color="text-body-secondary">当前为规则助手，根据已有项目数据提供提示。</Box>
 
         {loading && <ChatBubble type="incoming" avatar={AI} ariaLabel="助手正在读取" showLoadingBar>正在读取所有项目…</ChatBubble>}
 
         {msgs.map((m) => (
           <ChatBubble key={m.id} type={m.from === 'ai' ? 'incoming' : 'outgoing'} avatar={m.from === 'ai' ? AI : ME} ariaLabel={m.from === 'ai' ? '助手' : '我'}>
             <SpaceBetween size="xs">
-              <span>{m.id === 1 && <ReviewTag id="A" />}{m.id === 2 && <ReviewTag id="B" />}{m.text}</span>
+              <span>{m.text}</span>
               {m.items && <InsightList items={m.items} onGo={go} />}
             </SpaceBetween>
           </ChatBubble>
@@ -88,7 +87,7 @@ export default function AssistantPanel() {
 
         {!loading && (
           <div>
-          <Box margin={{ bottom: 'xs' }}><ReviewTag id="C" />建议提问</Box>
+          <Box margin={{ bottom: 'xs' }}>建议提问</Box>
           <SupportPromptGroup
             ariaLabel="建议的问题"
             alignment="vertical"
@@ -105,7 +104,7 @@ export default function AssistantPanel() {
           </div>
         )}
 
-        <Box><ReviewTag id="D" />问一句</Box>
+        <Box>问一句</Box>
         <PromptInput
           value={input}
           onChange={({ detail }) => setInput(detail.value)}

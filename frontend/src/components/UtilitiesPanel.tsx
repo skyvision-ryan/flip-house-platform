@@ -1,21 +1,22 @@
-import { ReactNode, useCallback, useEffect, useState } from 'react';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
+import ColumnLayout from '@cloudscape-design/components/column-layout';
 import Input from '@cloudscape-design/components/input';
 import Link from '@cloudscape-design/components/link';
 import Select from '@cloudscape-design/components/select';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import Spinner from '@cloudscape-design/components/spinner';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
-import ColumnLayout from '@cloudscape-design/components/column-layout';
-import Container from '@cloudscape-design/components/container';
-import FormField from '@cloudscape-design/components/form-field';
-import Header from '@cloudscape-design/components/header';
+import { ReactNode, useCallback, useEffect, useState } from 'react';
 import { api, Utility, UtilityIn } from '../api/client';
 import { useActor } from '../lib/actor';
 import { useFlash } from '../lib/flash';
 import { labelOf, useMeta } from '../lib/meta';
-import { OwnerDot } from './OwnerTag';
+import HelpText from './HelpText';
+import { RoleLabel } from './RoleLabel';
+import FormField from './ui/FormField';
+import Header from './ui/Header';
+import Container from './ui/Surface';
 
 const STATUS_KIND: Record<string, 'success' | 'pending' | 'stopped' | 'in-progress'> = { on: 'success', pending: 'in-progress', not_started: 'pending', off: 'stopped' };
 const shortTime = (iso: string | null) => (iso ? iso.slice(5, 16).replace('T', ' ').replace('-', '/') : '');
@@ -96,17 +97,17 @@ export default function UtilitiesPanel({ projectId, onChanged }: { projectId: nu
         {onCount === 3 ? <StatusIndicator type="success">三家都已开通</StatusIndicator>
           : rows.every((r) => r.status === 'off') ? <StatusIndicator type="stopped">三家都已关闭</StatusIndicator>
           : <StatusIndicator type={onCount ? 'in-progress' : 'pending'}>{onCount} / 3 已开通{rows.some((r) => r.status === 'pending' && r.blocker) ? '，有一家卡住了' : ''}</StatusIndicator>}
-        　<Box variant="span" fontSize="body-s">三家都开通后，总览清单里“开通水电瓦斯”会自动打勾；都关闭后“关水电瓦斯”自动打勾。</Box>
+        　<HelpText>三家都开通后，总览清单里“开通水电瓦斯”会自动打勾；都关闭后“关水电瓦斯”自动打勾。</HelpText>
       </Box>
       <ColumnLayout columns={3}>
         {rows.map((u) => {
           const v = get(u);
           const href = websiteHref(v.website);
           return (
-            <Container
+            <Container cardId="utility-account" cardContext={u.kind}
               key={u.kind}
               header={<Header variant="h3" actions={<Button variant={dirty(u) ? 'primary' : 'normal'} disabled={!dirty(u)} loading={saving === u.kind} onClick={() => save(u)}>保存</Button>}
-                description={u.updated_by ? <span><OwnerDot code={u.updated_by} />{shortTime(u.updated_at)} 填的</span> : '还没人填'}>
+                description={u.updated_by ? <span><RoleLabel code={u.updated_by} />{shortTime(u.updated_at)} 填的</span> : '还没人填'}>
                 <StatusIndicator type={STATUS_KIND[v.status] ?? 'pending'}>{labelOf(meta?.utility_kinds, u.kind)}</StatusIndicator>
               </Header>}
             >
@@ -142,7 +143,7 @@ export default function UtilitiesPanel({ projectId, onChanged }: { projectId: nu
           );
         })}
       </ColumnLayout>
-      <Box variant="small" color="text-body-secondary">密码放在系统里方便大家查，但现在还没有登录和权限，谁能看密码这件事要回头定。</Box>
+      <Box variant="small" color="text-body-secondary">账号凭证按现有角色权限显示；保存前请确认信息准确。</Box>
     </SpaceBetween>
   );
 }

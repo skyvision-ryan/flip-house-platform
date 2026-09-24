@@ -1,24 +1,23 @@
-import { useCallback, useEffect, useState } from 'react';
+import Badge from '@cloudscape-design/components/badge';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
-import Container from '@cloudscape-design/components/container';
-import UploadForm from '../../components/UploadForm';
 import DatePicker from '@cloudscape-design/components/date-picker';
-import FormField from '@cloudscape-design/components/form-field';
-import Header from '@cloudscape-design/components/header';
 import Input from '@cloudscape-design/components/input';
 import Link from '@cloudscape-design/components/link';
 import Modal from '@cloudscape-design/components/modal';
 import Select from '@cloudscape-design/components/select';
 import SpaceBetween from '@cloudscape-design/components/space-between';
-import Table from '@cloudscape-design/components/table';
-import Badge from '@cloudscape-design/components/badge';
+import { useCallback, useEffect, useState } from 'react';
 import { api, ProjectFile } from '../../api/client';
+import { RoleLabel } from '../../components/RoleLabel';
+import FormField from '../../components/ui/FormField';
+import Header from '../../components/ui/Header';
+import Container from '../../components/ui/Surface';
+import Table from '../../components/ui/Table';
+import UploadForm from '../../components/UploadForm';
 import { useFlash } from '../../lib/flash';
 import { dateStr, money, text } from '../../lib/format';
 import { labelOf, useMeta } from '../../lib/meta';
-import ReviewTag from '../../components/ReviewTag';
-import OwnerTag, { OwnerDot } from '../../components/OwnerTag';
 
 function sizeStr(n: number) {
   if (n < 1024) return `${n} B`;
@@ -45,16 +44,16 @@ export default function FilesTab({ projectId }: { projectId: number }) {
 
   return (
     <SpaceBetween size="l">
-      <Container header={<Header variant="h2" description="文件不只是存起来，而是登记：类型、挂到哪一步、日期、对方、金额。挂到步骤上的文件和照片会让清单自动打勾。"><ReviewTag id="A" /><OwnerTag block="files.upload" />上传并登记文件</Header>}>
+      <Container cardId="files-upload" header={<Header variant="h2" help="文件不只是存起来，而是登记：类型、挂到哪一步、日期、对方、金额。挂到步骤上的文件和照片会让清单自动打勾。">上传并登记文件</Header>}>
         <UploadForm projectId={projectId} onDone={load} />
       </Container>
 
-      <Table
+      <Table cardId="files-list"
         header={
           <Header
             variant="h2"
             counter={`(${shown.length}${who ? ` / ${files.length}` : ''})`}
-            description="文件都放在一起，按“谁传的”可以筛。"
+            help="文件都放在一起，按“谁传的”可以筛。"
             actions={
               <SpaceBetween direction="horizontal" size="xs">
                 <Button variant={who ? 'normal' : 'primary'} onClick={() => setWho('')}>全部</Button>
@@ -62,7 +61,7 @@ export default function FilesTab({ projectId }: { projectId: number }) {
               </SpaceBetween>
             }
           >
-            <ReviewTag id="B" /><OwnerTag block="files.table" />文件登记表
+            文件登记表
           </Header>
         }
         items={shown}
@@ -75,7 +74,7 @@ export default function FilesTab({ projectId }: { projectId: number }) {
             </span>
           ) },
           { id: 'step', header: '挂到哪一步', cell: (f) => (f.step_key ? stepTitle(f.step_key) : '—') },
-          { id: 'who', header: '谁传的', cell: (f) => (f.uploaded_by ? <OwnerDot code={f.uploaded_by} /> : '—') },
+          { id: 'who', header: '谁传的', cell: (f) => (f.uploaded_by ? <RoleLabel code={f.uploaded_by} /> : '—') },
           { id: 'type', header: '类型', cell: (f) => labelOf(meta?.file_types, f.doc_type) },
           { id: 'stage', header: '阶段', cell: (f) => text(f.stage) },
           { id: 'date', header: '文件日期', cell: (f) => dateStr(f.doc_date) },

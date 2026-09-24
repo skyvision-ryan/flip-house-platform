@@ -1,34 +1,32 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import Box from '@cloudscape-design/components/box';
 import BreadcrumbGroup from '@cloudscape-design/components/breadcrumb-group';
 import Button from '@cloudscape-design/components/button';
 import ButtonDropdown from '@cloudscape-design/components/button-dropdown';
-import Container from '@cloudscape-design/components/container';
 import ContentLayout from '@cloudscape-design/components/content-layout';
-import Grid from '@cloudscape-design/components/grid';
-import Header from '@cloudscape-design/components/header';
 import Modal from '@cloudscape-design/components/modal';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import Spinner from '@cloudscape-design/components/spinner';
 import Tabs from '@cloudscape-design/components/tabs';
-import StatusBadge from '../../components/StatusBadge';
-import KeyValuePairs from '@cloudscape-design/components/key-value-pairs';
-import ExpandableSection from '@cloudscape-design/components/expandable-section';
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { api, Project, TaskList } from '../../api/client';
 import CoverImage from '../../components/CoverImage';
 import StagePositionBar from '../../components/StagePositionBar';
-import ReviewTag from '../../components/ReviewTag';
-import { api, Project, TaskList } from '../../api/client';
+import StatusBadge from '../../components/StatusBadge';
+import ExpandableSection from '../../components/ui/ExpandableSection';
+import KeyValuePairs from '../../components/ui/Facts';
+import Header from '../../components/ui/Header';
+import Container from '../../components/ui/Surface';
 import { useFlash } from '../../lib/flash';
 import { money, num } from '../../lib/format';
 import { labelOf, useMeta } from '../../lib/meta';
 import { useRole } from '../../lib/role';
-import OverviewTab from './OverviewTab';
 import AnalysisTab from './AnalysisTab';
-import DataTab from './DataTab';
-import FilesTab from './FilesTab';
 import BudgetTab from './BudgetTab';
+import DataTab from './DataTab';
 import EditProjectModal from './EditProjectModal';
+import FilesTab from './FilesTab';
+import OverviewTab from './OverviewTab';
 
 // 审计 #A12：原先 lead/active/portfolio 用 severity-low/medium/green，拿「严重度」表「阶段」——
 // 线索项目顶着低告警色、在建顶着中告警色。阶段不是状态，区分靠 current_stage.label 的文字。
@@ -135,41 +133,33 @@ export default function ProjectPage() {
     <ContentLayout maxContentWidth={1440}
       breadcrumbs={<BreadcrumbGroup items={[{ text: '工作台', href: '/' }, { text: '项目', href: '/projects' }, { text: project.name, href: `/projects/${pid}` }]} onFollow={(e) => { e.preventDefault(); navigate(e.detail.href); }} />}
       header={
-        <Container>
-          {/* KAN-63：页头收成资源头——照片 150→96，占 2 列不是 3 列。
-              页头是用来确认「我在哪个项目」的，不是展示位。窄屏仍各占 12。 */}
-          <Grid gridDefinition={[{ colspan: { default: 12, s: 2 } }, { colspan: { default: 12, s: 10 } }]}>
-            <CoverImage propertyId={prop.id} height={96} radius={8} showLabel={false} />
-            <SpaceBetween size="m">
-              <Header
-                variant="h1"
-
-                actions={
+        <Container cardId="project-header" cardContext={project.name}>
+          <SpaceBetween size="l">
+            <div className="ui-project-identity">
+              <CoverImage propertyId={prop.id} width={96} height={96} radius={8} showLabel={false} />
+              <SpaceBetween size="s">
+                <Header variant="h1" actions={
                   <SpaceBetween direction="horizontal" size="xs">
                     {role.can('edit_project') && <Button onClick={() => setEditing(true)}>编辑</Button>}
                     {role.can('delete_project') && <ButtonDropdown items={[{ id: 'delete', text: '删除项目' }]} onItemClick={({ detail }) => { if (detail.id === 'delete') setConfirmDelete(true); }}>操作</ButtonDropdown>}
                   </SpaceBetween>
-                }
-              >
-                {/* 窄屏要能换行：SpaceBetween 横向不换行，这里用 flex-wrap。 */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, minWidth: 0 }}>
-                  <ReviewTag id="A" />
-                  <span>{project.name}</span>
-                  <StatusBadge status={project.status} />
-                </div>
-              </Header>
-              {/* 地址、户型、阶段、策略原先拼成一句用「 · 」串起来的说明，读起来像一行小字。
-                  改成带标签的字段：每个值上面写清楚它是什么。 */}
-              <Box color="text-body-secondary">{prop.address_std}{specParts.length ? ` · ${specParts.join(' · ')}` : ''}</Box>
-              {/* KAN-75 块 4：头卡三条事实按当前位置动态给（下一动作 / 目标过户 / 当前重点 …），只陈述任务表、日期与关键节点里已有的数据 */}
-              {tasks && tasks.focus.length > 0 && (
-                <KeyValuePairs columns={3} items={tasks.focus.map((f) => ({ label: f.label, value: f.tone === 'warning' ? <Box color="text-status-warning" fontWeight="bold">{f.value}</Box> : <Box fontWeight="bold">{f.value}</Box> }))} />
-              )}
-              {/* KAN-75 块 2：五格位置条。买房格里写未购入 / escrow 中；位置只由关键节点推进。 */}
-              <StagePositionBar position={project.group_position} />
-              <ExpandableSection headerText="房屋与交易资料"><KeyValuePairs columns={4} items={[{ label: '策略', value: labelOf(meta?.strategies, project.strategy) }, ...dealFields(project), { label: '关键日期', value: keyDates(project) }]} /></ExpandableSection>
-            </SpaceBetween>
-          </Grid>
+                }>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                    <span>{project.name}</span><StatusBadge status={project.status} />
+                  </div>
+                </Header>
+                <Box color="text-body-secondary">{prop.address_std}{specParts.length ? ` · ${specParts.join(' · ')}` : ''}</Box>
+              </SpaceBetween>
+            </div>
+            {/* 当前事实与房屋身份分层；仍只陈述任务、日期和关键节点已有的数据。 */}
+            {tasks && tasks.focus.length > 0 && (
+              <KeyValuePairs columns={3} items={tasks.focus.map((f) => ({ label: f.label, value: f.tone === 'warning' ? <Box color="text-status-warning" fontWeight="bold">{f.value}</Box> : <Box fontWeight="bold">{f.value}</Box> }))} />
+            )}
+            <StagePositionBar position={project.group_position} />
+            <ExpandableSection headerText="房屋与交易资料">
+              <KeyValuePairs columns={4} items={[{ label: '策略', value: labelOf(meta?.strategies, project.strategy) }, ...dealFields(project), { label: '关键日期', value: keyDates(project) }]} />
+            </ExpandableSection>
+          </SpaceBetween>
         </Container>
       }
     >

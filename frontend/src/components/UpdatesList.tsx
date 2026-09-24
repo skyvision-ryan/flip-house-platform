@@ -3,7 +3,7 @@ import Box from '@cloudscape-design/components/box';
 import Link from '@cloudscape-design/components/link';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import { Update } from '../api/client';
-import { OwnerDot } from './OwnerTag';
+import { RoleLabel } from './RoleLabel';
 import { BORDER } from './charts/palette';
 
 const KIND_TAB: Record<string, string> = { file: 'files', data: 'data', expense: 'budget', budget: 'budget', analysis: 'analysis', step: 'overview', project: 'overview', utility: 'data&section=utilities', inspection: 'overview', procurement: 'budget&section=procurement' };
@@ -52,7 +52,7 @@ export default function UpdatesList({ items, showProject, onGo, emptyText = '还
                 style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: 6, padding: '6px 0', borderTop: `1px solid ${BORDER}` }}
               >
                 <Box variant="small" color="text-body-secondary">{hm(u.created_at)}</Box>
-                <OwnerDot code={u.actor} />
+                <RoleLabel code={u.actor} />
                 {showProject && (
                   <Link href={href} onFollow={(e) => { e.preventDefault(); onGo(href); }}>{u.project_name ?? '—'}</Link>
                 )}

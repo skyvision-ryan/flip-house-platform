@@ -1,14 +1,15 @@
-import { useState } from 'react';
 import Alert from '@cloudscape-design/components/alert';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
 import DatePicker from '@cloudscape-design/components/date-picker';
-import FormField from '@cloudscape-design/components/form-field';
 import Input from '@cloudscape-design/components/input';
 import Modal from '@cloudscape-design/components/modal';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import Textarea from '@cloudscape-design/components/textarea';
+import { useState } from 'react';
 import { api, Task } from '../api/client';
+import HelpText from './HelpText';
+import FormField from './ui/FormField';
 
 /** 记录等待（KAN-75）：等谁、等什么（必填）、预计回复日期（可空）。等待不锁项目，只是说明状态。 */
 export default function TaskWaitModal({ task, onDone, onConflict, onDismiss }: { task: Task; onDone: (t: Task) => void; onConflict: () => void; onDismiss: () => void }) {
@@ -40,7 +41,7 @@ export default function TaskWaitModal({ task, onDone, onConflict, onDismiss }: {
         <FormField label="预计回复日期（可选）">
           <DatePicker value={until} onChange={({ detail }) => setUntil(detail.value)} placeholder="YYYY/MM/DD" />
         </FormField>
-        <Box fontSize="body-s" color="text-body-secondary">等待只说明这项任务卡在哪，不会锁住项目里别的事；统筹在项目总览里能看到。</Box>
+        <HelpText>等待只说明这项任务卡在哪，不会锁住项目里别的事；统筹在项目总览里能看到。</HelpText>
         {err && <Alert type="error">{err}</Alert>}
       </SpaceBetween>
     </Modal>

@@ -1,25 +1,25 @@
-import { useEffect, useState } from 'react';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
-import Container from '@cloudscape-design/components/container';
 import DatePicker from '@cloudscape-design/components/date-picker';
-import ExpandableSection from '@cloudscape-design/components/expandable-section';
-import Header from '@cloudscape-design/components/header';
-import KeyValuePairs from '@cloudscape-design/components/key-value-pairs';
 import Link from '@cloudscape-design/components/link';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, Project, Task } from '../api/client';
 import { useActor } from '../lib/actor';
-import { dateTime } from '../lib/format';
 import { useFlash } from '../lib/flash';
+import { dateTime } from '../lib/format';
 import { useMeta } from '../lib/meta';
 import { stageKeyLabel } from '../lib/stageGroups';
 import { dueText, statusIndicator } from '../lib/taskGroups';
-import { OwnerDot } from './OwnerTag';
 import PersonAvatar from './PersonAvatar';
+import { RoleLabel } from './RoleLabel';
 import TaskTimeline from './TaskTimeline';
+import ExpandableSection from './ui/ExpandableSection';
+import KeyValuePairs from './ui/Facts';
+import Header from './ui/Header';
+import Container from './ui/Surface';
 
 /**
  * 右侧「任务摘要」（KAN-75 块 1，目标图 04–06 右栏的骨架）。只看不做：
@@ -53,16 +53,17 @@ export default function TaskSummaryPanel({ task, project, canAssign, onAssign, o
 
   return (
     <SpaceBetween size="l">
-      <Container header={<Header variant="h2" description={task ? undefined : '在左侧任务表点一行。'}>任务摘要</Header>}>
+      <Container cardId="task-summary" cardContext={task?.title} header={<Header variant="h2" help="点击左侧任务，查看安排与处理入口。">任务摘要</Header>}>
         {task ? (
           <SpaceBetween size="m">
+            <h3 className="ui-summary-title">{task.title}</h3>
+            <div className="ui-muted">{stageKeyLabel(meta?.stage_groups, task.stage_key, task.stage_label)}{task.ws ? ` · ${task.ws}` : ''}</div>
             <KeyValuePairs
-              columns={2}
+              layout="rows" columns={1}
               items={[
-                { label: '任务', value: <div><Box fontWeight="bold">{task.title}</Box><Box variant="small" color="text-body-secondary">{stageKeyLabel(meta?.stage_groups, task.stage_key, task.stage_label)}{task.ws ? ` · ${task.ws}` : ''}</Box></div> },
                 { label: '状态', value: <div><StatusIndicator type={statusIndicator(task.exec_status)}>{task.exec_status_label}</StatusIndicator>{task.exec_status === 'waiting' && <Box variant="small" color="text-body-secondary">等 {task.wait_for || '—'}：{task.wait_reason}{task.wait_until ? `（预计 ${dueText(task.wait_until)}）` : ''}</Box>}</div> },
-                { label: '主要负责人', value: <PersonAvatar user={task.assignee} /> },
-                { label: '审核人', value: task.reviewer ? <PersonAvatar user={task.reviewer} /> : <Box color="text-body-secondary">分派时默认为分派的人</Box> },
+                { label: '主要负责人', value: <PersonAvatar user={task.assignee} showRole={false} /> },
+                { label: '审核人', value: task.reviewer ? <PersonAvatar user={task.reviewer} showRole={false} /> : <Box color="text-body-secondary">未指定</Box> },
                 {
                   label: '截止日期',
                   value: editDue ? (
@@ -79,28 +80,28 @@ export default function TaskSummaryPanel({ task, project, canAssign, onAssign, o
                 { label: '最新动态', value: task.last_event ? <div><div>{task.last_event.text}</div><Box variant="small" color="text-body-secondary">{task.last_event.actor?.display_name ?? '系统'} · {dateTime(task.last_event.created_at)}</Box></div> : <Box color="text-body-secondary">还没有记录</Box> },
               ]}
             />
-            {task.exec_status !== 'done' && task.satisfied && <Box fontSize="body-s" color="text-status-info">证据已满足但任务还没确认完成——确认在「我的事项」里做。</Box>}
-            <SpaceBetween direction="horizontal" size="xs">
+            {task.exec_status !== 'done' && task.satisfied && <Box fontSize="body-s" color="text-status-info">证据已满足，任务仍待确认。</Box>}
+            <div className="ui-actions ui-actions-start">
               {canAssign && <Button onClick={() => onAssign(task)} iconName={task.assignee ? 'edit' : 'add-plus'}>{task.assignee ? '改派 / 调整安排' : '分派'}</Button>}
               {me && (task.assignee?.id === me.id || task.reviewer?.id === me.id) && <Button onClick={() => navigate(`/todo?task=${task.id}`)}>{task.exec_status === 'pending_review' && task.reviewer?.id === me.id ? '去我的事项审核' : '去我的事项处理'}</Button>}
               <Button variant="link" onClick={() => navigate(`/projects/${task.project_id}/tasks/${task.id}`)}>完整活动记录</Button>
-            </SpaceBetween>
+            </div>
             <ExpandableSection headerText="活动记录" variant="footer">
               <TaskTimeline projectId={task.project_id} taskId={task.id} refreshKey={refreshKey} limit={6} />
             </ExpandableSection>
           </SpaceBetween>
         ) : (
-          <Box color="text-body-secondary">这里显示选中任务的负责人、状态、截止日期和最新动态。</Box>
+          <Box color="text-body-secondary">请选择一项任务。</Box>
         )}
       </Container>
-      <Container header={<Header variant="h2" description="D、J 各确认一次才过门；这里只看现状，确认在下方清单区。">关键节点状态</Header>}>
+      <Container cardId="task-gates" header={<Header variant="h2" help="关键节点按 D / J 规则确认，可在下方证据清单中处理。">关键节点状态</Header>}>
         {gates.length ? (
           <SpaceBetween size="xs">
             {gates.map((g) => (
               <div key={g.key} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
                 <Box fontWeight="bold">{g.title}</Box>
                 {g.done ? <StatusIndicator type="success">已过</StatusIndicator> : (
-                  ['D', 'J'].map((c) => <span key={c}><OwnerDot code={c} />{g.confirmed.includes(c) ? <Box variant="span" color="text-status-success">已确认</Box> : <Box variant="span" color="text-body-secondary">待确认</Box>}</span>)
+                  ['D', 'J'].map((c) => <span key={c}><RoleLabel code={c} />{g.confirmed.includes(c) ? <Box variant="span" color="text-status-success">已确认</Box> : <Box variant="span" color="text-body-secondary">待确认</Box>}</span>)
                 )}
               </div>
             ))}

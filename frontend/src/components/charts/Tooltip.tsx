@@ -28,7 +28,7 @@ export function useTooltip() {
           style={{
             position: 'absolute', left: state.x + 12, top: state.y - 8, transform: 'translateY(-100%)',
             background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 8, boxShadow: '0 4px 20px rgba(0,28,36,0.15)',
-            padding: '8px 12px', fontFamily: FONT, fontSize: 12, color: TEXT, whiteSpace: 'nowrap', zIndex: 5, minWidth: 120,
+            padding: '8px 12px', fontFamily: FONT, fontSize: 13, color: TEXT, whiteSpace: 'nowrap', zIndex: 5, minWidth: 120,
           }}
         >
           {state.title && <div style={{ color: TEXT_2, marginBottom: 4 }}>{state.title}</div>}

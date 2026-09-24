@@ -1,14 +1,14 @@
-import { PAGE_BG } from '../theme';
-import { useState } from 'react';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
-import Container from '@cloudscape-design/components/container';
 import Form from '@cloudscape-design/components/form';
-import FormField from '@cloudscape-design/components/form-field';
-import Header from '@cloudscape-design/components/header';
 import Input from '@cloudscape-design/components/input';
 import SpaceBetween from '@cloudscape-design/components/space-between';
+import { useState } from 'react';
 import { api, Me } from '../api/client';
+import FormField from '../components/ui/FormField';
+import Header from '../components/ui/Header';
+import Container from '../components/ui/Surface';
+import { PAGE_BG } from '../theme';
 
 /** 登录页：账号密码。演示模式下也能登录（管理员要进“用户”页）。 */
 export default function Login({ onLogin, demoMode, onSkip }: { onLogin: (me: Me) => void; demoMode: boolean; onSkip?: () => void }) {
@@ -28,7 +28,7 @@ export default function Login({ onLogin, demoMode, onSkip }: { onLogin: (me: Me)
       <div style={{ width: '100%', maxWidth: 420 }}>
         <form onSubmit={(e) => { e.preventDefault(); submit(); }}>
           <Form
-            header={<Header variant="h1" description="用公司给你的账号登录。忘了密码找负责人重置。">翻新项目平台</Header>}
+            header={<Header variant="h1" help="用公司给你的账号登录。忘了密码找负责人重置。">翻新项目平台</Header>}
             actions={
               <SpaceBetween direction="horizontal" size="xs">
                 {demoMode && onSkip && <Button variant="link" onClick={onSkip}>先不登录，用演示身份</Button>}
@@ -37,7 +37,7 @@ export default function Login({ onLogin, demoMode, onSkip }: { onLogin: (me: Me)
             }
             errorText={err ?? undefined}
           >
-            <Container>
+            <Container cardId="login">
               <SpaceBetween size="l">
                 <FormField label="账号">
                   <Input value={username} onChange={({ detail }) => setUsername(detail.value)} autoFocus autoComplete="username" placeholder="例如 jessie" />

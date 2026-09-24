@@ -1,28 +1,29 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Alert from '@cloudscape-design/components/alert';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
 import Checkbox from '@cloudscape-design/components/checkbox';
-import Container from '@cloudscape-design/components/container';
-import ExpandableSection from '@cloudscape-design/components/expandable-section';
-import FormField from '@cloudscape-design/components/form-field';
-import Header from '@cloudscape-design/components/header';
-import KeyValuePairs from '@cloudscape-design/components/key-value-pairs';
 import Link from '@cloudscape-design/components/link';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
 import Tabs from '@cloudscape-design/components/tabs';
 import Textarea from '@cloudscape-design/components/textarea';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api, FileRow, Submission, Task } from '../api/client';
 import { useFlash } from '../lib/flash';
 import { dateTime } from '../lib/format';
 import { useMeta } from '../lib/meta';
 import { stageKeyLabel } from '../lib/stageGroups';
 import { dueText, statusActions, statusIndicator } from '../lib/taskGroups';
+import HelpText from './HelpText';
 import PersonAvatar from './PersonAvatar';
 import TaskTimeline from './TaskTimeline';
 import TaskWaitModal from './TaskWaitModal';
+import ExpandableSection from './ui/ExpandableSection';
+import KeyValuePairs from './ui/Facts';
+import FormField from './ui/FormField';
+import Header from './ui/Header';
+import Container from './ui/Surface';
 import UploadForm from './UploadForm';
 
 const kb = (n: number) => (n >= 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
@@ -129,7 +130,7 @@ function DeliverTab({ task, meId, canSubmit, canReview, busy, onAction }: { task
   const candidates = (files ?? []).filter((f) => f.step_key === task.step_key || (docType && f.doc_type === docType));
   const others = (files ?? []).filter((f) => !candidates.includes(f));
   const requirement = (
-    <Container header={<Header variant="h3">当前生效要求</Header>}>
+    <Container cardId="task-requirement" cardContext={task.title} header={<Header variant="h3">当前生效要求</Header>}>
       <SpaceBetween size="xs">
         <Box>{task.deliverable ? task.deliverable.label : '按任务说明处理'}{task.requires_file ? '' : '（交说明即可）'}</Box>
         {task.done_when && <Box variant="small" color="text-body-secondary">{task.done_when}</Box>}
@@ -140,7 +141,7 @@ function DeliverTab({ task, meId, canSubmit, canReview, busy, onAction }: { task
   if (canReview && latest) {
     return (
       <SpaceBetween size="m">
-        <Container header={<Header variant="h2" description={`${latest.submitted_by?.display_name ?? '—'} · ${dateTime(latest.submitted_at)}`}>第 {latest.seq} 次提交</Header>}>
+        <Container cardId="task-submission" cardContext={task.title} header={<Header variant="h2" description={`${latest.submitted_by?.display_name ?? '—'} · ${dateTime(latest.submitted_at)}`}>第 {latest.seq} 次提交</Header>}>
           <SpaceBetween size="s">
             {latest.note && <Box>{latest.note}</Box>}
             {latest.files.length ? latest.files.map((f) => (
@@ -152,14 +153,14 @@ function DeliverTab({ task, meId, canSubmit, canReview, busy, onAction }: { task
           </SpaceBetween>
         </Container>
         {requirement}
-        <FormField label="审核意见" description="退回时必填：写清要改什么。确认时可不填。" stretch>
+        <FormField label="审核意见（退回时必填）" description="写清修改要求，确认通过时可不填。" stretch>
           <Textarea value={reason} rows={3} onChange={({ detail }) => setReason(detail.value)} />
         </FormField>
         <SpaceBetween direction="horizontal" size="xs">
           <Button loading={busy} onClick={() => { if (!reason.trim()) { return; } onAction(() => api.returnTask(task.project_id, task.id, { version: task.version, reason: reason.trim() }), `已退回「${task.title}」`); }} disabled={!reason.trim()}>退回修改</Button>
           <Button variant="primary" loading={busy} onClick={() => onAction(() => api.confirmTask(task.project_id, task.id, { version: task.version, reason: reason.trim() || null }), `已确认「${task.title}」完成`)}>确认本次交付</Button>
         </SpaceBetween>
-        <Box variant="small" color="text-body-secondary">确认后任务完成，工作台、项目总览、负责人的我的事项一起更新；关键节点的 D/J 确认不受影响。邮件回执等块 3。</Box>
+        <HelpText>确认后任务完成，工作台、项目总览、负责人的我的事项一起更新；关键节点的 D/J 确认不受影响。</HelpText>
         <SubmissionList subs={task.submissions.slice(1)} />
       </SpaceBetween>
     );
@@ -183,7 +184,7 @@ function DeliverTab({ task, meId, canSubmit, canReview, busy, onAction }: { task
                 </ExpandableSection>
               )}
               <Button variant="normal" iconName="upload" onClick={() => setShowUpload((v) => !v)}>{showUpload ? '收起上传' : '上传新文件'}</Button>
-              {showUpload && <Container><UploadForm projectId={task.project_id} docType={docType ?? 'other'} lockType={!!docType} stepKey={task.step_key} photoOnly={task.deliverable?.kind === 'photo'} compact onDone={async () => { const before = new Set((files ?? []).map((f) => f.id)); const after = await api.files(task.project_id); setFiles(after); setPicked((p) => [...p, ...after.filter((f) => !before.has(f.id)).map((f) => f.id)]); setShowUpload(false); }} /></Container>}
+              {showUpload && <Container cardId="task-upload" cardContext={task.title}><UploadForm projectId={task.project_id} docType={docType ?? 'other'} lockType={!!docType} stepKey={task.step_key} photoOnly={task.deliverable?.kind === 'photo'} compact onDone={async () => { const before = new Set((files ?? []).map((f) => f.id)); const after = await api.files(task.project_id); setFiles(after); setPicked((p) => [...p, ...after.filter((f) => !before.has(f.id)).map((f) => f.id)]); setShowUpload(false); }} /></Container>}
             </SpaceBetween>
           )}
         </FormField>
@@ -192,7 +193,7 @@ function DeliverTab({ task, meId, canSubmit, canReview, busy, onAction }: { task
         </FormField>
         <SpaceBetween direction="horizontal" size="xs">
           <Button variant="primary" loading={busy} disabled={(task.requires_file && !picked.length) || (!task.requires_file && !note.trim() && !picked.length)} onClick={() => onAction(() => api.submitTask(task.project_id, task.id, { version: task.version, note: note.trim() || null, file_ids: picked }), `已提交「${task.title}」，等 ${task.reviewer?.display_name ?? '审核人'} 确认`)}>提交审核</Button>
-          <Box variant="small" color="text-body-secondary">上传不等于提交；提交后进入待确认，由 {task.reviewer?.display_name ?? '审核人'} 退回或确认。邮件提醒等块 3。</Box>
+          <HelpText>上传不等于提交；提交后进入待确认，由 {task.reviewer?.display_name ?? '审核人'} 退回或确认。</HelpText>
         </SpaceBetween>
         <SubmissionList subs={task.submissions} />
       </SpaceBetween>

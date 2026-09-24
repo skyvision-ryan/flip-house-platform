@@ -1,20 +1,20 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
 import Alert from '@cloudscape-design/components/alert';
 import Box from '@cloudscape-design/components/box';
 import BreadcrumbGroup from '@cloudscape-design/components/breadcrumb-group';
 import Button from '@cloudscape-design/components/button';
-import Container from '@cloudscape-design/components/container';
 import ContentLayout from '@cloudscape-design/components/content-layout';
 import Grid from '@cloudscape-design/components/grid';
-import Header from '@cloudscape-design/components/header';
-import KeyValuePairs from '@cloudscape-design/components/key-value-pairs';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import Spinner from '@cloudscape-design/components/spinner';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { api, Task } from '../../api/client';
 import PersonAvatar from '../../components/PersonAvatar';
 import TaskTimeline from '../../components/TaskTimeline';
-import { api, Task } from '../../api/client';
+import KeyValuePairs from '../../components/ui/Facts';
+import Header from '../../components/ui/Header';
+import Container from '../../components/ui/Surface';
 import { useActor } from '../../lib/actor';
 import { useMeta } from '../../lib/meta';
 import { stageKeyLabel } from '../../lib/stageGroups';
@@ -52,11 +52,11 @@ export default function TaskHistoryPage() {
       }
     >
       <Grid gridDefinition={[{ colspan: { default: 12, m: 8 } }, { colspan: { default: 12, m: 4 } }]}>
-        <Container header={<Header variant="h2" description="每一步是谁、什么时候、做了什么。只读。">活动记录</Header>}>
+        <Container cardId="task-history" header={<Header variant="h2" help="每一步是谁、什么时候、做了什么。只读。">活动记录</Header>}>
           <TaskTimeline projectId={pid} taskId={tid} />
         </Container>
         <SpaceBetween size="l">
-          <Container header={<Header variant="h2">任务摘要</Header>}>
+          <Container cardId="history-summary" header={<Header variant="h2">任务摘要</Header>}>
             <KeyValuePairs columns={1} items={[
               { label: '任务', value: <div><Box fontWeight="bold">{task.title}</Box><Box variant="small" color="text-body-secondary">{stageKeyLabel(meta?.stage_groups, task.stage_key, task.stage_label)}{task.ws ? ` · ${task.ws}` : ''}</Box></div> },
               { label: '负责人', value: <PersonAvatar user={task.assignee} /> },
@@ -67,10 +67,10 @@ export default function TaskHistoryPage() {
               { label: '来源', value: task.source === 'template' ? '项目模板' : task.source === 'adhoc' ? '临时新增' : '需求变更' },
             ]} />
           </Container>
-          <Container header={<Header variant="h2" description="任务详情与交付在「我的事项」处理。">处理入口</Header>}>
+          <Container cardId="history-entry" header={<Header variant="h2" help="任务详情与交付在「我的事项」处理。">处理入口</Header>}>
             <SpaceBetween size="s">
               {mine ? <Button variant="primary" onClick={() => navigate(`/todo?task=${task.id}`)}>前往我的事项</Button> : <Box color="text-body-secondary">这项任务不在你名下；负责人和审核人在「我的事项」处理。</Box>}
-              <Box fontSize="body-s" color="text-body-secondary">追加需求先确认范围、原任务保持不变（块 7 接上）。</Box>
+              <Box fontSize="body-s" color="text-body-secondary">追加需求功能尚未开放。</Box>
             </SpaceBetween>
           </Container>
         </SpaceBetween>

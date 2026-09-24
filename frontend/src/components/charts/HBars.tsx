@@ -18,7 +18,7 @@ interface Props {
 /** 一组量的大小：横向细条 + 条尾直接标数值。多系列时堆叠并带图例；单系列不画图例。 */
 export default function HBars({ rows, series = [], ordinal = false, format = (n) => String(n), labelWidth = 140, barHeight = 12, emptyText = '暂无数据' }: Props) {
   const tip = useTooltip();
-  if (!rows.length) return <div style={{ fontFamily: FONT, color: TEXT_2, fontSize: 12 }}>{emptyText}</div>;
+  if (!rows.length) return <div style={{ fontFamily: FONT, color: TEXT_2, fontSize: 13 }}>{emptyText}</div>;
   const totals = rows.map((r) => r.values.reduce((a, b) => a + b, 0));
   const max = Math.max(...totals) || 1;
   /**
@@ -37,7 +37,7 @@ export default function HBars({ rows, series = [], ordinal = false, format = (n)
     <div style={{ position: 'relative', fontFamily: FONT }}>
       <div style={{ display: 'grid', rowGap: 8 }}>
         {rows.map((r, i) => (
-          <div key={r.key} style={{ display: 'grid', gridTemplateColumns: `${labelWidth}px 1fr 64px`, alignItems: 'center', columnGap: 12, fontSize: 12 }}>
+          <div key={r.key} style={{ display: 'grid', gridTemplateColumns: `${labelWidth}px 1fr 64px`, alignItems: 'center', columnGap: 12, fontSize: 13 }}>
             <div style={{ color: TEXT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.label}</div>
             <div
               style={{ position: 'relative', height: barHeight + 8, display: 'flex', alignItems: 'center' }}
@@ -59,7 +59,7 @@ export default function HBars({ rows, series = [], ordinal = false, format = (n)
         ))}
       </div>
       {series.length > 1 && (
-        <div style={{ display: 'flex', gap: 16, marginTop: 12, fontSize: 12, color: TEXT_2 }}>
+        <div style={{ display: 'flex', gap: 16, marginTop: 12, fontSize: 13, color: TEXT_2 }}>
           {series.map((s, j) => (
             <span key={s} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
               <span style={{ width: 10, height: 10, borderRadius: 2, background: duo ? DUO[j % DUO.length] : SERIES[j % SERIES.length] }} />{s}

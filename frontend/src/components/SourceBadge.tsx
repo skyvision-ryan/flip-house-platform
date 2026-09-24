@@ -1,9 +1,9 @@
 import Badge from '@cloudscape-design/components/badge';
 import Popover from '@cloudscape-design/components/popover';
-import KeyValuePairs from '@cloudscape-design/components/key-value-pairs';
 import { dateTime, pct } from '../lib/format';
 import { useMeta } from '../lib/meta';
 import { sourceLabel } from '../lib/sources';
+import KeyValuePairs from './ui/Facts';
 
 // KAN-71：标签走 lib/sources 的三级回退（后端词表 → 内置表 → 原值），这里不再自己维护一张表。
 // 审计 #A13：原先 manual=green、public_record=blue、model/ai=severity-low/medium，
@@ -13,7 +13,7 @@ import { sourceLabel } from '../lib/sources';
 export default function SourceBadge({ source, fetchedAt, confidence, note }: { source: string; fetchedAt?: string; confidence?: number | null; note?: string | null }) {
   const meta = useMeta();
   const label = sourceLabel(source, meta?.sources);
-  const badge = <Badge color="grey">{label}</Badge>;
+  const badge = <Badge color="grey" style={{ root: { background: 'var(--ui-page)', color: 'var(--ui-secondary)', borderColor: 'var(--ui-border)', borderWidth: '1px', borderRadius: '4px', paddingBlock: '1px', paddingInline: '7px' } }}>{label}</Badge>;
   if (!fetchedAt && confidence == null && !note) return badge;
   return (
     <Popover

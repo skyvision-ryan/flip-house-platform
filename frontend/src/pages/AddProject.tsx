@@ -1,5 +1,3 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
 import Alert from '@cloudscape-design/components/alert';
 import Autosuggest from '@cloudscape-design/components/autosuggest';
 import Box from '@cloudscape-design/components/box';
@@ -7,36 +5,37 @@ import BreadcrumbGroup from '@cloudscape-design/components/breadcrumb-group';
 import Button from '@cloudscape-design/components/button';
 import Checkbox from '@cloudscape-design/components/checkbox';
 import ColumnLayout from '@cloudscape-design/components/column-layout';
-import Container from '@cloudscape-design/components/container';
 import ContentLayout from '@cloudscape-design/components/content-layout';
 import DatePicker from '@cloudscape-design/components/date-picker';
-import ExpandableSection from '@cloudscape-design/components/expandable-section';
-import FormField from '@cloudscape-design/components/form-field';
-import Header from '@cloudscape-design/components/header';
+import Icon from '@cloudscape-design/components/icon';
 import Input from '@cloudscape-design/components/input';
-import KeyValuePairs from '@cloudscape-design/components/key-value-pairs';
 import Select from '@cloudscape-design/components/select';
 import SpaceBetween from '@cloudscape-design/components/space-between';
-import Table from '@cloudscape-design/components/table';
 import Textarea from '@cloudscape-design/components/textarea';
 import Tiles from '@cloudscape-design/components/tiles';
-import Icon from '@cloudscape-design/components/icon';
-import { colorBorderDividerDefault, colorTextAccent, colorBackgroundContainerContent, colorBackgroundButtonPrimaryDefault, colorTextButtonPrimaryDefault } from '@cloudscape-design/design-tokens';
-import ProjectPreplan, { PlanReview, PlanSummary } from '../components/ProjectPreplan';
-import { planPayload, summarizePlan, TaskPlan } from '../lib/projectPlan';
-import { useActor } from '../lib/actor';
-import { userCan } from '../lib/role';
+import { colorBackgroundButtonPrimaryDefault, colorBackgroundContainerContent, colorBorderDividerDefault, colorTextAccent, colorTextButtonPrimaryDefault } from '@cloudscape-design/design-tokens';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { AddressCandidate, api, LookupResult, UserBrief } from '../api/client';
 import css from '../components/CollaborationLayout.module.css';
+import HelpText from '../components/HelpText';
+import ProjectPreplan, { PlanReview, PlanSummary } from '../components/ProjectPreplan';
 import SourceBadge from '../components/SourceBadge';
-import { api, AddressCandidate, LookupResult, UserBrief } from '../api/client';
+import ExpandableSection from '../components/ui/ExpandableSection';
+import KeyValuePairs from '../components/ui/Facts';
+import FormField from '../components/ui/FormField';
+import Header from '../components/ui/Header';
+import Container from '../components/ui/Surface';
+import Table from '../components/ui/Table';
+import { useActor } from '../lib/actor';
 import { EMPTY_MANUAL, ManualAddress, shouldClearAmounts, toCandidate, validateManualAddress } from '../lib/address';
 import { useFlash } from '../lib/flash';
 import { dateStr, money, pct, text } from '../lib/format';
 import { useMeta } from '../lib/meta';
+import { planPayload, summarizePlan, TaskPlan } from '../lib/projectPlan';
+import { userCan, useRole } from '../lib/role';
 import { isProvisionalSource, sourceLabel } from '../lib/sources';
 import { summarizeSources, summaryText } from '../lib/sourceSummary';
-import ReviewTag from '../components/ReviewTag';
-import { useRole } from '../lib/role';
 
 type FieldState = { value: string; source: string; confidence: number | null; note: string | null; label: string; field: string };
 
@@ -207,7 +206,7 @@ export default function AddProject() {
       <FormField
         key={f.field}
         label={<span>{f.label} <SourceBadge source={f.source} confidence={f.confidence} note={f.note} /></span>}
-        description={manualPath && key === 'apn' ? '待核实' : undefined}
+        constraintText={manualPath && key === 'apn' ? '待核实' : undefined}
         warningText={low ? '把握度低，建议核对' : undefined}
       >
         <Input value={f.value} onChange={({ detail }) => setFields((prev) => prev.map((x, j) => (j === i
@@ -233,9 +232,9 @@ export default function AddProject() {
 
   const provisional = summary.bySource.some((b) => isProvisionalSource(b.source));
 
-  const houseCard = <Container header={<Header variant="h2">这套房屋</Header>}>
+  const houseCard = <Container cardId="intake-house" header={<Header variant="h2">这套房屋</Header>}>
     <SpaceBetween size="m">
-      <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}><div style={{ padding: 14, border: `1px solid ${colorBorderDividerDefault}`, borderRadius: 12, color: colorTextAccent }}><Icon name="folder" size="large" /></div><div><Box fontWeight="bold" fontSize="heading-m">{name || address?.street || '待确认地址'}</Box><Box color="text-body-secondary">{address?.label || '先选择或手动填写房屋地址'}</Box></div></div>
+      <div><div className="ui-property-icon"><Icon name="folder" /></div><Box fontWeight="bold" fontSize="heading-m">{name || address?.street || '待确认地址'}</Box><Box margin={{ top: 'xs' }} color="text-body-secondary">{address?.label || '先选择或手动填写房屋地址'}</Box></div>
       <div><Box color="text-body-secondary">买入 / 意向价 · 团队填写</Box><Box fontSize="heading-xl" fontWeight="bold">{deal.purchase_price ? money(Number(deal.purchase_price)) : '未填'}</Box></div>
       <dl className={css.houseFacts}>{[
         { label: '物业类型', value: byKey.property_type?.f.value || '未填' },
@@ -244,13 +243,13 @@ export default function AddProject() {
         { label: '地块面积', value: byKey.lot_sqft?.f.value ? `${byKey.lot_sqft.f.value} sqft` : '未填' },
         { label: 'APN / AIN', value: byKey.apn?.f.value || lookup?.apn || '待核实' },
         { label: '来源', value: lookup ? summaryText(summary, labelOfSource) : '人工填写 · 待核实' },
-      ].map((item) => <div key={item.label}><dt><Box variant="small" color="text-body-secondary">{item.label}</Box></dt><dd>{item.value}</dd></div>)}</dl>
+      ].map((item) => <div key={item.label} style={item.label === '来源' || item.label === 'APN / AIN' ? { gridColumn: '1 / -1' } : undefined}><dt><Box variant="small" color="text-body-secondary">{item.label}</Box></dt><dd>{item.value}</dd></div>)}</dl>
       {provisional && <Box variant="small" color="text-body-secondary">含演示 / 待核实数据，请在买入前核对。</Box>}
     </SpaceBetween>
   </Container>;
 
   const addressSection = (
-              <Container header={<Header variant="h2">地址</Header>}>
+              <Container cardId="intake-address" header={<Header variant="h2">地址</Header>}>
                 <SpaceBetween size="m">
                   <FormField label="房产地址" description="输入门牌号和街道，从候选中选择。试试：Fisk、Parkville、Alvarado。">
                     <Autosuggest
@@ -270,7 +269,7 @@ export default function AddProject() {
                   {/* 手动入口常驻，不只在查询失败后出现：真实数据源可能不抛错但返回零候选。 */}
                   <Button variant="inline-link" onClick={() => setManualOpen((o) => !o)}>{manualOpen ? '收起手动填写' : '手动填写地址'}</Button>
                   {manualOpen && (
-                    <Container header={<Header variant="h3" description="只有街道必填；城市、州、邮编能填就填。这条路不查任何数据。">手动填写地址</Header>}>
+                    <Container cardId="intake-manual" header={<Header variant="h3" help="只有街道必填；城市、州、邮编能填就填。这条路不查任何数据。">手动填写地址</Header>}>
                       <SpaceBetween size="s">
                         <ColumnLayout columns={4} minColumnWidth={140}>
                           <FormField label="街道（含门牌号）"><Input value={manualForm.street} onChange={({ detail }) => setManualForm((m) => ({ ...m, street: detail.value }))} /></FormField>
@@ -307,25 +306,25 @@ export default function AddProject() {
   const detailsSection = (
               <SpaceBetween size="l">
                 {lookup ? (
-                  <Alert type={summary.lowConf.length ? 'warning' : provisional ? 'info' : 'success'} header={<><ReviewTag id="B" />补全情况</>}>
+                  <Alert type={summary.lowConf.length ? 'warning' : provisional ? 'info' : 'success'} header={<>补全情况</>}>
                     {summaryText(summary, labelOfSource)}
                     {provisional && ' 演示数据是模拟值，不是这套房子的真实资料。'}
                     改动任何字段后，该字段来源变为“人工”，原值仍保留在来源记录里。
                   </Alert>
                 ) : (
-                  <Alert type="info" header={<><ReviewTag id="B" />手动填写</>}>
+                  <Alert type="info" header={<>手动填写</>}>
                     这个地址没有查询结果。下面的字段全部空着，你填的每一项来源记为“人工”；地块号待核实。不填也能创建。
                   </Alert>
                 )}
                 {GROUPS.map((g, gi) => (
-                  <Container key={g.title} header={<Header variant="h2"><ReviewTag id={['C', 'D', 'E'][gi]} />{g.title}</Header>}>
+                  <Container cardId="intake-facts" cardContext={g.title} key={g.title} header={<Header variant="h2">{g.title}</Header>}>
                     <ColumnLayout columns={g.cols} minColumnWidth={180}>
                       {g.keys.map(fieldInput)}
                     </ColumnLayout>
                   </Container>
                 ))}
                 {lookup && (
-                  <ExpandableSection variant="container" header={<Header variant="h3"><ReviewTag id="F" />业主、按揭与成交史（自动带入，仅供参考）</Header>}>
+                  <ExpandableSection cardId="intake-history" variant="container" header={<Header variant="h3">业主、按揭与成交史（自动带入，仅供参考）</Header>}>
                     <SpaceBetween size="l">
                       {lookup.owner ? (
                         <KeyValuePairs columns={3} items={[
@@ -354,7 +353,7 @@ export default function AddProject() {
   );
   const settingsSection = (
               <SpaceBetween size="l">
-                <Container header={<Header variant="h2"><ReviewTag id="G" />项目安排</Header>}>
+                <Container cardId="intake-settings" header={<Header variant="h2">项目安排</Header>}>
                   <SpaceBetween size="l">
                     <FormField label="项目名称">
                       <Input value={name} onChange={({ detail }) => setName(detail.value)} />
@@ -386,7 +385,7 @@ export default function AddProject() {
                   </SpaceBetween>
                 </Container>
 
-                <Container header={<Header variant="h2" description="未购入时可以先空着，之后在分析器里算。两个金额不预填：旁边的参考值点「采用」才填进去。"><ReviewTag id="H" />交易与日期</Header>}>
+                <Container cardId="intake-deal" header={<Header variant="h2" help="未购入时可以先空着，之后在分析器里算。两个金额不预填：旁边的参考值点「采用」才填进去。">交易与日期</Header>}>
                   <SpaceBetween size="l">
                     <ColumnLayout columns={2}>
                       {/* KAN-71：这两格以前预填挂牌价/估值，还挂着写死的「公共记录 90%」「估算 75%」徽章。
@@ -421,19 +420,19 @@ export default function AddProject() {
   if (!meta) return <Alert type="info">正在读取项目模板，请稍候。</Alert>;
   return <ContentLayout maxContentWidth={1440}
     breadcrumbs={<BreadcrumbGroup items={[{ text: '项目', href: '/projects' }, { text: '新建项目', href: '/projects/new' }]} onFollow={(e) => { e.preventDefault(); navigate(e.detail.href); }} />}
-    header={<Header variant="h1" description="从一套房开始，提前安排全流程；创建后在项目总览继续协作。">{['确认这套房屋', '为这套房安排全流程', '确认房屋与任务安排'][step]}</Header>}>
+    header={<Header variant="h1" help="从一套房开始，提前安排全流程；创建后在项目总览继续协作。">{['确认这套房屋', '为这套房安排全流程', '确认房屋与任务安排'][step]}</Header>}>
     <div className={css.scope}>
       <ol className={css.steps} aria-label="新建项目步骤">{['确认房屋', '准备任务', '确认创建'].map((label, index) => <li key={label} aria-current={index === step ? 'step' : undefined} style={{ borderColor: index <= step ? colorTextAccent : colorBorderDividerDefault, color: index === step ? colorTextAccent : undefined }}><span className={css.stepNumber} style={{ background: index <= step ? colorBackgroundButtonPrimaryDefault : colorBackgroundContainerContent, color: index <= step ? colorTextButtonPrimaryDefault : undefined, border: `1px solid ${colorBorderDividerDefault}` }}>{index < step ? '✓' : index + 1}</span><span className={css.stepLabel}>{label}</span></li>)}</ol>
       {error && <Box margin={{ bottom: 'l' }}><Alert type="error">{error}</Alert></Box>}
-      {step === 0 && <div className={css.intakeSplit}><SpaceBetween size="l">{addressSection}{address && <>{settingsSection}<ExpandableSection variant="container" headerText="房产资料与来源 · 可选核对">{detailsSection}</ExpandableSection></>}</SpaceBetween><aside className={css.aside}>{houseCard}</aside></div>}
+      {step === 0 && <div className={css.intakeSplit}><SpaceBetween size="l">{addressSection}{address && <>{settingsSection}<ExpandableSection cardId="intake-sources" variant="container" headerText="房产资料与来源 · 可选核对">{detailsSection}</ExpandableSection></>}</SpaceBetween><aside className={css.aside}>{houseCard}</aside></div>}
       {step === 1 && <div className={css.intakeSplit}><SpaceBetween size="l">
-        <Alert type="info">全部 {planSummary.total} 项普通任务都会创建。后续任务可提前分派，任务与关键节点分别管理。</Alert>
+        <HelpText>全部 {planSummary.total} 项普通任务都会创建。后续任务可提前分派，任务与关键节点分别管理。</HelpText>
         {usersError && <Alert type="error" action={<Button onClick={loadUsers}>重试</Button>}>未能读取员工账号：{usersError}。可暂不分派，创建后再安排。</Alert>}
         <ProjectPreplan meta={meta} plan={plan} onChange={updatePlan} users={users} loading={loadingUsers} creatorId={me.id} />
       </SpaceBetween><aside className={css.aside}><SpaceBetween size="l">{houseCard}<PlanSummary meta={meta} plan={plan} users={users} /></SpaceBetween></aside></div>}
       {step === 2 && <div className={css.intakeSplit}><SpaceBetween size="l">
         {houseCard}<PlanReview meta={meta} plan={plan} />
-        <Container header={<Header variant="h2">创建后如何开始</Header>}><SpaceBetween size="m">
+        <Container cardId="intake-start" header={<Header variant="h2">创建后如何开始</Header>}><SpaceBetween size="m">
           <KeyValuePairs columns={2} items={[{ label: '起始位置', value: '买房 · 未购入' }, { label: '任务状态', value: '全部未开始' }, { label: '本次分派审核人', value: planSummary.assigned ? me.display_name : '分派时确定' }, { label: '关键节点', value: '按既有规则单独确认' }]} />
           {joining.length > 0 && <Checkbox checked={joinAssignees} onChange={({ detail }) => setJoinAssignees(detail.checked)}>将 {joining.map((id) => users.find((u) => u.id === id)?.display_name ?? `账号 ${id}`).join('、')} 加入项目并分派任务</Checkbox>}
           <Box color="text-body-secondary">未安排的 {planSummary.unassigned} 项任务保留为待分派，可稍后补充。</Box>

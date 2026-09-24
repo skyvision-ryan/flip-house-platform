@@ -25,7 +25,7 @@ export default function SegmentTrack({ segments, currentIndex, complete = false,
               {state === 'current' && !complete && (
                 <div style={{ position: 'absolute', left: '50%', top: height / 2, width: 14, height: 14, borderRadius: '50%', background: cur, border: '3px solid #fff', boxShadow: '0 0 0 1px ' + cur, transform: 'translate(-50%,-50%)' }} />
               )}
-              <div style={{ marginTop: 8, fontSize: 11, textAlign: 'center', color: state === 'current' && !complete ? TEXT : TEXT_2, fontWeight: state === 'current' && !complete ? 700 : 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.label}</div>
+              <div style={{ marginTop: 8, fontSize: 12, textAlign: 'center', color: state === 'current' && !complete ? TEXT : TEXT_2, fontWeight: state === 'current' && !complete ? 700 : 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.label}</div>
             </div>
           );
         })}

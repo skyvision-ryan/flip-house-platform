@@ -1,18 +1,19 @@
-import { useEffect, useMemo, useState } from 'react';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
-import Header from '@cloudscape-design/components/header';
 import Select from '@cloudscape-design/components/select';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
-import Table from '@cloudscape-design/components/table';
 import TextFilter from '@cloudscape-design/components/text-filter';
-import css from './CollaborationLayout.module.css';
+import { useEffect, useMemo, useState } from 'react';
 import type { Task, TaskList } from '../api/client';
 import { useMeta } from '../lib/meta';
 import { stageKeyLabel } from '../lib/stageGroups';
 import { dueText, statusIndicator } from '../lib/taskGroups';
+import css from './CollaborationLayout.module.css';
+import HelpText from './HelpText';
 import PersonAvatar from './PersonAvatar';
+import Header from './ui/Header';
+import Table from './ui/Table';
 
 const ALL = '__all__';
 
@@ -43,7 +44,7 @@ export default function TaskTable({ data, selectedId, onSelect, canAssign, onAss
   const checkedVisible = checked.filter((c) => rows.some((r) => r.id === c.id));
 
   return (
-    <Table
+    <Table cardId="task-table"
       variant="container"
       items={rows}
       wrapLines
@@ -58,7 +59,8 @@ export default function TaskTable({ data, selectedId, onSelect, canAssign, onAss
         <Header
           variant="h2"
           counter={`(${rows.length})`}
-          description={`${unassigned ? `${unassigned} 项待分派 · ` : ''}点任务看摘要，勾选后批量分派。`}
+          description={unassigned ? `${unassigned} 项待分派` : undefined}
+          help="点击任务查看摘要，勾选多项可批量分派。"
           actions={
             <SpaceBetween direction="horizontal" size="xs">
               {canAssign && <Button disabled={!checkedVisible.length} iconName="user-profile" onClick={() => onAssign(checkedVisible)}>{checkedVisible.length ? `分派 ${checkedVisible.length} 项` : '分派任务'}</Button>}
@@ -69,16 +71,15 @@ export default function TaskTable({ data, selectedId, onSelect, canAssign, onAss
         </Header>
       }
       filter={<div className={css.toolbar}><TextFilter filteringText={q} onChange={({ detail }) => setQ(detail.filteringText)} filteringPlaceholder="搜索任务名或负责人" filteringAriaLabel="搜索任务" /><Select selectedOption={stageOptions.find((o) => o.value === stage) ?? stageOptions[0]} options={stageOptions} onChange={({ detail }) => setStage(detail.selectedOption.value ?? ALL)} ariaLabel="按阶段筛选" /></div>}
-      empty={<Box textAlign="center" padding="l" color="text-body-secondary">{data.template_missing ? '这套房还没有任务实例（重启后端会自动补建）。' : '这个筛选下没有任务。'}</Box>}
+      empty={<Box textAlign="center" padding="l" color="text-body-secondary">{data.template_missing ? '这套房的任务尚未准备好，请稍后刷新。' : '这个筛选下没有任务。'}</Box>}
       columnDefinitions={[
         {
           id: 'title', header: '任务', minWidth: 145,
           cell: (t) => (
             <div>
               <div style={{ fontWeight: t.id === selectedId ? 700 : 400 }}>{t.title}</div>
-              <Box variant="small" color="text-body-secondary">
-                {stage === ALL ? `${stageKeyLabel(meta?.stage_groups, t.stage_key, t.stage_short)} · ` : ''}{t.ws ?? ''}{t.owners.length ? ` · 默认角色 ${t.owners.join('、')}` : ''}
-              </Box>
+              {stage === ALL && <Box variant="small" color="text-body-secondary">{stageKeyLabel(meta?.stage_groups, t.stage_key, t.stage_short)}</Box>}
+              <HelpText inline>{t.ws ?? ''}{t.owners.length ? ` · 默认负责角色 ${t.owners.join('、')}` : ''}</HelpText>
             </div>
           ),
         },

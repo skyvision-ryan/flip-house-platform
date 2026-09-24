@@ -1,24 +1,7 @@
 import { applyTheme } from '@cloudscape-design/components/theming';
 
-/**
- * 只覆盖页面底色和字体。其余全部沿用 Cloudscape 亮色体系，
- * 主按钮用 Cloudscape 默认蓝，不自造品牌色。
- *
- * 字体分两层（KAN-63 观感修订）：
- * - **正文是控制台字体**：Open Sans 打头，和 Cloudscape 自己的栈一致，长段中英文混排更安静。
- * - **标题和展示字才用地铁字体**：Helvetica Neue 打头，只出现在 heading / display 令牌
- *   和 StatTile 的大数字上，用来撑起层次。
- *
- * 这是一处**有意偏离**，理由与回退见 docs/界面风格与AWS对照.md 第 6 节（审计 #A18 #A19）。
- * 官方栈是 `"Open Sans", Helvetica, Arial, sans-serif`，Helvetica 本就是第二顺位，
- * 我们只是在标题上把它提到首位；文档没有禁止换字体。
- * 回退 = 把 DISPLAY_STACK 的三处使用改回 BASE_STACK。
- *
- * 三个字体令牌**必须分别赋值**：fontFamilyHeading 与 fontFamilyDisplay 是独立令牌、
- * 各自一份字面量，不引用 base。它们是纯字符串令牌，不是 colorBackgroundLayoutMain
- * 那种 { light, dark } 结构。
- *
- * 两个栈都保留 PingFang SC 兜底，否则中文掉字。
+/** 产品主题：保留 Cloudscape 交互和状态语义，按本轮授权用克制的橙色突出主操作。
+ * 中英文正文 15/24，辅助文字 13/20，标题 20/28；配色只在此定义。
  */
 const BASE_STACK = '"Open Sans", "Helvetica Neue", "PingFang SC", Arial, sans-serif';
 export const DISPLAY_STACK = '"Helvetica Neue", Helvetica, "PingFang SC", Arial, sans-serif';
@@ -28,7 +11,7 @@ export const DISPLAY_STACK = '"Helvetica Neue", Helvetica, "PingFang SC", Arial,
  * 导出是因为登录页在 AppLayout 之外，拿不到这个令牌——不从这里取，两边就会各写一个灰
  * （审计 #A17 记的就是这个问题）。
  */
-export const PAGE_BG = '#f2f3f3';
+export const PAGE_BG = '#f5f6f8';
 
 applyTheme({
   theme: {
@@ -37,6 +20,29 @@ applyTheme({
       fontFamilyBase: BASE_STACK,
       fontFamilyHeading: DISPLAY_STACK,
       fontFamilyDisplay: DISPLAY_STACK,
+      fontSizeBodyM: '15px',
+      lineHeightBodyM: '24px',
+      fontSizeBodyS: '13px',
+      lineHeightBodyS: '20px',
+      fontSizeHeadingXl: '28px',
+      lineHeightHeadingXl: '36px',
+      fontSizeHeadingL: '20px',
+      lineHeightHeadingL: '28px',
+      fontSizeHeadingM: '17px',
+      lineHeightHeadingM: '26px',
+      fontWeightHeadingL: '600',
+      fontWeightHeadingM: '600',
+      borderRadiusContainer: '8px',
+      borderRadiusButton: '6px',
+      colorBackgroundButtonPrimaryDefault: { light: '#ff9900', dark: '#ff9900' },
+      colorBackgroundButtonPrimaryHover: { light: '#ec8b00', dark: '#ec8b00' },
+      colorBackgroundButtonPrimaryActive: { light: '#d97f00', dark: '#d97f00' },
+      colorBorderButtonPrimaryDefault: { light: '#c67600', dark: '#c67600' },
+      colorBorderButtonPrimaryHover: { light: '#b96d00', dark: '#b96d00' },
+      colorBorderButtonPrimaryActive: { light: '#a66000', dark: '#a66000' },
+      colorTextButtonPrimaryDefault: { light: '#161d26', dark: '#161d26' },
+      colorTextButtonPrimaryHover: { light: '#161d26', dark: '#161d26' },
+      colorTextButtonPrimaryActive: { light: '#161d26', dark: '#161d26' },
     },
   },
 });
@@ -48,3 +54,10 @@ applyTheme({
  * 代号是两种字形。所以根元素也要声明一次，让未被组件包住的文字跟上正文栈。
  */
 document.documentElement.style.fontFamily = BASE_STACK;
+
+// 自有组件共用同一套产品令牌：橙色仅作主操作与品牌强调，蓝色用于链接，红绿仅表状态。
+const productTokens = {
+  text: '#161d26', secondary: '#536273', page: PAGE_BG, surface: '#ffffff', border: '#d8dee6',
+  orange: '#ff9900', 'orange-soft': '#fff1d6', blue: '#0972d3', 'help-bg': '#f4f8fc', 'help-border': '#d5e3ef',
+};
+for (const [key, value] of Object.entries(productTokens)) document.documentElement.style.setProperty(`--ui-${key}`, value);

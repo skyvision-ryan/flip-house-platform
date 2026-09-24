@@ -1,28 +1,30 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Navigate, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
-import Spinner from '@cloudscape-design/components/spinner';
 import AppLayout from '@cloudscape-design/components/app-layout';
 import Autosuggest from '@cloudscape-design/components/autosuggest';
-import TopNavigation from '@cloudscape-design/components/top-navigation';
-import SideNavigation from '@cloudscape-design/components/side-navigation';
+import Button from '@cloudscape-design/components/button';
 import Flashbar, { FlashbarProps } from '@cloudscape-design/components/flashbar';
-import Dashboard from './pages/Dashboard';
-import MyTodo from './pages/MyTodo';
-import Login from './pages/Login';
-import Users from './pages/Users';
+import SideNavigation from '@cloudscape-design/components/side-navigation';
+import Spinner from '@cloudscape-design/components/spinner';
+import TopNavigation from '@cloudscape-design/components/top-navigation';
+import { useCallback, useEffect, useState } from 'react';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { AddressCandidate, api, AUTH_EVENT, Me } from './api/client';
+import AssistantPanel from './components/AssistantPanel';
+import DisplaySettings from './components/DisplaySettings';
+import { HelpContext } from './components/HelpText';
+import { ReviewContext } from './components/ReviewTag';
+import { ActorContext, clearActor, getActor, getOverride, setActor as persistActor } from './lib/actor';
+import { readHelpPref, writeHelpPref } from './lib/displayPref';
+import { FlashContext } from './lib/flash';
+import { useMeta } from './lib/meta';
+import { readReviewPref, writeReviewPref } from './lib/reviewPref';
+import { Tier, TIER_FALLBACK } from './lib/role';
 import AddProject from './pages/AddProject';
+import Dashboard from './pages/Dashboard';
+import Login from './pages/Login';
+import MyTodo from './pages/MyTodo';
 import ProjectPage from './pages/project/ProjectPage';
 import TaskHistoryPage from './pages/project/TaskHistoryPage';
-import AssistantPanel from './components/AssistantPanel';
-import { api, AddressCandidate, AUTH_EVENT, Me } from './api/client';
-import { FlashContext } from './lib/flash';
-import { ReviewContext } from './components/ReviewTag';
-import { RoleColorContext } from './components/OwnerTag';
-import { readReviewPref, writeReviewPref } from './lib/reviewPref';
-import { readRolePref, writeRolePref } from './lib/rolePref';
-import { ActorContext, clearActor, getActor, getOverride, setActor as persistActor } from './lib/actor';
-import { useMeta } from './lib/meta';
-import { TIER_FALLBACK, Tier } from './lib/role';
+import Users from './pages/Users';
 
 export default function App() {
   const navigate = useNavigate();
@@ -58,10 +60,10 @@ export default function App() {
   const onLogin = useCallback((m: Me) => { clearActor(); setOverride(null); setMe(m); navigate('/'); }, [navigate]);
   const logout = async () => { try { await api.logout(); } catch { /* ignore */ } clearActor(); setOverride(null); setMe(null); navigate('/'); };
   const [reviewOn, setReviewOn] = useState<boolean>(() => readReviewPref(localStorage));
-  const toggleReview = () => { const v = !reviewOn; setReviewOn(v); writeReviewPref(localStorage, v); };
-  // 两个讲解开关各自一个键、各自一份 state，开会时可以只开其中一个（KAN-64）
-  const [roleColorsOn, setRoleColorsOn] = useState<boolean>(() => readRolePref(localStorage));
-  const toggleRoleColors = () => { const v = !roleColorsOn; setRoleColorsOn(v); writeRolePref(localStorage, v); };
+  const toggleReview = (v: boolean) => { setReviewOn(v); writeReviewPref(localStorage, v); };
+  const [helpOn, setHelpOn] = useState(() => readHelpPref(localStorage));
+  const [displayOpen, setDisplayOpen] = useState(false);
+  const toggleHelp = (v: boolean) => { setHelpOn(v); writeHelpPref(localStorage, v); };
 
   const pushFlash = (msg: Omit<FlashbarProps.MessageDefinition, 'id' | 'onDismiss' | 'dismissible'>) => {
     const id = String(Date.now());
@@ -78,13 +80,17 @@ export default function App() {
     id: `g-${t}`, text: (meta?.tiers?.[t] ?? TIER_FALLBACK[t]).label,
     items: (meta?.roles ?? []).filter((r) => r.tier === t).map((r) => ({ id: r.code, text: r.label, description: r.duties || undefined })),
   })).filter((g) => g.items.length);
-  const activeHref = location.pathname === '/projects/new' ? '/projects/new' : location.pathname.startsWith('/projects') ? '/projects' : location.pathname.startsWith('/users') ? '/users' : '/';
+  const activeHref = location.pathname.startsWith('/todo') ? '/todo' : location.pathname === '/projects/new' ? '/projects/new' : location.pathname.startsWith('/projects') ? '/projects' : location.pathname.startsWith('/users') ? '/users' : '/';
 
   if (demoMode === null) {
     return <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}><Spinner size="large" /></div>;
   }
   if (!me && (!demoMode || location.pathname === '/login')) {
-    return <Login demoMode={demoMode} onLogin={onLogin} onSkip={demoMode ? () => navigate('/') : undefined} />;
+    return <ReviewContext.Provider value={reviewOn}><HelpContext.Provider value={helpOn}>
+      <div className="ui-login-settings"><Button iconName="settings" onClick={() => setDisplayOpen(true)}>显示设置</Button></div>
+      <Login demoMode={demoMode} onLogin={onLogin} onSkip={demoMode ? () => navigate('/') : undefined} />
+      <DisplaySettings visible={displayOpen} helpOn={helpOn} reviewOn={reviewOn} onHelp={toggleHelp} onReview={toggleReview} onDismiss={() => setDisplayOpen(false)} />
+    </HelpContext.Provider></ReviewContext.Provider>;
   }
 
   const identityMenu = me
@@ -97,16 +103,11 @@ export default function App() {
           ...(canSwitch ? [...roleGroups, ...(override ? [{ id: '__reset', text: `回到自己（${me.role_code}）` }] : [])] : []),
           ...(me.is_admin ? [{ id: '__users', text: '用户管理', iconName: 'group' as const }] : []),
           { id: '__logout', text: '退出登录', iconName: 'unlocked' as const },
-          // 两个讲解开关都是开会用的内部工具，不该占产品顶栏的位置。功能不变，换个入口。
-          { id: '__review', text: `评审标注：${reviewOn ? '开' : '关'}` },
-          { id: '__roleColors', text: `角色色圈：${roleColorsOn ? '开' : '关'}` },
         ],
         onItemClick: ({ detail }: { detail: { id: string } }) => {
           if (detail.id === '__logout') logout();
           else if (detail.id === '__reset') resetActor();
           else if (detail.id === '__users') navigate('/users');
-          else if (detail.id === '__review') toggleReview();
-          else if (detail.id === '__roleColors') toggleRoleColors();
           else setActor(detail.id);
         },
       }
@@ -118,13 +119,9 @@ export default function App() {
         items: [
           ...(roleGroups.length ? roleGroups : [{ id: '负责人', text: '负责人' }]),
           { id: '__login', text: '用账号登录', iconName: 'lock-private' as const },
-          { id: '__review', text: `评审标注：${reviewOn ? '开' : '关'}` },
-          { id: '__roleColors', text: `角色色圈：${roleColorsOn ? '开' : '关'}` },
         ],
         onItemClick: ({ detail }: { detail: { id: string } }) => {
           if (detail.id === '__login') navigate('/login');
-          else if (detail.id === '__review') toggleReview();
-          else if (detail.id === '__roleColors') toggleRoleColors();
           else setActor(detail.id);
         },
       };
@@ -132,11 +129,9 @@ export default function App() {
   return (
     <FlashContext.Provider value={pushFlash}>
     <ReviewContext.Provider value={reviewOn}>
-    <RoleColorContext.Provider value={roleColorsOn}>
+    <HelpContext.Provider value={helpOn}>
     <ActorContext.Provider value={{ actor, setActor, me, demoMode, logout }}>
-      {/* 审计 #A10 把这条底边从 tier 色改成了中性线；KAN-63 索性去掉——
-          TopNavigation 自带下边界，再加一条 3px 只是多一道横杠。
-          #top-nav 必须保留，下面 AppLayout 的 headerSelector 依赖它。 */}
+      {/* KAN-75：顶栏中性底色，橙色细边仅作品牌强调，不按角色变色。 */}
       <div id="top-nav" style={{ position: 'sticky', top: 0, zIndex: 1002 }}>
         <TopNavigation
           identity={{ href: '/', title: '翻新项目平台', onFollow: (e) => { e.preventDefault(); navigate('/'); } }}
@@ -165,6 +160,7 @@ export default function App() {
             />
           }
           utilities={[
+            { type: 'button', text: '显示设置', iconName: 'settings', onClick: () => setDisplayOpen(true) },
             identityMenu,
           ]}
         />
@@ -201,7 +197,8 @@ export default function App() {
             ]}
           />
         }
-        content={
+        content={<>
+          {(helpOn || reviewOn) && <div className="ui-mode-bar"><span><strong>{helpOn ? '辅助说明已开启' : ''}{helpOn && reviewOn ? ' · ' : ''}{reviewOn ? '卡片编号已开启' : ''}</strong>{reviewOn && ' · 点击编号复制反馈位置'}</span><Button variant="inline-link" onClick={() => setDisplayOpen(true)}>显示设置</Button></div>}
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/todo" element={<MyTodo />} />
@@ -215,10 +212,11 @@ export default function App() {
             <Route path="/login" element={<Dashboard />} />
             <Route path="*" element={<Dashboard />} />
           </Routes>
-        }
+        </>}
       />
+      <DisplaySettings visible={displayOpen} helpOn={helpOn} reviewOn={reviewOn} onHelp={toggleHelp} onReview={toggleReview} onDismiss={() => setDisplayOpen(false)} />
     </ActorContext.Provider>
-    </RoleColorContext.Provider>
+    </HelpContext.Provider>
     </ReviewContext.Provider>
     </FlashContext.Provider>
   );

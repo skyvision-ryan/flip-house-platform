@@ -21,11 +21,6 @@ const KEEP: Record<string, string> = {
     + '只在令牌名拼错时才会暴露（审计 #A20）',
   'theme.ts':
     '冷灰页底与深色值，是主题覆盖本身的真值来源（审计 #A17，KAN-63 改冷灰）',
-  'components/ReviewTag.tsx':
-    '评审黄圆标。按既有约定组件保留、字母不变，本票只把它改成默认关（审计 #A07）',
-  'lib/role.ts':
-    'TIER_FALLBACK 是后端 /api/meta 契约的镜像。colorOf() 只服务默认关的角色色圈开关，'
-    + '日常使用不消费它（审计 #A09、#A23，KAN-64）',
   'components/charts/SegmentTrack.tsx': '图表内部的 #fff 描边，charts/ 不在清理范围',
   'components/charts/StackedBar.tsx': '图表内部的 #fff 文字色，charts/ 不在清理范围',
 };
