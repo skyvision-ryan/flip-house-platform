@@ -399,3 +399,32 @@ body { font-family: var(--ui-font-body); margin: 0; color: var(--ui-text); backg
 .ui-rd-access-tabs button[aria-pressed="true"] { background: var(--ui-blue-soft); border-color: var(--ui-blue); }
 .ui-rd-access-tabs small { color: var(--ui-secondary); }
 .ui-rd-access-tabs button:focus-visible { outline: 2px solid var(--ui-blue); outline-offset: 2px; }
+
+/* Role comparison bodies share the established continuous list/detail surface. */
+.ui-sd-material-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
+.ui-sd-material-card { display: grid; gap: 12px; padding: 20px; text-align: left; font: inherit; background: var(--ui-surface); color: var(--ui-text); border: 1px solid var(--ui-border); border-radius: 6px; cursor: pointer; overflow-wrap: anywhere; }
+.ui-sd-material-card[aria-pressed="true"] { background: var(--ui-blue-soft); border-color: var(--ui-blue); }
+.ui-sd-material-card:focus-visible, .ui-sd-ledger button:focus-visible { outline: 2px solid var(--ui-blue); outline-offset: 3px; }
+.ui-sd-material-card:hover { background: var(--ui-panel); }
+.ui-sd-fact-pair { display: contents; }
+.ui-sd-table-scroll { overflow-x: auto; }
+.ui-sd-ledger { width: 100%; border-collapse: collapse; }
+.ui-sd-ledger th, .ui-sd-ledger td { padding: 16px 12px; border-bottom: 1px solid var(--ui-border); text-align: left; }
+.ui-sd-ledger th { color: var(--ui-secondary); font-size: 13px; }
+.ui-sd-ledger tr[data-selected="true"] { background: var(--ui-blue-soft); }
+.ui-sd-ledger button { min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--ui-blue); font: inherit; text-align: left; cursor: pointer; }
+.ui-sd-ledger button:hover { text-decoration: underline; }
+.ui-sd-budget-strip { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; margin-block: 24px; font-variant-numeric: tabular-nums; }
+.ui-sd-budget-strip dt { color: var(--ui-secondary); }
+.ui-sd-budget-strip dd { margin: 10px 0 0; font-size: 22px; }
+@media (max-width: 700px) {
+  .ui-sd-material-grid, .ui-sd-budget-strip { grid-template-columns: minmax(0,1fr); }
+}
+.ui-sd-ledger .ui-sd-money { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ui-sd-ledger td small { display: block; color: var(--ui-secondary); margin-top: 8px; }
+.ui-sd-link { border: 0; background: transparent; color: var(--ui-blue); font: inherit; cursor: pointer; }
+.ui-sd-project-strip { display: flex; flex-wrap: wrap; gap: 16px 28px; padding-block: 16px; border-bottom: 1px solid var(--ui-border); }
+.ui-sd-project-strip > span { display: grid; gap: 8px; }
+.ui-sd-project-strip small { color: var(--ui-secondary); }
+.ui-rd-toolbar select { min-height: 44px; width: 100%; min-width: 0; padding: 8px 12px; border: 1px solid var(--ui-border); border-radius: 4px; background: var(--ui-surface); color: var(--ui-text); font: inherit; }
+.ui-rd-toolbar select:focus-visible { outline: 2px solid var(--ui-blue); outline-offset: 2px; }

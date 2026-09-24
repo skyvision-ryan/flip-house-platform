@@ -8,8 +8,9 @@ import { api, type DesignWorkspaceSummary } from '../api/client';
 import { useActor } from '../lib/actor';
 import Header from '../components/ui/Header';
 import EmployeeAvatar from '../components/ui/EmployeeAvatar';
+import SpecialistDesignComparison from '../components/design/SpecialistDesignComparison';
 import CollaborationWorkspace from '../components/ui/CollaborationWorkspace';
-import { visibleDesignTasks, parseDesignPreferences, type DesignPersona, type DesignId, type DesignHouse, type DesignTask, type ServiceKind, type DesignPreview } from '../lib/roleDesigns';
+import { visibleDesignTasks, parseDesignPreferences, type DesignPersona, type CorePersona, type SpecialistPersona, type SpecialistPreview, type DesignId, type DesignHouse, type DesignTask, type ServiceKind, type DesignPreview } from '../lib/roleDesigns';
 
 const PREF_KEY = 'fh-role-design-preferences-v1';
 type Preference = { choice: DesignId; note: string };
@@ -21,7 +22,7 @@ export default function DesignCollaboration() {
   const [params, setParams] = useSearchParams();
   const requested = params.get('workspace');
   const [catalog, setCatalog] = useState<{ items: DesignWorkspaceSummary[]; can_view_all: boolean } | null>(null);
-  const [loaded, setLoaded] = useState<(DesignWorkspaceSummary & { preview: DesignPreview | null }) | null>(null);
+  const [loaded, setLoaded] = useState<(DesignWorkspaceSummary & { preview: DesignPreview | SpecialistPreview | null }) | null>(null);
   const [error, setError] = useState('');
   const [revision, setRevision] = useState(0);
   useEffect(() => {
@@ -48,14 +49,15 @@ export default function DesignCollaboration() {
       : !catalog ? <Spinner size="large" />
       : !catalog.items.length ? <Alert type="info">这个账号的职责暂未安排专属设计。</Alert>
       : !loaded || loaded.key !== selected ? <Spinner size="large" />
-      : !loaded.available || !loaded.preview ? <ContentLayout header={<Header variant="h1">{loaded.title}</Header>}><Alert type="info">这个工作区的设计比较尚未制作。本轮先完成 Jessie—Kody，之后依次处理采购、Zoey、Sabrina。</Alert></ContentLayout>
-      : <RoleDesignPreview key={`${me.id}:${loaded.key}`} persona={loaded.key as DesignPersona} preview={loaded.preview} storageKey={`${PREF_KEY}:${me.id}:${loaded.key}`} />}
+      : !loaded.available || !loaded.preview ? <ContentLayout header={<Header variant="h1">{loaded.title}</Header>}><Alert type="info">这个工作区的设计比较尚未制作。David 与 001 的专属方案将在后续制作。</Alert></ContentLayout>
+      : 'records' in loaded.preview ? <SpecialistDesignComparison key={`${me.id}:${loaded.key}`} persona={loaded.key as SpecialistPersona} preview={loaded.preview} storageKey={`${PREF_KEY}:${me.id}:${loaded.key}`} />
+      : <RoleDesignPreview key={`${me.id}:${loaded.key}`} persona={loaded.key as CorePersona} preview={loaded.preview} storageKey={`${PREF_KEY}:${me.id}:${loaded.key}`} />}
   </>;
 }
 
-function RoleDesignPreview({ persona, preview, storageKey }: { persona: DesignPersona; preview: DesignPreview; storageKey: string }) {
+function RoleDesignPreview({ persona, preview, storageKey }: { persona: CorePersona; preview: DesignPreview; storageKey: string }) {
   const { person, designs, houses: designHouses, tasks: designTasks } = preview;
-  const [choices, setChoices] = useState<Record<DesignPersona, DesignId>>({ jessie: 'B', kody: 'A' });
+  const [choices, setChoices] = useState<Record<CorePersona, DesignId>>({ jessie: 'B', kody: 'A' });
   const [houseId, setHouseId] = useState('cedar');
   const [taskId, setTaskId] = useState('gas-cedar');
   const [service, setService] = useState<ServiceKind>('燃气');

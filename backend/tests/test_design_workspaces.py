@@ -131,9 +131,10 @@ class DesignWorkspacesTests(unittest.TestCase):
             self.assertEqual(self.detail(name, "not-a-workspace").status_code, 404)
 
     def test_unbuilt_workspace_returns_valid_unavailable_entry(self):
-        response = self.detail("buyer_one", "procurement")
+        response = self.detail("director", "david")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {"key": "procurement", "title": "采购工作区", "available": False, "preview": None})
+        self.assertFalse(response.json()["available"])
+        self.assertIsNone(response.json()["preview"])
 
     def test_kody_receives_only_own_design_and_assigned_tasks(self):
         synthetic = {
@@ -159,7 +160,39 @@ class DesignWorkspacesTests(unittest.TestCase):
             self.assertEqual(self.detail("assistant", "jessie").status_code, 403)
             self.assertEqual(self.detail("buyer_one", "kody").status_code, 403)
             self.assertEqual(self.client.get("/api/design-workspaces/kody").status_code, 401)
-            self.assertIsNone(self.detail("buyer_one", "procurement").json()["preview"])
+            self.assertIsNone(self.detail("director", "david").json()["preview"])
+
+    def test_specialist_loader_runs_only_after_real_account_authorization(self):
+        with patch.object(design_workspaces, "_load_specialist_blueprint", return_value={"scoped": True}) as loader:
+            for user, key in (("buyer_one", "procurement"), ("designer", "zoey"), ("finance", "sabrina")):
+                for other in {"procurement", "zoey", "sabrina"} - {key}:
+                    self.assertEqual(self.detail(user, other, {"X-Actor": "J"}).status_code, 403)
+                loader.assert_not_called()
+                self.assertEqual(self.detail(user, key).json()["preview"], {"scoped": True})
+                loader.assert_called_once_with(key)
+                loader.reset_mock()
+            self.assertEqual(self.client.get("/api/design-workspaces/sabrina").status_code, 401)
+            loader.assert_not_called()
+
+    def test_specialist_payloads_have_distinct_records_and_complete_comparisons(self):
+        record_sets = []
+        for user, key in (("buyer_one", "procurement"), ("designer", "zoey"), ("finance", "sabrina")):
+            data = self.detail(user, key).json()
+            self.assertTrue(data["available"])
+            preview = data["preview"]
+            self.assertEqual({d["id"] for d in preview["designs"]}, {"A", "B", "C"})
+            self.assertTrue(preview["records"])
+            houses = {h["id"] for h in preview["houses"]}
+            ids = {r["id"] for r in preview["records"]}
+            self.assertEqual(len(ids), len(preview["records"]))
+            for record in preview["records"]:
+                self.assertIn(record["house"], houses)
+                if key != "sabrina":
+                    self.assertNotIn("amount", record)
+                    self.assertNotIn("planned", record)
+            for previous in record_sets:
+                self.assertFalse(ids & previous)
+            record_sets.append(ids)
 
     def test_reading_directory_does_not_write_business_or_feedback_records(self):
         self.assert_full_access("planner")

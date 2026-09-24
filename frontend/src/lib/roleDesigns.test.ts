@@ -23,3 +23,16 @@ test('corrupt or stale browser preferences cannot crash the design page', () => 
   for (const raw of ['null', '123', 'bad json', '{"jessie":{"choice":"D","note":"old"}}', '{"kody":{"choice":"A","note":null}}']) assert.deepEqual(parseDesignPreferences(raw), {});
   assert.deepEqual(parseDesignPreferences('{"jessie":{"choice":"B","note":"看全盘"},"kody":{"choice":"C","note":"按公司办理"}}'), { jessie: { choice: 'B', note: '看全盘' }, kody: { choice: 'C', note: '按公司办理' } });
 });
+
+test('specialist preferences retain separate choices and discard invalid saved entries', () => {
+  const parsed = parseDesignPreferences(JSON.stringify({
+    procurement: { choice: 'C', note: '选型资料' },
+    zoey: { choice: 'B', note: '补件优先' },
+    sabrina: { choice: 'A', note: 'x'.repeat(1100) },
+    admin: { choice: 'A', note: 'unbuilt' },
+  }));
+  assert.equal(parsed.procurement?.choice, 'C');
+  assert.equal(parsed.zoey?.choice, 'B');
+  assert.equal(parsed.sabrina?.note.length, 1000);
+  assert.deepEqual(Object.keys(parsed).sort(), ['procurement', 'sabrina', 'zoey']);
+});
