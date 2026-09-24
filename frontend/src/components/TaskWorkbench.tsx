@@ -130,7 +130,7 @@ function DeliverTab({ task, meId, canSubmit, canReview, busy, onAction }: { task
   const candidates = (files ?? []).filter((f) => f.step_key === task.step_key || (docType && f.doc_type === docType));
   const others = (files ?? []).filter((f) => !candidates.includes(f));
   const requirement = (
-    <Container cardId="task-requirement" cardContext={task.title} header={<Header variant="h3">当前生效要求</Header>}>
+    <Container embedded cardId="task-requirement" cardContext={task.title} header={<Header variant="h3">当前生效要求</Header>}>
       <SpaceBetween size="xs">
         <Box>{task.deliverable ? task.deliverable.label : '按任务说明处理'}{task.requires_file ? '' : '（交说明即可）'}</Box>
         {task.done_when && <Box variant="small" color="text-body-secondary">{task.done_when}</Box>}
@@ -141,7 +141,7 @@ function DeliverTab({ task, meId, canSubmit, canReview, busy, onAction }: { task
   if (canReview && latest) {
     return (
       <SpaceBetween size="m">
-        <Container cardId="task-submission" cardContext={task.title} header={<Header variant="h2" description={`${latest.submitted_by?.display_name ?? '—'} · ${dateTime(latest.submitted_at)}`}>第 {latest.seq} 次提交</Header>}>
+        <Container embedded cardId="task-submission" cardContext={task.title} header={<Header variant="h2" description={`${latest.submitted_by?.display_name ?? '—'} · ${dateTime(latest.submitted_at)}`}>第 {latest.seq} 次提交</Header>}>
           <SpaceBetween size="s">
             {latest.note && <Box>{latest.note}</Box>}
             {latest.files.length ? latest.files.map((f) => (
@@ -184,7 +184,7 @@ function DeliverTab({ task, meId, canSubmit, canReview, busy, onAction }: { task
                 </ExpandableSection>
               )}
               <Button variant="normal" iconName="upload" onClick={() => setShowUpload((v) => !v)}>{showUpload ? '收起上传' : '上传新文件'}</Button>
-              {showUpload && <Container cardId="task-upload" cardContext={task.title}><UploadForm projectId={task.project_id} docType={docType ?? 'other'} lockType={!!docType} stepKey={task.step_key} photoOnly={task.deliverable?.kind === 'photo'} compact onDone={async () => { const before = new Set((files ?? []).map((f) => f.id)); const after = await api.files(task.project_id); setFiles(after); setPicked((p) => [...p, ...after.filter((f) => !before.has(f.id)).map((f) => f.id)]); setShowUpload(false); }} /></Container>}
+              {showUpload && <Container embedded cardId="task-upload" cardContext={task.title}><UploadForm projectId={task.project_id} docType={docType ?? 'other'} lockType={!!docType} stepKey={task.step_key} photoOnly={task.deliverable?.kind === 'photo'} compact onDone={async () => { const before = new Set((files ?? []).map((f) => f.id)); const after = await api.files(task.project_id); setFiles(after); setPicked((p) => [...p, ...after.filter((f) => !before.has(f.id)).map((f) => f.id)]); setShowUpload(false); }} /></Container>}
             </SpaceBetween>
           )}
         </FormField>

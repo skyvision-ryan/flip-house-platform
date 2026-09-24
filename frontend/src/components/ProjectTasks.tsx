@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Alert from '@cloudscape-design/components/alert';
 import Box from '@cloudscape-design/components/box';
-import css from './ui/CollaborationLayout.module.css';
+import CollaborationWorkspace from './ui/CollaborationWorkspace';
 import Spinner from '@cloudscape-design/components/spinner';
 import { Project, Task, TaskList } from '../api/client';
 import { useActor } from '../lib/actor';
@@ -41,10 +41,10 @@ export default function ProjectTasks({ project, data, error, reload, onChanged, 
   return (
     <>
       {!me && <Alert type="info">现在没有登录：任务表只能看。分派、开始、等待都要用真实账号登录后做。</Alert>}
-      <div className={css.scope}><div className={css.split}>
+      <CollaborationWorkspace detailOpen={!!selected} onBack={() => setSelectedId(null)} main={
           <TaskTable data={data} selectedId={selectedId} onSelect={(t) => setSelectedId(t.id)} canAssign={canAssign} onAssign={(ts) => setAssigning(ts)} />
-        <TaskSummaryPanel task={selected} project={project} canAssign={canAssign} onAssign={(t) => setAssigning([t])} onChanged={replace} onGotoGates={onGotoGates} refreshKey={refreshKey} />
-      </div></div>
+        } detail={<TaskSummaryPanel task={selected} project={project} canAssign={canAssign} onAssign={(t) => setAssigning([t])} onChanged={replace} onGotoGates={onGotoGates} refreshKey={refreshKey} />
+      } />
       {assigning && assigning.length > 0 && (
         <TaskAssignModal
           projectId={project.id}

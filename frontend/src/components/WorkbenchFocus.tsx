@@ -8,9 +8,10 @@ import StatusIndicator from '@cloudscape-design/components/status-indicator';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, Workbench, WorkbenchProject } from '../api/client';
+import { useRole } from '../lib/role';
 import { dateTime } from '../lib/format';
 import { dueText, statusIndicator } from '../lib/taskGroups';
-import css from './ui/CollaborationLayout.module.css';
+import CollaborationWorkspace from './ui/CollaborationWorkspace';
 import HelpText from './HelpText';
 import PersonAvatar from './PersonAvatar';
 import StagePositionBar from './StagePositionBar';
@@ -24,6 +25,7 @@ import Table from './ui/Table';
  */
 export default function WorkbenchFocus({ refreshKey = 0 }: { refreshKey?: number }) {
   const navigate = useNavigate();
+  const role = useRole();
   const [data, setData] = useState<Workbench | null>(null);
   const [err, setErr] = useState<string | null>(null);
   useEffect(() => { api.workbench().then(setData).catch((e) => setErr(e.message)); }, [refreshKey]);
@@ -46,15 +48,15 @@ export default function WorkbenchFocus({ refreshKey = 0 }: { refreshKey?: number
           { label: '等待回复', icon: 'status-pending', value: c?.waiting, help: '正在等待反馈的任务。' },
         ].map((m) => <CardFrame key={m.label} cardId="workbench-metrics" cardContext={m.label}><div className="ui-metric"><div className="ui-metric-label"><span className="ui-metric-icon" aria-hidden="true"><Icon name={m.icon as IconProps.Name} /></span>{m.label}</div><div className="ui-metric-value">{m.value ?? '—'}</div><HelpText inline>{m.help}</HelpText></div></CardFrame>)}
       </div>
-      <div className={css.scope}><div className={css.wideSplit}>
+      <CollaborationWorkspace main={
         <Table cardId="workbench-projects"
-          variant="container"
+          variant="embedded"
           loading={!data}
           loadingText="正在看每套房走到哪"
           items={data?.projects ?? []}
           trackBy="project_id"
           onRowClick={({ detail }) => navigate(`/projects/${detail.item.project_id}?tab=overview`)}
-          header={<Header variant="h2" counter={data ? `(${data.projects.length})` : undefined} help="阶段条：浅蓝已完成，深蓝当前位置，灰色未到达。点击房名进入项目，点击审核事项前往我的事项。" actions={<Button iconName="folder" onClick={() => navigate('/projects')}>查看全部项目</Button>}>项目关注</Header>}
+          header={<Header variant="h2" counter={data ? `(${data.projects.length})` : undefined} help="阶段条：浅蓝已完成，深蓝当前位置，灰色未到达。点击房名进入项目，点击审核事项前往我的事项。" actions={role.canReadMoney ? <Button iconName="folder" onClick={() => navigate('/projects')}>查看全部项目</Button> : undefined}>项目关注</Header>}
           empty={<Box textAlign="center" padding="l" color="text-body-secondary">还没有项目。</Box>}
           columnDefinitions={[
             { id: 'p', header: '项目', minWidth: 160, cell: (p) => <div title={p.address} className="ui-wrap-anywhere"><Link href={`/projects/${p.project_id}`} onFollow={(e) => { e.preventDefault(); navigate(`/projects/${p.project_id}?tab=overview`); }}>{p.project_name}</Link></div> },
@@ -64,8 +66,8 @@ export default function WorkbenchFocus({ refreshKey = 0 }: { refreshKey?: number
             { id: 'due', header: '截止', width: 96, cell: (p) => <span className="ui-nowrap">{p.next_action?.due_at ? dueText(p.next_action.due_at) : <Box variant="span" color="text-body-secondary">未设定</Box>}</span> },
           ]}
         />
-        <SpaceBetween size="l">
-          <Container cardId="workbench-pending" header={<Header variant="h2" counter={data ? `(${data.my_pending.length})` : undefined} help="已提交、等你审核；在我的事项里退回或确认。">待我处理</Header>}>
+        } detail={<SpaceBetween size="l">
+          <Container embedded cardId="workbench-pending" header={<Header variant="h2" counter={data ? `(${data.my_pending.length})` : undefined} help="已提交、等你审核；在我的事项里退回或确认。">待我处理</Header>}>
             {data && data.my_pending.length === 0 && <Box color="text-body-secondary">现在没有等你确认的交付。</Box>}
             <SpaceBetween size="s">
               {(data?.my_pending ?? []).map((t) => (
@@ -77,7 +79,7 @@ export default function WorkbenchFocus({ refreshKey = 0 }: { refreshKey?: number
               ))}
             </SpaceBetween>
           </Container>
-          <Container cardId="workbench-handoffs" header={<Header variant="h2" help="谁把什么交给了谁。">最近交接</Header>}>
+          <Container embedded cardId="workbench-handoffs" header={<Header variant="h2" help="谁把什么交给了谁。">最近交接</Header>}>
             {data && data.recent_handoffs.length === 0 && <Box color="text-body-secondary">还没有提交、退回或改派。</Box>}
             <SpaceBetween size="xs">
               {(data?.recent_handoffs ?? []).map((e) => (
@@ -89,7 +91,7 @@ export default function WorkbenchFocus({ refreshKey = 0 }: { refreshKey?: number
             </SpaceBetween>
           </Container>
         </SpaceBetween>
-      </div></div>
+      } />
     </SpaceBetween>
   );
 }

@@ -144,6 +144,7 @@ ROLES = [
     {"code": "W", "label": "W", "tier": "teal", "duties": "卖房文件"},
     {"code": "A", "label": "A", "tier": "teal", "duties": "安排园丁剪草"},
     {"code": "设计师", "label": "设计师", "tier": "teal", "duties": "设计方案、设计定稿"},
+    {"code": "项目助理", "label": "项目助理", "tier": "teal", "duties": "查看全部项目概况，办理水电瓦斯及账户资料、保险；无财务金额、分派或 D/J 审批权"},
     {"code": "采购", "label": "采购", "tier": "teal", "duties": "维护采购清单、下单与到货状态；执行本人被分派的任务"},
     {"code": "财务", "label": "财务", "tier": "teal", "duties": "查看金额、维护预算和支出、上传发票；无定价、项目管理或节点确认权"},
     {"code": "Permit/设计", "label": "Permit / 设计", "tier": "teal", "duties": "设计方案与定稿、permit 文件、检查记录；无 D/J 节点确认权"},
@@ -162,7 +163,7 @@ def tier_of(code: str) -> str:
 PERMISSIONS = {
     "read_money":        ["purple", "blue", "财务"],  # 看买卖价、预算、利润、分析
     "dashboard":         ["purple", "blue", "teal", "grey"],   # 人人能进工作台，看到的小组件按身份定（DASHBOARD_LAYOUTS）
-    "workbench_all_projects": ["purple", "blue"],    # 项目关注的全局范围；其余账号只看有效项目成员关系
+    "workbench_all_projects": ["purple", "blue", "项目助理"],    # 项目关注的全局范围；其余账号只看有效项目成员关系
     "create_project":    ["purple", "blue"],
     "leads":             ["purple", "blue"],        # 线索房独立入口（KAN-50）；显式登记才会经 /api/meta 下发给前端 canDo
     "delete_project":    ["purple", "负责人"],
@@ -171,8 +172,8 @@ PERMISSIONS = {
     "budget":            ["purple", "blue", "财务"],
     "procurement":       ["purple", "blue", "J", "采购"],  # 材料清单：J 主责
     "analysis":          ["purple", "blue"],
-    "utilities":         ["purple", "blue", "K"],
-    "utility_secret":    ["purple", "blue", "K"],   # 看水电瓦斯账户密码
+    "utilities":         ["purple", "blue", "K", "项目助理"],
+    "utility_secret":    ["purple", "blue", "K", "项目助理"],   # 看水电瓦斯账户密码
     "manage_users":      ["purple", "blue"],        # 侧栏“用户”入口；真正校验看 is_admin
     "inspections":       ["purple", "blue", "Z", "Permit/设计"],
     "upload_any":        ["purple", "blue"],          # 传任何类型的文件
@@ -393,6 +394,7 @@ DASHBOARD_LAYOUTS = {
     "W":     ["mytodo", "saledocs", "recent", "list"],
     "A":     ["mytodo", "recent", "list"],
     "设计师": ["mytodo", "design", "recent", "list"],
+    "项目助理": ["utilities", "attention", "upcoming", "updates", "recent", "list"],
     "采购":   ["mytodo", "procurement", "recent", "list"],
     "财务":   ["mytodo", "money", "recent", "list"],
     "Permit/设计": ["mytodo", "permits", "design", "recent", "list"],

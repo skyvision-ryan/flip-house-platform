@@ -6,6 +6,7 @@ export const productTokens = {
   secondary: T.colorTextBodySecondary,
   page: T.colorBackgroundLayoutMain,
   surface: T.colorBackgroundContainerContent,
+  panel: T.colorBackgroundCellShaded,
   border: T.colorBorderDividerDefault,
   orange: T.colorBackgroundButtonPrimaryDefault,
   'orange-soft': T.colorBackgroundStatusWarning,

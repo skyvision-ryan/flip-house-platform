@@ -15,9 +15,13 @@ export function CardFrame({ cardId, cardContext, children }: CardProps & { child
   </div>;
 }
 
-export default function Container({ cardId, cardContext, ...props }: ContainerProps & CardProps) {
+export default function Container({ cardId, cardContext, embedded = false, ...props }: ContainerProps & CardProps & { embedded?: boolean }) {
   return <CardFrame cardId={cardId} cardContext={cardContext}>
-    <BaseContainer {...props} />
+    <BaseContainer {...props} style={embedded ? {
+      root: { background: 'transparent', borderWidth: '0', borderRadius: '0', boxShadow: 'none' },
+      header: { paddingInline: '0', paddingBlock: '16px' },
+      content: { paddingInline: '0', paddingBlock: '16px' },
+    } : props.style} />
   </CardFrame>;
 }
 

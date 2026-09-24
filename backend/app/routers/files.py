@@ -26,6 +26,8 @@ def _can_touch(actor: str, doc_type: str | None, step_key: str | None, uploaded_
     if actor == "Permit/设计":
         owners = {"Z", "设计师"}
         return bool(owners.intersection(STEP_BY_KEY.get(step_key or "", {}).get("owners", []))) or FILE_DEFAULT_OWNER.get(doc_type or "") in owners
+    if actor == "项目助理":
+        return doc_type == "insurance"
     if actor == "财务" and doc_type == "invoice":
         return True
     if step_key and actor in STEP_BY_KEY.get(step_key, {}).get("owners", []):

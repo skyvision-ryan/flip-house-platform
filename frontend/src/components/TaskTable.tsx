@@ -39,7 +39,7 @@ export default function TaskTable({ data, selectedId, onSelect, canAssign, onAss
 
   return (
     <Table cardId="task-table"
-      variant="container"
+      variant="embedded"
       items={rows}
       wrapLines
       trackBy="id"

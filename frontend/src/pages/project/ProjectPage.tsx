@@ -133,7 +133,7 @@ export default function ProjectPage() {
     <ContentLayout maxContentWidth={1440}
       breadcrumbs={<BreadcrumbGroup items={[{ text: '工作台', href: '/' }, { text: '项目', href: '/projects' }, { text: project.name, href: `/projects/${pid}` }]} onFollow={(e) => { e.preventDefault(); navigate(e.detail.href); }} />}
       header={
-        <Container cardId="project-header" cardContext={project.name}>
+        <Container embedded cardId="project-header" cardContext={project.name}>
           <SpaceBetween size="l">
             <div className="ui-project-identity">
               <CoverImage propertyId={prop.id} width={96} height={96} radius={8} showLabel={false} />

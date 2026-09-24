@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -16,7 +17,7 @@ from sqlalchemy.pool import StaticPool
 
 from app import db, models
 from app.auth import hash_password, verify_password
-from app.routers import auth, budget, ops, procurement, steps, tasks
+from app.routers import auth, budget, files, ops, procurement, projects, steps, tasks
 from app.routers.common import allowed
 from app.routers.files import _can_touch
 
@@ -46,7 +47,7 @@ class EmailAccountsTests(unittest.TestCase):
             self.pid = project.id
             session.commit()
         app = FastAPI()
-        for module in (auth, budget, ops, procurement, steps, tasks):
+        for module in (auth, budget, files, ops, procurement, projects, steps, tasks):
             app.include_router(module.router)
         def session_override():
             with Session(self.engine) as session:
@@ -146,6 +147,54 @@ class EmailAccountsTests(unittest.TestCase):
         self.assertFalse(_can_touch("Permit/设计", "loan_doc", None))
         self.assertTrue(_can_touch("财务", "invoice", None))
         self.assertFalse(_can_touch("财务", "sale_signed", None))
+
+    def test_assistant_role_preserves_identity_and_limits_business_access(self):
+        with Session(self.engine) as session:
+            user = session.scalar(select(models.User).where(models.User.email == "designer@example.com"))
+            identity, old_hash = user.id, user.password_hash
+            row = [{"name": "Test Assistant", "email": "designer@example.com", "role": "项目助理"}]
+            provision.provision_users(session, row, PASSWORD); session.commit()
+            provision.provision_users(session, row, PASSWORD); session.commit()
+            self.assertEqual((user.id, user.password_hash), (identity, old_hash))
+            self.assertFalse(user.is_admin)
+            session.get(models.Project, self.pid).purchase_price = 123456
+            tasks.ensure_tasks(session, self.pid)
+            session.commit()
+        self.assertEqual(self.login("designer@example.com").status_code, 200)
+        yes = {"dashboard", "utilities", "utility_secret", "workbench_all_projects"}
+        from app.dictionaries import PERMISSIONS
+        for action in PERMISSIONS:
+            self.assertEqual(allowed("项目助理", action), action in yes, action)
+        overview = self.client.get("/api/me/workbench")
+        self.assertEqual(overview.status_code, 200)
+        self.assertEqual([p["project_id"] for p in overview.json()["projects"]], [self.pid])
+        project = self.client.get(f"/api/projects/{self.pid}").json()
+        self.assertIsNone(project["purchase_price"])
+        self.assertIsNone(project["budget_spent"])
+        for kind in ("water", "electric", "gas"):
+            response = self.client.put(f"/api/projects/{self.pid}/utilities/{kind}", json={
+                "status": "on", "company": "Synthetic Utility", "account_no": "TEST-ONLY",
+                "password": "synthetic-utility-secret"})
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(next(r for r in response.json() if r["kind"] == kind)["password"], "synthetic-utility-secret")
+        with tempfile.TemporaryDirectory() as temp, patch.object(files, "UPLOAD_DIR", Path(temp)):
+            response = self.client.post(f"/api/projects/{self.pid}/files",
+                data={"doc_type": "insurance", "expires_at": "2027-09-24", "step_key": "loan_insurance"},
+                files={"file": ("synthetic-insurance.txt", b"Synthetic insurance evidence", "text/plain")})
+            self.assertEqual(response.status_code, 201)
+            insurance = response.json()
+            self.assertEqual(self.client.patch(f"/api/files/{insurance['id']}", json={"expires_at": "2027-09-25"}).status_code, 200)
+            self.assertEqual(self.client.get(f"/api/files/{insurance['id']}/download").status_code, 200)
+            for doc in ("loan_doc", "permit", "seller_disclosure"):
+                self.assertEqual(self.client.post(f"/api/projects/{self.pid}/files", data={"doc_type": doc},
+                    files={"file": ("synthetic.txt", b"synthetic", "text/plain")}).status_code, 403)
+        task = self.client.get(f"/api/projects/{self.pid}/tasks").json()["tasks"][0]
+        self.assertEqual(self.client.post(f"/api/projects/{self.pid}/tasks/{task['id']}/assign", json={"version": task["version"], "assignee_user_id": identity}).status_code, 403)
+        for who in ("D", "J"):
+            self.assertEqual(self.client.post(f"/api/projects/{self.pid}/steps/open_escrow", json={"done": True, "confirm_as": who}).status_code, 403)
+        self.assertEqual(self.client.get(f"/api/projects/{self.pid}/budget-lines").status_code, 403)
+        self.assertEqual(self.client.get("/api/users").status_code, 403)
+        self.assertEqual(self.client.get("/api/me/tasks").json()["assigned"], [])
 
     def test_cli_repeated_runs_reset_and_atomic_failure(self):
         with tempfile.TemporaryDirectory() as temp:

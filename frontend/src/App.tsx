@@ -4,7 +4,8 @@ import Button from '@cloudscape-design/components/button';
 import Flashbar, { FlashbarProps } from '@cloudscape-design/components/flashbar';
 import SideNavigation from '@cloudscape-design/components/side-navigation';
 import Spinner from '@cloudscape-design/components/spinner';
-import TopNavigation from '@cloudscape-design/components/top-navigation';
+import ProductTopBar from './components/ui/ProductTopBar';
+import DesignChoices from './pages/DesignChoices';
 import Icon from '@cloudscape-design/components/icon';
 import { useCallback, useEffect, useState } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
@@ -81,7 +82,7 @@ export default function App() {
     id: `g-${t}`, text: (meta?.tiers?.[t] ?? TIER_FALLBACK[t]).label,
     items: (meta?.roles ?? []).filter((r) => r.tier === t).map((r) => ({ id: r.code, text: r.label, description: r.duties || undefined })),
   })).filter((g) => g.items.length);
-  const activeHref = location.pathname.startsWith('/todo') ? '/todo' : location.pathname === '/projects/new' ? '/projects/new' : location.pathname.startsWith('/projects') ? '/projects' : location.pathname.startsWith('/users') ? '/users' : '/';
+  const activeHref = location.pathname.startsWith('/todo') ? '/todo' : location.pathname === '/projects/new' ? '/projects/new' : location.pathname.startsWith('/projects') ? '/projects' : location.pathname.startsWith('/users') ? '/users' : location.pathname === '/design-choices' ? '/design-choices' : '/';
 
   if (demoMode === null) {
     return <div className="ui-loading"><Spinner size="large" /></div>;
@@ -97,7 +98,7 @@ export default function App() {
   const identityMenu = me
     ? {
         type: 'menu-dropdown' as const,
-        text: `${me.display_name} · ${actor} · ${tierInfo.label}`,
+        text: `${me.display_name} · ${actor}`,
         iconName: 'user-profile' as const,
         title: canSwitch ? '演示模式：管理员可以临时切换身份看别人看到的' : `你的角色：${actor}（${tierInfo.label}）`,
         items: [
@@ -132,10 +133,9 @@ export default function App() {
     <ReviewContext.Provider value={reviewOn}>
     <HelpContext.Provider value={helpOn}>
     <ActorContext.Provider value={{ actor, setActor, me, demoMode, logout }}>
-      {/* KAN-75：顶栏中性底色，橙色细边仅作品牌强调，不按角色变色。 */}
+      {/* KAN-75 B：轻量顶栏，橙色只留给主要操作。 */}
       <div id="top-nav" className="ui-top-nav">
-        <TopNavigation
-          identity={{ href: '/', title: '翻新项目平台', onFollow: (e) => { e.preventDefault(); navigate('/'); } }}
+        <ProductTopBar me={me} identityMenu={identityMenu} onHome={() => navigate('/')} onDisplay={() => setDisplayOpen(true)}
           search={
             <Autosuggest
               value={q}
@@ -160,10 +160,6 @@ export default function App() {
               }}
             />
           }
-          utilities={[
-            { type: 'button', text: '显示设置', iconName: 'settings', onClick: () => setDisplayOpen(true) },
-            identityMenu,
-          ]}
         />
       </div>
       <AppLayout
@@ -193,6 +189,7 @@ export default function App() {
               { type: 'link', text: '工作台', href: '/', icon: <Icon name="grid-view" /> },
               ...(canDo('read_money') ? [{ type: 'link' as const, text: '项目', href: '/projects', icon: <Icon name="folder" /> }] : []),
               { type: 'link', text: '我的事项', href: '/todo', icon: <Icon name="check" /> },
+              ...(demoMode ? [{ type: 'link' as const, text: '设计比较', href: '/design-choices', icon: <Icon name="view-full" /> }] : []),
               ...(canDo('create_project') ? [{ type: 'link' as const, text: '新建项目', href: '/projects/new', icon: <Icon name="add-plus" /> }] : []),
               ...(me?.is_admin ? [{ type: 'divider' as const }, { type: 'link' as const, text: '用户', href: '/users', icon: <Icon name="group" /> }] : []),
             ]}
@@ -203,6 +200,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/todo" element={<MyTodo />} />
+            <Route path="/design-choices" element={<DesignChoices />} />
             {/* KAN-75 块 2：独立线索入口并入买房管理。旧链接 /leads 跳到项目列表的「买房 · 未购入」筛选；s1 段、档位、热度都还在。 */}
             <Route path="/leads" element={<Navigate to="/projects?group=buying&sub=pre" replace />} />
             <Route path="/projects" element={canDo('read_money') ? <Dashboard listOnly /> : <MyTodo />} />

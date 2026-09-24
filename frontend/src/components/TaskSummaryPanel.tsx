@@ -55,7 +55,7 @@ export default function TaskSummaryPanel({ task, project, canAssign, onAssign, o
 
   return (
     <SpaceBetween size="l">
-      <Container cardId="task-summary" cardContext={task?.title} header={<Header variant="h2" help="点击左侧任务，查看安排与处理入口。">任务摘要</Header>}>
+      <Container embedded cardId="task-summary" cardContext={task?.title} header={<Header variant="h2" help="点击左侧任务，查看安排与处理入口。">任务摘要</Header>}>
         {task ? (
           <SpaceBetween size="m">
             <h3 className="ui-summary-title">{task.title}</h3>
@@ -96,7 +96,7 @@ export default function TaskSummaryPanel({ task, project, canAssign, onAssign, o
           <Box color="text-body-secondary">请选择一项任务。</Box>
         )}
       </Container>
-      <Container cardId="task-gates" header={<Header variant="h2" help="关键节点按 D / J 规则确认，可在下方证据清单中处理。">关键节点状态</Header>}>
+      <Container embedded cardId="task-gates" header={<Header variant="h2" help="关键节点按 D / J 规则确认，可在下方证据清单中处理。">关键节点状态</Header>}>
         {gates.length ? (
           <SpaceBetween size="xs">
             {gates.map((g) => (

@@ -12,6 +12,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api, MyTasks, Task } from '../api/client';
 import css from '../components/ui/CollaborationLayout.module.css';
+import CollaborationWorkspace from '../components/ui/CollaborationWorkspace';
 import ReviewTag from '../components/ReviewTag';
 import TaskWorkbench from '../components/TaskWorkbench';
 import Header from '../components/ui/Header';
@@ -71,9 +72,11 @@ export default function MyTodo() {
     </section>;
   };
   const pane = (subset: Task[]) => (selected && filtered(subset).some((t) => t.id === selected.id)
-    ? <Container cardId="task-processing" cardContext={selected?.title} header={<Header variant="h2" description={`${selected.project_name} · ${selected.project_address}`}>{selected.title}</Header>}><TaskWorkbench task={selected} meId={me?.id ?? null} onChanged={replace} onConflict={load} /></Container>
-    : <Container cardId="task-processing"><Box color="text-body-secondary">左边点一项，在这里处理。</Box></Container>);
-  const layout = (left: JSX.Element, subset: Task[]) => <div className={css.scope}><div className={css.review}>{left}{pane(subset)}</div></div>;
+    ? <Container embedded cardId="task-processing" cardContext={selected?.title} header={<Header variant="h2" description={`${selected.project_name} · ${selected.project_address}`}>{selected.title}</Header>}><TaskWorkbench task={selected} meId={me?.id ?? null} onChanged={replace} onConflict={load} /></Container>
+    : <Container embedded cardId="task-processing"><Box color="text-body-secondary">左边点一项，在这里处理。</Box></Container>);
+  const layout = (left: JSX.Element, subset: Task[]) => <CollaborationWorkspace processing main={left} detail={pane(subset)} detailOpen={!!selected && filtered(subset).some((t) => t.id === selected.id)} onBack={() => {
+    setSelectedId(null); setParams((prev) => { const next = new URLSearchParams(prev); next.delete('task'); return next; }, { replace: true });
+  }} />;
 
   return (
     <ContentLayout maxContentWidth={1440} header={<Header variant="h1" help={me ? '处理分派给你的任务，以及等你审核的交付。' : '登录后查看你的任务。'}>我的事项</Header>}>
@@ -95,7 +98,7 @@ export default function MyTodo() {
               {
                 id: 'mine', label: `我的任务 (${data.assigned.length})`,
                 content: layout(
-                  <Container cardId="my-task-list" disableContentPaddings>
+                  <Container embedded cardId="my-task-list" disableContentPaddings>
                     <SpaceBetween size="xs">
                       {(['now', 'waiting', 'later'] as MyGroupKey[]).map((k) => list(groups[k], GROUP_LABEL[k], k === 'later' ? '项目还没走到这一段，先看要求' : undefined))}
                       {groups.done.length > 0 && list(groups.done, GROUP_LABEL.done)}
@@ -107,7 +110,7 @@ export default function MyTodo() {
               {
                 id: 'review', label: `待我审核 (${data.reviewing.filter((t) => t.exec_status === 'pending_review').length})`,
                 content: layout(
-                  <Container cardId="my-review-list" disableContentPaddings>
+                  <Container embedded cardId="my-review-list" disableContentPaddings>
                     <SpaceBetween size="xs">
                       {list(data.reviewing.filter((t) => t.exec_status === 'pending_review'), '等我确认', '负责人已提交，退回或确认')}
                       {list(data.reviewing.filter((t) => t.exec_status !== 'pending_review'), '我审核的其他任务')}

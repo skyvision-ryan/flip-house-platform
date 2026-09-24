@@ -12,6 +12,7 @@ import StatusIndicator from '@cloudscape-design/components/status-indicator';
 import { useCallback, useEffect, useState } from 'react';
 import { api, Inspection } from '../api/client';
 import { useActor } from '../lib/actor';
+import { useRole } from '../lib/role';
 import { useFlash } from '../lib/flash';
 import { dateStr, text } from '../lib/format';
 import { labelOf, useMeta } from '../lib/meta';
@@ -27,6 +28,7 @@ export default function InspectionsPanel({ projectId, onChanged }: { projectId: 
   const meta = useMeta();
   const flash = useFlash();
   const { actor } = useActor();
+  const canEdit = useRole().can('inspections');
   const [rows, setRows] = useState<Inspection[] | null>(null);
   const [editing, setEditing] = useState<Inspection | 'new' | null>(null);
   const [draft, setDraft] = useState<typeof EMPTY>(EMPTY);
@@ -81,15 +83,15 @@ export default function InspectionsPanel({ projectId, onChanged }: { projectId: 
           { id: 'fixer', header: '没过谁整改', cell: (i) => (i.result === 'failed' ? text(i.fixer) || <Box color="text-status-error">还没写</Box> : '—') },
           { id: 'note', header: '备注', cell: (i) => text(i.note) },
           { id: 'who', header: '谁记的', width: 80, cell: (i) => (i.recorded_by ? <RoleLabel code={i.recorded_by} /> : '—') },
-          { id: 'act', header: '', width: 120, cell: (i) => (
+          { id: 'act', header: '', width: 120, cell: (i) => canEdit ? (
             <SpaceBetween direction="horizontal" size="xs">
               <Button variant="inline-link" onClick={() => open(i)}>改</Button>
               <Button variant="inline-link" onClick={async () => { setRows(await api.deleteInspection(i.id)); onChanged?.(); }}>删</Button>
             </SpaceBetween>
-          ) },
+          ) : null },
         ]}
       />
-      <Box><Button iconName="add-plus" onClick={() => open('new')}>记一次检查</Button></Box>
+      <Box>{canEdit && <Button iconName="add-plus" onClick={() => open('new')}>记一次检查</Button>}</Box>
 
       <Modal
         visible={editing !== null}
