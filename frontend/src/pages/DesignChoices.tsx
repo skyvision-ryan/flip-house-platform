@@ -36,6 +36,7 @@ export default function DesignChoices() {
     <span className="ui-design-state">{t.status}</span><span className="ui-design-evidence">{t.evidence}</span><span className="ui-design-due">{t.due}</span>
   </button>;
   return <ContentLayout maxContentWidth={1440} header={<Header variant="h1" description="同一组示例任务，比较不同的信息组织方式。B 已用于实际页面；下面的选择仅记录你的偏好。">设计比较</Header>}>
+    <p><a href="/design-collaboration">按 Jessie / Kody 的实际工作比较界面设计 →</a></p>
     <div className="ui-design-chooser" role="group" aria-label="选择参考方向">{directions.map((d) => <button key={d.id} aria-pressed={d.id === direction} onClick={() => { setDirection(d.id); setMobileDetail(false); }}><span>{d.name}</span><strong>{d.label}</strong>{d.applied && <small>已应用</small>}</button>)}</div>
     <div className="ui-design-caption"><div><h2>{current.label}</h2><p>{current.idea}</p><p><strong>适合：</strong>{current.gain} <strong>取舍：</strong>{current.cost}</p></div><a href={current.source} target="_blank" rel="noreferrer">查看参考来源 ↗</a></div>
     <section className={`ui-design-preview ui-design-${direction}`} aria-label={`${current.name} 交互示例`}>

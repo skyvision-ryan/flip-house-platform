@@ -13,7 +13,7 @@ from .auth import ensure_admin
 from .db import SessionLocal, init_db
 from .migrations import run_migrations
 from .providers import get_provider
-from .routers import analyses, auth, budget, dashboard, files, lookup, meta, ops, procurement, projects, property_data, steps, tasks
+from .routers import analyses, auth, budget, dashboard, design_workspaces, files, lookup, meta, ops, procurement, projects, property_data, steps, tasks
 from .settings import ADMIN_PASSWORD, ADMIN_USER, CORS_ORIGINS, SEED_DEMO
 
 
@@ -49,7 +49,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-for r in (auth, meta, dashboard, lookup, projects, property_data, files, budget, analyses, steps, ops, procurement, tasks):
+for r in (auth, meta, dashboard, lookup, projects, property_data, files, budget, analyses, steps, ops, procurement, tasks, design_workspaces):
     app.include_router(r.router)
 
 

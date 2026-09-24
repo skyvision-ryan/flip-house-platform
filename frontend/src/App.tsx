@@ -6,6 +6,7 @@ import SideNavigation from '@cloudscape-design/components/side-navigation';
 import Spinner from '@cloudscape-design/components/spinner';
 import ProductTopBar from './components/ui/ProductTopBar';
 import DesignChoices from './pages/DesignChoices';
+import DesignCollaboration from './pages/DesignCollaboration';
 import Icon from '@cloudscape-design/components/icon';
 import { useCallback, useEffect, useState } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
@@ -59,7 +60,7 @@ export default function App() {
   const actor = me ? (canSwitch && override ? override : me.role_code) : (override ?? getActor());
   const setActor = (c: string) => { persistActor(c); setOverride(c); };
   const resetActor = () => { clearActor(); setOverride(null); };
-  const onLogin = useCallback((m: Me) => { clearActor(); setOverride(null); setMe(m); navigate('/'); }, [navigate]);
+  const onLogin = useCallback((m: Me) => { clearActor(); setOverride(null); setMe(m); navigate(location.pathname.startsWith('/design-') ? location.pathname + location.search : '/'); }, [navigate, location.pathname, location.search]);
   const logout = async () => { try { await api.logout(); } catch { /* ignore */ } clearActor(); setOverride(null); setMe(null); navigate('/'); };
   const [reviewOn, setReviewOn] = useState<boolean>(() => readReviewPref(localStorage));
   const toggleReview = (v: boolean) => { setReviewOn(v); writeReviewPref(localStorage, v); };
@@ -82,12 +83,12 @@ export default function App() {
     id: `g-${t}`, text: (meta?.tiers?.[t] ?? TIER_FALLBACK[t]).label,
     items: (meta?.roles ?? []).filter((r) => r.tier === t).map((r) => ({ id: r.code, text: r.label, description: r.duties || undefined })),
   })).filter((g) => g.items.length);
-  const activeHref = location.pathname.startsWith('/todo') ? '/todo' : location.pathname === '/projects/new' ? '/projects/new' : location.pathname.startsWith('/projects') ? '/projects' : location.pathname.startsWith('/users') ? '/users' : location.pathname === '/design-choices' ? '/design-choices' : '/';
+  const activeHref = location.pathname.startsWith('/todo') ? '/todo' : location.pathname === '/projects/new' ? '/projects/new' : location.pathname.startsWith('/projects') ? '/projects' : location.pathname.startsWith('/users') ? '/users' : location.pathname.startsWith('/design-') ? location.pathname : '/';
 
   if (demoMode === null) {
     return <div className="ui-loading"><Spinner size="large" /></div>;
   }
-  if (!me && (!demoMode || location.pathname === '/login')) {
+  if (!me && (!demoMode || location.pathname === '/login' || location.pathname.startsWith('/design-'))) {
     return <ReviewContext.Provider value={reviewOn}><HelpContext.Provider value={helpOn}>
       <div className="ui-login-settings"><Button iconName="settings" onClick={() => setDisplayOpen(true)}>显示设置</Button></div>
       <Login demoMode={demoMode} onLogin={onLogin} onSkip={demoMode ? () => navigate('/') : undefined} />
@@ -189,7 +190,8 @@ export default function App() {
               { type: 'link', text: '工作台', href: '/', icon: <Icon name="grid-view" /> },
               ...(canDo('read_money') ? [{ type: 'link' as const, text: '项目', href: '/projects', icon: <Icon name="folder" /> }] : []),
               { type: 'link', text: '我的事项', href: '/todo', icon: <Icon name="check" /> },
-              ...(demoMode ? [{ type: 'link' as const, text: '设计比较', href: '/design-choices', icon: <Icon name="view-full" /> }] : []),
+              ...(me && (me.is_admin || ['D', 'J'].includes(me.role_code)) ? [{ type: 'link' as const, text: '设计比较', href: '/design-choices', icon: <Icon name="view-full" /> }] : []),
+              ...(me && (me.is_admin || ['D', 'J', '项目助理', '采购', 'Permit/设计', '财务'].includes(me.role_code)) ? [{ type: 'link' as const, text: '角色设计比较', href: '/design-collaboration', icon: <Icon name="view-full" /> }] : []),
               ...(canDo('create_project') ? [{ type: 'link' as const, text: '新建项目', href: '/projects/new', icon: <Icon name="add-plus" /> }] : []),
               ...(me?.is_admin ? [{ type: 'divider' as const }, { type: 'link' as const, text: '用户', href: '/users', icon: <Icon name="group" /> }] : []),
             ]}
@@ -200,7 +202,8 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/todo" element={<MyTodo />} />
-            <Route path="/design-choices" element={<DesignChoices />} />
+            <Route path="/design-choices" element={me && (me.is_admin || ['D', 'J'].includes(me.role_code)) ? <DesignChoices /> : <Navigate to="/design-collaboration" replace />} />
+            <Route path="/design-collaboration" element={<DesignCollaboration />} />
             {/* KAN-75 块 2：独立线索入口并入买房管理。旧链接 /leads 跳到项目列表的「买房 · 未购入」筛选；s1 段、档位、热度都还在。 */}
             <Route path="/leads" element={<Navigate to="/projects?group=buying&sub=pre" replace />} />
             <Route path="/projects" element={canDo('read_money') ? <Dashboard listOnly /> : <MyTodo />} />

@@ -250,6 +250,8 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  designWorkspaces: () => req<{ items: DesignWorkspaceSummary[]; can_view_all: boolean }>('/api/design-workspaces'),
+  designWorkspace: (key: string) => req<DesignWorkspaceSummary & { preview: import('../lib/roleDesigns').DesignPreview | null }>(`/api/design-workspaces/${encodeURIComponent(key)}`),
   meta: () => req<Meta>('/api/meta'),
   me: () => req<Me>('/api/auth/me'),
   authMode: () => req<{ demo_mode: boolean; has_users: boolean }>('/api/auth/mode'),
@@ -320,3 +322,5 @@ export const api = {
   updates: (limit = 30) => req<Update[]>(`/api/updates?limit=${limit}`),
   projectUpdates: (id: number, limit = 30) => req<Update[]>(`/api/projects/${id}/updates?limit=${limit}`),
 };
+
+export interface DesignWorkspaceSummary { key: string; title: string; available: boolean }

@@ -1,0 +1,260 @@
+{
+  "people": {
+    "jessie": {
+      "id": 6,
+      "username": "preview-j",
+      "display_name": "Jessie",
+      "role_code": "J",
+      "active": true
+    },
+    "kody": {
+      "id": 10,
+      "username": "preview-k",
+      "display_name": "Kody",
+      "role_code": "项目助理",
+      "active": true
+    }
+  },
+  "designs": {
+    "jessie": [
+      {
+        "id": "A",
+        "source": "Linear",
+        "title": "单套房连续工作台",
+        "question": "这套房走到哪里，下一步该找谁？",
+        "borrowed": "项目导航、分组任务和持续保留的详情上下文。",
+        "adapted": "用房屋作为项目，阶段、负责人、交付和关键节点在同一工作界面阅读。",
+        "gain": "适合跟 Jessie 一起深入推进一套房，不必反复跨页面。",
+        "cost": "跨房比较卡点需要切房；全局扫描不如 B。",
+        "url": "https://linear.app/docs/project-overview",
+        "sourceLabel": "Linear · Project overview",
+        "layout": "house"
+      },
+      {
+        "id": "B",
+        "source": "Asana Portfolios",
+        "title": "全部房屋统筹台",
+        "question": "哪几套房需要我介入，先处理哪一套？",
+        "borrowed": "多个项目放在同一总览里，以统一列对照状态和负责人。",
+        "adapted": "每房一行，优先呈现卡点、下一动作和待 Jessie 核对的交付；点房继续看细节。",
+        "gain": "适合 Jessie 每天先看全盘，再决定今天找谁。",
+        "cost": "操作具体事项前需要深入一房，比 A 多一步。",
+        "url": "https://asana.com/features/goals-reporting/portfolios",
+        "sourceLabel": "Asana · Portfolios",
+        "layout": "portfolio"
+      },
+      {
+        "id": "C",
+        "source": "Jira",
+        "title": "跨房业务清单",
+        "question": "今天集中处理采购、资料还是待审核事项？",
+        "borrowed": "可搜索的业务清单，按状态、负责人和字段缩小范围。",
+        "adapted": "每项保留所属房屋，集中核对同类工作，不把软件开发票的概念带给员工。",
+        "gain": "适合集中审交付、开业务专题会，一次处理同类问题。",
+        "cost": "房屋整体进度比较分散，要依靠右侧背景补足。",
+        "url": "https://support.atlassian.com/jira-software-cloud/docs/what-is-the-list-view/",
+        "sourceLabel": "Atlassian · List view",
+        "layout": "tasks"
+      }
+    ],
+    "kody": [
+      {
+        "id": "A",
+        "source": "IBM Carbon",
+        "title": "房屋服务核对台",
+        "question": "哪套房的水、电、燃气或保险资料还没办妥？",
+        "borrowed": "固定列对齐、搜索筛选、逐项展开详情。",
+        "adapted": "每房对照四类服务；点燃气打开该房账户，点保险查看文件及到期日。",
+        "gain": "适合每天逐房查漏，服务是否齐全一眼能看见。",
+        "cost": "信息更密；手机按房屋摘要阅读，再进入详情。",
+        "url": "https://carbondesignsystem.com/components/data-table/usage/",
+        "sourceLabel": "Carbon · Data table",
+        "layout": "register"
+      },
+      {
+        "id": "B",
+        "source": "Linear",
+        "title": "跨房行动队列",
+        "question": "接下来处理什么，哪些还在等别人回复？",
+        "borrowed": "可筛选、分组的工作视图，列表与详情连续阅读。",
+        "adapted": "把 Kody 的分派事项、服务卡点和保险文件整理到一起，保留房屋与记录来源。",
+        "gain": "适合在几套房之间连续办事，快速找到下一项。",
+        "cost": "不如 A 容易发现某套房四类资料是否齐全。",
+        "url": "https://linear.app/docs/custom-views",
+        "sourceLabel": "Linear · Custom views",
+        "layout": "queue"
+      },
+      {
+        "id": "C",
+        "source": "Microsoft Fluent 2",
+        "title": "服务公司办理台",
+        "question": "联系这家服务公司时，可以一起处理哪几套房？",
+        "borrowed": "围绕一个对象组织资料、来源和相关操作的横向卡片。",
+        "adapted": "按已有服务公司聚合同批房屋账户；保险仍按房屋文件查看。公司分组是本项目的设计推导。",
+        "gain": "适合联系同一家公司时连续办理，减少反复找账户。",
+        "cost": "全盘完整性较弱，要随时保留返回房屋的入口。",
+        "url": "https://fluent2.microsoft.design/components/web/react/core/card/usage",
+        "sourceLabel": "Fluent 2 · Card",
+        "layout": "providers"
+      }
+    ]
+  },
+  "houses": [
+    {
+      "id": "cedar",
+      "name": "12 Cedar",
+      "stage": "装修准备",
+      "focus": "燃气开通在等服务商回复",
+      "next": "Kody 跟进燃气公司",
+      "date": "09/25",
+      "water": "已开通",
+      "electric": "已开通",
+      "gas": "办理中",
+      "insurance": "已上传",
+      "expiry": "2027-09-20",
+      "company": "Metro Gas（示例）"
+    },
+    {
+      "id": "maple",
+      "name": "28 Maple",
+      "stage": "买房 · escrow 中",
+      "focus": "保险文件缺少到期日",
+      "next": "Kody 补充保险资料",
+      "date": "未设定",
+      "water": "未开始",
+      "electric": "未开始",
+      "gas": "未开始",
+      "insurance": "缺到期日",
+      "expiry": "",
+      "company": "Metro Gas（示例）"
+    },
+    {
+      "id": "oak",
+      "name": "46 Oak",
+      "stage": "装修中",
+      "focus": "采购交付等待 Jessie 核对",
+      "next": "Jessie 查看到货资料",
+      "date": "09/25",
+      "water": "已开通",
+      "electric": "已开通",
+      "gas": "已开通",
+      "insurance": "已上传",
+      "expiry": "2027-08-31",
+      "company": "City Gas（示例）"
+    },
+    {
+      "id": "birch",
+      "name": "63 Birch",
+      "stage": "预上市",
+      "focus": "准备 staging 与挂牌资料",
+      "next": "Jessie 与 agent 核对上市准备",
+      "date": "09/29",
+      "water": "已开通",
+      "electric": "已开通",
+      "gas": "已开通",
+      "insurance": "已上传",
+      "expiry": "2027-06-30",
+      "company": "Metro Gas（示例）"
+    },
+    {
+      "id": "pine",
+      "name": "81 Pine",
+      "stage": "售出收尾",
+      "focus": "关闭水电燃气，留存办理记录",
+      "next": "Kody 联系服务商",
+      "date": "09/28",
+      "water": "已关闭",
+      "electric": "已关闭",
+      "gas": "办理中",
+      "insurance": "已上传",
+      "expiry": "2026-10-10",
+      "company": "City Gas（示例）"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "gas-cedar",
+      "house": "cedar",
+      "title": "开通水电燃气",
+      "category": "服务办理",
+      "person": "Kody",
+      "status": "等待中",
+      "due": "09/25",
+      "detail": "水、电已开通；燃气公司尚未确认到场时间。",
+      "source": "已分派事项 · 服务账户",
+      "service": "燃气"
+    },
+    {
+      "id": "insurance-maple",
+      "house": "maple",
+      "title": "补充保险文件到期日",
+      "category": "保险资料",
+      "person": "Kody",
+      "status": "资料待补",
+      "due": "未设定",
+      "detail": "文件已上传，但到期日没有填写。这里是文件资料缺口，不自动生成新任务。",
+      "source": "保险文件记录",
+      "service": "保险"
+    },
+    {
+      "id": "procurement-oak",
+      "house": "oak",
+      "title": "核对厨房材料到货",
+      "category": "采购",
+      "person": "Tristin",
+      "status": "待审核",
+      "due": "09/25",
+      "detail": "采购负责人已提交到货照片，等待 Jessie 核对本次交付。",
+      "source": "已分派事项 · 提交批次",
+      "service": null
+    },
+    {
+      "id": "permit-oak",
+      "house": "oak",
+      "title": "整理 Permit 申请资料",
+      "category": "Permit / 设计",
+      "person": "Zoey",
+      "status": "进行中",
+      "due": "09/27",
+      "detail": "申请资料整理中，项目仍处于装修阶段。",
+      "source": "已分派事项",
+      "service": null
+    },
+    {
+      "id": "staging-birch",
+      "house": "birch",
+      "title": "协调 staging 与挂牌资料",
+      "category": "上市准备",
+      "person": "Jessie",
+      "status": "进行中",
+      "due": "09/29",
+      "detail": "与 agent 核对上市资料和 staging 安排，准备完成后仍按现有关键节点规则确认。",
+      "source": "已分派事项",
+      "service": null
+    },
+    {
+      "id": "close-pine",
+      "house": "pine",
+      "title": "关闭水电燃气",
+      "category": "服务办理",
+      "person": "Kody",
+      "status": "进行中",
+      "due": "09/28",
+      "detail": "水、电已关闭；燃气关闭申请正在办理。",
+      "source": "已分派事项 · 服务账户",
+      "service": "燃气"
+    },
+    {
+      "id": "prepare-maple",
+      "house": "maple",
+      "title": "提前整理服务账户资料",
+      "category": "服务办理",
+      "person": "Kody",
+      "status": "提前准备",
+      "due": "未设定",
+      "detail": "先整理服务公司和开户信息，不表示已经开通服务。",
+      "source": "已分派事项",
+      "service": "水"
+    }
+  ]
+}
