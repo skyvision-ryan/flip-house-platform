@@ -8,6 +8,8 @@ import { api, type DesignWorkspaceSummary } from '../api/client';
 import { useActor } from '../lib/actor';
 import Header from '../components/ui/Header';
 import EmployeeAvatar from '../components/ui/EmployeeAvatar';
+import LeadershipDesignComparison from '../components/design/LeadershipDesignComparison';
+import type { LeadershipPreview, LeadershipPersona } from '../lib/leadershipDesign';
 import SpecialistDesignComparison from '../components/design/SpecialistDesignComparison';
 import CollaborationWorkspace from '../components/ui/CollaborationWorkspace';
 import { visibleDesignTasks, parseDesignPreferences, type DesignPersona, type CorePersona, type SpecialistPersona, type SpecialistPreview, type DesignId, type DesignHouse, type DesignTask, type ServiceKind, type DesignPreview } from '../lib/roleDesigns';
@@ -22,7 +24,7 @@ export default function DesignCollaboration() {
   const [params, setParams] = useSearchParams();
   const requested = params.get('workspace');
   const [catalog, setCatalog] = useState<{ items: DesignWorkspaceSummary[]; can_view_all: boolean } | null>(null);
-  const [loaded, setLoaded] = useState<(DesignWorkspaceSummary & { preview: DesignPreview | SpecialistPreview | null }) | null>(null);
+  const [loaded, setLoaded] = useState<(DesignWorkspaceSummary & { preview: DesignPreview | SpecialistPreview | LeadershipPreview | null }) | null>(null);
   const [error, setError] = useState('');
   const [revision, setRevision] = useState(0);
   useEffect(() => {
@@ -32,7 +34,8 @@ export default function DesignCollaboration() {
     api.designWorkspaces().then(data => { if (active) setCatalog(data); }).catch(e => { if (active) setError(e.message); });
     return () => { active = false; };
   }, [me?.id, me?.role_code, me?.is_admin, revision]);
-  const selected = requested ?? catalog?.items.find(item => item.available)?.key ?? catalog?.items[0]?.key;
+  const preferred = me?.is_admin ? 'admin' : me?.role_code === 'D' ? 'david' : me?.role_code === 'J' ? 'jessie' : undefined;
+  const selected = requested ?? catalog?.items.find(item => item.key === preferred && item.available)?.key ?? catalog?.items.find(item => item.available)?.key ?? catalog?.items[0]?.key;
   useEffect(() => {
     let active = true;
     setLoaded(null); setError('');
@@ -49,9 +52,10 @@ export default function DesignCollaboration() {
       : !catalog ? <Spinner size="large" />
       : !catalog.items.length ? <Alert type="info">这个账号的职责暂未安排专属设计。</Alert>
       : !loaded || loaded.key !== selected ? <Spinner size="large" />
-      : !loaded.available || !loaded.preview ? <ContentLayout header={<Header variant="h1">{loaded.title}</Header>}><Alert type="info">这个工作区的设计比较尚未制作。David 与 001 的专属方案将在后续制作。</Alert></ContentLayout>
+      : !loaded.available || !loaded.preview ? <ContentLayout header={<Header variant="h1">{loaded.title}</Header>}><Alert type="info">这个工作区的设计比较尚未制作。请稍后重试。</Alert></ContentLayout>
+      : 'kind' in loaded.preview && loaded.preview.kind === 'leadership' ? <LeadershipDesignComparison key={`${me.id}:${loaded.key}`} persona={loaded.key as LeadershipPersona} preview={loaded.preview} storageKey={`${PREF_KEY}:${me.id}:${loaded.key}`} />
       : 'records' in loaded.preview ? <SpecialistDesignComparison key={`${me.id}:${loaded.key}`} persona={loaded.key as SpecialistPersona} preview={loaded.preview} storageKey={`${PREF_KEY}:${me.id}:${loaded.key}`} />
-      : <RoleDesignPreview key={`${me.id}:${loaded.key}`} persona={loaded.key as CorePersona} preview={loaded.preview} storageKey={`${PREF_KEY}:${me.id}:${loaded.key}`} />}
+      : <RoleDesignPreview key={`${me.id}:${loaded.key}`} persona={loaded.key as CorePersona} preview={loaded.preview as DesignPreview} storageKey={`${PREF_KEY}:${me.id}:${loaded.key}`} />}
   </>;
 }
 

@@ -30,7 +30,7 @@ class DesignWorkspacesTests(unittest.TestCase):
                                       ("buyer_one", "采购", False), ("buyer_two", "采购", False),
                                       ("designer", "Permit/设计", False), ("finance", "财务", False),
                                       ("director", "D", False), ("admin", "负责人", True),
-                                      ("legacy", "K", False), ("legacy_boss", "老板", False)):
+                                      ("legacy", "K", False), ("fake_t", "T", False), ("fake_number", "001", False), ("legacy_boss", "老板", False)):
                 user = models.User(username=name, email=f"{name}@example.com", display_name=f"Test {name}",
                                    role_code=role, is_admin=admin, password_hash="unused-test-hash")
                 session.add(user)
@@ -114,7 +114,7 @@ class DesignWorkspacesTests(unittest.TestCase):
         self.assert_full_access("admin")
 
     def test_unmatched_legacy_roles_have_empty_directory(self):
-        for name in ("legacy", "legacy_boss"):
+        for name in ("legacy", "legacy_boss", "fake_t", "fake_number"):
             self.assertEqual(self.directory(name).json(), {"items": [], "can_view_all": False})
             self.assertEqual(self.detail(name, "admin").status_code, 403)
             self.assertEqual(self.detail(name, "kody").status_code, 403)
@@ -130,11 +130,25 @@ class DesignWorkspacesTests(unittest.TestCase):
         for name in ("assistant", "admin"):
             self.assertEqual(self.detail(name, "not-a-workspace").status_code, 404)
 
-    def test_unbuilt_workspace_returns_valid_unavailable_entry(self):
-        response = self.detail("director", "david")
-        self.assertEqual(response.status_code, 200)
-        self.assertFalse(response.json()["available"])
-        self.assertIsNone(response.json()["preview"])
+    def test_leadership_names_and_shared_business_facts(self):
+        david = self.detail("director", "david").json()
+        founder = self.detail("admin", "admin").json()
+        self.assertTrue(david["available"])
+        self.assertTrue(founder["available"])
+        self.assertEqual(founder["title"], "T · 集团创始人")
+        self.assertEqual(david["preview"]["projects"], founder["preview"]["projects"])
+        self.assertEqual(david["preview"]["kind"], "leadership")
+        self.assertEqual(founder["preview"]["person"]["display_name"], "T")
+        for preview in (david["preview"], founder["preview"]):
+            self.assertEqual({d["id"] for d in preview["designs"]}, {"A", "B", "C"})
+
+    def test_leadership_loader_never_runs_for_staff_or_spoofed_roles(self):
+        with patch.object(design_workspaces, "_load_leadership_blueprint", side_effect=AssertionError("must authorize first")):
+            for name in ("assistant", "buyer_one", "buyer_two", "designer", "finance", "fake_t", "fake_number"):
+                for key in ("david", "admin"):
+                    self.assertEqual(self.detail(name, key, {"X-Actor": "D"}).status_code, 403)
+            for key in ("david", "admin"):
+                self.assertEqual(self.client.get(f"/api/design-workspaces/{key}").status_code, 401)
 
     def test_kody_receives_only_own_design_and_assigned_tasks(self):
         synthetic = {
@@ -155,12 +169,11 @@ class DesignWorkspacesTests(unittest.TestCase):
             self.assertEqual(jessie["designs"], [{"id": "J-only"}])
             self.assertEqual(len(jessie["tasks"]), 3)
 
-    def test_blueprints_are_not_loaded_on_unauthorized_or_unavailable_requests(self):
+    def test_blueprints_are_not_loaded_on_unauthorized_requests(self):
         with patch.object(design_workspaces, "_load_blueprints", side_effect=AssertionError("must authorize first")):
             self.assertEqual(self.detail("assistant", "jessie").status_code, 403)
             self.assertEqual(self.detail("buyer_one", "kody").status_code, 403)
             self.assertEqual(self.client.get("/api/design-workspaces/kody").status_code, 401)
-            self.assertIsNone(self.detail("director", "david").json()["preview"])
 
     def test_specialist_loader_runs_only_after_real_account_authorization(self):
         with patch.object(design_workspaces, "_load_specialist_blueprint", return_value={"scoped": True}) as loader:

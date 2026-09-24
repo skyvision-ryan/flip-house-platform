@@ -251,7 +251,7 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   designWorkspaces: () => req<{ items: DesignWorkspaceSummary[]; can_view_all: boolean }>('/api/design-workspaces'),
-  designWorkspace: (key: string) => req<DesignWorkspaceSummary & { preview: import('../lib/roleDesigns').DesignPreview | import('../lib/roleDesigns').SpecialistPreview | null }>(`/api/design-workspaces/${encodeURIComponent(key)}`),
+  designWorkspace: (key: string) => req<DesignWorkspaceSummary & { preview: import('../lib/roleDesigns').DesignPreview | import('../lib/roleDesigns').SpecialistPreview | import('../lib/leadershipDesign').LeadershipPreview | null }>(`/api/design-workspaces/${encodeURIComponent(key)}`),
   meta: () => req<Meta>('/api/meta'),
   me: () => req<Me>('/api/auth/me'),
   authMode: () => req<{ demo_mode: boolean; has_users: boolean }>('/api/auth/mode'),

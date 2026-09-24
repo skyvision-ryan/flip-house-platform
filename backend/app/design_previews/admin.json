@@ -1,0 +1,12 @@
+{
+  "kind": "leadership",
+  "person": {"id": 1, "username": "preview-founder", "display_name": "T", "role_code": "负责人", "active": true},
+  "role_title": "T · 集团经营视角",
+  "role_description": "跨房看投入规模、预计收益依据和项目推进，发现共性卡点后回到具体房屋与责任人。判断来自同一批项目记录，不把估算当成实际利润，也不把任务数量当成员工效率。",
+  "default_design": "A",
+  "designs": [
+    {"id":"A","source":"IBM Carbon","title":"项目经营账簿","question":"钱投在哪些房，收益依据是否齐全，项目走到哪一步？","borrowed":"固定列比较、搜索排序和选中行的上下文详情。","adapted":"每房对照登记投入、可解释的收益估算、业务持有天数和当前问题，点击展开构成与资料缺口。","gain":"适合建立全局判断，再逐房追溯金额和时间。","cost":"列较多；手机通过滚动表格选房，再进入完整详情。","url":"https://carbondesignsystem.com/components/data-table/usage/","sourceLabel":"Carbon · Data table","layout":"leadership-ledger"},
+    {"id":"B","source":"Linear","title":"经营问题聚合","question":"哪些问题跨房反复出现，需要统筹介入？","borrowed":"Initiatives 将项目按共同主题聚合，并保留负责人和项目更新。","adapted":"按收益资料缺口、推进卡点、结算待核组织房屋；同房可出现在多个问题下，但金额汇总按房去重。","gain":"适合先查共性缺口与依赖，再问具体负责人。","cost":"问题分组不是自动风险评分；正常项目仍需回全部房屋查看。","url":"https://linear.app/docs/initiatives","sourceLabel":"Linear · Initiatives","layout":"leadership-issues"},
+    {"id":"C","source":"AWS Cloudscape","title":"周转与推进透视","question":"房屋和登记投入停在哪个阶段，下一步在等什么？","borrowed":"点击汇总维度进入明细，保留筛选条件并能清除返回整体。","adapted":"从阶段分布选房，再把持有天数、未完成到期事项和待审批次分别展开；时间不代替完成事实。","gain":"适合查看当前项目分布与推进阻点，汇总始终能找到来源。","cost":"这是当前切面，不是历史趋势；没有实际回款记录便不预测可用现金。","url":"https://cloudscape.design/patterns/general/data-vis/chart-metric-drill-down/","sourceLabel":"Cloudscape · Metric drill down","layout":"leadership-flow"}
+  ]
+}

@@ -29,7 +29,7 @@ test('specialist preferences retain separate choices and discard invalid saved e
     procurement: { choice: 'C', note: '选型资料' },
     zoey: { choice: 'B', note: '补件优先' },
     sabrina: { choice: 'A', note: 'x'.repeat(1100) },
-    admin: { choice: 'A', note: 'unbuilt' },
+    unassigned: { choice: 'A', note: 'unbuilt' },
   }));
   assert.equal(parsed.procurement?.choice, 'C');
   assert.equal(parsed.zoey?.choice, 'B');

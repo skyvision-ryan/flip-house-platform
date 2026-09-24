@@ -428,3 +428,33 @@ body { font-family: var(--ui-font-body); margin: 0; color: var(--ui-text); backg
 .ui-sd-project-strip small { color: var(--ui-secondary); }
 .ui-rd-toolbar select { min-height: 44px; width: 100%; min-width: 0; padding: 8px 12px; border: 1px solid var(--ui-border); border-radius: 4px; background: var(--ui-surface); color: var(--ui-text); font: inherit; }
 .ui-rd-toolbar select:focus-visible { outline: 2px solid var(--ui-blue); outline-offset: 2px; }
+
+/* Leadership comparisons: figures stay beside their scope and underlying records. */
+.ui-ld-amount { font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.ui-ld-task-fact { padding-block: 12px; border-bottom: 1px solid var(--ui-border); }
+.ui-ld-task-fact h4 { margin-block: 8px; }
+.ui-ld-summary { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 24px; padding-block: 20px; margin: 0; border-block: 1px solid var(--ui-border); }
+.ui-ld-summary dt { color: var(--ui-secondary); }
+.ui-ld-summary dd { margin: 12px 0; font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.ui-ld-summary small { display: block; color: var(--ui-secondary); line-height: 1.7; }
+.ui-ld-stage-list { display: grid; gap: 8px; margin-block: 24px; }
+.ui-ld-stage-button { display: grid; grid-template-columns: 110px minmax(0,1fr) 110px; gap: 16px; align-items: center; min-height: 56px; padding: 12px; border: 1px solid transparent; background: transparent; color: var(--ui-text); font: inherit; text-align: left; cursor: pointer; }
+.ui-ld-stage-button svg { width: 100%; height: 28px; color: var(--ui-blue); }
+.ui-ld-stage-button > span:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+.ui-ld-stage-button[aria-pressed="true"] { background: var(--ui-blue-soft); border-color: var(--ui-blue); }
+.ui-ld-stage-button:hover { background: var(--ui-panel); }
+.ui-ld-stage-button:focus-visible, .ui-ld-table button:focus-visible { outline: 2px solid var(--ui-blue); outline-offset: 2px; }
+.ui-ld-table-scroll { overflow-x: auto; }
+.ui-ld-table { width: 100%; border-collapse: collapse; }
+.ui-ld-table th, .ui-ld-table td { padding: 20px 12px; text-align: left; border-bottom: 1px solid var(--ui-border); }
+.ui-ld-table th { color: var(--ui-secondary); font-size: 13px; }
+.ui-ld-table td > div { color: var(--ui-secondary); margin-top: 8px; }
+.ui-ld-table tr[data-selected="true"] { background: var(--ui-blue-soft); }
+.ui-ld-table button { min-height: 44px; border: 0; padding: 0; background: transparent; color: var(--ui-blue); font: inherit; text-align: left; cursor: pointer; }
+.ui-ld-table button:hover { text-decoration: underline; }
+.ui-ld-table .ui-sd-money { font-variant-numeric: tabular-nums; text-align: right; }
+@media (max-width: 700px) {
+  .ui-ld-summary { grid-template-columns: minmax(0,1fr); gap: 20px; }
+  .ui-ld-stage-button { grid-template-columns: minmax(0,1fr) 100px; gap: 8px 12px; }
+  .ui-ld-stage-button svg { grid-row: 2; grid-column: 1 / -1; }
+}

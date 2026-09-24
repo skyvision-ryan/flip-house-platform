@@ -1,7 +1,7 @@
 import type { UserBrief } from '../api/client';
 export type CorePersona = 'jessie' | 'kody';
 export type SpecialistPersona = 'procurement' | 'zoey' | 'sabrina';
-export type DesignPersona = CorePersona | SpecialistPersona;
+export type DesignPersona = CorePersona | SpecialistPersona | 'david' | 'admin';
 export type DesignId = 'A' | 'B' | 'C';
 export type ServiceKind = '水' | '电' | '燃气' | '保险';
 export interface RoleDesign {
@@ -29,7 +29,7 @@ export function parseDesignPreferences(raw: string | null): Partial<Record<Desig
     const value = JSON.parse(raw || '{}');
     if (!value || typeof value !== 'object') return {};
     const result: Partial<Record<DesignPersona, DesignPreference>> = {};
-    for (const persona of ['jessie', 'kody', 'procurement', 'zoey', 'sabrina'] as const) {
+    for (const persona of ['jessie', 'kody', 'procurement', 'zoey', 'sabrina', 'david', 'admin'] as const) {
       const item = value[persona];
       if (item && ['A', 'B', 'C'].includes(item.choice) && typeof item.note === 'string') result[persona] = { choice: item.choice, note: item.note.slice(0, 1000) };
     }
