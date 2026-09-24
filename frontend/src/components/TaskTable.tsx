@@ -7,6 +7,7 @@ import SpaceBetween from '@cloudscape-design/components/space-between';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
 import Table from '@cloudscape-design/components/table';
 import TextFilter from '@cloudscape-design/components/text-filter';
+import css from './CollaborationLayout.module.css';
 import type { Task, TaskList } from '../api/client';
 import { useMeta } from '../lib/meta';
 import { stageKeyLabel } from '../lib/stageGroups';
@@ -43,8 +44,9 @@ export default function TaskTable({ data, selectedId, onSelect, canAssign, onAss
 
   return (
     <Table
-      variant="embedded"
+      variant="container"
       items={rows}
+      wrapLines
       trackBy="id"
       selectionType={canAssign ? 'multi' : undefined}
       selectedItems={checkedVisible}
@@ -56,10 +58,9 @@ export default function TaskTable({ data, selectedId, onSelect, canAssign, onAss
         <Header
           variant="h2"
           counter={`(${rows.length})`}
-          description={`${unassigned ? `${unassigned} 项待分派 · ` : ''}点一行看右侧摘要，勾选多行可一起分派；分派只改负责人，不推进阶段。`}
+          description={`${unassigned ? `${unassigned} 项待分派 · ` : ''}点任务看摘要，勾选后批量分派。`}
           actions={
             <SpaceBetween direction="horizontal" size="xs">
-              <Select selectedOption={stageOptions.find((o) => o.value === stage) ?? stageOptions[0]} options={stageOptions} onChange={({ detail }) => setStage(detail.selectedOption.value ?? ALL)} ariaLabel="按阶段筛选" />
               {canAssign && <Button disabled={!checkedVisible.length} iconName="user-profile" onClick={() => onAssign(checkedVisible)}>{checkedVisible.length ? `分派 ${checkedVisible.length} 项` : '分派任务'}</Button>}
             </SpaceBetween>
           }
@@ -67,11 +68,11 @@ export default function TaskTable({ data, selectedId, onSelect, canAssign, onAss
           任务安排
         </Header>
       }
-      filter={<TextFilter filteringText={q} onChange={({ detail }) => setQ(detail.filteringText)} filteringPlaceholder="搜索任务名或负责人" filteringAriaLabel="搜索任务" />}
+      filter={<div className={css.toolbar}><TextFilter filteringText={q} onChange={({ detail }) => setQ(detail.filteringText)} filteringPlaceholder="搜索任务名或负责人" filteringAriaLabel="搜索任务" /><Select selectedOption={stageOptions.find((o) => o.value === stage) ?? stageOptions[0]} options={stageOptions} onChange={({ detail }) => setStage(detail.selectedOption.value ?? ALL)} ariaLabel="按阶段筛选" /></div>}
       empty={<Box textAlign="center" padding="l" color="text-body-secondary">{data.template_missing ? '这套房还没有任务实例（重启后端会自动补建）。' : '这个筛选下没有任务。'}</Box>}
       columnDefinitions={[
         {
-          id: 'title', header: '任务', minWidth: 220,
+          id: 'title', header: '任务', minWidth: 145,
           cell: (t) => (
             <div>
               <div style={{ fontWeight: t.id === selectedId ? 700 : 400 }}>{t.title}</div>
@@ -82,32 +83,27 @@ export default function TaskTable({ data, selectedId, onSelect, canAssign, onAss
           ),
         },
         {
-          id: 'assignee', header: '主要负责人', minWidth: 200,
+          id: 'assignee', header: '主要负责人', minWidth: 130,
           cell: (t) => (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }} onClick={(e) => e.stopPropagation()}>
-              <PersonAvatar user={t.assignee} size="small" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
+              <PersonAvatar user={t.assignee} size="small" showRole={false} />
               {canAssign && (
-                <Button variant="inline-link" iconName={t.assignee ? 'edit' : 'add-plus'} onClick={() => onAssign([t])} ariaLabel={`${t.assignee ? '改派' : '分派'}：${t.title}`}>
-                  {t.assignee ? '改派' : '分派'}
-                </Button>
+                <Button variant="inline-link" iconName={t.assignee ? 'edit' : 'add-plus'} onClick={() => onAssign([t])} ariaLabel={`${t.assignee ? '改派' : '分派'}：${t.title}`} />
               )}
             </div>
           ),
         },
         {
-          id: 'status', header: '状态', width: 150,
+          id: 'status', header: '状态 / 证据', width: 125,
           cell: (t) => (
             <div>
               <StatusIndicator type={statusIndicator(t.exec_status)}>{t.exec_status_label}</StatusIndicator>
+              <Box variant="small" color="text-body-secondary">证据：{t.satisfied ? '已满足' : '未满足'}</Box>
               {t.exec_status === 'waiting' && t.wait_for && <Box variant="small" color="text-body-secondary">等 {t.wait_for}</Box>}
             </div>
           ),
         },
-        {
-          id: 'satisfied', header: '满足', width: 120,
-          cell: (t) => (t.satisfied ? <StatusIndicator type="success">已满足</StatusIndicator> : <Box color="text-body-secondary">未满足</Box>),
-        },
-        { id: 'due', header: '截止', width: 100, cell: (t) => (t.due_at ? dueText(t.due_at) : <Box color="text-body-secondary">未设定</Box>) },
+        { id: 'due', header: '截止', width: 80, cell: (t) => <span style={{ whiteSpace: 'nowrap' }}>{t.due_at ? dueText(t.due_at) : <Box variant="span" color="text-body-secondary">未设定</Box>}</span> },
       ]}
     />
   );

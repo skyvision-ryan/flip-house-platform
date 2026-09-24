@@ -282,6 +282,7 @@ export const api = {
     return req<Project[]>(`/api/projects${s.toString() ? `?${s}` : ''}`);
   },
   project: (id: number) => req<Project>(`/api/projects/${id}`),
+  creationMembers: () => req<UserBrief[]>('/api/projects/creation-members'),
   createProject: (body: any) => req<Project>('/api/projects', { method: 'POST', body: JSON.stringify(body) }),
   patchProject: (id: number, body: any) => req<Project>(`/api/projects/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
   deleteProject: (id: number) => req<void>(`/api/projects/${id}`, { method: 'DELETE' }),

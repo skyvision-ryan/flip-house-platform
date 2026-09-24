@@ -14,6 +14,7 @@ import Spinner from '@cloudscape-design/components/spinner';
 import Tabs from '@cloudscape-design/components/tabs';
 import StatusBadge from '../../components/StatusBadge';
 import KeyValuePairs from '@cloudscape-design/components/key-value-pairs';
+import ExpandableSection from '@cloudscape-design/components/expandable-section';
 import CoverImage from '../../components/CoverImage';
 import StagePositionBar from '../../components/StagePositionBar';
 import ReviewTag from '../../components/ReviewTag';
@@ -22,7 +23,6 @@ import { useFlash } from '../../lib/flash';
 import { money, num } from '../../lib/format';
 import { labelOf, useMeta } from '../../lib/meta';
 import { useRole } from '../../lib/role';
-import { stageText } from '../../lib/stepDisplay';
 import OverviewTab from './OverviewTab';
 import AnalysisTab from './AnalysisTab';
 import DataTab from './DataTab';
@@ -132,7 +132,7 @@ export default function ProjectPage() {
   const specParts = [prop.year_built ? `${prop.year_built} 年` : null, prop.sqft ? `${num(prop.sqft)} sqft` : null, prop.beds != null ? `${prop.beds} 卧 ${prop.baths_full ?? 0} 卫` : null, prop.style].filter(Boolean) as string[];
 
   return (
-    <ContentLayout
+    <ContentLayout maxContentWidth={1440}
       breadcrumbs={<BreadcrumbGroup items={[{ text: '工作台', href: '/' }, { text: '项目', href: '/projects' }, { text: project.name, href: `/projects/${pid}` }]} onFollow={(e) => { e.preventDefault(); navigate(e.detail.href); }} />}
       header={
         <Container>
@@ -160,25 +160,14 @@ export default function ProjectPage() {
               </Header>
               {/* 地址、户型、阶段、策略原先拼成一句用「 · 」串起来的说明，读起来像一行小字。
                   改成带标签的字段：每个值上面写清楚它是什么。 */}
-              <KeyValuePairs
-                columns={4}
-                items={[
-                  { label: '地址', value: prop.address_std },
-                  { label: '房子', value: specParts.length ? segments(specParts, ' · ') : '—' },
-                  // KAN-65：与工作台、项目列表共用同一个 stageText，三处口径一致。
-                  { label: '阶段', value: stageText(project, meta) },
-                  { label: '策略', value: labelOf(meta?.strategies, project.strategy) },
-                ]}
-              />
-              {/* 第二组字段：钱和日期。原先是「交易」「时间」两栏大字，
-                  每栏两句话，还和总览的工期条重复报同一件事。 */}
-              <KeyValuePairs columns={4} items={[...dealFields(project), { label: '关键日期', value: keyDates(project) }]} />
+              <Box color="text-body-secondary">{prop.address_std}{specParts.length ? ` · ${specParts.join(' · ')}` : ''}</Box>
               {/* KAN-75 块 4：头卡三条事实按当前位置动态给（下一动作 / 目标过户 / 当前重点 …），只陈述任务表、日期与关键节点里已有的数据 */}
               {tasks && tasks.focus.length > 0 && (
                 <KeyValuePairs columns={3} items={tasks.focus.map((f) => ({ label: f.label, value: f.tone === 'warning' ? <Box color="text-status-warning" fontWeight="bold">{f.value}</Box> : <Box fontWeight="bold">{f.value}</Box> }))} />
               )}
               {/* KAN-75 块 2：五格位置条。买房格里写未购入 / escrow 中；位置只由关键节点推进。 */}
               <StagePositionBar position={project.group_position} />
+              <ExpandableSection headerText="房屋与交易资料"><KeyValuePairs columns={4} items={[{ label: '策略', value: labelOf(meta?.strategies, project.strategy) }, ...dealFields(project), { label: '关键日期', value: keyDates(project) }]} /></ExpandableSection>
             </SpaceBetween>
           </Grid>
         </Container>

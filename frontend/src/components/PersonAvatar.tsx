@@ -12,7 +12,7 @@ import { OwnerDot } from './OwnerTag';
 export default function PersonAvatar({ user, size = 'normal', showRole = true }: { user: UserBrief | null | undefined; size?: 'normal' | 'small'; showRole?: boolean }) {
   if (!user) {
     return (
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
         <OwnerDot code="?" title="待分派" />
         <Box variant="span" color="text-body-secondary">待分派</Box>
       </span>

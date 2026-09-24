@@ -66,7 +66,7 @@ export default function TaskSummaryPanel({ task, project, canAssign, onAssign, o
                 {
                   label: '截止日期',
                   value: editDue ? (
-                    <SpaceBetween direction="horizontal" size="xs" alignItems="center">
+                    <SpaceBetween size="xs">
                       <DatePicker value={due} onChange={({ detail }) => setDue(detail.value)} placeholder="YYYY/MM/DD" />
                       <Button variant="primary" loading={saving} onClick={saveDue}>保存</Button>
                       <Button variant="link" onClick={() => { setEditDue(false); setDue(task.due_at ?? ''); }}>取消</Button>
@@ -79,13 +79,13 @@ export default function TaskSummaryPanel({ task, project, canAssign, onAssign, o
                 { label: '最新动态', value: task.last_event ? <div><div>{task.last_event.text}</div><Box variant="small" color="text-body-secondary">{task.last_event.actor?.display_name ?? '系统'} · {dateTime(task.last_event.created_at)}</Box></div> : <Box color="text-body-secondary">还没有记录</Box> },
               ]}
             />
-            {task.exec_status !== 'done' && task.satisfied && <Box fontSize="body-s" color="text-status-info">证据已满足但任务还没确认完成——确认在「我的事项」里做（块 5）。</Box>}
+            {task.exec_status !== 'done' && task.satisfied && <Box fontSize="body-s" color="text-status-info">证据已满足但任务还没确认完成——确认在「我的事项」里做。</Box>}
             <SpaceBetween direction="horizontal" size="xs">
               {canAssign && <Button onClick={() => onAssign(task)} iconName={task.assignee ? 'edit' : 'add-plus'}>{task.assignee ? '改派 / 调整安排' : '分派'}</Button>}
               {me && (task.assignee?.id === me.id || task.reviewer?.id === me.id) && <Button onClick={() => navigate(`/todo?task=${task.id}`)}>{task.exec_status === 'pending_review' && task.reviewer?.id === me.id ? '去我的事项审核' : '去我的事项处理'}</Button>}
               <Button variant="link" onClick={() => navigate(`/projects/${task.project_id}/tasks/${task.id}`)}>完整活动记录</Button>
             </SpaceBetween>
-            <ExpandableSection headerText="活动记录" variant="footer" defaultExpanded>
+            <ExpandableSection headerText="活动记录" variant="footer">
               <TaskTimeline projectId={task.project_id} taskId={task.id} refreshKey={refreshKey} limit={6} />
             </ExpandableSection>
           </SpaceBetween>

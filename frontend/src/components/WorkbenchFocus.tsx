@@ -5,7 +5,7 @@ import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
 import ColumnLayout from '@cloudscape-design/components/column-layout';
 import Container from '@cloudscape-design/components/container';
-import Grid from '@cloudscape-design/components/grid';
+import css from './CollaborationLayout.module.css';
 import Header from '@cloudscape-design/components/header';
 import Link from '@cloudscape-design/components/link';
 import SpaceBetween from '@cloudscape-design/components/space-between';
@@ -44,7 +44,7 @@ export default function WorkbenchFocus({ refreshKey = 0 }: { refreshKey?: number
         <StatTile label="待分派" value={String(c?.unassigned_current ?? '—')} sub="当前段还没有负责人" />
         <StatTile label="等待回复" value={String(c?.waiting ?? '—')} sub="进行中、等外部反馈" />
       </ColumnLayout>
-      <Grid gridDefinition={[{ colspan: { default: 12, m: 8 } }, { colspan: { default: 12, m: 4 } }]}>
+      <div className={css.scope}><div className={css.wideSplit}>
         <Table
           variant="container"
           loading={!data}
@@ -87,7 +87,7 @@ export default function WorkbenchFocus({ refreshKey = 0 }: { refreshKey?: number
             </SpaceBetween>
           </Container>
         </SpaceBetween>
-      </Grid>
+      </div></div>
     </SpaceBetween>
   );
 }

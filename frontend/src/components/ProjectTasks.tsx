@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import Alert from '@cloudscape-design/components/alert';
 import Box from '@cloudscape-design/components/box';
-import Container from '@cloudscape-design/components/container';
-import Grid from '@cloudscape-design/components/grid';
+import css from './CollaborationLayout.module.css';
 import Spinner from '@cloudscape-design/components/spinner';
 import { Project, Task, TaskList } from '../api/client';
 import { useActor } from '../lib/actor';
@@ -42,12 +41,10 @@ export default function ProjectTasks({ project, data, error, reload, onChanged, 
   return (
     <>
       {!me && <Alert type="info">现在没有登录：任务表只能看。分派、开始、等待都要用真实账号登录后做。</Alert>}
-      <Grid gridDefinition={[{ colspan: { default: 12, m: 8 } }, { colspan: { default: 12, m: 4 } }]}>
-        <Container disableContentPaddings>
+      <div className={css.scope}><div className={css.split}>
           <TaskTable data={data} selectedId={selectedId} onSelect={(t) => setSelectedId(t.id)} canAssign={canAssign} onAssign={(ts) => setAssigning(ts)} />
-        </Container>
         <TaskSummaryPanel task={selected} project={project} canAssign={canAssign} onAssign={(t) => setAssigning([t])} onChanged={replace} onGotoGates={onGotoGates} refreshKey={refreshKey} />
-      </Grid>
+      </div></div>
       {assigning && assigning.length > 0 && (
         <TaskAssignModal
           projectId={project.id}
