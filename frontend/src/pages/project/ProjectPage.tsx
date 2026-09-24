@@ -84,7 +84,7 @@ function segments(parts: string[], sep: string) {
       {parts.map((t, i) => (
         <span key={t}>
           {i > 0 && sep}
-          <span style={{ whiteSpace: 'nowrap' }}>{t}</span>
+          <span className="ui-nowrap">{t}</span>
         </span>
       ))}
     </span>
@@ -144,7 +144,7 @@ export default function ProjectPage() {
                     {role.can('delete_project') && <ButtonDropdown items={[{ id: 'delete', text: '删除项目' }]} onItemClick={({ detail }) => { if (detail.id === 'delete') setConfirmDelete(true); }}>操作</ButtonDropdown>}
                   </SpaceBetween>
                 }>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                  <div className="ui-row-wrap">
                     <span>{project.name}</span><StatusBadge status={project.status} />
                   </div>
                 </Header>

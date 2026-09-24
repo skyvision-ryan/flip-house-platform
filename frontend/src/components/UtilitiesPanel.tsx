@@ -33,7 +33,7 @@ function websiteHref(value: string | null): string | null {
 }
 
 function withControls(input: ReactNode, controls: ReactNode) {
-  return <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', alignItems: 'center', gap: 4 }}>{input}{controls}</div>;
+  return <div className="ui-input-controls">{input}{controls}</div>;
 }
 
 /** 数据页里的“水、电、瓦斯账户”：三行固定，行内直接改，改完点保存。密码默认打码，点“看”才显示。 */

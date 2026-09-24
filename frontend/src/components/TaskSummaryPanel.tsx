@@ -100,7 +100,7 @@ export default function TaskSummaryPanel({ task, project, canAssign, onAssign, o
         {gates.length ? (
           <SpaceBetween size="xs">
             {gates.map((g) => (
-              <div key={g.key} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
+              <div key={g.key} className="ui-row-wrap">
                 <Box fontWeight="bold">{g.title}</Box>
                 {g.done ? <StatusIndicator type="success">已过</StatusIndicator> : (
                   ['D', 'J'].map((c) => <span key={c}><RoleLabel code={c} />{g.confirmed.includes(c) ? <Box variant="span" color="text-status-success">已确认</Box> : <Box variant="span" color="text-body-secondary">待确认</Box>}</span>)

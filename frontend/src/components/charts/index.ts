@@ -11,5 +11,4 @@ export { default as Trend } from './Trend';
 export { default as SegmentTrack } from './SegmentTrack';
 export { default as InlineBar } from './InlineBar';
 export { default as DeltaBadge } from './DeltaBadge';
-export * from './palette';
 export * from './format';

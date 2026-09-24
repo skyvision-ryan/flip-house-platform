@@ -4,12 +4,6 @@ import '@cloudscape-design/global-styles/index.css';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-// Open Sans 必须真的加载，否则 theme.ts 里的 BASE_STACK 会静默落到第二顺位 Helvetica Neue
-// ——macOS 不自带 Open Sans。自托管而不是挂 Google Fonts 外链：离线能用，也不给第三方发请求。
-// 必须在 './theme' 之前，字体先就位再套主题。
-import '@fontsource/open-sans/400.css';
-import '@fontsource/open-sans/600.css';
-import '@fontsource/open-sans/700.css';
 import App from './App';
 import { MetaProvider } from './lib/meta';
 import './styles.css';

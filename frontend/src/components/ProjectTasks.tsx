@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Alert from '@cloudscape-design/components/alert';
 import Box from '@cloudscape-design/components/box';
-import css from './CollaborationLayout.module.css';
+import css from './ui/CollaborationLayout.module.css';
 import Spinner from '@cloudscape-design/components/spinner';
 import { Project, Task, TaskList } from '../api/client';
 import { useActor } from '../lib/actor';

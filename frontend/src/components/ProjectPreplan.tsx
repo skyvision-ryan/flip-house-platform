@@ -9,13 +9,12 @@ import Select from '@cloudscape-design/components/select';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
 import Tabs from '@cloudscape-design/components/tabs';
-import { colorBorderDividerDefault } from '@cloudscape-design/design-tokens';
 import { useState } from 'react';
 import type { Meta, UserBrief } from '../api/client';
 import { planByPerson, PlanStage, summarizePlan, TaskPlan } from '../lib/projectPlan';
 import { stageKeyLabel } from '../lib/stageGroups';
 import { initialsOf } from '../lib/taskGroups';
-import css from './CollaborationLayout.module.css';
+import css from './ui/CollaborationLayout.module.css';
 import HelpText from './HelpText';
 import PersonAvatar from './PersonAvatar';
 import AssigneeButton from './AssigneeButton';
@@ -45,7 +44,7 @@ export default function ProjectPreplan({ meta, plan, onChange, users, loading, c
       <div className={`${css.draftRow} ${css.rowHeading}`}><span>普通任务</span><span>主要负责人</span><span>截止日期</span></div>
       {ordinary.map((item) => {
         const user = users.find((u) => u.id === plan[item.key]?.assignee_user_id);
-        return <div className={css.draftRow} key={item.key} style={{ borderTop: `1px solid ${colorBorderDividerDefault}` }}>
+        return <div className={`${css.draftRow} ${css.draftItem}`} key={item.key}>
           <div><Box fontWeight="bold">{item.title}</Box><Box variant="small" color="text-body-secondary">{item.deliverable?.label ?? item.evidence}{!current && ' · 提前准备'}</Box></div>
           <AssigneeButton user={user} label={`安排负责人：${item.title}`} disabled={loading} onClick={() => open(item)} />
           <Button variant="inline-link" iconName="calendar" ariaLabel={`安排截止：${item.title}`} onClick={() => open(item)}>{plan[item.key]?.due_at || '未设定'}</Button>

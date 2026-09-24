@@ -7,7 +7,7 @@ import type { Task, TaskList } from '../api/client';
 import { useMeta } from '../lib/meta';
 import { stageKeyLabel } from '../lib/stageGroups';
 import { dueText, statusIndicator } from '../lib/taskGroups';
-import css from './CollaborationLayout.module.css';
+import css from './ui/CollaborationLayout.module.css';
 import HelpText from './HelpText';
 import PersonAvatar from './PersonAvatar';
 import AssigneeButton from './AssigneeButton';
@@ -73,7 +73,7 @@ export default function TaskTable({ data, selectedId, onSelect, canAssign, onAss
         {
           id: 'assignee', header: '主要负责人', minWidth: 130,
           cell: (t) => (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
+            <div className="ui-task-person" onClick={(e) => e.stopPropagation()}>
               {canAssign ? <AssigneeButton user={t.assignee} label={`${t.assignee ? '改派' : '分派'}：${t.title}`} onClick={() => onAssign([t])} />
                 : <PersonAvatar user={t.assignee} size="small" showRole={false} />}
             </div>
@@ -89,7 +89,7 @@ export default function TaskTable({ data, selectedId, onSelect, canAssign, onAss
             </div>
           ),
         },
-        { id: 'due', header: '截止', width: 80, cell: (t) => <span style={{ whiteSpace: 'nowrap' }}>{t.due_at ? dueText(t.due_at) : <Box variant="span" color="text-body-secondary">未设定</Box>}</span> },
+        { id: 'due', header: '截止', width: 80, cell: (t) => <span className="ui-nowrap">{t.due_at ? dueText(t.due_at) : <Box variant="span" color="text-body-secondary">未设定</Box>}</span> },
       ]}
     />
   );

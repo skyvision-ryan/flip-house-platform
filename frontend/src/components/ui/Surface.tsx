@@ -17,19 +17,7 @@ export function CardFrame({ cardId, cardContext, children }: CardProps & { child
 
 export default function Container({ cardId, cardContext, ...props }: ContainerProps & CardProps) {
   return <CardFrame cardId={cardId} cardContext={cardContext}>
-    <BaseContainer
-      style={{
-        root: {
-          borderColor: 'var(--ui-border)', borderWidth: '1px', borderRadius: '16px',
-          boxShadow: 'none',
-        },
-        header: { paddingInline: 'clamp(16px, 2vw, 24px)', paddingBlock: '20px 16px' },
-        content: props.disableContentPaddings
-          ? { paddingInline: '0', paddingBlock: '0' }
-          : { paddingInline: 'clamp(16px, 2vw, 24px)', paddingBlock: props.header ? '0 24px' : '24px' },
-      }}
-      {...props}
-    />
+    <BaseContainer {...props} />
   </CardFrame>;
 }
 

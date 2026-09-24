@@ -23,7 +23,7 @@ export default function TaskTimeline({ projectId, taskId, refreshKey = 0, limit 
   return (
     <SpaceBetween size="xs">
       {rows.map((e) => (
-        <div key={e.id} style={{ display: 'grid', gridTemplateColumns: '112px 1fr', gap: 8, alignItems: 'baseline' }}>
+        <div key={e.id} className="ui-event-row">
           <Box fontSize="body-s" color="text-body-secondary">{dateTime(e.created_at)}</Box>
           <div>
             <Box variant="span" fontWeight="bold">{e.actor ? e.actor.display_name : '系统'}</Box>

@@ -13,11 +13,10 @@ import Select from '@cloudscape-design/components/select';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import Textarea from '@cloudscape-design/components/textarea';
 import Tiles from '@cloudscape-design/components/tiles';
-import { colorBackgroundButtonPrimaryDefault, colorBackgroundContainerContent, colorBorderDividerDefault, colorTextAccent, colorTextButtonPrimaryDefault } from '@cloudscape-design/design-tokens';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AddressCandidate, api, LookupResult, UserBrief } from '../api/client';
-import css from '../components/CollaborationLayout.module.css';
+import css from '../components/ui/CollaborationLayout.module.css';
 import HelpText from '../components/HelpText';
 import ProjectPreplan, { PlanReview, PlanSummary } from '../components/ProjectPreplan';
 import SourceBadge from '../components/SourceBadge';
@@ -243,7 +242,7 @@ export default function AddProject() {
         { label: '地块面积', value: byKey.lot_sqft?.f.value ? `${byKey.lot_sqft.f.value} sqft` : '未填' },
         { label: 'APN / AIN', value: byKey.apn?.f.value || lookup?.apn || '待核实' },
         { label: '来源', value: lookup ? summaryText(summary, labelOfSource) : '人工填写 · 待核实' },
-      ].map((item) => <div key={item.label} style={item.label === '来源' || item.label === 'APN / AIN' ? { gridColumn: '1 / -1' } : undefined}><dt><Box variant="small" color="text-body-secondary">{item.label}</Box></dt><dd>{item.value}</dd></div>)}</dl>
+      ].map((item) => <div key={item.label} className={item.label === '来源' || item.label === 'APN / AIN' ? css.fullSpan : undefined}><dt><Box variant="small" color="text-body-secondary">{item.label}</Box></dt><dd>{item.value}</dd></div>)}</dl>
       {provisional && <Box variant="small" color="text-body-secondary">含演示 / 待核实数据，请在买入前核对。</Box>}
     </SpaceBetween>
   </Container>;
@@ -422,7 +421,7 @@ export default function AddProject() {
     breadcrumbs={<BreadcrumbGroup items={[{ text: '项目', href: '/projects' }, { text: '新建项目', href: '/projects/new' }]} onFollow={(e) => { e.preventDefault(); navigate(e.detail.href); }} />}
     header={<Header variant="h1" help="从一套房开始，提前安排全流程；创建后在项目总览继续协作。">{['确认这套房屋', '为这套房安排全流程', '确认房屋与任务安排'][step]}</Header>}>
     <div className={css.scope}>
-      <ol className={css.steps} aria-label="新建项目步骤">{['确认房屋', '准备任务', '确认创建'].map((label, index) => <li key={label} aria-current={index === step ? 'step' : undefined} style={{ borderColor: index <= step ? colorTextAccent : colorBorderDividerDefault, color: index === step ? colorTextAccent : undefined }}><span className={css.stepNumber} style={{ background: index <= step ? colorBackgroundButtonPrimaryDefault : colorBackgroundContainerContent, color: index <= step ? colorTextButtonPrimaryDefault : undefined, border: `1px solid ${colorBorderDividerDefault}` }}>{index < step ? <Icon name="check" size="small" /> : index + 1}</span><span className={css.stepLabel}>{label}</span></li>)}</ol>
+      <ol className={css.steps} aria-label="新建项目步骤">{['确认房屋', '准备任务', '确认创建'].map((label, index) => <li key={label} aria-current={index === step ? 'step' : undefined} data-step-state={index < step ? 'done' : index === step ? 'current' : 'future'}><span className={css.stepNumber}>{index < step ? <Icon name="check" size="small" /> : index + 1}</span><span className={css.stepLabel}>{label}</span></li>)}</ol>
       {error && <Box margin={{ bottom: 'l' }}><Alert type="error">{error}</Alert></Box>}
       {step === 0 && <div className={css.intakeSplit}><SpaceBetween size="l">{addressSection}{address && <>{settingsSection}<ExpandableSection cardId="intake-sources" variant="container" headerText="房产资料与来源 · 可选核对">{detailsSection}</ExpandableSection></>}</SpaceBetween><aside className={css.aside}>{houseCard}</aside></div>}
       {step === 1 && <div className={css.intakeSplit}><SpaceBetween size="l">

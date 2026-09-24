@@ -105,10 +105,10 @@ function SubmissionList({ subs }: { subs: Submission[] }) {
     <ExpandableSection headerText={`提交记录（${subs.length}）`} variant="footer" defaultExpanded={subs.length <= 2}>
       <SpaceBetween size="s">
         {subs.map((s) => (
-          <div key={s.id} style={{ display: 'grid', gap: 2 }}>
+          <div key={s.id} className="ui-submission">
             <div><Box variant="span" fontWeight="bold">第 {s.seq} 次</Box>　<StatusIndicator type={s.decision === 'confirmed' ? 'success' : s.decision === 'returned' ? 'error' : 'pending'}>{s.decision_label}</StatusIndicator></div>
             <Box variant="small" color="text-body-secondary">{s.submitted_by?.display_name ?? '—'} · {dateTime(s.submitted_at)}{s.note ? ` · ${s.note}` : ''}</Box>
-            {s.files.length > 0 && <Box variant="small">{s.files.map((f) => <span key={f.id} style={{ marginRight: 12 }}><Link href={`/api/files/${f.id}/download`} external>{f.filename}</Link></span>)}</Box>}
+            {s.files.length > 0 && <Box variant="small">{s.files.map((f) => <span key={f.id} className="ui-file-link"><Link href={`/api/files/${f.id}/download`} external>{f.filename}</Link></span>)}</Box>}
             {s.decision !== 'pending' && <Box variant="small" color="text-body-secondary">{s.decided_by?.display_name ?? '—'} · {dateTime(s.decided_at)}{s.decision_reason ? `：${s.decision_reason}` : ''}</Box>}
           </div>
         ))}
@@ -145,8 +145,8 @@ function DeliverTab({ task, meId, canSubmit, canReview, busy, onAction }: { task
           <SpaceBetween size="s">
             {latest.note && <Box>{latest.note}</Box>}
             {latest.files.length ? latest.files.map((f) => (
-              <div key={f.id} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                {(f.mime ?? '').startsWith('image/') && <img src={`/api/files/${f.id}/download`} alt="" style={{ width: 56, height: 42, objectFit: 'cover', borderRadius: 4 }} />}
+              <div key={f.id} className="ui-file-choice">
+                {(f.mime ?? '').startsWith('image/') && <img src={`/api/files/${f.id}/download`} alt="" className="ui-thumbnail ui-thumbnail-delivery" />}
                 <div><Link href={`/api/files/${f.id}/download`} external>{f.filename}</Link><Box variant="small" color="text-body-secondary">{kb(f.size)}{f.uploaded_at ? ` · ${dateTime(f.uploaded_at)}` : ''}</Box></div>
               </div>
             )) : <Box color="text-body-secondary">没有文件，只交了说明。</Box>}

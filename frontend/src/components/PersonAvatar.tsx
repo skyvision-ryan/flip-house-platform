@@ -12,17 +12,17 @@ import { initialsOf } from '../lib/taskGroups';
 export default function PersonAvatar({ user, size = 'normal', showRole = true }: { user: UserBrief | null | undefined; size?: 'normal' | 'small'; showRole?: boolean }) {
   if (!user) {
     return (
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
-        <span className="ui-avatar-empty" aria-hidden="true" style={{ width: size === 'small' ? 24 : 28, height: size === 'small' ? 24 : 28 }}><Icon name="add-plus" size="small" /></span>
+      <span className="ui-person-empty">
+        <span className="ui-avatar-empty" aria-hidden="true" data-size={size}><Icon name="add-plus" size="small" /></span>
         <Box variant="span" color="text-body-secondary">待分派</Box>
       </span>
     );
   }
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+    <span className="ui-person">
       <Avatar ariaLabel={`负责人 ${user.display_name}`} initials={initialsOf(user)} tooltipText={`${user.display_name} · ${user.role_code}`} width={size === 'small' ? 24 : 28} />
-      <span style={{ minWidth: 0, lineHeight: 1.5 }}>
-        <div style={{ overflowWrap: 'anywhere' }}>{user.display_name}{!user.active && <Box variant="span" color="text-status-inactive">（已停用）</Box>}</div>
+      <span className="ui-person-label">
+        <div className="ui-wrap-anywhere">{user.display_name}{!user.active && <Box variant="span" color="text-status-inactive">（已停用）</Box>}</div>
         {showRole && <Box variant="small" color="text-body-secondary">{user.role_code}</Box>}
       </span>
     </span>

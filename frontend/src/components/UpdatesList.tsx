@@ -4,7 +4,6 @@ import Link from '@cloudscape-design/components/link';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import { Update } from '../api/client';
 import { RoleLabel } from './RoleLabel';
-import { BORDER } from './charts/palette';
 
 const KIND_TAB: Record<string, string> = { file: 'files', data: 'data', expense: 'budget', budget: 'budget', analysis: 'analysis', step: 'overview', project: 'overview', utility: 'data&section=utilities', inspection: 'overview', procurement: 'budget&section=procurement' };
 const KIND_LABEL: Record<string, string> = { file: '文件', data: '数据', expense: '支出', budget: '预算', analysis: '分析', step: '清单', project: '项目', utility: '水电', inspection: '检查', procurement: '采购' };
@@ -49,7 +48,7 @@ export default function UpdatesList({ items, showProject, onGo, emptyText = '还
             return (
               <div
                 key={u.id}
-                style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: 6, padding: '6px 0', borderTop: `1px solid ${BORDER}` }}
+                className="ui-update-row"
               >
                 <Box variant="small" color="text-body-secondary">{hm(u.created_at)}</Box>
                 <RoleLabel code={u.actor} />

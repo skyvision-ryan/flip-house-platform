@@ -13,7 +13,7 @@ import KeyValuePairs from './ui/Facts';
 export default function SourceBadge({ source, fetchedAt, confidence, note }: { source: string; fetchedAt?: string; confidence?: number | null; note?: string | null }) {
   const meta = useMeta();
   const label = sourceLabel(source, meta?.sources);
-  const badge = <Badge color="grey" style={{ root: { background: 'var(--ui-page)', color: 'var(--ui-secondary)', borderColor: 'var(--ui-border)', borderWidth: '1px', borderRadius: '4px', paddingBlock: '1px', paddingInline: '7px' } }}>{label}</Badge>;
+  const badge = <Badge color="grey">{label}</Badge>;
   if (!fetchedAt && confidence == null && !note) return badge;
   return (
     <Popover

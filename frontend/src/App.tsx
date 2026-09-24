@@ -84,7 +84,7 @@ export default function App() {
   const activeHref = location.pathname.startsWith('/todo') ? '/todo' : location.pathname === '/projects/new' ? '/projects/new' : location.pathname.startsWith('/projects') ? '/projects' : location.pathname.startsWith('/users') ? '/users' : '/';
 
   if (demoMode === null) {
-    return <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}><Spinner size="large" /></div>;
+    return <div className="ui-loading"><Spinner size="large" /></div>;
   }
   if (!me && (!demoMode || location.pathname === '/login')) {
     return <ReviewContext.Provider value={reviewOn}><HelpContext.Provider value={helpOn}>
@@ -133,7 +133,7 @@ export default function App() {
     <HelpContext.Provider value={helpOn}>
     <ActorContext.Provider value={{ actor, setActor, me, demoMode, logout }}>
       {/* KAN-75：顶栏中性底色，橙色细边仅作品牌强调，不按角色变色。 */}
-      <div id="top-nav" style={{ position: 'sticky', top: 0, zIndex: 1002 }}>
+      <div id="top-nav" className="ui-top-nav">
         <TopNavigation
           identity={{ href: '/', title: '翻新项目平台', onFollow: (e) => { e.preventDefault(); navigate('/'); } }}
           search={

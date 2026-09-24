@@ -89,10 +89,10 @@ function LeadRow({ p, meta, canEdit, onPatched }: {
   };
 
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: 12, minWidth: 0 }}>
-      <div style={{ flex: '1 1 260px', minWidth: 0 }}>
+    <div className="ui-lead-row">
+      <div className="ui-lead-body">
         <SpaceBetween size="xxs">
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, minWidth: 0 }}>
+          <div className="ui-row-wrap">
             <Link fontSize="heading-s" href={`/projects/${p.id}`} onFollow={(e) => { e.preventDefault(); navigate(`/projects/${p.id}`); }}>{p.name}</Link>
             {heat && <Badge>{heat}</Badge>}
           </div>

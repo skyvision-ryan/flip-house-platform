@@ -8,12 +8,10 @@ import Spinner from '@cloudscape-design/components/spinner';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
 import Tabs from '@cloudscape-design/components/tabs';
 import TextFilter from '@cloudscape-design/components/text-filter';
-import { colorBackgroundDropdownItemHover, colorBackgroundItemSelected, colorTextAccent } from '@cloudscape-design/design-tokens';
-import type { CSSProperties } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api, MyTasks, Task } from '../api/client';
-import css from '../components/CollaborationLayout.module.css';
+import css from '../components/ui/CollaborationLayout.module.css';
 import ReviewTag from '../components/ReviewTag';
 import TaskWorkbench from '../components/TaskWorkbench';
 import Header from '../components/ui/Header';
@@ -75,7 +73,7 @@ export default function MyTodo() {
   const pane = (subset: Task[]) => (selected && filtered(subset).some((t) => t.id === selected.id)
     ? <Container cardId="task-processing" cardContext={selected?.title} header={<Header variant="h2" description={`${selected.project_name} · ${selected.project_address}`}>{selected.title}</Header>}><TaskWorkbench task={selected} meId={me?.id ?? null} onChanged={replace} onConflict={load} /></Container>
     : <Container cardId="task-processing"><Box color="text-body-secondary">左边点一项，在这里处理。</Box></Container>);
-  const layout = (left: JSX.Element, subset: Task[]) => <div className={css.scope} style={{ '--collab-selected': colorBackgroundItemSelected, '--collab-hover': colorBackgroundDropdownItemHover, '--collab-accent': colorTextAccent } as CSSProperties}><div className={css.review}>{left}{pane(subset)}</div></div>;
+  const layout = (left: JSX.Element, subset: Task[]) => <div className={css.scope}><div className={css.review}>{left}{pane(subset)}</div></div>;
 
   return (
     <ContentLayout maxContentWidth={1440} header={<Header variant="h1" help={me ? '处理分派给你的任务，以及等你审核的交付。' : '登录后查看你的任务。'}>我的事项</Header>}>

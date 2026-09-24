@@ -8,7 +8,6 @@ import { api, Me } from '../api/client';
 import FormField from '../components/ui/FormField';
 import Header from '../components/ui/Header';
 import Container from '../components/ui/Surface';
-import { PAGE_BG } from '../theme';
 
 /** 登录页：账号密码。演示模式下也能登录（管理员要进“用户”页）。 */
 export default function Login({ onLogin, demoMode, onSkip }: { onLogin: (me: Me) => void; demoMode: boolean; onSkip?: () => void }) {
@@ -24,8 +23,8 @@ export default function Login({ onLogin, demoMode, onSkip }: { onLogin: (me: Me)
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: PAGE_BG }}>
-      <div style={{ width: '100%', maxWidth: 420 }}>
+    <div className="ui-login">
+      <div className="ui-login-card">
         <form onSubmit={(e) => { e.preventDefault(); submit(); }}>
           <Form
             header={<Header variant="h1" help="用公司给你的账号登录。忘了密码找负责人重置。">翻新项目平台</Header>}

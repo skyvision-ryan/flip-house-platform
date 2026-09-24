@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { niceTicks } from './format';
-import { AXIS, FONT, GRID, SERIES, SURFACE, TEXT, TEXT_2 } from './palette';
+import { AXIS, FONT, SHADOW, GRID, SERIES, SURFACE, TEXT, TEXT_2 } from './palette';
 
 export interface TrendPoint { x: string; y: number }
 interface Props {
@@ -71,7 +71,7 @@ export default function Trend({ points, format = (n) => String(n), height = 160,
         )}
       </svg>
       {hover != null && (
-        <div style={{ position: 'absolute', left: Math.min(X(hover) + 10, w - 130), top: Math.max(0, Y(points[hover].y) - 44), background: SURFACE, border: `1px solid ${GRID}`, borderRadius: 8, boxShadow: '0 4px 20px rgba(0,28,36,0.15)', padding: '6px 10px', fontSize: 13, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
+        <div style={{ position: 'absolute', left: Math.min(X(hover) + 10, w - 130), top: Math.max(0, Y(points[hover].y) - 44), background: SURFACE, border: `1px solid ${GRID}`, borderRadius: 8, boxShadow: SHADOW, padding: '6px 10px', fontSize: 13, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
           <div style={{ color: TEXT_2 }}>{points[hover].x} 那周</div>
           <div style={{ fontWeight: 700, color: TEXT }}>{format(points[hover].y)}</div>
         </div>

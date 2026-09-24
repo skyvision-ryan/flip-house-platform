@@ -1,10 +1,10 @@
 /* 产品层：稳定的自有类名。Cloudscape 内部结构不靠哈希类选择器覆盖。 */
-body { margin: 0; color: var(--ui-text); background: var(--ui-page); font-size: 14px; line-height: 22px; }
+body { font-family: var(--ui-font-body); margin: 0; color: var(--ui-text); background: var(--ui-page); font-size: var(--ui-font-size-body); line-height: var(--ui-line-height-body); }
 * { box-sizing: border-box; }
 #top-nav { border-bottom: 3px solid var(--ui-orange); }
 .ui-card { position: relative; min-width: 0; container-type: inline-size; }
 .ui-card > * { min-width: 0; }
-.ui-card h2, .ui-card h3 { letter-spacing: normal; }
+.ui-card h2, .ui-card h3 { font-family: var(--ui-font-heading); letter-spacing: normal; }
 .ui-header-fact { display: block; line-height: 1.6; margin-top: 4px; }
 .ui-help { display: flex; align-items: flex-start; gap: 9px; margin: 12px 0 4px; padding: 12px 14px; border: 1px solid var(--ui-help-border); border-radius: 10px; background: var(--ui-help-bg); color: var(--ui-secondary); font-size: 13px; font-weight: 400; line-height: 1.65; text-align: left; }
 .ui-help-icon { color: var(--ui-blue); flex: none; padding-top: 2px; }
@@ -18,7 +18,7 @@ body { margin: 0; color: var(--ui-text); background: var(--ui-page); font-size: 
 .ui-facts { display: grid; grid-template-columns: repeat(var(--fact-columns), minmax(0, 1fr)); gap: 22px 24px; margin: 0; }
 .ui-fact { min-width: 0; }
 .ui-fact dt { color: var(--ui-secondary); font-size: 13px; line-height: 1.5; margin-bottom: 7px; }
-.ui-fact dd { margin: 0; color: var(--ui-text); font-size: 14px; line-height: 22px; overflow-wrap: anywhere; }
+.ui-fact dd { margin: 0; color: var(--ui-text); font-size: var(--ui-font-size-body); line-height: var(--ui-line-height-body); overflow-wrap: anywhere; }
 .ui-fact dd:empty::after { content: '—'; color: var(--ui-secondary); }
 .ui-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
 .ui-actions-start { justify-content: flex-start; }
@@ -33,7 +33,7 @@ body { margin: 0; color: var(--ui-text); background: var(--ui-page); font-size: 
 .ui-mode-bar strong { color: var(--ui-text); }
 .ui-role-label { display: inline; color: var(--ui-secondary); font-weight: 600; font-size: 13px; margin-right: 7px; white-space: nowrap; }
 .ui-metrics { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 16px; }
-.ui-metric { padding: 20px 22px; border: 1px solid var(--ui-border); border-radius: 16px; background: var(--ui-surface); min-width: 0; }
+.ui-metric { padding: 20px 22px; border: 1px solid var(--ui-border); border-radius: var(--ui-radius-container); background: var(--ui-surface); min-width: 0; }
 
 .ui-metric-label { color: var(--ui-secondary); font-size: 14px; }
 .ui-metric-value { font-size: 32px; font-weight: 600; color: var(--ui-text); line-height: 1.3; margin-top: 8px; font-variant-numeric: tabular-nums; }
@@ -110,3 +110,49 @@ body { margin: 0; color: var(--ui-text); background: var(--ui-page); font-size: 
   .ui-stage-label > :nth-child(2) { width: 100%; }
   .ui-stage-note { padding-left: 0; }
 }
+
+/* 业务页面只组合组件与类名；静态布局不再在 JSX 里另写一份。 */
+.ui-row-spaced { display: flex; align-items: center; gap: var(--ui-space-s); }
+.ui-stack-min { display: flex; flex-direction: column; min-width: 0; }
+.ui-row-between { display: flex; justify-content: space-between; align-items: baseline; gap: var(--ui-space-xs); flex-wrap: wrap; }
+.ui-inline-baseline { display: inline-flex; align-items: baseline; gap: var(--ui-space-xs); min-width: 0; }
+.ui-inline-tight { display: inline-flex; align-items: center; gap: 2px; }
+.ui-inline { display: inline-flex; align-items: center; gap: var(--ui-space-xs); }
+.ui-gate-symbol { width: 9px; height: 9px; transform: rotate(45deg); border: 2px solid var(--ui-secondary); border-radius: 2px; margin-right: 6px; flex-shrink: 0; }
+.ui-strong { font-weight: 700; }
+.ui-medium { font-weight: 600; }
+.ui-row-baseline { display: flex; gap: var(--ui-space-s); align-items: baseline; }
+.ui-date-column { display: inline-block; min-width: 44px; }
+.ui-gate-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--ui-space-xs); align-items: center; padding: var(--ui-space-xs) var(--ui-space-s); border-radius: var(--ui-radius-item); border: 1px solid var(--ui-border); }
+.ui-min-width { min-width: 0; }
+.ui-photo-strip { display: flex; gap: 4px; margin: 6px 0; }
+.ui-thumbnail { object-fit: cover; border-radius: 4px; background: var(--ui-page); }
+.ui-thumbnail-progress { width: 64px; height: 48px; }
+.ui-thumbnail-file { width: 40px; height: 30px; }
+.ui-thumbnail-delivery { width: 56px; height: 42px; }
+.ui-loading { display: flex; justify-content: center; padding: 80px; }
+.ui-top-nav { position: sticky; top: 0; z-index: 1002; }
+.ui-login { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: var(--ui-space-m); background: var(--ui-page); }
+.ui-login-card { width: 100%; max-width: 420px; }
+.ui-input-controls { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px; }
+.ui-event-row { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: var(--ui-space-xs); align-items: baseline; }
+.ui-nowrap { white-space: nowrap; }
+.ui-row-wrap { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ui-space-xs); min-width: 0; }
+.ui-lead-row { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--ui-space-s); min-width: 0; }
+.ui-lead-body { flex: 1 1 260px; min-width: 0; }
+.ui-update-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; padding: 6px 0; border-top: 1px solid var(--ui-border); }
+.ui-submission { display: grid; gap: 2px; }
+.ui-file-link { margin-right: var(--ui-space-s); }
+.ui-file-choice { display: flex; gap: var(--ui-space-xs); align-items: center; }
+.ui-wrap-anywhere { overflow-wrap: anywhere; }
+.ui-task-person { display: flex; align-items: center; gap: 6px; min-width: 0; white-space: nowrap; }
+.ui-final-label { margin-left: 6px; }
+.ui-person-empty { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.ui-person { display: inline-flex; align-items: center; gap: var(--ui-space-xs); min-width: 0; }
+.ui-person-label { min-width: 0; line-height: var(--ui-line-height-body); }
+.ui-avatar-empty { width: 28px; height: 28px; }
+.ui-avatar-empty[data-size="small"] { width: 24px; height: 24px; }
+.ui-property-cover { position: relative; width: var(--cover-width); height: var(--cover-height); border-radius: var(--cover-radius); overflow: hidden; flex-shrink: 0; background: var(--ui-page); color: var(--ui-secondary); }
+.ui-property-cover svg { width: 100%; height: 100%; display: block; }
+.ui-property-cover path { fill: none; stroke: currentColor; stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; }
+.ui-cover-label { position: absolute; left: var(--ui-space-xs); bottom: var(--ui-space-xs); }

@@ -16,9 +16,9 @@
 .draftRow { display: grid; grid-template-columns: minmax(140px, 1fr) 145px 122px; gap: 16px; align-items: center; padding: 20px 0; }
 .rowHeading { font-size: 13px; padding: 0 0 8px; }
 .taskPick { display: block; width: 100%; text-align: left; background: transparent; border: 0; border-left: 3px solid transparent; padding: 20px; font: inherit; color: inherit; cursor: pointer; }
-.taskPick:hover { background-color: var(--collab-hover); }
-.taskPick:focus-visible { outline: 2px solid var(--collab-accent); outline-offset: -2px; }
-.taskPick[aria-pressed="true"] { border-left-color: var(--collab-accent); background-color: var(--collab-selected); }
+.taskPick:hover { background-color: var(--ui-hover); }
+.taskPick:focus-visible { outline: 2px solid var(--ui-blue); outline-offset: -2px; }
+.taskPick[aria-pressed="true"] { border-left-color: var(--ui-blue); background-color: var(--ui-blue-soft); }
 .pickTitle { font-weight: 600; margin-bottom: 6px; }
 .pickMeta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; }
 @container (max-width: 1030px) {
@@ -49,3 +49,11 @@
 .houseFacts dd { font-size: 14px; line-height: 1.65; }
 .taskPick { border-bottom: 1px solid var(--ui-border); }
 .pickTitle { font-size: 16px; line-height: 1.5; }
+
+.fullSpan { grid-column: 1 / -1; }
+.draftItem { border-top: 1px solid var(--ui-border); }
+.steps li { border-bottom-color: var(--ui-border); }
+.steps li[data-step-state="done"], .steps li[data-step-state="current"] { border-bottom-color: var(--ui-blue); }
+.steps li[data-step-state="current"] { color: var(--ui-blue); }
+.stepNumber { border: 1px solid var(--ui-border); background: var(--ui-surface); }
+.steps li[data-step-state="done"] .stepNumber, .steps li[data-step-state="current"] .stepNumber { background: var(--ui-blue-soft); color: var(--ui-blue); }

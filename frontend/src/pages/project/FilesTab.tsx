@@ -68,8 +68,8 @@ export default function FilesTab({ projectId }: { projectId: number }) {
         empty={<Box textAlign="center" color="inherit"><b>还没有文件</b></Box>}
         columnDefinitions={[
           { id: 'name', header: '文件名', cell: (f) => (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-              {(f.mime ?? '').startsWith('image/') && <img src={`/api/files/${f.id}/download`} alt="" style={{ width: 40, height: 30, objectFit: 'cover', borderRadius: 4, background: '#e9ecef' }} />}
+            <span className="ui-inline">
+              {(f.mime ?? '').startsWith('image/') && <img src={`/api/files/${f.id}/download`} alt="" className="ui-thumbnail ui-thumbnail-file" />}
               <Link href={`/api/files/${f.id}/download`} external>{f.filename}</Link>
             </span>
           ) },

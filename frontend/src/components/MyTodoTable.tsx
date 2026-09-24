@@ -128,7 +128,7 @@ export default function MyTodoTable({ rows, onReload, compact = false }: { rows:
         columnDefinitions={[
           { id: 'p', header: '哪套房', cell: (r) => <div><div>{r.project.project_name}</div><Box variant="small" color="text-body-secondary">{r.project.address}</Box></div> },
           { id: 's', header: '阶段', cell: (r) => <span>{r.stage}{r.is_current && <Box variant="span" color="text-status-info">　现在这段</Box>}{r.project.stage === 'portfolio' && <Box variant="span" color="text-body-secondary">　已售收尾</Box>}</span> },
-          { id: 't', header: '要做什么', cell: (r) => <span style={{ fontWeight: r.item.gate ? 700 : 400 }}>{r.item.owners.map((o) => <RoleLabel key={o} code={o} />)}{r.item.title}</span> },
+          { id: 't', header: '要做什么', cell: (r) => <span className={r.item.gate ? "ui-strong" : undefined}>{r.item.owners.map((o) => <RoleLabel key={o} code={o} />)}{r.item.title}</span> },
           { id: 'd', header: '要交什么', cell: (r) => (r.item.deliverable ? `${KIND_LABEL[r.item.deliverable.kind]} · ${r.item.deliverable.label}` : '—') },
           {
             id: 'a', header: '', width: 160, minWidth: 160,
@@ -136,7 +136,7 @@ export default function MyTodoTable({ rows, onReload, compact = false }: { rows:
               const canDo = r.for_confirm || canActOn(r.item, role);
               const label = actionLabel(r.item, { actor: role.actor, canDo, forConfirm: r.for_confirm });
               return (
-                <span style={{ whiteSpace: 'nowrap' }}>
+                <span className="ui-nowrap">
                   <Button variant="primary" onClick={() => openAction(r)}>{label}</Button>
                 </span>
               );
@@ -205,7 +205,7 @@ export default function MyTodoTable({ rows, onReload, compact = false }: { rows:
             <SpaceBetween direction="horizontal" size="s">
               {confirmCodes.map((c) => (
                 <Checkbox key={c} checked={false} disabled={busy} onChange={() => doConfirm(c)}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>以 {c} 确认</span>
+                  <span className="ui-inline-tight">以 {c} 确认</span>
                 </Checkbox>
               ))}
               {!confirmCodes.length && <Box color="text-body-secondary">你这边已经确认过了，或无权代确认。</Box>}

@@ -75,7 +75,7 @@ export default function InspectionsPanel({ projectId, onChanged }: { projectId: 
         empty={<Box textAlign="center" color="inherit">师傅做到一个程度，Z 约一次检查，就在这里记一行。</Box>}
         columnDefinitions={[
           { id: 'n', header: '第几次', width: 70, cell: (i) => rows.indexOf(i) + 1 },
-          { id: 'name', header: '查什么', cell: (i) => <span>{i.name}{i.is_final && <b style={{ marginLeft: 6 }}>final</b>}</span> },
+          { id: 'name', header: '查什么', cell: (i) => <span>{i.name}{i.is_final && <b className="ui-final-label">final</b>}</span> },
           { id: 'date', header: '日期', width: 110, cell: (i) => dateStr(i.date) },
           { id: 'res', header: '结果', width: 130, cell: (i) => <StatusIndicator type={RESULT_KIND[i.result] ?? 'pending'}>{labelOf(resultOptions, i.result)}</StatusIndicator> },
           { id: 'fixer', header: '没过谁整改', cell: (i) => (i.result === 'failed' ? text(i.fixer) || <Box color="text-status-error">还没写</Box> : '—') },

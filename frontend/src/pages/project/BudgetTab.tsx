@@ -178,7 +178,7 @@ export default function BudgetTab({ projectId, reload, section }: { projectId: n
         items={filteredProc}
         empty={<Box textAlign="center" color="inherit">没有匹配的采购项</Box>}
         columnDefinitions={[
-          { id: 'n', header: '材料', minWidth: 200, cell: (i) => <div><div style={{ fontWeight: 600 }}>{i.name}</div>{i.note && <Box variant="small" color="text-body-secondary">{i.note}</Box>}</div> },
+          { id: 'n', header: '材料', minWidth: 200, cell: (i) => <div><div className="ui-medium">{i.name}</div>{i.note && <Box variant="small" color="text-body-secondary">{i.note}</Box>}</div> },
           { id: 'w', header: '节点', cell: (i) => waveLabel(i.wave) },
           {
             id: 's', header: '状态', width: 140,

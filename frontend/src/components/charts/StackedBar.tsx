@@ -1,7 +1,7 @@
-import { FONT, SERIES, TEXT, TEXT_2 } from './palette';
+import { FONT, ORDINAL_BLUE, SERIES, TEXT, TEXT_2, TEXT_INVERTED } from './palette';
 import { useTooltip } from './Tooltip';
 
-export interface Segment { label: string; value: number; color?: string }
+export interface Segment { label: string; value: number; color?: string; ordinalIndex?: number }
 interface Props {
   segments: Segment[];
   format?: (n: number) => string;
@@ -18,7 +18,7 @@ interface Props {
 /** 部分对整体：一根横条，段间 2px 白隙，段内放得下才写数字；可加一条参考线。 */
 export default function StackedBar({ segments, format = (n) => String(n), marker, height = 22, legend = true, legendColumns = 1, emptyText = '暂无数据' }: Props) {
   const tip = useTooltip();
-  const segs = segments.filter((s) => s.value > 0).map((s, i) => ({ ...s, color: s.color ?? SERIES[i % SERIES.length] }));
+  const segs = segments.filter((s) => s.value > 0).map((s, i) => ({ ...s, color: s.color ?? (s.ordinalIndex == null ? SERIES[i % SERIES.length] : ORDINAL_BLUE[s.ordinalIndex]) }));
   const total = segs.reduce((a, s) => a + s.value, 0);
   if (!segs.length) return <div style={{ fontFamily: FONT, color: TEXT_2, fontSize: 13 }}>{emptyText}</div>;
   const scale = Math.max(total, marker?.value ?? 0) * (marker ? 1.06 : 1);
@@ -33,7 +33,7 @@ export default function StackedBar({ segments, format = (n) => String(n), marker
             return (
               <div
                 key={s.label}
-                style={{ flex: `${s.value} 0 0`, background: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12, fontWeight: 700, overflow: 'hidden', whiteSpace: 'nowrap', minWidth: 0 }}
+                style={{ flex: `${s.value} 0 0`, background: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: TEXT_INVERTED, fontSize: 12, fontWeight: 700, overflow: 'hidden', whiteSpace: 'nowrap', minWidth: 0 }}
                 onMouseMove={(e) => tip.show(e, [{ label: s.label, value: format(s.value), color: s.color }, { label: '占比', value: `${pct.toFixed(1)}%` }])}
                 onMouseLeave={tip.hide}
               >

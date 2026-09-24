@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { api, Workbench, WorkbenchProject } from '../api/client';
 import { dateTime } from '../lib/format';
 import { dueText, statusIndicator } from '../lib/taskGroups';
-import css from './CollaborationLayout.module.css';
+import css from './ui/CollaborationLayout.module.css';
 import HelpText from './HelpText';
 import PersonAvatar from './PersonAvatar';
 import StagePositionBar from './StagePositionBar';
@@ -57,11 +57,11 @@ export default function WorkbenchFocus({ refreshKey = 0 }: { refreshKey?: number
           header={<Header variant="h2" counter={data ? `(${data.projects.length})` : undefined} help="阶段条：浅蓝已完成，深蓝当前位置，灰色未到达。点击房名进入项目，点击审核事项前往我的事项。" actions={<Button iconName="folder" onClick={() => navigate('/projects')}>查看全部项目</Button>}>项目关注</Header>}
           empty={<Box textAlign="center" padding="l" color="text-body-secondary">还没有项目。</Box>}
           columnDefinitions={[
-            { id: 'p', header: '项目', minWidth: 160, cell: (p) => <div title={p.address} style={{ overflowWrap: 'anywhere' }}><Link href={`/projects/${p.project_id}`} onFollow={(e) => { e.preventDefault(); navigate(`/projects/${p.project_id}?tab=overview`); }}>{p.project_name}</Link></div> },
+            { id: 'p', header: '项目', minWidth: 160, cell: (p) => <div title={p.address} className="ui-wrap-anywhere"><Link href={`/projects/${p.project_id}`} onFollow={(e) => { e.preventDefault(); navigate(`/projects/${p.project_id}?tab=overview`); }}>{p.project_name}</Link></div> },
             { id: 'pos', header: '当前位置', width: 150, cell: (p) => <div onClick={(e) => e.stopPropagation()}><StagePositionBar position={p.group_position} compact /></div> },
             { id: 'next', header: '下一动作', minWidth: 150, cell: (p) => <div onClick={(e) => e.stopPropagation()}><div>{actionText(p)}</div>{p.next_action && <StatusIndicator type={statusIndicator(p.next_action.exec_status)}>{p.next_action.exec_status_label}</StatusIndicator>}</div> },
             { id: 'who', header: '行动者', width: 130, cell: (p) => (p.next_action ? <PersonAvatar user={p.next_action.actor} size="small" showRole={false} /> : '—') },
-            { id: 'due', header: '截止', width: 96, cell: (p) => <span style={{ whiteSpace: 'nowrap' }}>{p.next_action?.due_at ? dueText(p.next_action.due_at) : <Box variant="span" color="text-body-secondary">未设定</Box>}</span> },
+            { id: 'due', header: '截止', width: 96, cell: (p) => <span className="ui-nowrap">{p.next_action?.due_at ? dueText(p.next_action.due_at) : <Box variant="span" color="text-body-secondary">未设定</Box>}</span> },
           ]}
         />
         <SpaceBetween size="l">

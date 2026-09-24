@@ -26,8 +26,7 @@ import HelpText from '../components/HelpText';
 import StatusBadge from '../components/StatusBadge';
 import UpdatesList from '../components/UpdatesList';
 import WorkbenchFocus from '../components/WorkbenchFocus';
-import { BulletList, compactMoney, DeltaBadge, fullMoney, HBars, InlineBar, Meter, ORDINAL_BLUE, StackedBar, StatTile, Trend } from '../components/charts';
-import { BORDER, TEXT_2, TEXT_GOOD } from '../components/charts/palette';
+import { BulletList, compactMoney, DeltaBadge, fullMoney, HBars, InlineBar, Meter, StackedBar, StatTile, Trend } from '../components/charts';
 import Header from '../components/ui/Header';
 import { CardFrame } from '../components/ui/Surface';
 import Table from '../components/ui/Table';
@@ -177,9 +176,9 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
 
   const projectColumns = [
     { id: 'name', header: '项目', sortingField: 'name', width: '34%', minWidth: 260, cell: (p: Project) => (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div className="ui-row-spaced">
         <CoverImage propertyId={p.property.id} width={56} height={40} radius={6} showLabel={false} />
-        <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        <div className="ui-stack-min">
           {projLink(p.id, p.name)}
           <Box variant="small" color="text-body-secondary">{p.property.address_std}</Box>
         </div>
@@ -286,11 +285,11 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
         return (
           <StackedBar
             /* KAN-63：三段是同一条流水线的前后阶段，属有序数据，用蓝色阶而不是分类色
-               （原先默认取 SERIES 前三位，里面有品红和青）。StackedBar 本体不动，只在这里传色。 */
+               （原先默认取 SERIES 前三位，里面有品红和青）。页面只给有序位置，颜色由图表组件决定。 */
             segments={[
-              { label: '未购入', value: summary?.leads ?? 0, color: ORDINAL_BLUE[1] },
-              { label: '在建', value: summary?.active ?? 0, color: ORDINAL_BLUE[3] },
-              { label: '已完成', value: summary?.portfolio ?? 0, color: ORDINAL_BLUE[5] },
+              { label: '未购入', value: summary?.leads ?? 0, ordinalIndex: 1 },
+              { label: '在建', value: summary?.active ?? 0, ordinalIndex: 3 },
+              { label: '已完成', value: summary?.portfolio ?? 0, ordinalIndex: 5 },
             ]}
             format={(n) => `${n} 套`}
             emptyText={loading ? '正在读取…' : '还没有项目'}
@@ -329,8 +328,8 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
               /* KAN-63：状态从盖在封面上的浮标挪到标题行。压在照片上的彩色胶囊
                  既挡内容又和照片抢，放回标题行跟在项目名后面就够了。 */
               header: (p) => (
-                <div><ReviewTag cardId="turn-project-card" context={p.name} /><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
-                  <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 8, minWidth: 0 }}>
+                <div><ReviewTag cardId="turn-project-card" context={p.name} /><div className="ui-row-between">
+                  <span className="ui-inline-baseline">
                     <Link fontSize="heading-s" href={`/projects/${p.id}`} onFollow={(e) => { e.preventDefault(); goProject(p); }}>{p.name}</Link>
                     <StatusBadge status={p.status} />
                   </span>
@@ -352,10 +351,10 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
                   p.next_up.length ? (
                     <SpaceBetween size="xxs">
                       {p.next_up.slice(0, 2).map((n) => (
-                        <span key={n.key} style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+                        <span key={n.key} className="ui-inline-tight">
                           {/* 审计 #A02：菱形原先用硬编码的旧 info 蓝，改中性边框；「是不是关键节点」靠字重表示 */}
-                          {n.gate && <span style={{ width: 9, height: 9, transform: 'rotate(45deg)', border: `2px solid ${TEXT_2}`, borderRadius: 2, marginRight: 6, flexShrink: 0 }} />}
-                          {n.owners.map((o) => <RoleLabel key={o} code={o} />)}<span style={{ fontWeight: n.gate ? 700 : 400 }}>{n.title}</span>
+                          {n.gate && <span className="ui-gate-symbol" />}
+                          {n.owners.map((o) => <RoleLabel key={o} code={o} />)}<span className={n.gate ? "ui-strong" : undefined}>{n.title}</span>
                         </span>
                       ))}
                     </SpaceBetween>
@@ -371,8 +370,8 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
         return ups.length ? (
           <SpaceBetween size="s">
             {ups.map((u, k) => (
-              <div key={k} style={{ display: 'flex', gap: 12, alignItems: 'baseline' }}>
-                <Box fontWeight="bold" color="text-body-secondary"><span style={{ display: 'inline-block', minWidth: 44 }}>{shortDate(u.date)}</span></Box>
+              <div key={k} className="ui-row-baseline">
+                <Box fontWeight="bold" color="text-body-secondary"><span className="ui-date-column">{shortDate(u.date)}</span></Box>
                 <StatusIndicator type={u.days < 0 ? (u.overdue ? 'error' : 'stopped') : u.days <= 7 ? 'warning' : 'info'}>{u.kind}</StatusIndicator>
                 <span>{projLink(u.project_id, u.project_name)} <Box variant="span" color="text-body-secondary">{u.days < 0 ? `${-u.days} 天前` : u.days === 0 ? '今天' : `${u.days} 天后`}</Box></span>
               </div>
@@ -437,8 +436,8 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
             {gs.map((g) => (
               /* 审计 #A03：原先整行铺彩色底 + 彩色左边条表示「是不是当前阶段」，四个值全硬编码。
                  改中性边框，「当前」用 StatusIndicator 明说。 */
-              <div key={`${g.project_id}-${g.key}`} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 8, alignItems: 'center', padding: '8px 10px', borderRadius: 6, border: `1px solid ${BORDER}` }}>
-                <div style={{ minWidth: 0 }}>
+              <div key={`${g.project_id}-${g.key}`} className="ui-gate-row">
+                <div className="ui-min-width">
                   {/* KAN-63：去掉行首的 ◆ 和粗体。一屏里主按钮只留页头那一个，
                       这里的「去确认」降成链接——它是导航，不是本屏的主操作。 */}
                   <div>{g.title} <Box variant="span" color="text-body-secondary">· {g.project_name}</Box></div>
@@ -478,8 +477,8 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
             {rs.map((r) => (
               <div key={r.project_id}>
                 <Box fontWeight="bold">{projLink(r.project_id, r.project_name)}</Box>
-                <div style={{ display: 'flex', gap: 4, margin: '6px 0' }}>
-                  {r.photo_ids.length ? r.photo_ids.map((id) => <img key={id} src={`/api/files/${id}/download`} alt="" style={{ width: 64, height: 48, objectFit: 'cover', borderRadius: 4, background: '#e9ecef' }} />) : <Box variant="small" color="text-body-secondary">还没有进度照片</Box>}
+                <div className="ui-photo-strip">
+                  {r.photo_ids.length ? r.photo_ids.map((id) => <img key={id} src={`/api/files/${id}/download`} alt="" className="ui-thumbnail ui-thumbnail-progress" />) : <Box variant="small" color="text-body-secondary">还没有进度照片</Box>}
                 </div>
                 <Box variant="small" color="text-body-secondary">{r.photo_count} 张进度照片</Box>
                 {r.failed.length > 0 ? <StatusIndicator type="error">{r.failed.join('、')} 没过</StatusIndicator>
@@ -537,7 +536,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
       case 'saledocs': {
         const rs = roleData?.sale_docs ?? [];
         // 审计 #A05：符号本身已是第二通道，只把硬编码的旧色值换成令牌
-        const ok = (b: boolean) => <span style={{ color: b ? TEXT_GOOD : TEXT_2, fontWeight: 700 }}>{b ? '✓' : '○'}</span>;
+        const ok = (b: boolean) => <StatusIndicator type={b ? 'success' : 'not-started'}>{b ? '已齐全' : '待补'}</StatusIndicator>;
         return rs.length ? (
           <Table variant="embedded" items={rs} columnDefinitions={[
             { id: 'p', header: '房', cell: (r) => <span>{projLink(r.project_id, r.project_name)}<Box variant="small" color="text-body-secondary">挂牌 {r.list_date ? shortDate(r.list_date) : '—'}</Box></span> },
