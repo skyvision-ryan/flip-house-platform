@@ -60,6 +60,27 @@ npm --prefix frontend run dev
 
 ## 验证
 
+### Demo 员工账号导入
+
+员工使用邮箱和密码登录；邮箱忽略首尾空格与大小写，内部 `User.id` 保持不变。原账号名登录保留，便于已有管理员 / 演示账号继续使用。
+
+本机名单 `users.local.json` 已被 `.gitignore` 忽略，**先用 `git check-ignore -v users.local.json` 确认，再保存名单**。内容为 JSON 数组，每项含 `name`、`email`、`role`；共享样例仅使用 `example.com` 地址。名单文件权限设为 `600`，密码不写入文件。
+
+在应用已经初始化的数据库上，从仓库根目录执行（本机用 `backend/.venv/bin/python` 替代下列 `python`）：
+
+```bash
+read -r -s -p 'Initial password: ' INITIAL_PASSWORD
+export INITIAL_PASSWORD
+python scripts/provision_users.py /path/to/users.local.json
+unset INITIAL_PASSWORD
+```
+
+以上为 Bash 命令，也可在运行本次代码的 Render 服务 Shell 使用。必须沿用该服务的 `DB_URL` / `DATA_DIR`，不能在另一个临时 Shell 的空 SQLite 库里导入。将本机名单通过私有方式放到上述路径，不通过公开仓库传递。当前 `render.yaml` 声明的数据路径是 `/tmp/flip-house-platform-data`，不能据此承诺重部署后的持久化。
+
+重复导入只更新已有账号的姓名和角色，保留 ID、密码、启用状态、管理员状态和成员关系；只有显式加 `--reset-password` 才重置名单内的已有密码。整批输入无效时不写入。脚本不建项目成员、不改其他账号、不发邮件、不改 demo/seed 逻辑；负责人可用现有「加入项目并分派」把员工加入演示房。
+
+角色代码与权限见[版本核验](docs/当前实现与版本核验.md)的 Demo 员工账号段落。邮箱歧义（旧库重复）拒绝登录与导入，需管理员先整理；不会任选其中一个账号。
+
 从根目录运行：
 
 ```bash

@@ -5,13 +5,13 @@
 Ryan 本轮明确授权全站卡片的字体、结构与辅助信息整理，并采用克制的 Amazon 橙色。**本节是当前口径；下方 KAN-49 / KAN-64 色圈、字母标注和色相统计是历史审计，不再作为新界面的验收规则。**
 
 - 保留 Cloudscape 默认组件、字号、行高、字重、间距、边框、圆角和状态色，不在各页重造皮肤。字体按 Ryan 最新指定，全站正文 / 标题 / 控件统一为 `"Helvetica Neue", Helvetica, Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", "Source Han Sans SC", sans-serif`，不再加载 Open Sans。保留已授权的橙底深字主操作，链接 / 选中为官方蓝色；橙色是产品品牌例外，不是声称 Cloudscape 默认主按钮为橙色。
-- 任务安排用单行选择：点行呈浅蓝底与完整蓝框，右侧同步摘要；取消 checkbox 和批量分派入口。负责人头像 / 编辑笔进入单项分派，键盘也可操作；真实员工使用中性字母头像，待分派使用虚线圆形加号。
+- 任务安排用单行选择：点行呈浅蓝底与完整蓝框，右侧同步摘要；取消 checkbox 和批量分派入口。负责人头像 / 编辑笔进入单项分派，键盘也可操作；Ryan 09-24 新授权员工圆形头像使用姓名首字母与固定账号色，待分派使用虚线圆形加号。
 - 五段位置条采用浅蓝已完成 / 深蓝当前 / 灰色未到达；紧凑表格用 8px 分段轨道，头卡配官方对勾与“当前”文字，不在轨道里塞圆点或字符。
 - 卡片按「标题与操作 → 当前事实 → 数据 / 表单 → 次要入口」组织。主值与标签分层，宽度不足时收列；房屋头卡的小图、身份、阶段事实分开。数据来源使用中性浅底标签；无数据 / 待核实不能包装为确定事实。
-- 顶栏「显示设置」提供两个独立开关：**辅助说明**与**卡片编号**，默认关，设备本地记忆。说明用统一浅底信息栏；错误、风险、状态、来源、金额参考、必填条件及实际任务要求始终保留。原 `roleColors` 偏好不再读取，角色色圈入口和渲染代码已删除；真实员工的中性字母头像保留。
+- 顶栏「显示设置」提供两个独立开关：**辅助说明**与**卡片编号**，默认关，设备本地记忆。说明用统一浅底信息栏；错误、风险、状态、来源、金额参考、必填条件及实际任务要求始终保留。原 `roleColors` 偏好不再读取，角色色圈入口和渲染代码已删除；真实员工头像按新授权显示固定账号色与姓名首字母。
 - 编号是组件的稳定身份：`frontend/src/lib/cardRegistry.ts` 显式分配 1–99，不按渲染顺序、筛选结果或角色编号。重复实例共用组件号，通过项目 / 任务上下文和路由区分；点击复制反馈位置，不自动建票或发送消息。
 - **唯一样式路径（2026-09-24 收口）**：业务页面只组合 `components/ui/Surface`、`Table`、`ExpandableSection`、`Header`、`FormField`、`Facts` 与既有 Cloudscape 控件；自有外观和响应式规则只在 `components/ui/` 或 `styles.css` 维护。不在业务 JSX 写 `style`、另建页面 CSS 或覆盖 `awsui_*` 哈希类。动态尺寸由 UI 组件 props 承接；图表内部的比例 / 坐标样式保留，不能反向成为页面样式入口。
-- `components/ui/tokens.ts` 的 `productTokens` 只映射 `@cloudscape-design/design-tokens` 导出值，禁止复制色值或拼写其哈希 CSS 变量。别名在 **body** 与 Cloudscape 主题同作用域解析，避免在 html 提前落到旧默认值。`components/ui/theme.ts` 只做字体、品牌主题和别名装配；`src/theme.ts` 是兼容入口。唯一颜色例外为 `components/ui/brand.ts` 明确列出的九个主按钮令牌；扩大品牌范围需新的产品决定。
+- `components/ui/tokens.ts` 的 `productTokens` 只映射 `@cloudscape-design/design-tokens` 导出值，禁止复制色值或拼写其哈希 CSS 变量。别名在 **body** 与 Cloudscape 主题同作用域解析，避免在 html 提前落到旧默认值。`components/ui/theme.ts` 只做字体、品牌主题和别名装配；`src/theme.ts` 是兼容入口。颜色例外为 `components/ui/brand.ts` 的九个主按钮令牌，以及 Ryan 09-24 授权的 `components/ui/employeeColors.ts` 七种员工身份色与白色字色。员工色只用于头像，按内部账号 ID 稳定分配，不表示角色、状态或权限；采用海军蓝、航空绿、赛车红、皇家紫等视觉参考，不声称品牌官方色。扩大范围需新的产品决定。
 - `charts/palette.ts` 只供图表内部使用，无自造 fallback，不从图表 barrel 转导出。页面向图表传数据或有序位置，不借调色板装饰卡片。
 - `Header.description` 放事实、`Header.help` 放说明。表单 `description` 只放可隐藏的解释，必要约束放 `constraintText` / `errorText`；动态任务要求不得放进 `HelpText`。新卡片从注册表分配未使用编号，不回收旧编号。
 - `hexGuard.test.ts` 随 `check_local.py` / CI 执行：覆盖 TS / TSX / CSS 的 3/4/6/8 位 hex、RGB/HSL 等色值，拦截业务内联样式、包装组件绕路、palette 外流和新增 CSS 路径。旧整文件白名单与 KAN-45 三个待清理例外已清零，不能靠扩充白名单让检查通过。

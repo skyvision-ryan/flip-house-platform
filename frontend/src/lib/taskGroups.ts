@@ -36,12 +36,10 @@ export function statusIndicator(s: TaskExecStatus | string): 'stopped' | 'in-pro
   return 'stopped';
 }
 
-/** 头像里的字母：优先账号名首字母；中文名取前两个字。 */
+/** 头像显示姓名首字母；不从邮箱或内部账号标识取字母。 */
 export function initialsOf(u: { username: string; display_name: string } | null | undefined): string {
   if (!u) return '?';
-  const u2 = u.username.trim();
-  if (/^[A-Za-z0-9]/.test(u2)) return u2.slice(0, 2).toUpperCase();
-  return [...u.display_name.trim()].slice(0, 2).join('') || '?';
+  return [...(u.display_name.trim() || u.username.trim())][0]?.toUpperCase() || '?';
 }
 
 /** 能否对这项任务做 开始 / 等待 / 恢复：只有当前负责人本人。返回可用动作。 */

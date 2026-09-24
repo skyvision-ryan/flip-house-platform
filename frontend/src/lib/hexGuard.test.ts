@@ -5,6 +5,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import ts from 'typescript';
 import { brandOverrides } from '../components/ui/brand.ts';
+import { employeeColors } from '../components/ui/employeeColors.ts';
 
 const SRC = join(import.meta.dirname, '..');
 const BRAND_FILE = 'components/ui/brand.ts';
@@ -65,7 +66,9 @@ function violations(file: string, source: string): string[] {
         const name = ts.isPropertyAssignment(parent) ? parent.name.getText(tree) : '';
         const allowedBrand = file === BRAND_FILE && ts.isPropertyAssignment(parent)
           && Object.hasOwn(brandOverrides, name) && brandOverrides[name as keyof typeof brandOverrides] === node.text;
-        if (!allowedBrand) errors.push(`硬编码颜色：${node.text.slice(0, 65)}`);
+        const allowedEmployee = file === 'components/ui/employeeColors.ts' && ts.isPropertyAssignment(parent)
+          && Object.hasOwn(employeeColors, name) && employeeColors[name as keyof typeof employeeColors] === node.text;
+        if (!allowedBrand && !allowedEmployee) errors.push(`硬编码颜色：${node.text.slice(0, 65)}`);
       }
     }
     ts.forEachChild(node, visit);
@@ -92,6 +95,15 @@ test('品牌例外只限已授权的九个主按钮令牌，禁止顺手扩大�
     colorTextButtonPrimaryDefault: '#161d26', colorTextButtonPrimaryHover: '#161d26', colorTextButtonPrimaryActive: '#161d26',
   });
   assert.equal(violations(BRAND_FILE, "const unrelated = '#ff9900'").length, 1);
+});
+
+test('员工颜色例外只限已授权的七种头像底色与字色', () => {
+  assert.deepEqual(employeeColors, {
+    navy: '#00205B', green: '#005C5D', red: '#D40000', purple: '#6F2C91',
+    sapphire: '#0057B8', burgundy: '#8B1E3F', bronze: '#80551C', foreground: '#FFFFFF',
+  });
+  assert(violations('components/ui/employeeColors.ts', "const unrelated = '#00205B'").length);
+  assert(violations('pages/x.tsx', "const navy = '#00205B'").length);
 });
 
 test('守卫覆盖 alpha hex、CSS、RGB/HSL 和模板字符串，忽略注释', () => {

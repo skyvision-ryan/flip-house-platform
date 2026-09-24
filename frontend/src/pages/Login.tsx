@@ -38,8 +38,8 @@ export default function Login({ onLogin, demoMode, onSkip }: { onLogin: (me: Me)
           >
             <Container cardId="login">
               <SpaceBetween size="l">
-                <FormField label="账号">
-                  <Input value={username} onChange={({ detail }) => setUsername(detail.value)} autoFocus autoComplete="username" placeholder="例如 jessie" />
+                <FormField label="邮箱" constraintText="原有演示账号和管理员也可使用原账号名登录。">
+                  <Input value={username} onChange={({ detail }) => setUsername(detail.value)} autoFocus autoComplete="username" placeholder="name@example.com" />
                 </FormField>
                 <FormField label="密码">
                   <Input type="password" value={password} onChange={({ detail }) => setPassword(detail.value)} autoComplete="current-password" onKeyDown={({ detail }) => { if (detail.key === 'Enter') submit(); }} />

@@ -22,6 +22,12 @@ def _can_touch(actor: str, doc_type: str | None, step_key: str | None, uploaded_
     """紫蓝随便传；青灰只能传自己那一步的东西（按 step 的负责人或文件类型的默认上传人）。"""
     if allowed(actor, "upload_any") or uploaded_by == actor:
         return True
+    # 新职责角色只继承对应交付能力；不替换旧字母代号、不继承 D/J 或统筹权限。
+    if actor == "Permit/设计":
+        owners = {"Z", "设计师"}
+        return bool(owners.intersection(STEP_BY_KEY.get(step_key or "", {}).get("owners", []))) or FILE_DEFAULT_OWNER.get(doc_type or "") in owners
+    if actor == "财务" and doc_type == "invoice":
+        return True
     if step_key and actor in STEP_BY_KEY.get(step_key, {}).get("owners", []):
         return True
     return tier_of(actor) == "teal" and FILE_DEFAULT_OWNER.get(doc_type or "other") == actor

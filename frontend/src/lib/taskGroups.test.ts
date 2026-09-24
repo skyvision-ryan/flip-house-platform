@@ -60,8 +60,8 @@ test('statusActions：只有负责人本人能动，且按状态给动作', () =
 });
 
 test('initialsOf 与 dueText', () => {
-  assert.equal(initialsOf({ username: 'jessie', display_name: 'Jessie' }), 'JE');
-  assert.equal(initialsOf({ username: '员工a', display_name: '员工A' }), '员工');
+  assert.equal(initialsOf({ username: 'person@example.com', display_name: 'Jessie' }), 'J');
+  assert.equal(initialsOf({ username: '员工a', display_name: '员工A' }), '员');
   assert.equal(initialsOf(null), '?');
   assert.equal(dueText('2026-09-25'), '09/25');
   assert.equal(dueText(null), '未设定');

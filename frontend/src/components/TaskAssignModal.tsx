@@ -11,6 +11,7 @@ import { api, ProjectMembers, Task, UserBrief } from '../api/client';
 import { useFlash } from '../lib/flash';
 import FormField from './ui/FormField';
 import HelpText from './HelpText';
+import PersonAvatar from './PersonAvatar';
 
 const UNASSIGN = '__none__';
 
@@ -127,6 +128,7 @@ export default function TaskAssignModal({ projectId, tasks, onDone, onConflict, 
         <FormField label="主要负责人" description="候选按项目成员分组；选择其他账号时，会先提示加入项目。">
           <Select selectedOption={selected} options={options} onChange={({ detail }) => setWho(detail.selectedOption.value ?? UNASSIGN)} filteringType="auto" placeholder="选一个账号" statusType={members ? 'finished' : 'loading'} />
         </FormField>
+        {target && <PersonAvatar user={target} />}
         {task.assignee && !bulk && (
           <Box fontSize="body-s" color="text-body-secondary">原负责人：{task.assignee.display_name}（{task.assignee.role_code}）{isReassign && '。换人后进度回到「未开始」，原负责人的记录保留在活动记录里。'}</Box>
         )}

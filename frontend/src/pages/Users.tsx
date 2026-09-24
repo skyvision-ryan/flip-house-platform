@@ -16,6 +16,7 @@ import { useActor } from '../lib/actor';
 import { useFlash } from '../lib/flash';
 import { dateStr } from '../lib/format';
 import { useMeta } from '../lib/meta';
+import PersonAvatar from '../components/PersonAvatar';
 
 type Draft = { username: string; display_name: string; role_code: string; password: string; is_admin: boolean; email: string };
 const EMPTY: Draft = { username: '', display_name: '', role_code: '', password: '', is_admin: false, email: '' };
@@ -90,7 +91,7 @@ export default function Users() {
         }
         columnDefinitions={[
           { id: 'username', header: '账号', cell: (u) => <Box fontWeight="bold">{u.username}</Box> },
-          { id: 'name', header: '姓名', cell: (u) => u.display_name },
+          { id: 'name', header: '姓名', cell: (u) => <PersonAvatar user={u} showRole={false} /> },
           { id: 'role', header: '角色', cell: (u) => u.role_code },
           { id: 'email', header: '邮箱', cell: (u) => (u.email ? u.email : <Box color="text-body-secondary">无邮箱 · 收不到提醒</Box>) },
           { id: 'tier', header: '级别', cell: (u) => u.tier_label },
