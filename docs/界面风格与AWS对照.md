@@ -4,7 +4,9 @@
 
 Ryan 本轮明确授权全站卡片的字体、结构与辅助信息整理，并采用克制的 Amazon 橙色。**本节是当前口径；下方 KAN-49 / KAN-64 色圈、字母标注和色相统计是历史审计，不再作为新界面的验收规则。**
 
-- 保留 Cloudscape 组件、深色顶栏与中性背景。正文 15/24、辅助文字 13/20、卡片标题 20/28；主操作用橙底深色字，链接与选中状态用蓝，红绿只表达真实状态。橙色是用户授权的产品主题，不是声称 Cloudscape 官方主按钮必须为橙色。官方参考：[Colors](https://cloudscape.design/foundation/visual-foundation/colors/)、[Typography](https://cloudscape.design/foundation/visual-foundation/typography/)。
+- 保留 Cloudscape 组件、深色顶栏与中性背景。按 Ryan 本轮反馈恢复原字体体系：Open Sans 正文、Helvetica Neue 标题，Cloudscape 默认字号 / 行高 / 字重（表格正文 14/20）；主操作用橙底深色字，链接与选中状态用蓝，红绿只表达真实状态。橙色是用户授权的产品主题，不是声称 Cloudscape 官方主按钮必须为橙色。容器 16px、主按钮圆角与线框小图标统一；官方参考：[Visual style](https://cloudscape.design/foundation/visual-foundation/visual-style/)、[Iconography](https://cloudscape.design/foundation/visual-foundation/iconography/)、[Colors](https://cloudscape.design/foundation/visual-foundation/colors/)、[Typography](https://cloudscape.design/foundation/visual-foundation/typography/)。
+- 任务安排用单行选择：点行呈浅蓝底与完整蓝框，右侧同步摘要；取消 checkbox 和批量分派入口。负责人头像 / 编辑笔进入单项分派，键盘也可操作；真实员工使用中性字母头像，待分派使用虚线圆形加号。
+- 五段位置条采用浅蓝已完成 / 深蓝当前 / 灰色未到达；紧凑表格用 8px 分段轨道，头卡配官方对勾与“当前”文字，不在轨道里塞圆点或字符。
 - 卡片按「标题与操作 → 当前事实 → 数据 / 表单 → 次要入口」组织。主值与标签分层，宽度不足时收列；房屋头卡的小图、身份、阶段事实分开。数据来源使用中性浅底标签；无数据 / 待核实不能包装为确定事实。
 - 顶栏「显示设置」提供两个独立开关：**辅助说明**与**卡片编号**，默认关，设备本地记忆。说明用统一浅底信息栏；错误、风险、状态、来源、金额参考、必填条件及实际任务要求始终保留。原 `roleColors` 偏好不再读取，角色色圈入口和渲染代码已删除；真实员工的中性字母头像保留。
 - 编号是组件的稳定身份：`frontend/src/lib/cardRegistry.ts` 显式分配 1–99，不按渲染顺序、筛选结果或角色编号。重复实例共用组件号，通过项目 / 任务上下文和路由区分；点击复制反馈位置，不自动建票或发送消息。

@@ -10,6 +10,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { api, ProjectMembers, Task, UserBrief } from '../api/client';
 import { useFlash } from '../lib/flash';
 import FormField from './ui/FormField';
+import HelpText from './HelpText';
 
 const UNASSIGN = '__none__';
 
@@ -123,7 +124,7 @@ export default function TaskAssignModal({ projectId, tasks, onDone, onConflict, 
       <SpaceBetween size="m">
         {loadErr && <Alert type="error">读不到项目成员：{loadErr}</Alert>}
         {bulk && <Box fontSize="body-s" color="text-body-secondary">{tasks.map((t) => t.title).join('、')}。同一个负责人、同一截止日期；已有负责人的项会改派，要写原因。</Box>}
-        <FormField label="主要负责人" description="默认只列项目成员。选了不在项目里的人，保存时会把他加入项目并留记录。">
+        <FormField label="主要负责人" description="候选按项目成员分组；选择其他账号时，会先提示加入项目。">
           <Select selectedOption={selected} options={options} onChange={({ detail }) => setWho(detail.selectedOption.value ?? UNASSIGN)} filteringType="auto" placeholder="选一个账号" statusType={members ? 'finished' : 'loading'} />
         </FormField>
         {task.assignee && !bulk && (
@@ -136,7 +137,8 @@ export default function TaskAssignModal({ projectId, tasks, onDone, onConflict, 
         <FormField label={isReassign ? '改派原因（必填）' : '说明（可选）'} description="会写进活动记录。">
           <Textarea value={reason} rows={2} onChange={({ detail }) => setReason(detail.value)} placeholder={isReassign ? '例如：员工 A 休假，由 A2 接手' : ''} />
         </FormField>
-        <Box fontSize="body-s" color="text-body-secondary">审核人{task.reviewer ? `仍是 ${task.reviewer.display_name}` : '为空时默认记为你自己'}；关键节点规则不变。</Box>
+        <Box fontSize="body-s" color="text-body-secondary">审核人：{task.reviewer?.display_name ?? '你自己'}。</Box>
+        <HelpText>分派只调整负责人和截止日期；关键节点仍需单独确认。</HelpText>
         {err && <Alert type="error">{err}</Alert>}
       </SpaceBetween>
     </Modal>

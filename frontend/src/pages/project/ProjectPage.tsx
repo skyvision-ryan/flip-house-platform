@@ -140,7 +140,7 @@ export default function ProjectPage() {
               <SpaceBetween size="s">
                 <Header variant="h1" actions={
                   <SpaceBetween direction="horizontal" size="xs">
-                    {role.can('edit_project') && <Button onClick={() => setEditing(true)}>编辑</Button>}
+                    {role.can('edit_project') && <Button iconName="edit" onClick={() => setEditing(true)}>编辑</Button>}
                     {role.can('delete_project') && <ButtonDropdown items={[{ id: 'delete', text: '删除项目' }]} onItemClick={({ detail }) => { if (detail.id === 'delete') setConfirmDelete(true); }}>操作</ButtonDropdown>}
                   </SpaceBetween>
                 }>

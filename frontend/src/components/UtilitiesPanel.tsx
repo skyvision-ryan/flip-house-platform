@@ -143,7 +143,7 @@ export default function UtilitiesPanel({ projectId, onChanged }: { projectId: nu
           );
         })}
       </ColumnLayout>
-      <Box variant="small" color="text-body-secondary">账号凭证按现有角色权限显示；保存前请确认信息准确。</Box>
+      <HelpText>账号凭证按现有角色权限显示；保存前请确认信息准确。</HelpText>
     </SpaceBetween>
   );
 }

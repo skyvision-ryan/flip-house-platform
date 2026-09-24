@@ -5,6 +5,7 @@ import Flashbar, { FlashbarProps } from '@cloudscape-design/components/flashbar'
 import SideNavigation from '@cloudscape-design/components/side-navigation';
 import Spinner from '@cloudscape-design/components/spinner';
 import TopNavigation from '@cloudscape-design/components/top-navigation';
+import Icon from '@cloudscape-design/components/icon';
 import { useCallback, useEffect, useState } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { AddressCandidate, api, AUTH_EVENT, Me } from './api/client';
@@ -189,11 +190,11 @@ export default function App() {
             activeHref={activeHref}
             onFollow={(e) => { if (!e.detail.external) { e.preventDefault(); navigate(e.detail.href); } }}
             items={[
-              { type: 'link', text: '工作台', href: '/' },
-              ...(canDo('read_money') ? [{ type: 'link' as const, text: '项目', href: '/projects' }] : []),
-              { type: 'link', text: '我的事项', href: '/todo' },
-              ...(canDo('create_project') ? [{ type: 'link' as const, text: '新建项目', href: '/projects/new' }] : []),
-              ...(me?.is_admin ? [{ type: 'divider' as const }, { type: 'link' as const, text: '用户', href: '/users' }] : []),
+              { type: 'link', text: '工作台', href: '/', icon: <Icon name="grid-view" /> },
+              ...(canDo('read_money') ? [{ type: 'link' as const, text: '项目', href: '/projects', icon: <Icon name="folder" /> }] : []),
+              { type: 'link', text: '我的事项', href: '/todo', icon: <Icon name="check" /> },
+              ...(canDo('create_project') ? [{ type: 'link' as const, text: '新建项目', href: '/projects/new', icon: <Icon name="add-plus" /> }] : []),
+              ...(me?.is_admin ? [{ type: 'divider' as const }, { type: 'link' as const, text: '用户', href: '/users', icon: <Icon name="group" /> }] : []),
             ]}
           />
         }

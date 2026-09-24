@@ -18,6 +18,7 @@ import { initialsOf } from '../lib/taskGroups';
 import css from './CollaborationLayout.module.css';
 import HelpText from './HelpText';
 import PersonAvatar from './PersonAvatar';
+import AssigneeButton from './AssigneeButton';
 import FormField from './ui/FormField';
 import Header from './ui/Header';
 import Container from './ui/Surface';
@@ -46,11 +47,11 @@ export default function ProjectPreplan({ meta, plan, onChange, users, loading, c
         const user = users.find((u) => u.id === plan[item.key]?.assignee_user_id);
         return <div className={css.draftRow} key={item.key} style={{ borderTop: `1px solid ${colorBorderDividerDefault}` }}>
           <div><Box fontWeight="bold">{item.title}</Box><Box variant="small" color="text-body-secondary">{item.deliverable?.label ?? item.evidence}{!current && ' · 提前准备'}</Box></div>
-          <div><PersonAvatar user={user} size="small" showRole={false} /><div><Button variant="inline-link" disabled={loading} iconName="edit" ariaLabel={`安排负责人：${item.title}`} onClick={() => open(item)}>{user ? '调整安排' : '选择负责人'}</Button></div></div>
+          <AssigneeButton user={user} label={`安排负责人：${item.title}`} disabled={loading} onClick={() => open(item)} />
           <Button variant="inline-link" iconName="calendar" ariaLabel={`安排截止：${item.title}`} onClick={() => open(item)}>{plan[item.key]?.due_at || '未设定'}</Button>
         </div>;
       })}
-      {gates.length > 0 && <Box padding={{ top: 'm' }}><SpaceBetween size="xs"><Box fontWeight="bold">关键节点 · 单独确认</Box>{gates.map((g) => <div key={g.key}><StatusIndicator type="not-started">{g.title}</StatusIndicator><Box variant="small" color="text-body-secondary">{(g.confirm ?? []).join(' / ')} 确认 · 不计入人员分派数</Box></div>)}</SpaceBetween></Box>}
+      {gates.length > 0 && <Box padding={{ top: 'm' }}><SpaceBetween size="xs"><Box fontWeight="bold">关键节点 · 单独确认</Box>{gates.map((g) => <div key={g.key}><StatusIndicator type="not-started">{g.title}</StatusIndicator><Box variant="small" color="text-body-secondary">{(g.confirm ?? []).join(' / ')} 确认</Box></div>)}<HelpText inline>关键节点单独确认，不计入人员分派数。</HelpText></SpaceBetween></Box>}
     </Container>;
   };
   return <>
@@ -88,7 +89,8 @@ export function PlanSummary({ meta, plan, users, review = false }: { meta: Meta;
       <SpaceBetween size="m">
         <StatusIndicator type="stopped">邮件通道未接通</StatusIndicator>
         <Checkbox checked={false} disabled>创建后发送分派说明</Checkbox>
-        <Box color="text-body-secondary">本次创建不会发送邮件。{summary.people.length} 位负责人，同一人的任务合并展示。</Box>
+        <Box color="text-body-secondary">本次不会发送邮件 · {summary.people.length} 位负责人。</Box>
+        <HelpText inline>同一位负责人的任务合并为一份安排预览。</HelpText>
         <Button iconName="envelope" disabled={!summary.people.length} onClick={() => setPreview(true)}>预览安排说明</Button>
       </SpaceBetween>
     </Container>

@@ -22,6 +22,7 @@ import LeadGroups from '../components/LeadGroups';
 import MyTodoTable from '../components/MyTodoTable';
 import ReviewTag from '../components/ReviewTag';
 import { RoleLabel } from '../components/RoleLabel';
+import HelpText from '../components/HelpText';
 import StatusBadge from '../components/StatusBadge';
 import UpdatesList from '../components/UpdatesList';
 import WorkbenchFocus from '../components/WorkbenchFocus';
@@ -205,8 +206,9 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
   const leadView = (
     <SpaceBetween size="m">
       <Header variant="h2" counter={`(${filtered.length})`} help="还没确认 Open escrow 的房子，按跟进档位分组；确认后它会进入「买房 · escrow 中」。" actions={<SpaceBetween direction="horizontal" size="xs">{groupSelect}{listOnly && role.can('create_project') && <Button variant="primary" onClick={() => go('/projects/new')}>新建项目</Button>}</SpaceBetween>}>买房 · 未购入</Header>
+      <HelpText>「待办参考」按清单顺序显示，负责角色不等于已分派的员工。</HelpText>
       <LeadGroups projects={loading ? null : filtered} meta={meta} canEdit={role.can('edit_project')} onPatched={onLeadPatched} />
-      <Box variant="small" color="text-body-secondary">挂牌价与自动估值是参考数据，不是可成交价格；「待办参考」按清单顺序取，显示的是负责角色不是具体的人。</Box>
+      <Box variant="small" color="text-body-secondary">挂牌价与自动估值仅供参考，不代表可成交价格。</Box>
     </SpaceBetween>
   );
 

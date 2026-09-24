@@ -1,7 +1,7 @@
 import { applyTheme } from '@cloudscape-design/components/theming';
 
-/** 产品主题：保留 Cloudscape 交互和状态语义，按本轮授权用克制的橙色突出主操作。
- * 中英文正文 15/24，辅助文字 13/20，标题 20/28；配色只在此定义。
+/** 产品主题：Cloudscape 原有字号 / 行高 / 字重，Open Sans 正文、Helvetica 标题。
+ * 统一新版容器与控件的圆角层级，克制的橙色突出主操作。
  */
 const BASE_STACK = '"Open Sans", "Helvetica Neue", "PingFang SC", Arial, sans-serif';
 export const DISPLAY_STACK = '"Helvetica Neue", Helvetica, "PingFang SC", Arial, sans-serif';
@@ -20,20 +20,8 @@ applyTheme({
       fontFamilyBase: BASE_STACK,
       fontFamilyHeading: DISPLAY_STACK,
       fontFamilyDisplay: DISPLAY_STACK,
-      fontSizeBodyM: '15px',
-      lineHeightBodyM: '24px',
-      fontSizeBodyS: '13px',
-      lineHeightBodyS: '20px',
-      fontSizeHeadingXl: '28px',
-      lineHeightHeadingXl: '36px',
-      fontSizeHeadingL: '20px',
-      lineHeightHeadingL: '28px',
-      fontSizeHeadingM: '17px',
-      lineHeightHeadingM: '26px',
-      fontWeightHeadingL: '600',
-      fontWeightHeadingM: '600',
-      borderRadiusContainer: '8px',
-      borderRadiusButton: '6px',
+      borderRadiusContainer: '16px',
+      borderRadiusButton: '20px',
       colorBackgroundButtonPrimaryDefault: { light: '#ff9900', dark: '#ff9900' },
       colorBackgroundButtonPrimaryHover: { light: '#ec8b00', dark: '#ec8b00' },
       colorBackgroundButtonPrimaryActive: { light: '#d97f00', dark: '#d97f00' },
@@ -59,5 +47,6 @@ document.documentElement.style.fontFamily = BASE_STACK;
 const productTokens = {
   text: '#161d26', secondary: '#536273', page: PAGE_BG, surface: '#ffffff', border: '#d8dee6',
   orange: '#ff9900', 'orange-soft': '#fff1d6', blue: '#0972d3', 'help-bg': '#f4f8fc', 'help-border': '#d5e3ef',
+  'blue-soft': '#f0f7ff', 'stage-done': '#a7cbf0', 'stage-current': '#1256a0', 'stage-future': '#e9edf2',
 };
 for (const [key, value] of Object.entries(productTokens)) document.documentElement.style.setProperty(`--ui-${key}`, value);

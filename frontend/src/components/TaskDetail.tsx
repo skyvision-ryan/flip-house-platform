@@ -10,6 +10,7 @@ import { useRole } from '../lib/role';
 import { actionLabel, actionMode, canActOn, canConfirm } from '../lib/stepActions';
 import { attachmentsFor, factOf, limitsOf } from '../lib/stepDisplay';
 import { RoleNames } from './RoleLabel';
+import HelpText from './HelpText';
 import ExpandableSection from './ui/ExpandableSection';
 import KeyValuePairs from './ui/Facts';
 
@@ -77,7 +78,7 @@ export default function TaskDetail({
             <RoleNames codes={item.owners} />
           </Box>
           {duties.map((d) => (
-            <Box key={d} color="text-body-secondary" fontSize="body-s">{d}</Box>
+            <HelpText key={d} inline>{d}</HelpText>
           ))}
         </SpaceBetween>
       ),

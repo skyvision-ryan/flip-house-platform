@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Badge from '@cloudscape-design/components/badge';
 
 const FALLBACK = 'data:image/svg+xml;utf8,' + encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400"><rect width="640" height="400" fill="#E9ECEF"/><path d="M200 230 L320 130 L440 230 Z" fill="#B6BEC9"/><rect x="235" y="230" width="170" height="110" fill="#CBD2DA"/><rect x="300" y="270" width="40" height="70" fill="#8F9BAA"/><rect x="250" y="250" width="30" height="30" fill="#FFFFFF"/><rect x="360" y="250" width="30" height="30" fill="#FFFFFF"/></svg>`);
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400"><rect width="640" height="400" fill="#F0F4F8"/><g fill="none" stroke="#60758A" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><path d="M230 205L320 125L410 205M249 193V289H391V193M299 289V235H341V289"/></g></svg>`);
 
 /**
  * 封面图。**目前一律是中性占位图**，不请求任何外部图床。

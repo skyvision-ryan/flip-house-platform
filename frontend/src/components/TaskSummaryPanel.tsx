@@ -14,6 +14,8 @@ import { useMeta } from '../lib/meta';
 import { stageKeyLabel } from '../lib/stageGroups';
 import { dueText, statusIndicator } from '../lib/taskGroups';
 import PersonAvatar from './PersonAvatar';
+import AssigneeButton from './AssigneeButton';
+import HelpText from './HelpText';
 import { RoleLabel } from './RoleLabel';
 import TaskTimeline from './TaskTimeline';
 import ExpandableSection from './ui/ExpandableSection';
@@ -57,12 +59,13 @@ export default function TaskSummaryPanel({ task, project, canAssign, onAssign, o
         {task ? (
           <SpaceBetween size="m">
             <h3 className="ui-summary-title">{task.title}</h3>
-            <div className="ui-muted">{stageKeyLabel(meta?.stage_groups, task.stage_key, task.stage_label)}{task.ws ? ` · ${task.ws}` : ''}</div>
+            <div className="ui-muted">{stageKeyLabel(meta?.stage_groups, task.stage_key, task.stage_label)}</div>
+            {task.ws && <HelpText inline>{task.ws}</HelpText>}
             <KeyValuePairs
               layout="rows" columns={1}
               items={[
                 { label: '状态', value: <div><StatusIndicator type={statusIndicator(task.exec_status)}>{task.exec_status_label}</StatusIndicator>{task.exec_status === 'waiting' && <Box variant="small" color="text-body-secondary">等 {task.wait_for || '—'}：{task.wait_reason}{task.wait_until ? `（预计 ${dueText(task.wait_until)}）` : ''}</Box>}</div> },
-                { label: '主要负责人', value: <PersonAvatar user={task.assignee} showRole={false} /> },
+                { label: '主要负责人', value: canAssign ? <AssigneeButton user={task.assignee} label={`调整负责人：${task.title}`} onClick={() => onAssign(task)} /> : <PersonAvatar user={task.assignee} showRole={false} /> },
                 { label: '审核人', value: task.reviewer ? <PersonAvatar user={task.reviewer} showRole={false} /> : <Box color="text-body-secondary">未指定</Box> },
                 {
                   label: '截止日期',
@@ -73,7 +76,7 @@ export default function TaskSummaryPanel({ task, project, canAssign, onAssign, o
                       <Button variant="link" onClick={() => { setEditDue(false); setDue(task.due_at ?? ''); }}>取消</Button>
                     </SpaceBetween>
                   ) : (
-                    <span>{task.due_at ? dueText(task.due_at) : <Box variant="span" color="text-body-secondary">未设定</Box>}{canAssign && <Button variant="inline-link" iconName="edit" onClick={() => setEditDue(true)} ariaLabel="改截止日期">改</Button>}</span>
+                    <span className="ui-inline-edit">{task.due_at ? dueText(task.due_at) : <Box variant="span" color="text-body-secondary">未设定</Box>}{canAssign && <Button variant="inline-icon" iconName="edit" onClick={() => setEditDue(true)} ariaLabel="改截止日期" />}</span>
                   ),
                 },
                 { label: '证据判定', value: task.satisfied ? <div><StatusIndicator type="success">已满足</StatusIndicator>{task.satisfied_evidence && <Box variant="small" color="text-body-secondary">依据：{task.satisfied_evidence}</Box>}</div> : <Box color="text-body-secondary">未满足{task.deliverable ? `：要交 ${task.deliverable.label}` : ''}</Box> },
@@ -82,7 +85,6 @@ export default function TaskSummaryPanel({ task, project, canAssign, onAssign, o
             />
             {task.exec_status !== 'done' && task.satisfied && <Box fontSize="body-s" color="text-status-info">证据已满足，任务仍待确认。</Box>}
             <div className="ui-actions ui-actions-start">
-              {canAssign && <Button onClick={() => onAssign(task)} iconName={task.assignee ? 'edit' : 'add-plus'}>{task.assignee ? '改派 / 调整安排' : '分派'}</Button>}
               {me && (task.assignee?.id === me.id || task.reviewer?.id === me.id) && <Button onClick={() => navigate(`/todo?task=${task.id}`)}>{task.exec_status === 'pending_review' && task.reviewer?.id === me.id ? '去我的事项审核' : '去我的事项处理'}</Button>}
               <Button variant="link" onClick={() => navigate(`/projects/${task.project_id}/tasks/${task.id}`)}>完整活动记录</Button>
             </div>

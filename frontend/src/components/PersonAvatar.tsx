@@ -1,8 +1,8 @@
 import Avatar from '@cloudscape-design/chat-components/avatar';
 import Box from '@cloudscape-design/components/box';
+import Icon from '@cloudscape-design/components/icon';
 import type { UserBrief } from '../api/client';
 import { initialsOf } from '../lib/taskGroups';
-import { RoleLabel } from './RoleLabel';
 
 /**
  * 具体的人（KAN-75）。和 RoleLabel 分工：RoleLabel 表**角色代号**（模板里写的负责角色），
@@ -13,7 +13,7 @@ export default function PersonAvatar({ user, size = 'normal', showRole = true }:
   if (!user) {
     return (
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
-        <RoleLabel code="?" title="待分派" />
+        <span className="ui-avatar-empty" aria-hidden="true" style={{ width: size === 'small' ? 24 : 28, height: size === 'small' ? 24 : 28 }}><Icon name="add-plus" size="small" /></span>
         <Box variant="span" color="text-body-secondary">待分派</Box>
       </span>
     );
