@@ -46,6 +46,7 @@ export default function TaskWorkbench({ task, meId, onChanged, onConflict }: { t
   const [busy, setBusy] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   useEffect(() => { setTab(canReview || canSubmit ? 'deliver' : 'detail'); }, [task.id, canReview, canSubmit]);
+  useEffect(() => { setWaiting(false); }, [task.project_id, task.id]);
 
   const bump = (t: Task) => { setRefreshKey((k) => k + 1); onChanged(t); };
   const handle = async (fn: () => Promise<Task>, ok: string) => {
@@ -90,11 +91,11 @@ export default function TaskWorkbench({ task, meId, onChanged, onConflict }: { t
         onChange={({ detail }) => setTab(detail.activeTabId)}
         tabs={[
           { id: 'detail', label: '详情', content: detail },
-          { id: 'deliver', label: canReview ? '审核' : '交付', content: <DeliverTab task={task} meId={meId} canSubmit={canSubmit} canReview={canReview} busy={busy} onAction={handle} /> },
+          { id: 'deliver', label: canReview ? '审核' : '交付', content: <DeliverTab key={`${task.project_id}:${task.id}`} task={task} meId={meId} canSubmit={canSubmit} canReview={canReview} busy={busy} onAction={handle} /> },
           { id: 'history', label: '活动记录', content: <TaskTimeline projectId={task.project_id} taskId={task.id} refreshKey={refreshKey} /> },
         ]}
       />
-      {waiting && <TaskWaitModal task={task} onDone={(t) => { setWaiting(false); bump(t); flash({ type: 'success', content: `已记录等待：${t.title}` }); }} onConflict={() => { setWaiting(false); onConflict(); }} onDismiss={() => setWaiting(false)} />}
+      {waiting && <TaskWaitModal key={`${task.project_id}:${task.id}`} task={task} onDone={(t) => { setWaiting(false); bump(t); flash({ type: 'success', content: `已记录等待：${t.title}` }); }} onConflict={() => { setWaiting(false); onConflict(); }} onDismiss={() => setWaiting(false)} />}
     </SpaceBetween>
   );
 }
@@ -124,8 +125,15 @@ function DeliverTab({ task, meId, canSubmit, canReview, busy, onAction }: { task
   const [reason, setReason] = useState('');
   const [showUpload, setShowUpload] = useState(false);
   const docType = task.deliverable?.doc_type ?? null;
-  const loadFiles = () => api.files(task.project_id).then(setFiles).catch(() => setFiles([]));
-  useEffect(() => { setPicked([]); setNote(''); setReason(''); if (canSubmit) loadFiles(); }, [task.id, canSubmit]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    let active = true;
+    setFiles(null); setPicked([]); setNote(''); setReason(''); setShowUpload(false);
+    if (canSubmit) {
+      api.files(task.project_id).then(rows => { if (active) setFiles(rows); })
+        .catch(() => { if (active) setFiles([]); });
+    }
+    return () => { active = false; };
+  }, [task.project_id, task.id, canSubmit]);
   const latest = task.submissions[0] ?? null;
   const candidates = (files ?? []).filter((f) => f.step_key === task.step_key || (docType && f.doc_type === docType));
   const others = (files ?? []).filter((f) => !candidates.includes(f));

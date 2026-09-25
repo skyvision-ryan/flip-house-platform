@@ -11,11 +11,13 @@ import json
 from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.exc import StaleDataError
 
 from .. import models, schemas
+from ..auth import current_user
 from ..db import get_db
 from ..dictionaries import STAGE_CHECKLIST, STEP_BY_KEY, TASK_EVENT_KINDS, TASK_EXEC_STATUSES
 from ..models import now_iso
@@ -200,6 +202,19 @@ def _task(db: Session, project_id: int, task_id: int) -> models.Task:
     return t
 
 
+def _require_task_read(db: Session, project_id: int, me: Optional[models.User]) -> None:
+    # get_actor has already rejected formal-mode guests. Preserve DEMO_MODE guest previews,
+    # but a signed account's scope always comes from its actual role and active membership.
+    if me is None or allowed(me.role_code, "workbench_all_projects"):
+        return
+    member = db.scalar(select(models.ProjectMember.id).where(
+        models.ProjectMember.project_id == project_id,
+        models.ProjectMember.user_id == me.id,
+        models.ProjectMember.active.is_(True)))
+    if member is None:
+        raise HTTPException(403, "你不是本项目的有效成员，不能查看任务或成员信息")
+
+
 def _last_events(db: Session, task_ids: list[int]) -> dict[int, models.TaskEvent]:
     if not task_ids:
         return {}
@@ -238,6 +253,16 @@ def _conflict(db: Session, p: models.Project, t: models.Task, actor: str):
     """版本不对：把最新的任务一起返回，前端刷新后再提交，不覆盖别人的改动。"""
     payload = _tasks_payload(db, p, [t], actor)[0]
     raise HTTPException(409, {"message": "这项任务刚被别人改过，已刷新为最新安排，请再确认一次", "task": payload})
+
+
+def _commit_task(db: Session, p: models.Project, t: models.Task, actor: str) -> None:
+    """Commit task, submission and history together, or discard the entire losing transaction."""
+    try:
+        db.commit()
+    except StaleDataError:
+        db.rollback()
+        db.refresh(t)
+        _conflict(db, p, t, actor)
 
 
 # ---------------- 头卡三条事实（按分组动态） ----------------
@@ -330,7 +355,8 @@ def next_action(rows: list[dict], cur_key: str) -> Optional[dict]:
 # ---------------- 读 ----------------
 
 @router.get("/projects/{project_id}/tasks", response_model=schemas.TaskListOut)
-def list_tasks(project_id: int, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
+def list_tasks(project_id: int, request: Request, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
+    _require_task_read(db, project_id, current_user(request, db))
     p = _project(db, project_id)
     tasks = list(db.scalars(select(models.Task).where(models.Task.project_id == project_id)).all())
     steps_stages = [{"key": st["key"], "label": st["label"], "short": st.get("short", st["label"]), "index": i + 1} for i, st in enumerate(STAGE_CHECKLIST)]
@@ -343,7 +369,8 @@ def list_tasks(project_id: int, db: Session = Depends(get_db), actor: str = Depe
 
 
 @router.get("/projects/{project_id}/tasks/{task_id}", response_model=schemas.TaskOut)
-def get_task(project_id: int, task_id: int, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
+def get_task(project_id: int, task_id: int, request: Request, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
+    _require_task_read(db, project_id, current_user(request, db))
     p = _project(db, project_id)
     t = _task(db, project_id, task_id)
     return _tasks_payload(db, p, [t], actor)[0]
@@ -411,6 +438,7 @@ def my_workbench(db: Session = Depends(get_db), me: models.User = Depends(requir
 
 @router.get("/projects/{project_id}/members", response_model=schemas.MembersOut)
 def list_members(project_id: int, db: Session = Depends(get_db), me: models.User = Depends(require_user)):
+    _require_task_read(db, project_id, me)
     _project(db, project_id)
     members = _members(db, project_id)
     users = _users_by_id(db, {m.user_id for m in members})
@@ -422,7 +450,8 @@ def list_members(project_id: int, db: Session = Depends(get_db), me: models.User
 
 
 @router.get("/projects/{project_id}/tasks/{task_id}/events", response_model=list[schemas.TaskEventOut])
-def task_events(project_id: int, task_id: int, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
+def task_events(project_id: int, task_id: int, request: Request, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
+    _require_task_read(db, project_id, current_user(request, db))
     _project(db, project_id)
     t = _task(db, project_id, task_id)
     evs = list(db.scalars(select(models.TaskEvent).where(models.TaskEvent.task_id == t.id).order_by(models.TaskEvent.created_at.desc(), models.TaskEvent.id.desc())).all())
@@ -439,7 +468,12 @@ def task_events(project_id: int, task_id: int, db: Session = Depends(get_db), ac
 @router.get("/me/tasks", response_model=schemas.MyTasksOut)
 def my_tasks(db: Session = Depends(get_db), me: models.User = Depends(require_user)):
     """分派给我的 + 我是审核人的，按项目算满足与当前段。只按 user_id，不按角色。"""
-    tasks = list(db.scalars(select(models.Task).where((models.Task.assignee_user_id == me.id) | (models.Task.reviewer_user_id == me.id))).all())
+    query = select(models.Task).where((models.Task.assignee_user_id == me.id) | (models.Task.reviewer_user_id == me.id))
+    if not allowed(me.role_code, "workbench_all_projects"):
+        member_projects = select(models.ProjectMember.project_id).where(
+            models.ProjectMember.user_id == me.id, models.ProjectMember.active.is_(True))
+        query = query.where(models.Task.project_id.in_(member_projects))
+    tasks = list(db.scalars(query).all())
     by_project: dict[int, list[models.Task]] = {}
     for t in tasks:
         by_project.setdefault(t.project_id, []).append(t)
@@ -506,7 +540,7 @@ def assign_task(project_id: int, task_id: int, body: schemas.TaskAssignIn, db: S
         log_update(db, project_id, me.role_code, "task", f"{'分派' if kind == 'assigned' else '改派' if kind == 'reassigned' else '取消分派'}“{t.title}”：{who}")
     t.version += 1
     t.updated_at = now_iso()
-    db.commit()
+    _commit_task(db, p, t, me.role_code)
     db.refresh(t)
     return _tasks_payload(db, p, [t], me.role_code)[0]
 
@@ -548,7 +582,7 @@ def task_status(project_id: int, task_id: int, body: schemas.TaskStatusIn, db: S
     log_update(db, project_id, me.role_code, "task", f"{TASK_EVENT_KINDS[kind]}“{t.title}”" + (f"：{t.wait_reason}" if body.action == "wait" else ""))
     t.version += 1
     t.updated_at = now_iso()
-    db.commit()
+    _commit_task(db, p, t, me.role_code)
     db.refresh(t)
     return _tasks_payload(db, p, [t], me.role_code)[0]
 
@@ -602,7 +636,7 @@ def submit_task(project_id: int, task_id: int, body: schemas.TaskSubmitIn, db: S
     log_update(db, project_id, me.role_code, "task", f"提交了“{t.title}”第 {sub.seq} 次交付" + (f"（{len(files)} 个文件）" if files else ""))
     t.version += 1
     t.updated_at = now_iso()
-    db.commit()
+    _commit_task(db, p, t, me.role_code)
     db.refresh(t)
     return _tasks_payload(db, p, [t], me.role_code)[0]
 
@@ -639,7 +673,7 @@ def _decide(db: Session, project_id: int, task_id: int, body: schemas.TaskDecisi
     _event(db, t, project_id, kind, me, before=before, after={"exec_status": t.exec_status, "submission_id": sub.id, "seq": sub.seq}, reason=sub.decision_reason)
     t.version += 1
     t.updated_at = now_iso()
-    db.commit()
+    _commit_task(db, p, t, me.role_code)
     db.refresh(t)
     return _tasks_payload(db, p, [t], me.role_code)[0]
 

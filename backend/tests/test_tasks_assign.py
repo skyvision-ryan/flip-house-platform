@@ -37,7 +37,7 @@ class _TaskBase(unittest.TestCase):
             users = {}
             for name, role in (("jessie", "J"), ("a", "设计师"), ("a2", "设计师"), ("b", "Z")):
                 u = models.User(username=name, display_name=f"员工{name.upper()}" if name != "jessie" else "Jessie",
-                                role_code=role, password_hash=hash_password("pw123456"))
+                                role_code=role, password_hash=hash_password("Task-fixture-only-73!"))
                 s.add(u); s.flush()
                 users[name] = u.id
             self.uid = users
@@ -60,7 +60,7 @@ class _TaskBase(unittest.TestCase):
     def login(self, name: str) -> TestClient:
         c = TestClient(self.app)
         self.addCleanup(c.close)
-        r = c.post("/api/auth/login", json={"username": name, "password": "pw123456"})
+        r = c.post("/api/auth/login", json={"username": name, "password": "Task-fixture-only-73!"})
         self.assertEqual(r.status_code, 200, r.text)
         return c
 

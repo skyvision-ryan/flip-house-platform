@@ -46,8 +46,8 @@ export default function DesignCollaboration() {
   }, [catalog, selected, me?.id]);
   if (!me) return <Alert type="info">请登录自己的账号查看职责对应的设计。</Alert>;
   return <>
-    <div className="ui-rd-access"><strong>{me.display_name} · {me.role_label}</strong><span>{catalog?.can_view_all ? '可查看全部角色的设计' : '仅显示当前账号职责对应的设计'}</span></div>
-    {catalog && catalog.items.length > 1 && <div className="ui-rd-access-tabs" role="group" aria-label="可访问的角色设计">{catalog.items.map(item => <button key={item.key} aria-pressed={selected === item.key} onClick={() => setParams({ workspace: item.key })}>{item.title}{!item.available && <small>待制作</small>}</button>)}</div>}
+    <div className="ui-rd-access"><strong>{me.display_name} · {me.role_label}</strong><span>{catalog?.can_view_all ? '可查看全部职责设计' : (catalog?.items.length ?? 0) > 1 ? '显示当前账号获授权查看的职责设计' : '仅显示当前账号职责对应的设计'}</span></div>
+    {catalog && catalog.items.length > 1 && <div className="ui-rd-access-tabs" role="group" aria-label="可访问的角色设计">{catalog.items.map(item => <button key={item.key} aria-pressed={selected === item.key} onClick={() => setParams(previous => { const next = new URLSearchParams(previous); next.set('view', 'roles'); next.set('workspace', item.key); return next; })}>{item.title}{!item.available && <small>待制作</small>}</button>)}</div>}
     {error ? <Alert type="error" action={<Button onClick={() => { setParams({}); setRevision(v => v + 1); }}>返回我的设计</Button>}>{error}</Alert>
       : !catalog ? <Spinner size="large" />
       : !catalog.items.length ? <Alert type="info">这个账号的职责暂未安排专属设计。</Alert>

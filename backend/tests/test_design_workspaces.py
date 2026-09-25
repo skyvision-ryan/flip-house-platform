@@ -104,11 +104,20 @@ class DesignWorkspacesTests(unittest.TestCase):
             self.assertEqual(self.detail(name, own).status_code, 200)
             self.assertEqual(self.detail(name, other).status_code, 403)
 
-    def test_jessie_can_view_all(self):
-        self.assert_full_access("planner")
+    def assert_scoped_access(self, name, expected):
+        directory = self.directory(name)
+        self.assertEqual(directory.status_code, 200)
+        self.assertFalse(directory.json()["can_view_all"])
+        self.assertEqual({item["key"] for item in directory.json()["items"]}, expected)
+        for key in ("jessie", "kody", "procurement", "zoey", "sabrina", "david", "admin"):
+            with self.subTest(user=name, workspace=key):
+                self.assertEqual(self.detail(name, key).status_code, 200 if key in expected else 403)
 
-    def test_david_can_view_all(self):
-        self.assert_full_access("director")
+    def test_jessie_can_view_employee_designs_but_not_director_or_founder(self):
+        self.assert_scoped_access("planner", {"jessie", "kody", "procurement", "zoey", "sabrina"})
+
+    def test_david_can_view_director_and_employee_designs_but_not_founder(self):
+        self.assert_scoped_access("director", {"jessie", "kody", "procurement", "zoey", "sabrina", "david"})
 
     def test_admin_can_view_all_without_role_name_mapping(self):
         self.assert_full_access("admin")
@@ -124,7 +133,10 @@ class DesignWorkspacesTests(unittest.TestCase):
             header = {"X-Actor": role}
             self.assertEqual([x["key"] for x in self.directory("assistant", header).json()["items"]], ["kody"])
             self.assertEqual(self.detail("assistant", "jessie", header).status_code, 403)
-        self.assertEqual(len(self.directory("planner", {"X-Actor": "K"}).json()["items"]), 7)
+        self.assertEqual(len(self.directory("planner", {"X-Actor": "K"}).json()["items"]), 5)
+        for name, key in (("planner", "david"), ("planner", "admin"), ("director", "admin")):
+            for role in ("D", "J", "T", quote("负责人")):
+                self.assertEqual(self.detail(name, key, {"X-Actor": role}).status_code, 403)
 
     def test_unknown_key_is_404_after_authentication(self):
         for name in ("assistant", "admin"):
@@ -149,6 +161,27 @@ class DesignWorkspacesTests(unittest.TestCase):
                     self.assertEqual(self.detail(name, key, {"X-Actor": "D"}).status_code, 403)
             for key in ("david", "admin"):
                 self.assertEqual(self.client.get(f"/api/design-workspaces/{key}").status_code, 401)
+
+    def test_hierarchy_denial_happens_before_loading_leadership_data(self):
+        with patch.object(design_workspaces, "_load_leadership_blueprint", side_effect=AssertionError("must authorize first")):
+            for name, key in (("planner", "david"), ("planner", "admin"), ("director", "admin")):
+                self.assertEqual(self.detail(name, key).status_code, 403)
+
+    def test_role_and_admin_changes_take_effect_for_existing_signed_session(self):
+        token = self.headers("admin")
+        self.assertEqual(self.client.get("/api/design-workspaces/admin", headers=token).status_code, 200)
+        with Session(self.engine) as session:
+            user = session.get(models.User, self.users["admin"])
+            user.is_admin = False
+            user.role_code = "D"
+            session.commit()
+        self.assertEqual(self.client.get("/api/design-workspaces/admin", headers=token).status_code, 403)
+        self.assertEqual(self.client.get("/api/design-workspaces/david", headers=token).status_code, 200)
+        with Session(self.engine) as session:
+            session.get(models.User, self.users["admin"]).role_code = "J"
+            session.commit()
+        self.assertEqual(self.client.get("/api/design-workspaces/david", headers=token).status_code, 403)
+        self.assertEqual(self.client.get("/api/design-workspaces/jessie", headers=token).status_code, 200)
 
     def test_kody_receives_only_own_design_and_assigned_tasks(self):
         synthetic = {
@@ -208,7 +241,7 @@ class DesignWorkspacesTests(unittest.TestCase):
             record_sets.append(ids)
 
     def test_reading_directory_does_not_write_business_or_feedback_records(self):
-        self.assert_full_access("planner")
+        self.assert_scoped_access("planner", {"jessie", "kody", "procurement", "zoey", "sabrina"})
         self.assert_full_access("admin")
         with Session(self.engine) as session:
             for model in (models.Project, models.Task, models.ProjectStep, models.TaskEvent,

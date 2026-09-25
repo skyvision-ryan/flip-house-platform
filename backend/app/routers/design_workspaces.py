@@ -46,7 +46,19 @@ _ROLE_WORKSPACE = {"J": "jessie", "项目助理": "kody", "采购": "procurement
 
 
 def can_view_all(user: models.User) -> bool:
-    return user.is_admin or user.role_code in {"D", "J"}
+    return user.is_admin
+
+
+def visible_workspace_keys(user: models.User) -> set[str]:
+    """Design previews only: this hierarchy never grants business-module permissions."""
+    if can_view_all(user):
+        return set(_BY_KEY)
+    if user.role_code == "D":
+        return {"david", "jessie", "kody", "procurement", "zoey", "sabrina"}
+    if user.role_code == "J":
+        return {"jessie", "kody", "procurement", "zoey", "sabrina"}
+    own = _ROLE_WORKSPACE.get(user.role_code)
+    return {own} if own else set()
 
 
 def require_workspace_access(key: str, user: models.User) -> WorkspaceOut:
@@ -54,7 +66,7 @@ def require_workspace_access(key: str, user: models.User) -> WorkspaceOut:
     entry = _BY_KEY.get(key)
     if entry is None:
         raise HTTPException(404, "设计工作区不存在")
-    if not can_view_all(user) and _ROLE_WORKSPACE.get(user.role_code) != key:
+    if key not in visible_workspace_keys(user):
         raise HTTPException(403, "当前账号不能查看这个设计工作区")
     return entry
 
@@ -62,9 +74,8 @@ def require_workspace_access(key: str, user: models.User) -> WorkspaceOut:
 @router.get("", response_model=WorkspaceDirectory)
 def list_workspaces(user: models.User = Depends(require_user)):
     all_access = can_view_all(user)
-    items = list(_WORKSPACES) if all_access else [
-        entry for entry in _WORKSPACES if entry.key == _ROLE_WORKSPACE.get(user.role_code)
-    ]
+    allowed_keys = visible_workspace_keys(user)
+    items = [entry for entry in _WORKSPACES if entry.key in allowed_keys]
     return WorkspaceDirectory(items=items, can_view_all=all_access)
 
 

@@ -352,6 +352,8 @@ class Task(Base):
     wait_reason: Mapped[Optional[str]] = mapped_column(Text)
     wait_until: Mapped[Optional[str]] = mapped_column(String)
     version: Mapped[int] = mapped_column(Integer, default=1)  # 每次写递增；客户端带旧值就 409
+    # UPDATE includes the version read by this transaction; a competing write must not be overwritten.
+    __mapper_args__ = {"version_id_col": version}
     requirement_version: Mapped[int] = mapped_column(Integer, default=1)
     linked_task_id: Mapped[Optional[int]] = mapped_column(ForeignKey("tasks.id"))
     created_by_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"))

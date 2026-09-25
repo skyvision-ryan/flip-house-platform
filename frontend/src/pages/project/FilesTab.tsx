@@ -18,6 +18,8 @@ import UploadForm from '../../components/UploadForm';
 import { useFlash } from '../../lib/flash';
 import { dateStr, money, text } from '../../lib/format';
 import { labelOf, useMeta } from '../../lib/meta';
+import { useRole } from '../../lib/role';
+import { fileRegistrationPatch, type FileRegistrationDraft } from '../../lib/fileRegistration';
 
 function sizeStr(n: number) {
   if (n < 1024) return `${n} B`;
@@ -28,10 +30,13 @@ function sizeStr(n: number) {
 export default function FilesTab({ projectId }: { projectId: number }) {
   const meta = useMeta();
   const flash = useFlash();
+  const role = useRole();
+  const canManageMetadata = role.can('upload_any');
   const [files, setFiles] = useState<ProjectFile[]>([]);
   const [who, setWho] = useState<string>('');
   const [editing, setEditing] = useState<ProjectFile | null>(null);
   const [draft, setDraft] = useState<any>({});
+  const [saving, setSaving] = useState(false);
 
   const load = useCallback(() => api.files(projectId).then(setFiles), [projectId]);
   useEffect(() => { load(); }, [load]);
@@ -100,10 +105,15 @@ export default function FilesTab({ projectId }: { projectId: number }) {
           <Box float="right">
             <SpaceBetween direction="horizontal" size="xs">
               <Button variant="link" onClick={() => setEditing(null)}>取消</Button>
-              <Button variant="primary" onClick={async () => {
+              <Button variant="primary" loading={saving} onClick={async () => {
                 if (!editing) return;
-                await api.patchFile(editing.id, { doc_type: draft.doc_type, doc_date: draft.doc_date || null, counterparty: draft.counterparty || null, amount: draft.amount === '' ? null : Number(draft.amount), uploaded_by: draft.uploaded_by || null, expires_at: draft.expires_at || null });
-                setEditing(null); await load(); flash({ type: 'success', content: '登记信息已更新' });
+                setSaving(true);
+                try {
+                  await api.patchFile(editing.id, fileRegistrationPatch(draft as FileRegistrationDraft, canManageMetadata, role.canReadMoney));
+                  setEditing(null); await load(); flash({ type: 'success', content: '登记信息已更新' });
+                } catch (error: unknown) {
+                  flash({ type: 'error', content: `保存失败：${error instanceof Error ? error.message : String(error)}` });
+                } finally { setSaving(false); }
               }}>保存</Button>
             </SpaceBetween>
           </Box>
@@ -111,14 +121,14 @@ export default function FilesTab({ projectId }: { projectId: number }) {
       >
         <SpaceBetween size="m">
           <FormField label="文件类型">
-            <Select selectedOption={typeOptions.find((o) => o.value === draft.doc_type) ?? null} options={typeOptions} onChange={({ detail }) => setDraft((d: any) => ({ ...d, doc_type: detail.selectedOption.value }))} />
+            <Select disabled={!canManageMetadata} selectedOption={typeOptions.find((o) => o.value === draft.doc_type) ?? null} options={typeOptions} onChange={({ detail }) => setDraft((d: any) => ({ ...d, doc_type: detail.selectedOption.value }))} />
           </FormField>
           <FormField label="上传人（谁传的）">
-            <Select selectedOption={peopleOptions.find((o) => o.value === draft.uploaded_by) ?? null} options={peopleOptions} onChange={({ detail }) => setDraft((d: any) => ({ ...d, uploaded_by: detail.selectedOption.value }))} />
+            <Select disabled={!canManageMetadata} selectedOption={peopleOptions.find((o) => o.value === draft.uploaded_by) ?? null} options={peopleOptions} onChange={({ detail }) => setDraft((d: any) => ({ ...d, uploaded_by: detail.selectedOption.value }))} />
           </FormField>
           <FormField label="文件日期"><DatePicker value={draft.doc_date ?? ''} onChange={({ detail }) => setDraft((d: any) => ({ ...d, doc_date: detail.value }))} placeholder="YYYY/MM/DD" /></FormField>
           <FormField label="对方"><Input value={draft.counterparty ?? ''} onChange={({ detail }) => setDraft((d: any) => ({ ...d, counterparty: detail.value }))} /></FormField>
-          <FormField label="涉及金额（美元）"><Input type="number" value={draft.amount ?? ''} onChange={({ detail }) => setDraft((d: any) => ({ ...d, amount: detail.value }))} /></FormField>
+          {role.canReadMoney && <FormField label="涉及金额（美元）"><Input type="number" value={draft.amount ?? ''} onChange={({ detail }) => setDraft((d: any) => ({ ...d, amount: detail.value }))} /></FormField>}
           <FormField label="到期日（保险这类有时限的文件）"><DatePicker value={draft.expires_at ?? ''} onChange={({ detail }) => setDraft((d: any) => ({ ...d, expires_at: detail.value }))} placeholder="YYYY/MM/DD" /></FormField>
         </SpaceBetween>
       </Modal>

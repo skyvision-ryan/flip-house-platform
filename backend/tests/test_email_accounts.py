@@ -17,7 +17,7 @@ from sqlalchemy.pool import StaticPool
 
 from app import db, models
 from app.auth import hash_password, verify_password
-from app.routers import auth, budget, files, ops, procurement, projects, steps, tasks
+from app.routers import analyses, auth, budget, files, ops, procurement, projects, steps, tasks
 from app.routers.common import allowed
 from app.routers.files import _can_touch
 
@@ -47,7 +47,7 @@ class EmailAccountsTests(unittest.TestCase):
             self.pid = project.id
             session.commit()
         app = FastAPI()
-        for module in (auth, budget, files, ops, procurement, projects, steps, tasks):
+        for module in (analyses, auth, budget, files, ops, procurement, projects, steps, tasks):
             app.include_router(module.router)
         def session_override():
             with Session(self.engine) as session:
@@ -131,13 +131,14 @@ class EmailAccountsTests(unittest.TestCase):
         for role, email, yes in [("采购", "buyer@example.com", {"procurement"}),
                                 ("财务", "finance@example.com", {"read_money", "budget"}),
                                 ("Permit/设计", "designer@example.com", {"inspections"})]:
-            for action in ("procurement", "read_money", "budget", "inspections", "assign_tasks", "confirm_for_others",
+            for action in ("procurement", "read_money", "budget", "analysis", "inspections", "assign_tasks", "confirm_for_others",
                            "tick_any", "upload_any", "create_project", "edit_money", "workbench_all_projects", "utility_secret"):
                 self.assertEqual(allowed(role, action), action in yes, (role, action))
             self.assertEqual(self.login(email).status_code, 200)
             self.assertEqual(self.client.get("/api/users").status_code, 403)
             self.assertEqual(self.client.get(f"/api/projects/{self.pid}/procurement").status_code, 200 if role == "采购" else 403)
             self.assertEqual(self.client.get(f"/api/projects/{self.pid}/budget-lines").status_code, 200 if role == "财务" else 403)
+            self.assertEqual(self.client.get(f"/api/projects/{self.pid}/analyses").status_code, 403)
             for as_who in ("D", "J"):
                 response = self.client.post(f"/api/projects/{self.pid}/steps/open_escrow", json={"done": True, "confirm_as": as_who})
                 self.assertEqual(response.status_code, 403)

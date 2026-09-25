@@ -5,8 +5,8 @@ import Flashbar, { FlashbarProps } from '@cloudscape-design/components/flashbar'
 import SideNavigation from '@cloudscape-design/components/side-navigation';
 import Spinner from '@cloudscape-design/components/spinner';
 import ProductTopBar from './components/ui/ProductTopBar';
-import DesignChoices from './pages/DesignChoices';
-import DesignCollaboration from './pages/DesignCollaboration';
+import DesignDirections, { LegacyDesignRedirect } from './pages/DesignDirections';
+import { DESIGN_DIRECTIONS_PATH, hasDesignDirections } from './lib/designNavigation';
 import Icon from '@cloudscape-design/components/icon';
 import { useCallback, useEffect, useState } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
@@ -83,7 +83,7 @@ export default function App() {
     id: `g-${t}`, text: (meta?.tiers?.[t] ?? TIER_FALLBACK[t]).label,
     items: (meta?.roles ?? []).filter((r) => r.tier === t).map((r) => ({ id: r.code, text: r.label, description: r.duties || undefined })),
   })).filter((g) => g.items.length);
-  const activeHref = location.pathname.startsWith('/todo') ? '/todo' : location.pathname === '/projects/new' ? '/projects/new' : location.pathname.startsWith('/projects') ? '/projects' : location.pathname.startsWith('/users') ? '/users' : location.pathname.startsWith('/design-') ? location.pathname : '/';
+  const activeHref = location.pathname.startsWith('/todo') ? '/todo' : location.pathname === '/projects/new' ? '/projects/new' : location.pathname.startsWith('/projects') ? '/projects' : location.pathname.startsWith('/users') ? '/users' : location.pathname.startsWith('/design-') ? DESIGN_DIRECTIONS_PATH : '/';
 
   if (demoMode === null) {
     return <div className="ui-loading"><Spinner size="large" /></div>;
@@ -190,8 +190,7 @@ export default function App() {
               { type: 'link', text: '工作台', href: '/', icon: <Icon name="grid-view" /> },
               ...(canDo('read_money') ? [{ type: 'link' as const, text: '项目', href: '/projects', icon: <Icon name="folder" /> }] : []),
               { type: 'link', text: '我的事项', href: '/todo', icon: <Icon name="check" /> },
-              ...(me && (me.is_admin || ['D', 'J'].includes(me.role_code)) ? [{ type: 'link' as const, text: '设计比较', href: '/design-choices', icon: <Icon name="view-full" /> }] : []),
-              ...(me && (me.is_admin || ['D', 'J', '项目助理', '采购', 'Permit/设计', '财务'].includes(me.role_code)) ? [{ type: 'link' as const, text: '角色设计比较', href: '/design-collaboration', icon: <Icon name="view-full" /> }] : []),
+              ...(hasDesignDirections(me) ? [{ type: 'link' as const, text: '设计方向', href: DESIGN_DIRECTIONS_PATH, icon: <Icon name="view-full" /> }] : []),
               ...(canDo('create_project') ? [{ type: 'link' as const, text: '新建项目', href: '/projects/new', icon: <Icon name="add-plus" /> }] : []),
               ...(me?.is_admin ? [{ type: 'divider' as const }, { type: 'link' as const, text: '用户', href: '/users', icon: <Icon name="group" /> }] : []),
             ]}
@@ -202,8 +201,9 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/todo" element={<MyTodo />} />
-            <Route path="/design-choices" element={me && (me.is_admin || ['D', 'J'].includes(me.role_code)) ? <DesignChoices /> : <Navigate to="/design-collaboration" replace />} />
-            <Route path="/design-collaboration" element={<DesignCollaboration />} />
+            <Route path={DESIGN_DIRECTIONS_PATH} element={<DesignDirections />} />
+            <Route path="/design-choices" element={<LegacyDesignRedirect />} />
+            <Route path="/design-collaboration" element={<LegacyDesignRedirect />} />
             {/* KAN-75 块 2：独立线索入口并入买房管理。旧链接 /leads 跳到项目列表的「买房 · 未购入」筛选；s1 段、档位、热度都还在。 */}
             <Route path="/leads" element={<Navigate to="/projects?group=buying&sub=pre" replace />} />
             <Route path="/projects" element={canDo('read_money') ? <Dashboard listOnly /> : <MyTodo />} />

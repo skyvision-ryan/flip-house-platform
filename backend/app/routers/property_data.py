@@ -45,7 +45,7 @@ def _out(prop: models.Property) -> schemas.PropertyDataOut:
 
 
 @router.get("", response_model=schemas.PropertyDataOut)
-def get_property(project_id: int, db: Session = Depends(get_db)):
+def get_property(project_id: int, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
     return _out(_prop(db, project_id))
 
 

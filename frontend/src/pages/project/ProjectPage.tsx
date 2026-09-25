@@ -121,7 +121,9 @@ export default function ProjectPage() {
 
   if (!project) return <Box padding="xxl" textAlign="center"><Spinner size="large" /></Box>;
 
-  const tab = params.get('tab') ?? 'overview';
+  const canAnalyze = !!meta && role.can('analysis');
+  const requestedTab = params.get('tab') ?? 'overview';
+  const tab = requestedTab === 'analysis' && !canAnalyze ? 'overview' : requestedTab;
   const step = params.get('step');
   const action = params.get('action');
   const section = params.get('section');
@@ -169,7 +171,7 @@ export default function ProjectPage() {
           onChange={({ detail }) => setParams((prev) => { const n = new URLSearchParams(prev); n.set('tab', detail.activeTabId); return n; })}
           tabs={[
             { id: 'overview', label: '总览', content: <OverviewTab project={project} reload={reload} deepLink={{ step, action }} focus={focus} tasks={tasks} tasksErr={tasksErr} reloadTasks={reloadTasks} /> },
-            ...(role.canReadMoney ? [{ id: 'analysis', label: '分析', content: <AnalysisTab project={project} reload={reload} /> }] : []),
+            ...(canAnalyze ? [{ id: 'analysis', label: '分析', content: <AnalysisTab project={project} reload={reload} /> }] : []),
             ...(role.tier !== 'grey' ? [{ id: 'data', label: '数据', content: <DataTab projectId={pid} reload={reload} section={section} /> }] : []),
             { id: 'files', label: '文件', content: <FilesTab projectId={pid} /> },
             ...(role.canReadMoney || role.can('procurement') ? [{ id: 'budget', label: '预算', content: <BudgetTab projectId={pid} reload={reload} section={section} /> }] : []),
