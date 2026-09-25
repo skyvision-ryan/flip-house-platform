@@ -1,30 +1,29 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
 import Checkbox from '@cloudscape-design/components/checkbox';
 import DatePicker from '@cloudscape-design/components/date-picker';
-import FormField from '@cloudscape-design/components/form-field';
-import Header from '@cloudscape-design/components/header';
 import Input from '@cloudscape-design/components/input';
 import Modal from '@cloudscape-design/components/modal';
 import SpaceBetween from '@cloudscape-design/components/space-between';
-import Table from '@cloudscape-design/components/table';
 import Textarea from '@cloudscape-design/components/textarea';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api, Steps, TodoRow } from '../api/client';
-import { OwnerDot } from './OwnerTag';
-import UploadForm from './UploadForm';
 import { useFlash } from '../lib/flash';
 import { useRole } from '../lib/role';
 import {
-  FIELD_LABEL,
-  actionHref,
-  actionLabel,
-  actionMode,
-  canActOn,
-  needsMyConfirm,
-  nextUpFlash,
+actionHref,
+actionLabel,
+actionMode,
+canActOn,
+FIELD_LABEL,
+nextUpFlash
 } from '../lib/stepActions';
+import { RoleLabel } from './RoleLabel';
+import FormField from './ui/FormField';
+import Header from './ui/Header';
+import Table from './ui/Table';
+import UploadForm from './UploadForm';
 
 const KIND_LABEL: Record<string, string> = { file: '交文件', photo: '交照片', field: '填数', record: '记录', confirm: '确认', tick: '打勾' };
 
@@ -119,7 +118,7 @@ export default function MyTodoTable({ rows, onReload, compact = false }: { rows:
 
   return (
     <>
-      <Table
+      <Table cardId="legacy-todo"
         variant={compact ? 'embedded' : 'container'}
         loading={rows === null}
         loadingText="正在看哪套房轮到你"
@@ -129,7 +128,7 @@ export default function MyTodoTable({ rows, onReload, compact = false }: { rows:
         columnDefinitions={[
           { id: 'p', header: '哪套房', cell: (r) => <div><div>{r.project.project_name}</div><Box variant="small" color="text-body-secondary">{r.project.address}</Box></div> },
           { id: 's', header: '阶段', cell: (r) => <span>{r.stage}{r.is_current && <Box variant="span" color="text-status-info">　现在这段</Box>}{r.project.stage === 'portfolio' && <Box variant="span" color="text-body-secondary">　已售收尾</Box>}</span> },
-          { id: 't', header: '要做什么', cell: (r) => <span style={{ fontWeight: r.item.gate ? 700 : 400 }}>{r.item.owners.map((o) => <OwnerDot key={o} code={o} />)}{r.item.title}</span> },
+          { id: 't', header: '要做什么', cell: (r) => <span className={r.item.gate ? "ui-strong" : undefined}>{r.item.owners.map((o) => <RoleLabel key={o} code={o} />)}{r.item.title}</span> },
           { id: 'd', header: '要交什么', cell: (r) => (r.item.deliverable ? `${KIND_LABEL[r.item.deliverable.kind]} · ${r.item.deliverable.label}` : '—') },
           {
             id: 'a', header: '', width: 160, minWidth: 160,
@@ -137,7 +136,7 @@ export default function MyTodoTable({ rows, onReload, compact = false }: { rows:
               const canDo = r.for_confirm || canActOn(r.item, role);
               const label = actionLabel(r.item, { actor: role.actor, canDo, forConfirm: r.for_confirm });
               return (
-                <span style={{ whiteSpace: 'nowrap' }}>
+                <span className="ui-nowrap">
                   <Button variant="primary" onClick={() => openAction(r)}>{label}</Button>
                 </span>
               );
@@ -206,7 +205,7 @@ export default function MyTodoTable({ rows, onReload, compact = false }: { rows:
             <SpaceBetween direction="horizontal" size="s">
               {confirmCodes.map((c) => (
                 <Checkbox key={c} checked={false} disabled={busy} onChange={() => doConfirm(c)}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center' }}><OwnerDot code={c} />以 {c} 确认</span>
+                  <span className="ui-inline-tight">以 {c} 确认</span>
                 </Checkbox>
               ))}
               {!confirmCodes.length && <Box color="text-body-secondary">你这边已经确认过了，或无权代确认。</Box>}

@@ -1,16 +1,16 @@
-import { useState } from 'react';
-import Box from '@cloudscape-design/components/box';
 import Badge from '@cloudscape-design/components/badge';
+import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
 import Input from '@cloudscape-design/components/input';
 import Modal from '@cloudscape-design/components/modal';
 import Popover from '@cloudscape-design/components/popover';
 import SpaceBetween from '@cloudscape-design/components/space-between';
-import Table from '@cloudscape-design/components/table';
-import FormField from '@cloudscape-design/components/form-field';
-import SourceBadge from './SourceBadge';
+import { useState } from 'react';
 import { PropertyField } from '../api/client';
 import { dateTime, pct, text } from '../lib/format';
+import SourceBadge from './SourceBadge';
+import FormField from './ui/FormField';
+import Table from './ui/Table';
 
 interface Props {
   field: PropertyField;
@@ -25,10 +25,10 @@ export default function FieldWithSource({ field, onSave, onSetPrimary }: Props) 
   const primary = field.sources.find((s) => s.is_primary);
 
   return (
-    <div>
-      <Box variant="awsui-key-label">{field.label}</Box>
-      <SpaceBetween direction="horizontal" size="xs" alignItems="center">
-        <Box variant="p">{text(field.value)}</Box>
+    <div className="ui-field-source">
+      <div className="ui-field-label"><span>{field.label}</span><Button variant="inline-icon" iconName="edit" ariaLabel={`编辑${field.label}`} onClick={() => { setDraft(field.value ?? ''); setEditing(true); }} /></div>
+      <div className="ui-field-value">{text(field.value)}</div>
+      <div className="ui-field-meta">
         {primary && <SourceBadge source={primary.source} fetchedAt={primary.fetched_at} confidence={primary.confidence} note={primary.note} />}
         {field.has_conflict && (
           <Popover
@@ -52,8 +52,7 @@ export default function FieldWithSource({ field, onSave, onSetPrimary }: Props) 
             <Badge color="red">有冲突</Badge>
           </Popover>
         )}
-        <Button variant="inline-icon" iconName="edit" ariaLabel={`编辑${field.label}`} onClick={() => { setDraft(field.value ?? ''); setEditing(true); }} />
-      </SpaceBetween>
+      </div>
       <Modal
         visible={editing}
         onDismiss={() => setEditing(false)}

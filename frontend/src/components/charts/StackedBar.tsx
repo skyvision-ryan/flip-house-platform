@@ -1,7 +1,7 @@
-import { FONT, SERIES, TEXT, TEXT_2 } from './palette';
+import { FONT, ORDINAL_BLUE, SERIES, TEXT, TEXT_2, TEXT_INVERTED } from './palette';
 import { useTooltip } from './Tooltip';
 
-export interface Segment { label: string; value: number; color?: string }
+export interface Segment { label: string; value: number; color?: string; ordinalIndex?: number }
 interface Props {
   segments: Segment[];
   format?: (n: number) => string;
@@ -18,9 +18,9 @@ interface Props {
 /** 部分对整体：一根横条，段间 2px 白隙，段内放得下才写数字；可加一条参考线。 */
 export default function StackedBar({ segments, format = (n) => String(n), marker, height = 22, legend = true, legendColumns = 1, emptyText = '暂无数据' }: Props) {
   const tip = useTooltip();
-  const segs = segments.filter((s) => s.value > 0).map((s, i) => ({ ...s, color: s.color ?? SERIES[i % SERIES.length] }));
+  const segs = segments.filter((s) => s.value > 0).map((s, i) => ({ ...s, color: s.color ?? (s.ordinalIndex == null ? SERIES[i % SERIES.length] : ORDINAL_BLUE[s.ordinalIndex]) }));
   const total = segs.reduce((a, s) => a + s.value, 0);
-  if (!segs.length) return <div style={{ fontFamily: FONT, color: TEXT_2, fontSize: 12 }}>{emptyText}</div>;
+  if (!segs.length) return <div style={{ fontFamily: FONT, color: TEXT_2, fontSize: 13 }}>{emptyText}</div>;
   const scale = Math.max(total, marker?.value ?? 0) * (marker ? 1.06 : 1);
   const barWidthPct = (total / scale) * 100;
 
@@ -33,7 +33,7 @@ export default function StackedBar({ segments, format = (n) => String(n), marker
             return (
               <div
                 key={s.label}
-                style={{ flex: `${s.value} 0 0`, background: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 700, overflow: 'hidden', whiteSpace: 'nowrap', minWidth: 0 }}
+                style={{ flex: `${s.value} 0 0`, background: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: TEXT_INVERTED, fontSize: 12, fontWeight: 700, overflow: 'hidden', whiteSpace: 'nowrap', minWidth: 0 }}
                 onMouseMove={(e) => tip.show(e, [{ label: s.label, value: format(s.value), color: s.color }, { label: '占比', value: `${pct.toFixed(1)}%` }])}
                 onMouseLeave={tip.hide}
               >
@@ -44,13 +44,13 @@ export default function StackedBar({ segments, format = (n) => String(n), marker
         </div>
         {marker && (
           <div style={{ position: 'absolute', left: `${(marker.value / scale) * 100}%`, top: 0, bottom: 0, transform: 'translateX(-1px)' }}>
-            <div style={{ position: 'absolute', top: 0, left: 0, transform: 'translateX(-50%)', fontSize: 11, color: TEXT_2, whiteSpace: 'nowrap' }}>{marker.label} {format(marker.value)}</div>
+            <div style={{ position: 'absolute', top: 0, left: 0, transform: 'translateX(-50%)', fontSize: 12, color: TEXT_2, whiteSpace: 'nowrap' }}>{marker.label} {format(marker.value)}</div>
             <div style={{ position: 'absolute', top: 16, bottom: -4, width: 2, background: TEXT, borderRadius: 1 }} />
           </div>
         )}
       </div>
       {legend && (
-        <div style={{ display: 'grid', gridTemplateColumns: legendColumns === 2 ? '1fr 1fr' : '1fr', columnGap: 24, rowGap: 6, marginTop: 14, fontSize: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: legendColumns === 2 ? '1fr 1fr' : '1fr', columnGap: 24, rowGap: 6, marginTop: 14, fontSize: 13 }}>
           {segs.map((s) => (
             <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ width: 10, height: 10, borderRadius: 2, background: s.color, flexShrink: 0 }} />

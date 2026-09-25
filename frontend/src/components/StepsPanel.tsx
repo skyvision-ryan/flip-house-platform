@@ -1,5 +1,3 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Alert from '@cloudscape-design/components/alert';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
@@ -7,8 +5,6 @@ import Cards from '@cloudscape-design/components/cards';
 import Checkbox from '@cloudscape-design/components/checkbox';
 import ColumnLayout from '@cloudscape-design/components/column-layout';
 import DatePicker from '@cloudscape-design/components/date-picker';
-import ExpandableSection from '@cloudscape-design/components/expandable-section';
-import FormField from '@cloudscape-design/components/form-field';
 import Grid from '@cloudscape-design/components/grid';
 import Input from '@cloudscape-design/components/input';
 import Link from '@cloudscape-design/components/link';
@@ -17,25 +13,29 @@ import SpaceBetween from '@cloudscape-design/components/space-between';
 import Spinner from '@cloudscape-design/components/spinner';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
 import Textarea from '@cloudscape-design/components/textarea';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api, FileRow, StepItem, Steps } from '../api/client';
-import { Meter } from './charts';
-import { daysBetween } from '../lib/format';
 import { useFlash } from '../lib/flash';
+import { daysBetween } from '../lib/format';
 import { useRole } from '../lib/role';
 import {
-  FIELD_LABEL,
-  actionHref,
-  actionLabel,
-  actionMode,
-  canActOn,
-  canConfirm,
-  findStageKey,
-  findStepItem,
-  nextUpFlash,
+actionHref,
+actionLabel,
+actionMode,
+canActOn,
+FIELD_LABEL,
+findStageKey,
+findStepItem,
+nextUpFlash
 } from '../lib/stepActions';
 import { contextNotes, factOf, limitsOf } from '../lib/stepDisplay';
-import { OwnerDot, OwnerNames } from './OwnerTag';
+import { Meter } from './charts';
+import ReviewTag from './ReviewTag';
+import { RoleLabel, RoleNames } from './RoleLabel';
 import TaskDetail from './TaskDetail';
+import ExpandableSection from './ui/ExpandableSection';
+import FormField from './ui/FormField';
 import UploadForm from './UploadForm';
 
 type Stage = Steps['stages'][number];
@@ -181,7 +181,7 @@ export default function StepsPanel({
             disabled={!allowed || busy === `${it.key}:${c}`}
             onChange={({ detail: d }) => toggle(it.key, d.checked, c, it.title)}
           >
-            <Box variant="span"><OwnerDot code={c} />{on ? '已确认' : '确认'}</Box>
+            <Box variant="span"><RoleLabel code={c} />{on ? '已确认' : '确认'}</Box>
           </Checkbox>
         );
       })}
@@ -215,14 +215,14 @@ export default function StepsPanel({
       empty={<Box color="text-body-secondary" padding="s">{empty}</Box>}
       cardDefinition={{
         header: (it: StepItem) => (
-          <Link href="#" onFollow={(e) => { e.preventDefault(); setDetail(it); }}>{it.title}</Link>
+          <><ReviewTag cardId="step-card" context={`${it.key} · ${it.title}`} /><Link href="#" onFollow={(e) => { e.preventDefault(); setDetail(it); }}>{it.title}</Link></>
         ),
         sections: [
           {
             id: 'who',
             content: (it: StepItem) => (
               <SpaceBetween size="xxs">
-                <OwnerNames codes={it.owners} prefix="负责角色：" />
+                <RoleNames codes={it.owners} prefix="负责角色：" />
                 {it.ws && <Box fontSize="body-s" color="text-body-secondary">{it.ws}</Box>}
               </SpaceBetween>
             ),

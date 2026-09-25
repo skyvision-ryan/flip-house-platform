@@ -1,0 +1,36 @@
+{
+  "kind": "leadership",
+  "person": {"id": 7, "username": "preview-director", "display_name": "David", "role_code": "D", "active": true},
+  "role_title": "David · 董事项目观察",
+  "role_description": "先看哪些房屋值得关注，再理解估算依据、关键风险和下一步需要核对的事实。盈利假设、已登记支出、关键节点分开显示；预览不替董事作业务判断，不执行审批或签署。",
+  "default_design": "A",
+  "designs": [
+    {
+      "id": "A", "source": "AWS Cloudscape", "title": "董事项目观察表",
+      "question": "哪些房屋值得打开看，估算与关键节点分别是什么现况？",
+      "borrowed": "资源表格与上下文详情并列，比较多个对象时保留所在集合。",
+      "adapted": "一房一行，阶段、当前分析版本、预算支出和 D/J 事实并排；点击房屋读原记录与资料。",
+      "gain": "适合快速扫视多套房，再进入值得关注的房屋。",
+      "cost": "复杂问题需要读右侧详情；并排列数字仍须核对估算口径。",
+      "url": "https://cloudscape.design/patterns/resource-management/view/", "sourceLabel": "Cloudscape · View resources", "layout": "director-overview"
+    },
+    {
+      "id": "B", "source": "Linear", "title": "议题与近期更新",
+      "question": "现在有什么问题需要理解，原记录是什么，下一步做什么？",
+      "borrowed": "项目更新同时表达当前情况、问题、下一步与时间背景。",
+      "adapted": "按资料、进度和结算议题组织房屋，问题直接连接项目更新、实际任务与证据。分组不是审批流。",
+      "gain": "适合与 Jessie 围绕具体问题对齐，少在正常数据中来回查找。",
+      "cost": "不替代完整财务比较；议题分类是合成设计样例，不是已上线的董事决策台账。",
+      "url": "https://linear.app/docs/initiative-and-project-updates", "sourceLabel": "Linear · Initiative and Project updates", "layout": "director-updates"
+    },
+    {
+      "id": "C", "source": "Microsoft Power BI", "title": "估算依据工作台",
+      "question": "这套房的盈利假设来自哪里，不同估算版本为什么不同？",
+      "borrowed": "手动选择维度逐层展开，保持所选对象并查看构成与依据。",
+      "adapted": "先选房屋和分析版本，再展开购入、装修、持有与卖出成本；数字使用现有交易分析公式。这里只借鉴探索方式，不接 Power BI 或 AI 判断。",
+      "gain": "版本、成本与来源放在一起，便于核对假设和缺失资料。",
+      "cost": "逐房查看较慢；模型估算不代表最终净利润，也不构成自动投资建议。",
+      "url": "https://learn.microsoft.com/en-us/power-bi/visuals/power-bi-visualization-decomposition-tree", "sourceLabel": "Microsoft Learn · Decomposition tree", "layout": "director-analysis"
+    }
+  ]
+}

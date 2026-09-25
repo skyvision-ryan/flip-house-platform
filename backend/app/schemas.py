@@ -1,4 +1,6 @@
 from typing import Optional
+from datetime import date
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, HttpUrl, field_validator
 
@@ -105,8 +107,10 @@ class ProjectOut(ORM):
     analysis_count: int = 0
     current_stage: Optional[dict] = None
     next_up: list[dict] = []
-    stage_progress: list[dict] = []      # 五段各自 done/total 与大节点状态，工作台卡片用
+    stage_progress: list[dict] = []      # 六段各自 done/total 与大节点状态，工作台卡片用
     earlier_undone_count: int = 0
+    group_position: Optional[dict] = None   # KAN-75 块 2：五格位置条 + 买房子位置
+    lead_substage_at_escrow: Optional[str] = None
 
 
 class FieldIn(BaseModel):
@@ -115,6 +119,12 @@ class FieldIn(BaseModel):
     source: str = "manual"   # KAN-71：客户端不带 source 就按人工，不能默认冒充公共记录
     confidence: Optional[float] = None
     note: Optional[str] = None
+
+
+class TaskPreplanIn(BaseModel):
+    step_key: str
+    assignee_user_id: Optional[int] = None
+    due_at: Optional[date] = None
 
 
 class ProjectCreate(BaseModel):
@@ -139,6 +149,9 @@ class ProjectCreate(BaseModel):
     risks: Optional[str] = None
     notes: Optional[str] = None
     create_analysis: bool = True
+    request_key: Optional[UUID] = None
+    task_plan: list[TaskPreplanIn] = []
+    join_assignees: bool = False
 
 
 class ProjectPatch(BaseModel):
@@ -514,3 +527,154 @@ class StepsOut(BaseModel):
     next_up: list[dict]
     earlier_undone: list[dict] = []
     stage_progress: list[dict] = []
+    group_position: Optional[dict] = None
+
+
+# ---------- KAN-75：任务实例、成员、事件 ----------
+class UserBrief(BaseModel):
+    id: int
+    username: str
+    display_name: str
+    role_code: str
+    active: bool = True
+
+
+class TaskEventOut(BaseModel):
+    id: int
+    task_id: Optional[int] = None
+    project_id: int
+    kind: str
+    kind_label: str
+    actor: Optional[UserBrief] = None
+    actor_role_snapshot: Optional[str] = None
+    before: Optional[dict] = None
+    after: Optional[dict] = None
+    reason: Optional[str] = None
+    created_at: str
+    text: str
+
+
+class SubmissionFileOut(BaseModel):
+    id: int
+    filename: str
+    mime: Optional[str] = None
+    size: int = 0
+    doc_type: Optional[str] = None
+    uploaded_at: Optional[str] = None
+
+
+class SubmissionOut(BaseModel):
+    id: int
+    task_id: int
+    seq: int
+    note: Optional[str] = None
+    submitted_by: Optional[UserBrief] = None
+    submitted_at: str
+    decision: str
+    decision_label: str
+    decided_by: Optional[UserBrief] = None
+    decided_at: Optional[str] = None
+    decision_reason: Optional[str] = None
+    files: list[SubmissionFileOut] = []
+
+
+class TaskOut(BaseModel):
+    id: int
+    project_id: int
+    project_name: str
+    project_address: str
+    step_key: Optional[str] = None
+    source: str
+    stage_key: str
+    stage_label: str
+    stage_short: str
+    stage_index: int
+    project_current_stage_index: int
+    project_current_stage_label: str
+    title: str
+    ws: Optional[str] = None
+    purpose: Optional[str] = None
+    done_when: Optional[str] = None
+    owners: list[str] = []
+    deliverable: Optional[dict] = None
+    description: Optional[str] = None
+    deliverable_note: Optional[str] = None
+    assignee: Optional[UserBrief] = None
+    reviewer: Optional[UserBrief] = None
+    exec_status: str
+    exec_status_label: str
+    due_at: Optional[str] = None
+    wait_for: Optional[str] = None
+    wait_reason: Optional[str] = None
+    wait_until: Optional[str] = None
+    version: int
+    satisfied: bool = False          # 证据派生的「满足」，与执行状态并列，不互相替代
+    satisfied_how: Optional[str] = None
+    satisfied_evidence: Optional[str] = None
+    evidence_hint: Optional[str] = None
+    last_event: Optional[TaskEventOut] = None
+    done_at: Optional[str] = None
+    requires_file: bool = False        # 交付物是文件 / 照片时才要求至少一个文件
+    submissions: list[SubmissionOut] = []
+    created_at: str
+    updated_at: str
+
+
+class TaskSubmitIn(BaseModel):
+    version: int
+    note: Optional[str] = None
+    file_ids: list[int] = []
+
+
+class TaskDecisionIn(BaseModel):
+    version: int
+    reason: Optional[str] = None
+
+
+class TaskListOut(BaseModel):
+    tasks: list[TaskOut]
+    stages: list[dict]
+    current_stage_index: int
+    template_missing: bool = False
+    can_assign: bool = False
+    focus: list[dict] = []   # 头卡三条事实：{label, value, tone}
+
+
+class WorkbenchOut(BaseModel):
+    projects: list[dict]
+    my_pending: list[TaskOut]
+    counts: dict
+    recent_handoffs: list[dict] = []
+
+
+class MemberOut(UserBrief):
+    role_snapshot: Optional[str] = None
+    added_at: Optional[str] = None
+
+
+class MembersOut(BaseModel):
+    members: list[MemberOut]
+    others: list[UserBrief]
+    can_assign: bool
+    can_add_member: bool
+
+
+class MyTasksOut(BaseModel):
+    assigned: list[TaskOut]
+    reviewing: list[TaskOut]
+
+
+class TaskAssignIn(BaseModel):
+    version: int
+    assignee_user_id: Optional[int] = None
+    due_at: Optional[str] = None
+    reason: Optional[str] = None
+    join_project: bool = False
+
+
+class TaskStatusIn(BaseModel):
+    version: int
+    action: str  # start / wait / resume
+    wait_for: Optional[str] = None
+    wait_reason: Optional[str] = None
+    wait_until: Optional[str] = None

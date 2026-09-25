@@ -1,0 +1,59 @@
+/* 依据内容宽度收栏，避免侧栏与摘要把表格挤成横向滚动。颜色由 Cloudscape 提供。 */
+.scope { container-type: inline-size; min-width: 0; }
+.split { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
+.intakeSplit { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
+.wideSplit { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
+.intakeSplit > *, .wideSplit > *, .split > *, .review > *, .draftRow > * { min-width: 0; }
+.review { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 24px; align-items: start; }
+.aside { position: sticky; top: 88px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.toolbar > :first-child { flex: 1 1 240px; }
+.steps { list-style: none; padding: 0; margin: 0 0 24px; display: flex; gap: 16px; }
+.steps li { flex: 1; display: flex; align-items: center; gap: 10px; padding-bottom: 16px; border-bottom: 3px solid; }
+.stepNumber { width: 28px; height: 28px; border-radius: 50%; display: inline-grid; place-items: center; flex: none; font-weight: 700; }
+.stepLabel { font-weight: 700; }
+.footer { display: flex; justify-content: space-between; gap: 16px; padding: 24px 0 8px; }
+.draftRow { display: grid; grid-template-columns: minmax(140px, 1fr) 145px 122px; gap: 16px; align-items: center; padding: 20px 0; }
+.rowHeading { font-size: 13px; padding: 0 0 8px; }
+.taskPick { display: block; width: 100%; text-align: left; background: transparent; border: 0; border-left: 3px solid transparent; padding: 20px; font: inherit; color: inherit; cursor: pointer; }
+.taskPick:hover { background-color: var(--ui-hover); }
+.taskPick:focus-visible { outline: 2px solid var(--ui-blue); outline-offset: -2px; }
+.taskPick[aria-pressed="true"] { border-left-color: var(--ui-blue); background-color: var(--ui-blue-soft); }
+.pickTitle { font-weight: 600; margin-bottom: 6px; }
+.pickMeta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; }
+@container (max-width: 1030px) {
+  .wideSplit { grid-template-columns: minmax(0, 1fr); }
+  .aside { position: static; }
+}
+@container (max-width: 850px) {
+  .intakeSplit, .split { grid-template-columns: minmax(0, 1fr); }
+}
+@container (max-width: 780px) {
+  .review { grid-template-columns: minmax(0, 1fr); }
+}
+@container (max-width: 520px) {
+  .draftRow { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .draftRow > :first-child { grid-column: 1 / -1; }
+  .rowHeading { display: none; }
+  .steps { gap: 8px; }
+  .steps li { gap: 6px; font-size: 13px; flex-wrap: wrap; align-content: start; }
+  .stepLabel { width: 100%; }
+  .footer { flex-wrap: wrap; }
+}
+
+.houseFacts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 0; }
+.houseFacts > div { min-width: 0; overflow-wrap: anywhere; }
+.houseFacts dd { margin: 4px 0 0; }
+
+.houseFacts dt { color: var(--ui-secondary); font-size: 13px; }
+.houseFacts dd { font-size: 14px; line-height: 1.65; }
+.taskPick { border-bottom: 1px solid var(--ui-border); }
+.pickTitle { font-size: 16px; line-height: 1.5; }
+
+.fullSpan { grid-column: 1 / -1; }
+.draftItem { border-top: 1px solid var(--ui-border); }
+.steps li { border-bottom-color: var(--ui-border); }
+.steps li[data-step-state="done"], .steps li[data-step-state="current"] { border-bottom-color: var(--ui-blue); }
+.steps li[data-step-state="current"] { color: var(--ui-blue); }
+.stepNumber { border: 1px solid var(--ui-border); background: var(--ui-surface); }
+.steps li[data-step-state="done"] .stepNumber, .steps li[data-step-state="current"] .stepNumber { background: var(--ui-blue-soft); color: var(--ui-blue); }

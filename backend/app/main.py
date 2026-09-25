@@ -13,7 +13,7 @@ from .auth import ensure_admin
 from .db import SessionLocal, init_db
 from .migrations import run_migrations
 from .providers import get_provider
-from .routers import analyses, auth, budget, dashboard, files, lookup, meta, ops, procurement, projects, property_data, steps
+from .routers import analyses, auth, budget, dashboard, design_workspaces, files, lookup, meta, ops, procurement, projects, property_data, steps, tasks
 from .settings import ADMIN_PASSWORD, ADMIN_USER, CORS_ORIGINS, SEED_DEMO
 
 
@@ -32,6 +32,11 @@ async def lifespan(app: FastAPI):
             seed(db)
         if ensure_admin(db, ADMIN_USER, ADMIN_PASSWORD):
             print(f"已创建管理员账号：{ADMIN_USER}")
+        # KAN-75：存量项目回填普通任务实例。幂等（按 project_id + step_key），每次启动跑一遍成本很低；
+        # 不用迁移戳记表——那会在 seed 之前跑、灌 0 行，Render 每次部署都是新库。
+        from .routers.tasks import ensure_tasks
+        for pid in db.scalars(select(models.Project.id)).all():
+            ensure_tasks(db, pid)
     yield
 
 
@@ -44,7 +49,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-for r in (auth, meta, dashboard, lookup, projects, property_data, files, budget, analyses, steps, ops, procurement):
+for r in (auth, meta, dashboard, lookup, projects, property_data, files, budget, analyses, steps, ops, procurement, tasks, design_workspaces):
     app.include_router(r.router)
 
 

@@ -1,24 +1,25 @@
-import { useCallback, useEffect, useState } from 'react';
+import Badge from '@cloudscape-design/components/badge';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
-import Container from '@cloudscape-design/components/container';
-import UploadForm from '../../components/UploadForm';
 import DatePicker from '@cloudscape-design/components/date-picker';
-import FormField from '@cloudscape-design/components/form-field';
-import Header from '@cloudscape-design/components/header';
 import Input from '@cloudscape-design/components/input';
 import Link from '@cloudscape-design/components/link';
 import Modal from '@cloudscape-design/components/modal';
 import Select from '@cloudscape-design/components/select';
 import SpaceBetween from '@cloudscape-design/components/space-between';
-import Table from '@cloudscape-design/components/table';
-import Badge from '@cloudscape-design/components/badge';
+import { useCallback, useEffect, useState } from 'react';
 import { api, ProjectFile } from '../../api/client';
+import { RoleLabel } from '../../components/RoleLabel';
+import FormField from '../../components/ui/FormField';
+import Header from '../../components/ui/Header';
+import Container from '../../components/ui/Surface';
+import Table from '../../components/ui/Table';
+import UploadForm from '../../components/UploadForm';
 import { useFlash } from '../../lib/flash';
 import { dateStr, money, text } from '../../lib/format';
 import { labelOf, useMeta } from '../../lib/meta';
-import ReviewTag from '../../components/ReviewTag';
-import OwnerTag, { OwnerDot } from '../../components/OwnerTag';
+import { useRole } from '../../lib/role';
+import { fileRegistrationPatch, type FileRegistrationDraft } from '../../lib/fileRegistration';
 
 function sizeStr(n: number) {
   if (n < 1024) return `${n} B`;
@@ -29,10 +30,13 @@ function sizeStr(n: number) {
 export default function FilesTab({ projectId }: { projectId: number }) {
   const meta = useMeta();
   const flash = useFlash();
+  const role = useRole();
+  const canManageMetadata = role.can('upload_any');
   const [files, setFiles] = useState<ProjectFile[]>([]);
   const [who, setWho] = useState<string>('');
   const [editing, setEditing] = useState<ProjectFile | null>(null);
   const [draft, setDraft] = useState<any>({});
+  const [saving, setSaving] = useState(false);
 
   const load = useCallback(() => api.files(projectId).then(setFiles), [projectId]);
   useEffect(() => { load(); }, [load]);
@@ -45,16 +49,16 @@ export default function FilesTab({ projectId }: { projectId: number }) {
 
   return (
     <SpaceBetween size="l">
-      <Container header={<Header variant="h2" description="文件不只是存起来，而是登记：类型、挂到哪一步、日期、对方、金额。挂到步骤上的文件和照片会让清单自动打勾。"><ReviewTag id="A" /><OwnerTag block="files.upload" />上传并登记文件</Header>}>
+      <Container cardId="files-upload" header={<Header variant="h2" help="文件不只是存起来，而是登记：类型、挂到哪一步、日期、对方、金额。挂到步骤上的文件和照片会让清单自动打勾。">上传并登记文件</Header>}>
         <UploadForm projectId={projectId} onDone={load} />
       </Container>
 
-      <Table
+      <Table cardId="files-list"
         header={
           <Header
             variant="h2"
             counter={`(${shown.length}${who ? ` / ${files.length}` : ''})`}
-            description="文件都放在一起，按“谁传的”可以筛。"
+            help="文件都放在一起，按“谁传的”可以筛。"
             actions={
               <SpaceBetween direction="horizontal" size="xs">
                 <Button variant={who ? 'normal' : 'primary'} onClick={() => setWho('')}>全部</Button>
@@ -62,20 +66,20 @@ export default function FilesTab({ projectId }: { projectId: number }) {
               </SpaceBetween>
             }
           >
-            <ReviewTag id="B" /><OwnerTag block="files.table" />文件登记表
+            文件登记表
           </Header>
         }
         items={shown}
         empty={<Box textAlign="center" color="inherit"><b>还没有文件</b></Box>}
         columnDefinitions={[
           { id: 'name', header: '文件名', cell: (f) => (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-              {(f.mime ?? '').startsWith('image/') && <img src={`/api/files/${f.id}/download`} alt="" style={{ width: 40, height: 30, objectFit: 'cover', borderRadius: 4, background: '#e9ecef' }} />}
+            <span className="ui-inline">
+              {(f.mime ?? '').startsWith('image/') && <img src={`/api/files/${f.id}/download`} alt="" className="ui-thumbnail ui-thumbnail-file" />}
               <Link href={`/api/files/${f.id}/download`} external>{f.filename}</Link>
             </span>
           ) },
           { id: 'step', header: '挂到哪一步', cell: (f) => (f.step_key ? stepTitle(f.step_key) : '—') },
-          { id: 'who', header: '谁传的', cell: (f) => (f.uploaded_by ? <OwnerDot code={f.uploaded_by} /> : '—') },
+          { id: 'who', header: '谁传的', cell: (f) => (f.uploaded_by ? <RoleLabel code={f.uploaded_by} /> : '—') },
           { id: 'type', header: '类型', cell: (f) => labelOf(meta?.file_types, f.doc_type) },
           { id: 'stage', header: '阶段', cell: (f) => text(f.stage) },
           { id: 'date', header: '文件日期', cell: (f) => dateStr(f.doc_date) },
@@ -101,10 +105,15 @@ export default function FilesTab({ projectId }: { projectId: number }) {
           <Box float="right">
             <SpaceBetween direction="horizontal" size="xs">
               <Button variant="link" onClick={() => setEditing(null)}>取消</Button>
-              <Button variant="primary" onClick={async () => {
+              <Button variant="primary" loading={saving} onClick={async () => {
                 if (!editing) return;
-                await api.patchFile(editing.id, { doc_type: draft.doc_type, doc_date: draft.doc_date || null, counterparty: draft.counterparty || null, amount: draft.amount === '' ? null : Number(draft.amount), uploaded_by: draft.uploaded_by || null, expires_at: draft.expires_at || null });
-                setEditing(null); await load(); flash({ type: 'success', content: '登记信息已更新' });
+                setSaving(true);
+                try {
+                  await api.patchFile(editing.id, fileRegistrationPatch(draft as FileRegistrationDraft, canManageMetadata, role.canReadMoney));
+                  setEditing(null); await load(); flash({ type: 'success', content: '登记信息已更新' });
+                } catch (error: unknown) {
+                  flash({ type: 'error', content: `保存失败：${error instanceof Error ? error.message : String(error)}` });
+                } finally { setSaving(false); }
               }}>保存</Button>
             </SpaceBetween>
           </Box>
@@ -112,14 +121,14 @@ export default function FilesTab({ projectId }: { projectId: number }) {
       >
         <SpaceBetween size="m">
           <FormField label="文件类型">
-            <Select selectedOption={typeOptions.find((o) => o.value === draft.doc_type) ?? null} options={typeOptions} onChange={({ detail }) => setDraft((d: any) => ({ ...d, doc_type: detail.selectedOption.value }))} />
+            <Select disabled={!canManageMetadata} selectedOption={typeOptions.find((o) => o.value === draft.doc_type) ?? null} options={typeOptions} onChange={({ detail }) => setDraft((d: any) => ({ ...d, doc_type: detail.selectedOption.value }))} />
           </FormField>
           <FormField label="上传人（谁传的）">
-            <Select selectedOption={peopleOptions.find((o) => o.value === draft.uploaded_by) ?? null} options={peopleOptions} onChange={({ detail }) => setDraft((d: any) => ({ ...d, uploaded_by: detail.selectedOption.value }))} />
+            <Select disabled={!canManageMetadata} selectedOption={peopleOptions.find((o) => o.value === draft.uploaded_by) ?? null} options={peopleOptions} onChange={({ detail }) => setDraft((d: any) => ({ ...d, uploaded_by: detail.selectedOption.value }))} />
           </FormField>
           <FormField label="文件日期"><DatePicker value={draft.doc_date ?? ''} onChange={({ detail }) => setDraft((d: any) => ({ ...d, doc_date: detail.value }))} placeholder="YYYY/MM/DD" /></FormField>
           <FormField label="对方"><Input value={draft.counterparty ?? ''} onChange={({ detail }) => setDraft((d: any) => ({ ...d, counterparty: detail.value }))} /></FormField>
-          <FormField label="涉及金额（美元）"><Input type="number" value={draft.amount ?? ''} onChange={({ detail }) => setDraft((d: any) => ({ ...d, amount: detail.value }))} /></FormField>
+          {role.canReadMoney && <FormField label="涉及金额（美元）"><Input type="number" value={draft.amount ?? ''} onChange={({ detail }) => setDraft((d: any) => ({ ...d, amount: detail.value }))} /></FormField>}
           <FormField label="到期日（保险这类有时限的文件）"><DatePicker value={draft.expires_at ?? ''} onChange={({ detail }) => setDraft((d: any) => ({ ...d, expires_at: detail.value }))} placeholder="YYYY/MM/DD" /></FormField>
         </SpaceBetween>
       </Modal>

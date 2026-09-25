@@ -1,17 +1,17 @@
-import { useState } from 'react';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
 import ColumnLayout from '@cloudscape-design/components/column-layout';
 import DatePicker from '@cloudscape-design/components/date-picker';
 import FileUpload from '@cloudscape-design/components/file-upload';
-import FormField from '@cloudscape-design/components/form-field';
 import Input from '@cloudscape-design/components/input';
 import Select from '@cloudscape-design/components/select';
 import SpaceBetween from '@cloudscape-design/components/space-between';
+import { useState } from 'react';
 import { api } from '../api/client';
 import { useActor } from '../lib/actor';
 import { useFlash } from '../lib/flash';
 import { useMeta } from '../lib/meta';
+import FormField from './ui/FormField';
 
 interface Props {
   projectId: number;
@@ -88,7 +88,7 @@ export default function UploadForm({ projectId, docType: initType = 'other', loc
             <Select disabled={lockType} selectedOption={typeOptions.find((o) => o.value === docType) ?? null} options={typeOptions} onChange={({ detail }) => setDocType(detail.selectedOption.value!)} />
           </FormField>
         )}
-        <FormField label="挂到哪一步" description={stepKey ? '从清单进来的，已定' : '照片一定要挂到步骤上才会自动打勾'}>
+        <FormField label="关联步骤" description={stepKey ? '从清单进来的，已定' : '照片关联步骤后参与证据判定；任务仍需提交确认。'}>
           <Select disabled={!!stepKey} selectedOption={stepOptions.find((o) => o.value === step) ?? null} options={[{ label: '不挂', value: '' }, ...stepOptions]} onChange={({ detail }) => setStep(detail.selectedOption.value || null)} placeholder="选一步" expandToViewport />
         </FormField>
         <FormField label="上传人（谁传的）" description={actor === '负责人' ? '按类型给了默认值，可改' : '就是你'}>

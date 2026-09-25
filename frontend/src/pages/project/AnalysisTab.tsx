@@ -1,15 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Alert from '@cloudscape-design/components/alert';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
 import ButtonDropdown from '@cloudscape-design/components/button-dropdown';
 import Checkbox from '@cloudscape-design/components/checkbox';
 import ColumnLayout from '@cloudscape-design/components/column-layout';
-import Container from '@cloudscape-design/components/container';
-import ExpandableSection from '@cloudscape-design/components/expandable-section';
-import FormField from '@cloudscape-design/components/form-field';
 import Grid from '@cloudscape-design/components/grid';
-import Header from '@cloudscape-design/components/header';
 import Input from '@cloudscape-design/components/input';
 import Modal from '@cloudscape-design/components/modal';
 import RadioGroup from '@cloudscape-design/components/radio-group';
@@ -19,21 +14,25 @@ import SpaceBetween from '@cloudscape-design/components/space-between';
 import Spinner from '@cloudscape-design/components/spinner';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
 import Toggle from '@cloudscape-design/components/toggle';
-import SourceBadge from '../../components/SourceBadge';
-import { BulletList, StackedBar, StatTile, compactMoney } from '../../components/charts';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Analysis, api, Project } from '../../api/client';
+import HelpText from '../../components/HelpText';
+import SourceBadge from '../../components/SourceBadge';
+import { BulletList, compactMoney, StackedBar, StatTile } from '../../components/charts';
+import ExpandableSection from '../../components/ui/ExpandableSection';
+import FormField from '../../components/ui/FormField';
+import Header from '../../components/ui/Header';
+import Container from '../../components/ui/Surface';
 import { AnalysisInputs, fullOutputs, RehabRow, Row } from '../../lib/analysis';
 import { useFlash } from '../../lib/flash';
 import { money, pct } from '../../lib/format';
 import { useMeta } from '../../lib/meta';
-import ReviewTag from '../../components/ReviewTag';
-import OwnerTag from '../../components/OwnerTag';
 
 const num = (v: unknown) => { const x = typeof v === 'string' ? parseFloat(v) : (v as number); return Number.isFinite(x) ? x : 0; };
 const str = (v: unknown) => (v === null || v === undefined ? '' : String(v));
 
-function Metric({ label, value, sub, tone }: { label: string; value: string; sub?: string; tone?: 'good' | 'bad' }) {
-  return <StatTile label={label} value={value} sub={sub} tone={tone} size="m" />;
+function Metric({ label, value, sub, help, tone }: { label: string; value: string; sub?: string; help?: string; tone?: 'good' | 'bad' }) {
+  return <StatTile label={label} value={value} sub={sub} help={help} tone={tone} size="m" />;
 }
 
 function RowsEditor({ rows, onChange, sources, prefix, addLabel }: { rows: Row[]; onChange: (r: Row[]) => void; sources?: Record<string, any>; prefix?: string; addLabel: string }) {
@@ -128,7 +127,7 @@ export default function AnalysisTab({ project, reload }: { project: Project; rel
 
   if (!inputs || !out || !aid) {
     return (
-      <Container header={<Header variant="h2"><ReviewTag id="A" /><OwnerTag block="analysis" />交易分析</Header>}>
+      <Container cardId="analysis-empty" header={<Header variant="h2">交易分析</Header>}>
         <SpaceBetween size="m">
           <Box>还没有算过账。系统会用已知数据（估值、挂牌价、房产税、面积）和行业默认值预填一份，你只需要改动你更清楚的数字。</Box>
           <SpaceBetween direction="horizontal" size="xs">
@@ -155,11 +154,12 @@ export default function AnalysisTab({ project, reload }: { project: Project; rel
 
   return (
     <SpaceBetween size="l">
-      <Container
+      <Container cardId="analysis-inputs"
         header={
           <Header
             variant="h2"
-            description={inputs.note ?? '改任何数字，右边立刻重算。预填字段带来源标签，行业默认值以后会用公司历史数据替换。'}
+            description={inputs.note || undefined}
+            help="修改数字后自动重算。预填字段保留来源，采用前请核实。"
             actions={
               <SpaceBetween direction="horizontal" size="xs" alignItems="center">
                 {saving ? <StatusIndicator type="loading">保存中</StatusIndicator> : <StatusIndicator type="success">已保存</StatusIndicator>}
@@ -184,26 +184,26 @@ export default function AnalysisTab({ project, reload }: { project: Project; rel
               </SpaceBetween>
             }
           >
-            <ReviewTag id="A" /><OwnerTag block="analysis" />交易分析
+            交易分析
           </Header>
         }
       >
-        <Box margin={{ bottom: 's' }}><ReviewTag id="B" /><Box variant="h3" display="inline">核心指标</Box></Box>
+        <Box margin={{ bottom: 's' }}><Box variant="h3" display="inline">核心指标</Box></Box>
         <ColumnLayout columns={4} minColumnWidth={160} variant="text-grid">
-          <Metric label="总利润" value={money(out.total_profit)} sub={profitable ? '售价减全部成本' : '亏损：成本高于售价'} tone={profitable ? 'good' : 'bad'} />
-          <Metric label="利润率" value={pct(out.profit_margin_pct)} sub="利润 ÷ 总成本" />
-          <Metric label="回报率" value={pct(out.roi_pct)} sub="利润 ÷ 现金投入" />
-          <Metric label="权益倍数" value={out.equity_multiple == null ? '—' : `${out.equity_multiple.toFixed(2)}×`} sub="卖出还清贷款后拿回的现金 ÷ 现金投入" />
-          <Metric label="总成本" value={money(out.total_costs)} sub="买入 + 持有 + 装修 + 卖出" />
+          <Metric label="总利润" value={money(out.total_profit)} sub={profitable ? undefined : '亏损：成本高于售价'} help="售价减全部成本" tone={profitable ? 'good' : 'bad'} />
+          <Metric label="利润率" value={pct(out.profit_margin_pct)} help="利润 ÷ 总成本" />
+          <Metric label="回报率" value={pct(out.roi_pct)} help="利润 ÷ 现金投入" />
+          <Metric label="权益倍数" value={out.equity_multiple == null ? '—' : `${out.equity_multiple.toFixed(2)}×`} help="卖出还清贷款后拿回的现金 ÷ 现金投入" />
+          <Metric label="总成本" value={money(out.total_costs)} help="买入 + 持有 + 装修 + 卖出" />
           <Metric label="现金投入" value={money(out.cash_invested)} sub={fin.enabled ? `首付 ${money(out.down_payment)} + 杂费 + 装修 + 持有 + 已还本金 ${money(out.principal_paid)}` : '全款：买入 + 杂费 + 装修 + 持有'} />
-          <Metric label="售价" value={money(out.sale_price)} sub="修好后能卖多少" />
+          <Metric label="售价" value={money(out.sale_price)} help="修好后能卖多少" />
           <Metric label="装修合计" value={money(out.rehab_total)} sub={`${inputs.rehab_items.length} 行明细`} />
         </ColumnLayout>
       </Container>
 
       <Grid gridDefinition={[{ colspan: { default: 12, m: 5 } }, { colspan: { default: 12, m: 7 } }]}>
         <SpaceBetween size="m">
-          <ExpandableSection variant="container" header={<Header variant="h3" counter={money(out.purchase_total)}><ReviewTag id="C" />买入成本</Header>} defaultExpanded>
+          <ExpandableSection cardId="analysis-purchase" variant="container" header={<Header variant="h3" counter={money(out.purchase_total)}>买入成本</Header>} defaultExpanded>
             <SpaceBetween size="m">
               <FormField label={<span>买入价 {sources.purchase_price && <SourceBadge source={sources.purchase_price.source} fetchedAt={sources.purchase_price.fetched_at} confidence={sources.purchase_price.confidence} note={sources.purchase_price.note} />}</span>}>
                 <Input type="number" value={str(inputs.purchase_price)} onChange={({ detail }) => update({ purchase_price: detail.value })} />
@@ -214,7 +214,7 @@ export default function AnalysisTab({ project, reload }: { project: Project; rel
             </SpaceBetween>
           </ExpandableSection>
 
-          <ExpandableSection variant="container" header={<Header variant="h3" counter={money(out.holding_total)}><ReviewTag id="D" />持有成本</Header>}>
+          <ExpandableSection cardId="analysis-holding" variant="container" header={<Header variant="h3" counter={money(out.holding_total)}>持有成本</Header>}>
             <SpaceBetween size="m">
               <FormField label={<span>持有月数 {sources.holding_months && <SourceBadge source={sources.holding_months.source} note={sources.holding_months.note} />}</span>}>
                 <Input type="number" value={str(inputs.holding_months)} onChange={({ detail }) => update({ holding_months: detail.value })} />
@@ -240,7 +240,7 @@ export default function AnalysisTab({ project, reload }: { project: Project; rel
             </SpaceBetween>
           </ExpandableSection>
 
-          <ExpandableSection variant="container" header={<Header variant="h3" counter={money(out.rehab_total)}><ReviewTag id="E" />装修明细</Header>}>
+          <ExpandableSection cardId="analysis-rehab" variant="container" header={<Header variant="h3" counter={money(out.rehab_total)}>装修明细</Header>}>
             <SpaceBetween size="s">
               {sources.rehab_items && <Alert type="info">{sources.rehab_items.note}</Alert>}
               {inputs.rehab_items.map((r: RehabRow, i: number) => (
@@ -258,7 +258,7 @@ export default function AnalysisTab({ project, reload }: { project: Project; rel
             </SpaceBetween>
           </ExpandableSection>
 
-          <ExpandableSection variant="container" header={<Header variant="h3" counter={money(out.selling_total)}><ReviewTag id="F" />卖出成本</Header>}>
+          <ExpandableSection cardId="analysis-selling" variant="container" header={<Header variant="h3" counter={money(out.selling_total)}>卖出成本</Header>}>
             <SpaceBetween size="m">
               <FormField label={<span>卖出比例 %（佣金 + 卖方过户） {sources.selling_pct && <SourceBadge source={sources.selling_pct.source} note={sources.selling_pct.note} />}</span>}>
                 <Input type="number" value={str(inputs.selling_pct)} onChange={({ detail }) => update({ selling_pct: detail.value })} />
@@ -271,20 +271,20 @@ export default function AnalysisTab({ project, reload }: { project: Project; rel
         </SpaceBetween>
 
         <SpaceBetween size="m">
-          <Container header={<Header variant="h2" description="修好后能卖多少。来自估值或你定的目标售价。"><ReviewTag id="G" />售价</Header>}>
+          <Container cardId="analysis-price" header={<Header variant="h2" help="修好后能卖多少。来自估值或你定的目标售价。">售价</Header>}>
             <FormField label={<span>售价 {sources.sale_price && <SourceBadge source={sources.sale_price.source} fetchedAt={sources.sale_price.fetched_at} confidence={sources.sale_price.confidence} note={sources.sale_price.note} />}</span>}>
               <Input type="number" value={str(inputs.sale_price)} onChange={({ detail }) => update({ sale_price: detail.value })} />
             </FormField>
           </Container>
 
-          <Container header={<Header variant="h2" description="拖目标利润率（利润 ÷ 总成本），算出最多能出多少钱。"><ReviewTag id="H" />最高出价</Header>}>
+          <Container cardId="analysis-offer" header={<Header variant="h2" help="拖目标利润率（利润 ÷ 总成本），算出最多能出多少钱。">最高出价</Header>}>
             <SpaceBetween size="m">
               <FormField label={`目标利润率 ${num(inputs.target_margin_pct)}%`}>
                 <Slider value={num(inputs.target_margin_pct)} min={0} max={60} step={1} onChange={({ detail }) => update({ target_margin_pct: detail.value })} valueFormatter={(v) => `${v}%`} />
               </FormField>
               <ColumnLayout columns={2} variant="text-grid">
                 <StatTile label="最高可出价" value={money(out.mao)} sub={priceOk ? `当前买入价低于上限 ${money(out.mao - num(inputs.purchase_price))}` : `当前买入价高出上限 ${money(num(inputs.purchase_price) - out.mao)}`} tone={priceOk ? 'good' : 'bad'} />
-                <StatTile label="70% 法则参考" value={money(out.mao_rule70)} sub="售价 × 70% − 装修" />
+                <StatTile label="70% 法则参考" value={money(out.mao_rule70)} help="售价 × 70% − 装修" />
               </ColumnLayout>
               <BulletList
                 rows={[{ key: 'price', label: '当前买入价', actual: num(inputs.purchase_price), target: out.mao }]}
@@ -294,11 +294,11 @@ export default function AnalysisTab({ project, reload }: { project: Project; rel
                 targetLabel="上限"
                 labelWidth={90}
               />
-              <Box variant="small" color="text-body-secondary">灰底是目标利润率下的最高出价，条是当前买入价，超出上限的那段画红；细刻度是 70% 法则参考。</Box>
+              <HelpText>灰底是目标利润率下的最高出价，条是当前买入价，超出上限的那段画红；细刻度是 70% 法则参考。</HelpText>
             </SpaceBetween>
           </Container>
 
-          <Container header={<Header variant="h2" description="一根条看成本构成，竖线是售价：条比线短就有利润。"><ReviewTag id="I" />成本结构</Header>}>
+          <Container cardId="analysis-costs" header={<Header variant="h2" help="一根条看成本构成，竖线是售价：条比线短就有利润。">成本结构</Header>}>
             <StackedBar segments={costSegments} format={compactMoney} marker={{ value: out.sale_price, label: '售价' }} legendColumns={2} />
           </Container>
         </SpaceBetween>
@@ -322,7 +322,7 @@ export default function AnalysisTab({ project, reload }: { project: Project; rel
               ]}
             />
           </FormField>
-          <Box variant="small" color="text-body-secondary">这一步把“买前估算”变成“买后预算”，以后实际支出对着它记，就能看出估算准不准。</Box>
+          <HelpText>这一步把“买前估算”变成“买后预算”，以后实际支出对着它记，就能看出估算准不准。</HelpText>
         </SpaceBetween>
       </Modal>
     </SpaceBetween>

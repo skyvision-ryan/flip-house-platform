@@ -118,12 +118,14 @@ async function loadInsightsAll(projects: Project[]): Promise<Insight[]> {
 /** 首页头部的一句话。 */
 export function headline(insights: Insight[], projects: Project[]): { title: string; subtitle: string } {
   const urgent = new Set(insights.filter((i) => i.level !== 'info').map((i) => i.projectId));
-  const active = projects.filter((p) => p.stage === 'active').length;
-  const leads = projects.filter((p) => p.stage === 'lead').length;
+  // KAN-75 块 2：按分组位置数，不读旧 stage 列；没有 group_position（老接口）时回落旧列
+  const gp = (p: Project) => p.group_position;
+  const leads = projects.filter((p) => (gp(p) ? gp(p)!.sub_key === 'pre' : p.stage === 'lead')).length;
+  const active = projects.filter((p) => (gp(p) ? gp(p)!.sub_key !== 'pre' && gp(p)!.group_key !== 'closeout' && !gp(p)!.complete : p.stage === 'active')).length;
   const done = projects.filter((p) => p.stage === 'portfolio').length;
   const title = urgent.size > 0 ? `今天有 ${urgent.size} 套房子需要你关注` : projects.length ? '所有房子都在正轨上' : '从一个地址开始';
   const subtitle = projects.length
-    ? `${active} 套在建，${leads} 条线索，${done} 套已完成。${urgent.size > 0 ? '优先处理下面标红和标黄的。' : '有空可以补一补缺失的数据。'}`
+    ? `${active} 套在建，${leads} 套未购入，${done} 套收尾。${urgent.size > 0 ? '优先处理下面标红和标黄的。' : '有空可以补一补缺失的数据。'}`
     : '输入地址，系统会自动补全房产数据并标注来源。';
   return { title, subtitle };
 }

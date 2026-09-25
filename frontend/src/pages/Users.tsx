@@ -1,24 +1,25 @@
-import { useCallback, useEffect, useState } from 'react';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
 import Checkbox from '@cloudscape-design/components/checkbox';
 import ContentLayout from '@cloudscape-design/components/content-layout';
-import FormField from '@cloudscape-design/components/form-field';
-import Header from '@cloudscape-design/components/header';
 import Input from '@cloudscape-design/components/input';
 import Modal from '@cloudscape-design/components/modal';
 import Select from '@cloudscape-design/components/select';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
-import Table from '@cloudscape-design/components/table';
+import { useCallback, useEffect, useState } from 'react';
 import { api, UserRow } from '../api/client';
+import FormField from '../components/ui/FormField';
+import Header from '../components/ui/Header';
+import Table from '../components/ui/Table';
 import { useActor } from '../lib/actor';
 import { useFlash } from '../lib/flash';
 import { dateStr } from '../lib/format';
 import { useMeta } from '../lib/meta';
+import PersonAvatar from '../components/PersonAvatar';
 
-type Draft = { username: string; display_name: string; role_code: string; password: string; is_admin: boolean };
-const EMPTY: Draft = { username: '', display_name: '', role_code: '', password: '', is_admin: false };
+type Draft = { username: string; display_name: string; role_code: string; password: string; is_admin: boolean; email: string };
+const EMPTY: Draft = { username: '', display_name: '', role_code: '', password: '', is_admin: false, email: '' };
 
 /** 用户管理：只有管理员能进。一个人一个账号，账号绑一个角色代号，代号决定权限。 */
 export default function Users() {
@@ -40,7 +41,7 @@ export default function Users() {
   const open = (m: 'create' | 'edit' | 'password') => {
     setErr(null);
     if (m === 'create') setDraft(EMPTY);
-    else if (sel) setDraft({ username: sel.username, display_name: sel.display_name, role_code: sel.role_code, password: '', is_admin: sel.is_admin });
+    else if (sel) setDraft({ username: sel.username, display_name: sel.display_name, role_code: sel.role_code, password: '', is_admin: sel.is_admin, email: sel.email ?? '' });
     setModal(m);
   };
   const submit = async () => {
@@ -49,8 +50,8 @@ export default function Users() {
     if (modal !== 'edit' && draft.password.length < 6) { setErr('密码至少 6 位'); return; }
     setBusy(true); setErr(null);
     try {
-      if (modal === 'create') { await api.createUser(draft); flash({ type: 'success', content: `已建账号 ${draft.username}（${draft.role_code}）` }); }
-      else if (modal === 'edit' && sel) { await api.patchUser(sel.id, { display_name: draft.display_name, role_code: draft.role_code, is_admin: draft.is_admin }); flash({ type: 'success', content: `已更新 ${sel.username}` }); }
+      if (modal === 'create') { await api.createUser({ ...draft, email: draft.email.trim() || null }); flash({ type: 'success', content: `已建账号 ${draft.username}（${draft.role_code}）` }); }
+      else if (modal === 'edit' && sel) { await api.patchUser(sel.id, { display_name: draft.display_name, role_code: draft.role_code, is_admin: draft.is_admin, email: draft.email.trim() || null }); flash({ type: 'success', content: `已更新 ${sel.username}` }); }
       else if (modal === 'password' && sel) { await api.patchUser(sel.id, { password: draft.password }); flash({ type: 'success', content: `已重置 ${sel.username} 的密码` }); }
       setModal(null); setSelected([]); await load();
     } catch (e: any) { setErr(e.message); } finally { setBusy(false); }
@@ -62,8 +63,8 @@ export default function Users() {
   };
 
   return (
-    <ContentLayout header={<Header variant="h1" description="一个人一个账号。账号绑定的角色代号决定能看什么、能改什么；管理员能管账号。">用户</Header>}>
-      <Table
+    <ContentLayout header={<Header variant="h1" help="一个人一个账号。账号绑定的角色代号决定能看什么、能改什么；管理员能管账号。">用户</Header>}>
+      <Table cardId="user-list"
         items={rows ?? []}
         loading={rows === null}
         loadingText="读取中"
@@ -90,8 +91,9 @@ export default function Users() {
         }
         columnDefinitions={[
           { id: 'username', header: '账号', cell: (u) => <Box fontWeight="bold">{u.username}</Box> },
-          { id: 'name', header: '姓名', cell: (u) => u.display_name },
+          { id: 'name', header: '姓名', cell: (u) => <PersonAvatar user={u} showRole={false} /> },
           { id: 'role', header: '角色', cell: (u) => u.role_code },
+          { id: 'email', header: '邮箱', cell: (u) => (u.email ? u.email : <Box color="text-body-secondary">无邮箱 · 收不到提醒</Box>) },
           { id: 'tier', header: '级别', cell: (u) => u.tier_label },
           { id: 'admin', header: '管理员', cell: (u) => (u.is_admin ? '是' : '—') },
           { id: 'status', header: '状态', cell: (u) => (u.active ? <StatusIndicator type="success">在用</StatusIndicator> : <StatusIndicator type="stopped">已停用</StatusIndicator>) },
@@ -124,7 +126,7 @@ export default function Users() {
               <FormField label="姓名" description="页面上显示的名字">
                 <Input value={draft.display_name} onChange={({ detail }) => setDraft({ ...draft, display_name: detail.value })} />
               </FormField>
-              <FormField label="角色" description="决定权限：紫色决策看全部，蓝色统筹，青色执行看不到钱，灰色外部">
+              <FormField label="角色" description="角色决定可见范围与操作权限；项目成员关系另行管理。">
                 <Select
                   selectedOption={roleOptions.find((o) => o.value === draft.role_code) ?? null}
                   onChange={({ detail }) => setDraft({ ...draft, role_code: detail.selectedOption.value ?? '' })}
@@ -132,11 +134,14 @@ export default function Users() {
                   placeholder="选一个角色"
                 />
               </FormField>
+              <FormField label="邮箱" description="用于后续任务提醒；当前邮件通道尚未接通。">
+                <Input type="email" value={draft.email} onChange={({ detail }) => setDraft({ ...draft, email: detail.value })} placeholder="name@company.com" />
+              </FormField>
               <Checkbox checked={draft.is_admin} onChange={({ detail }) => setDraft({ ...draft, is_admin: detail.checked })} description="能建账号、改角色、重置密码">管理员</Checkbox>
             </>
           )}
           {modal !== 'edit' && (
-            <FormField label={modal === 'create' ? '初始密码' : '新密码'} description="至少 6 位，告诉本人后让他自己记好">
+            <FormField label={modal === 'create' ? '初始密码' : '新密码'} constraintText="至少 6 位">
               <Input type="password" value={draft.password} onChange={({ detail }) => setDraft({ ...draft, password: detail.value })} autoFocus={modal === 'password'} />
             </FormField>
           )}

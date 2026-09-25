@@ -1,8 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useCollection } from '@cloudscape-design/collection-hooks';
 import Board, { BoardProps } from '@cloudscape-design/board-components/board';
 import BoardItem from '@cloudscape-design/board-components/board-item';
+import { useCollection } from '@cloudscape-design/collection-hooks';
 import Box from '@cloudscape-design/components/box';
 import BreadcrumbGroup from '@cloudscape-design/components/breadcrumb-group';
 import Button from '@cloudscape-design/components/button';
@@ -10,59 +8,65 @@ import ButtonDropdown from '@cloudscape-design/components/button-dropdown';
 import Cards from '@cloudscape-design/components/cards';
 import ColumnLayout from '@cloudscape-design/components/column-layout';
 import ContentLayout from '@cloudscape-design/components/content-layout';
-import Header from '@cloudscape-design/components/header';
 import Link from '@cloudscape-design/components/link';
 import Pagination from '@cloudscape-design/components/pagination';
 import Select from '@cloudscape-design/components/select';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
-import Table from '@cloudscape-design/components/table';
 import TextFilter from '@cloudscape-design/components/text-filter';
-import StatusBadge from '../components/StatusBadge';
-import { BORDER, TEXT_2, TEXT_GOOD } from '../components/charts/palette';
-import CoverImage from '../components/CoverImage';
-import ReviewTag from '../components/ReviewTag';
-import { BulletList, DeltaBadge, HBars, InlineBar, Meter, ORDINAL_BLUE, StackedBar, StatTile, Trend, compactMoney, fullMoney } from '../components/charts';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api, DashboardRole, DashboardSummary, DashboardWidgets, Project, Update } from '../api/client';
+import CoverImage from '../components/CoverImage';
+import LeadGroups from '../components/LeadGroups';
 import MyTodoTable from '../components/MyTodoTable';
-import { useRole } from '../lib/role';
-import { actionHref } from '../lib/stepActions';
+import ReviewTag from '../components/ReviewTag';
+import { RoleLabel } from '../components/RoleLabel';
+import HelpText from '../components/HelpText';
+import StatusBadge from '../components/StatusBadge';
 import UpdatesList from '../components/UpdatesList';
-import { OwnerDot } from '../components/OwnerTag';
+import WorkbenchFocus from '../components/WorkbenchFocus';
+import { BulletList, compactMoney, DeltaBadge, fullMoney, HBars, InlineBar, Meter, StackedBar, StatTile, Trend } from '../components/charts';
+import Header from '../components/ui/Header';
+import { CardFrame } from '../components/ui/Surface';
+import Table from '../components/ui/Table';
+import { useActor } from '../lib/actor';
 import { dateStr, money, pct } from '../lib/format';
 import { Insight, loadInsights } from '../lib/insights';
-import { useMeta } from '../lib/meta';
 import { isLead } from '../lib/leads';
+import { useMeta } from '../lib/meta';
+import { useRole } from '../lib/role';
+import { filterFromParams, groupFilterOptions, matchesGroupFilter } from '../lib/stageGroups';
 import { stageText } from '../lib/stepDisplay';
 
 type WidgetId = 'attention' | 'money' | 'stages' | 'recent' | 'list' | 'upcoming' | 'capital' | 'retro' | 'weekly' | 'vendors' | 'funnel' | 'updates' | 'turns'
   | 'gates' | 'mytodo' | 'procurement' | 'site' | 'utilities' | 'permits' | 'design' | 'saledocs' | 'boss';
-type ItemData = { title: string; tag: string };
+type ItemData = { title: string };
 type Item = BoardProps.Item<ItemData>;
 
 const WIDGETS: Record<WidgetId, ItemData & { cols: number; rows: number }> = {
-  attention: { title: '需要关注', tag: 'B', cols: 2, rows: 4 },
-  money: { title: '在建项目：花了多少（灰底 = 预算）', tag: 'C', cols: 2, rows: 4 },
-  stages: { title: '阶段分布', tag: 'D', cols: 1, rows: 4 },
-  recent: { title: '最近更新', tag: 'E', cols: 3, rows: 4 },
-  list: { title: '项目列表', tag: 'F', cols: 4, rows: 6 },
-  upcoming: { title: '未来 30 天', tag: 'G', cols: 2, rows: 4 },
-  capital: { title: '资金占用', tag: 'H', cols: 2, rows: 4 },
-  retro: { title: '估算准不准（已完成项目）', tag: 'I', cols: 4, rows: 3 },
-  weekly: { title: '近 12 周支出', tag: 'J', cols: 2, rows: 4 },
-  vendors: { title: '供应商支出前五', tag: 'K', cols: 2, rows: 4 },
-  funnel: { title: '线索漏斗', tag: 'L', cols: 1, rows: 4 },
-  updates: { title: '谁更新了什么', tag: 'M', cols: 2, rows: 4 },
-  turns: { title: '每套房轮到谁', tag: 'N', cols: 4, rows: 7 },
-  gates: { title: '待我确认的门', tag: 'O', cols: 2, rows: 4 },
-  mytodo: { title: '我的待办', tag: 'P', cols: 4, rows: 6 },
-  procurement: { title: '采购异常与待下单', tag: 'Q', cols: 2, rows: 4 },
-  site: { title: '施工现场', tag: 'R', cols: 4, rows: 4 },
-  utilities: { title: '水电瓦斯与保险', tag: 'S', cols: 3, rows: 4 },
-  permits: { title: 'permit 与检查', tag: 'T', cols: 3, rows: 4 },
-  design: { title: '设计交付', tag: 'U', cols: 2, rows: 4 },
-  saledocs: { title: '卖出文件', tag: 'V', cols: 3, rows: 4 },
-  boss: { title: '老板总览', tag: 'W', cols: 4, rows: 2 },
+  attention: { title: '需要关注', cols: 2, rows: 4 },
+  money: { title: '在建项目：花了多少（灰底 = 预算）', cols: 2, rows: 4 },
+  stages: { title: '阶段分布', cols: 1, rows: 4 },
+  recent: { title: '最近更新', cols: 3, rows: 4 },
+  list: { title: '项目列表', cols: 4, rows: 6 },
+  upcoming: { title: '未来 30 天', cols: 2, rows: 4 },
+  capital: { title: '资金占用', cols: 2, rows: 4 },
+  retro: { title: '估算准不准（已完成项目）', cols: 4, rows: 3 },
+  weekly: { title: '近 12 周支出', cols: 2, rows: 4 },
+  vendors: { title: '供应商支出前五', cols: 2, rows: 4 },
+  funnel: { title: '未购入房子的跟进档位', cols: 1, rows: 4 },
+  updates: { title: '谁更新了什么', cols: 2, rows: 4 },
+  turns: { title: '每套房轮到谁', cols: 4, rows: 7 },
+  gates: { title: '待我确认的门', cols: 2, rows: 4 },
+  mytodo: { title: '我的待办', cols: 4, rows: 6 },
+  procurement: { title: '采购异常与待下单', cols: 2, rows: 4 },
+  site: { title: '施工现场', cols: 4, rows: 4 },
+  utilities: { title: '水电瓦斯与保险', cols: 3, rows: 4 },
+  permits: { title: 'permit 与检查', cols: 3, rows: 4 },
+  design: { title: '设计交付', cols: 2, rows: 4 },
+  saledocs: { title: '卖出文件', cols: 3, rows: 4 },
+  boss: { title: '老板总览', cols: 4, rows: 2 },
 };
 /** KAN-71：买入价或目标售价缺一项的项目没算进预计利润，汇总要说出来，不能把「未知」表达成 0。 */
 const incompleteNote = (n: number | null | undefined) => (n ? `${n} 套买入价或目标售价未齐，未计入` : null);
@@ -74,7 +78,7 @@ const layoutKey = (actor: string) => `boardLayout.v8.${actor}`;
 
 function mkItem(id: WidgetId, extra?: Partial<Item>): Item {
   const w = WIDGETS[id];
-  return { id, columnSpan: w.cols, rowSpan: w.rows, data: { title: w.title, tag: w.tag }, ...extra };
+  return { id, columnSpan: w.cols, rowSpan: w.rows, data: { title: w.title }, ...extra };
 }
 function loadLayout(actor: string, defaults: WidgetId[]): Item[] {
   try {
@@ -106,8 +110,8 @@ const boardI18n: BoardProps.I18nStrings<ItemData> = {
 };
 const itemI18n = { dragHandleAriaLabel: '拖动', resizeHandleAriaLabel: '调整大小', dragHandleTooltipText: '拖动改变位置', resizeHandleTooltipText: '拖动改变大小' };
 
-function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
-  return <StatTile label={label} value={value} sub={sub} />;
+function Stat({ label, value, sub, help }: { label: string; value: string; sub?: string; help?: string }) {
+  return <StatTile label={label} value={value} sub={sub} help={help} />;
 }
 
 const shortDate = (d: string) => d.slice(5).replace('-', '/');
@@ -116,6 +120,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
   const navigate = useNavigate();
   const meta = useMeta();
   const role = useRole();
+  const { me } = useActor();
   // 项目表已经固定渲染在页面上，看板里只剩「额外」小组件，默认一个都没有。
   // 注意**不动** DASHBOARD_LAYOUTS 那份后端字典——它同时决定 widget_access，
   // 动了角色就加不回自己的小组件。下面 canAdd 仍然读 widget_access，
@@ -130,7 +135,11 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
   const [updates, setUpdates] = useState<Update[]>([]);
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<ReadonlyArray<Item>>(() => loadLayout(role.actor, defaults));
-  const [stage, setStage] = useState<{ label: string; value: string }>({ label: '全部阶段', value: '' });
+  // KAN-75 块 2：列表按「位置」筛（买房 · 未购入 / escrow 中 / 装修 …），从 URL ?group=&sub= 取初值；
+  // 旧的 /leads 入口就跳到 ?group=buying&sub=pre。工作台（非 listOnly）默认不列未购入的房。
+  const [params, setParams] = useSearchParams();
+  const groupFilter = filterFromParams(params.get('group'), params.get('sub'));
+  const setGroupFilter = (v: string) => setParams((prev) => { const n = new URLSearchParams(prev); if (!v) { n.delete('group'); n.delete('sub'); } else { const [g, sub] = v.split(':'); n.set('group', g); if (sub) n.set('sub', sub); else n.delete('sub'); } return n; }, { replace: true });
 
   const reloadRole = async () => { setRoleData(await api.dashboardRole().catch(() => null)); };
   useEffect(() => {
@@ -142,11 +151,12 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [role.actor, meta]);
 
-  // KAN-50：线索有自己的入口（/leads），项目列表只留在建与已完成。
+  // 工作台默认不列「买房 · 未购入」的房子（没买的房不是项目）；要看它们用位置筛选，或从旧 /leads 链接跳过来。
   // **只在这里筛，不动 projects state**——下面的 recent、active、热线索计数和 loadInsights 都直接读它。
-  // 判据走 lib/leads 的 isLead，和线索页是同一个函数，两边不会口径打架。
+  // 判据走 lib/leads 的 isLead（current_stage 停在 s1），和分组视图是同一个函数。
   const notLead = useMemo(() => projects.filter((p) => !isLead(p)), [projects]);
-  const filtered = useMemo(() => (stage.value ? notLead.filter((p) => p.stage === stage.value) : notLead), [notLead, stage]);
+  const showLeadGroups = groupFilter === 'buying:pre';
+  const filtered = useMemo(() => (groupFilter ? projects.filter((p) => matchesGroupFilter(p.group_position, groupFilter)) : notLead), [projects, notLead, groupFilter]);
   const { items: rows, collectionProps, filterProps, paginationProps } = useCollection(filtered, {
     filtering: {
       filteringFunction: (item, s) => { const t = s.toLowerCase(); return item.name.toLowerCase().includes(t) || item.property.address_std.toLowerCase().includes(t); },
@@ -158,17 +168,17 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
   });
 
   const recent = [...projects].sort((a, b) => (a.updated_at < b.updated_at ? 1 : -1)).slice(0, 3);
-  // 线索归 /leads，这里不再提供该选项，免得选了得到一张空表。
-  const stageOptions = [{ label: '全部阶段', value: '' }, ...(meta?.stages ?? []).filter((s) => s.value !== 'lead')];
+  const groupOptions = groupFilterOptions(meta?.stage_groups);
+  const groupSelected = groupOptions.find((o) => o.value === groupFilter) ?? groupOptions[0];
   const active = projects.filter((p) => p.stage === 'active');
   const go = (href: string) => navigate(href);
   const projLink = (id: number, name: string) => <Link href={`/projects/${id}`} onFollow={(e) => { e.preventDefault(); go(`/projects/${id}`); }}>{name}</Link>;
 
   const projectColumns = [
-    { id: 'name', header: '项目', sortingField: 'name', minWidth: 260, cell: (p: Project) => (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+    { id: 'name', header: '项目', sortingField: 'name', width: '34%', minWidth: 260, cell: (p: Project) => (
+      <div className="ui-row-spaced">
         <CoverImage propertyId={p.property.id} width={56} height={40} radius={6} showLabel={false} />
-        <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        <div className="ui-stack-min">
           {projLink(p.id, p.name)}
           <Box variant="small" color="text-body-secondary">{p.property.address_std}</Box>
         </div>
@@ -176,22 +186,33 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
     ) },
     // KAN-65：阶段只认六阶段清单算出来的 current_stage。旧的 stage/substage 是派生缓存，
     // 「② 买房与过户」会被 STAGE_TO_LEGACY 映射成「在建 · 施工中」，在列表上读起来是错的。
-    { id: 'stage', header: '阶段', sortingField: 'stage', cell: (p: Project) => stageText(p, meta) },
-    { id: 'status', header: '状态', sortingField: 'status', cell: (p: Project) => <StatusBadge status={p.status} /> },
+    { id: 'stage', header: '位置 / 状态', sortingField: 'stage', width: '20%', minWidth: 130, cell: (p: Project) => <SpaceBetween size="xs"><span>{stageText(p, meta)}</span><StatusBadge status={p.status} /></SpaceBetween> },
     // 百分比一行、金额一行。原先「99.0%（$81,660 / $82,500）」塞在一格里，
     // 把最后一列挤成「更」，表底出现横向滚动条。
-    { id: 'budget', header: '预算已用', sortingField: 'budget_used_pct', cell: (p: Project) => ((p.budget_planned ?? 0) > 0 ? (
+    { id: 'budget', header: '预算已用', width: '19%', sortingField: 'budget_used_pct', cell: (p: Project) => ((p.budget_planned ?? 0) > 0 ? (
       <div>
         <div>{pct(p.budget_used_pct)}</div>
         <Box variant="small" color="text-body-secondary">{money(p.budget_spent)} / {money(p.budget_planned)}</Box>
       </div>
     ) : '—') },
-    { id: 'arv', header: '目标售价', sortingField: 'target_arv', cell: (p: Project) => money(p.target_arv) },
-    { id: 'updated', header: '更新', sortingField: 'updated_at', cell: (p: Project) => dateStr(p.updated_at) },
+    { id: 'arv', header: '目标售价', width: '14%', sortingField: 'target_arv', cell: (p: Project) => money(p.target_arv) },
+    { id: 'updated', header: '更新', width: '13%', sortingField: 'updated_at', cell: (p: Project) => dateStr(p.updated_at) },
   ];
 
-  const table = (
-    <Table
+  const groupSelect = <Select selectedOption={groupSelected} options={groupOptions} onChange={({ detail }) => setGroupFilter(detail.selectedOption.value ?? '')} ariaLabel="按位置筛选" />;
+  const onLeadPatched = (updated: Project) => setProjects((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+  // KAN-75 块 2：筛到「买房 · 未购入」时按跟进档位分组（原线索页的形态，复用 LeadGroups）；其余位置用表。
+  const leadView = (
+    <SpaceBetween size="m">
+      <Header variant="h2" counter={`(${filtered.length})`} help="还没确认 Open escrow 的房子，按跟进档位分组；确认后它会进入「买房 · escrow 中」。" actions={<SpaceBetween direction="horizontal" size="xs">{groupSelect}{listOnly && role.can('create_project') && <Button variant="primary" onClick={() => go('/projects/new')}>新建项目</Button>}</SpaceBetween>}>买房 · 未购入</Header>
+      <HelpText>「待办参考」按清单顺序显示，负责角色不等于已分派的员工。</HelpText>
+      <LeadGroups projects={loading ? null : filtered} meta={meta} canEdit={role.can('edit_project')} onPatched={onLeadPatched} />
+      <Box variant="small" color="text-body-secondary">挂牌价与自动估值仅供参考，不代表可成交价格。</Box>
+    </SpaceBetween>
+  );
+
+  const table = showLeadGroups ? leadView : (
+    <Table cardId="project-list"
       {...collectionProps}
       items={rows}
       loading={loading}
@@ -199,11 +220,11 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
       variant={listOnly ? 'container' : 'embedded'}
       resizableColumns
       onRowClick={({ detail }) => go(`/projects/${detail.item.id}`)}
-      header={listOnly ? <Header variant="h2" counter={`(${filtered.length})`} actions={<Button variant="primary" onClick={() => go('/projects/new')}>新建项目</Button>}><ReviewTag id="A" />项目列表</Header> : undefined}
+      header={listOnly ? <Header variant="h2" counter={`(${filtered.length})`} actions={<Button variant="primary" onClick={() => go('/projects/new')}>新建项目</Button>}>项目列表</Header> : undefined}
       filter={
         <SpaceBetween direction="horizontal" size="xs">
           <TextFilter {...filterProps} filteringPlaceholder="按项目名或地址查找" countText={`${rows.length} 个匹配`} />
-          <Select selectedOption={stage} options={stageOptions} onChange={({ detail }) => setStage(detail.selectedOption as any)} />
+          {groupSelect}
         </SpaceBetween>
       }
       pagination={<Pagination {...paginationProps} />}
@@ -215,7 +236,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
     return (
       <ContentLayout
         breadcrumbs={<BreadcrumbGroup items={[{ text: '工作台', href: '/' }, { text: '项目', href: '/projects' }]} onFollow={(e) => { e.preventDefault(); go(e.detail.href); }} />}
-        header={<Header variant="h1" description="按阶段筛选，点任意一行进入项目。">所有项目</Header>}
+        header={<Header variant="h1" help="按阶段筛选，点任意一行进入项目。">所有项目</Header>}
       >
         {table}
       </ContentLayout>
@@ -264,11 +285,11 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
         return (
           <StackedBar
             /* KAN-63：三段是同一条流水线的前后阶段，属有序数据，用蓝色阶而不是分类色
-               （原先默认取 SERIES 前三位，里面有品红和青）。StackedBar 本体不动，只在这里传色。 */
+               （原先默认取 SERIES 前三位，里面有品红和青）。页面只给有序位置，颜色由图表组件决定。 */
             segments={[
-              { label: '线索', value: summary?.leads ?? 0, color: ORDINAL_BLUE[1] },
-              { label: '在建', value: summary?.active ?? 0, color: ORDINAL_BLUE[3] },
-              { label: '已完成', value: summary?.portfolio ?? 0, color: ORDINAL_BLUE[5] },
+              { label: '未购入', value: summary?.leads ?? 0, ordinalIndex: 1 },
+              { label: '在建', value: summary?.active ?? 0, ordinalIndex: 3 },
+              { label: '已完成', value: summary?.portfolio ?? 0, ordinalIndex: 5 },
             ]}
             format={(n) => `${n} 套`}
             emptyText={loading ? '正在读取…' : '还没有项目'}
@@ -278,7 +299,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
         return (
           <Cards variant="full-page" cardsPerRow={[{ cards: 1 }, { minWidth: 500, cards: 3 }]} items={recent} loading={loading}
             cardDefinition={{
-              header: (p) => <Link fontSize="heading-s" href={`/projects/${p.id}`} onFollow={(e) => { e.preventDefault(); go(`/projects/${p.id}`); }}>{p.name}</Link>,
+              header: (p) => <><ReviewTag cardId="recent-project-card" context={p.name} /><Link fontSize="heading-s" href={`/projects/${p.id}`} onFollow={(e) => { e.preventDefault(); go(`/projects/${p.id}`); }}>{p.name}</Link></>,
               sections: [
                 { id: 'img', content: (p) => <CoverImage propertyId={p.property.id} height={110} radius={8} /> },
                 { id: 'meta', content: (p) => (
@@ -307,13 +328,13 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
               /* KAN-63：状态从盖在封面上的浮标挪到标题行。压在照片上的彩色胶囊
                  既挡内容又和照片抢，放回标题行跟在项目名后面就够了。 */
               header: (p) => (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
-                  <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 8, minWidth: 0 }}>
+                <div><ReviewTag cardId="turn-project-card" context={p.name} /><div className="ui-row-between">
+                  <span className="ui-inline-baseline">
                     <Link fontSize="heading-s" href={`/projects/${p.id}`} onFollow={(e) => { e.preventDefault(); goProject(p); }}>{p.name}</Link>
                     <StatusBadge status={p.status} />
                   </span>
                   <Box variant="small" color="text-body-secondary">{p.current_stage?.label}</Box>
-                </div>
+                </div></div>
               ),
               sections: [
                 { id: 'img', content: (p) => <CoverImage propertyId={p.property.id} height={96} radius={8} showLabel={false} /> },
@@ -322,7 +343,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
                   return (
                     <SpaceBetween size="xxs">
                       <Box variant="small" color="text-body-secondary">{p.property.address_std}</Box>
-                      <Box fontSize="body-s">{cur ? `${cur.label} · 这段做了 ${cur.done}/${cur.total}` : p.current_stage?.label}<Box variant="span" color="text-body-secondary">　大节点过了 {p.stage_progress.filter((s) => s.gate_done).length}/5</Box></Box>
+                      <Box fontSize="body-s">{cur ? `${cur.label} · 这段做了 ${cur.done}/${cur.total}` : p.current_stage?.label}<Box variant="span" color="text-body-secondary">　大节点过了 {p.stage_progress.filter((s) => s.gate_done).length}/{p.stage_progress.length}</Box></Box>
                     </SpaceBetween>
                   );
                 } },
@@ -330,10 +351,10 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
                   p.next_up.length ? (
                     <SpaceBetween size="xxs">
                       {p.next_up.slice(0, 2).map((n) => (
-                        <span key={n.key} style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+                        <span key={n.key} className="ui-inline-tight">
                           {/* 审计 #A02：菱形原先用硬编码的旧 info 蓝，改中性边框；「是不是关键节点」靠字重表示 */}
-                          {n.gate && <span style={{ width: 9, height: 9, transform: 'rotate(45deg)', border: `2px solid ${TEXT_2}`, borderRadius: 2, marginRight: 6, flexShrink: 0 }} />}
-                          {n.owners.map((o) => <OwnerDot key={o} code={o} />)}<span style={{ fontWeight: n.gate ? 700 : 400 }}>{n.title}</span>
+                          {n.gate && <span className="ui-gate-symbol" />}
+                          {n.owners.map((o) => <RoleLabel key={o} code={o} />)}<span className={n.gate ? "ui-strong" : undefined}>{n.title}</span>
                         </span>
                       ))}
                     </SpaceBetween>
@@ -349,8 +370,8 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
         return ups.length ? (
           <SpaceBetween size="s">
             {ups.map((u, k) => (
-              <div key={k} style={{ display: 'flex', gap: 12, alignItems: 'baseline' }}>
-                <Box fontWeight="bold" color="text-body-secondary"><span style={{ display: 'inline-block', minWidth: 44 }}>{shortDate(u.date)}</span></Box>
+              <div key={k} className="ui-row-baseline">
+                <Box fontWeight="bold" color="text-body-secondary"><span className="ui-date-column">{shortDate(u.date)}</span></Box>
                 <StatusIndicator type={u.days < 0 ? (u.overdue ? 'error' : 'stopped') : u.days <= 7 ? 'warning' : 'info'}>{u.kind}</StatusIndicator>
                 <span>{projLink(u.project_id, u.project_name)} <Box variant="span" color="text-body-secondary">{u.days < 0 ? `${-u.days} 天前` : u.days === 0 ? '今天' : `${u.days} 天后`}</Box></span>
               </div>
@@ -415,8 +436,8 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
             {gs.map((g) => (
               /* 审计 #A03：原先整行铺彩色底 + 彩色左边条表示「是不是当前阶段」，四个值全硬编码。
                  改中性边框，「当前」用 StatusIndicator 明说。 */
-              <div key={`${g.project_id}-${g.key}`} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 8, alignItems: 'center', padding: '8px 10px', borderRadius: 6, border: `1px solid ${BORDER}` }}>
-                <div style={{ minWidth: 0 }}>
+              <div key={`${g.project_id}-${g.key}`} className="ui-gate-row">
+                <div className="ui-min-width">
                   {/* KAN-63：去掉行首的 ◆ 和粗体。一屏里主按钮只留页头那一个，
                       这里的「去确认」降成链接——它是导航，不是本屏的主操作。 */}
                   <div>{g.title} <Box variant="span" color="text-body-secondary">· {g.project_name}</Box></div>
@@ -456,8 +477,8 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
             {rs.map((r) => (
               <div key={r.project_id}>
                 <Box fontWeight="bold">{projLink(r.project_id, r.project_name)}</Box>
-                <div style={{ display: 'flex', gap: 4, margin: '6px 0' }}>
-                  {r.photo_ids.length ? r.photo_ids.map((id) => <img key={id} src={`/api/files/${id}/download`} alt="" style={{ width: 64, height: 48, objectFit: 'cover', borderRadius: 4, background: '#e9ecef' }} />) : <Box variant="small" color="text-body-secondary">还没有进度照片</Box>}
+                <div className="ui-photo-strip">
+                  {r.photo_ids.length ? r.photo_ids.map((id) => <img key={id} src={`/api/files/${id}/download`} alt="" className="ui-thumbnail ui-thumbnail-progress" />) : <Box variant="small" color="text-body-secondary">还没有进度照片</Box>}
                 </div>
                 <Box variant="small" color="text-body-secondary">{r.photo_count} 张进度照片</Box>
                 {r.failed.length > 0 ? <StatusIndicator type="error">{r.failed.join('、')} 没过</StatusIndicator>
@@ -515,7 +536,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
       case 'saledocs': {
         const rs = roleData?.sale_docs ?? [];
         // 审计 #A05：符号本身已是第二通道，只把硬编码的旧色值换成令牌
-        const ok = (b: boolean) => <span style={{ color: b ? TEXT_GOOD : TEXT_2, fontWeight: 700 }}>{b ? '✓' : '○'}</span>;
+        const ok = (b: boolean) => <StatusIndicator type={b ? 'success' : 'not-started'}>{b ? '已齐全' : '待补'}</StatusIndicator>;
         return rs.length ? (
           <Table variant="embedded" items={rs} columnDefinitions={[
             { id: 'p', header: '房', cell: (r) => <span>{projLink(r.project_id, r.project_name)}<Box variant="small" color="text-body-secondary">挂牌 {r.list_date ? shortDate(r.list_date) : '—'}</Box></span> },
@@ -531,8 +552,8 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
         const b = roleData?.boss;
         return b ? (
           <ColumnLayout columns={5} variant="text-grid">
-            <StatTile label="在手" value={`${b.active + b.leads}`} sub={`${b.active} 在建 · ${b.leads} 线索`} />
-            <StatTile label="总投入" value={compactMoney(b.total_invested)} sub="在建买入价 + 已支出" />
+            <StatTile label="在手" value={`${b.active + b.leads}`} sub={`${b.active} 在建 · ${b.leads} 未购入`} />
+            <StatTile label="总投入" value={compactMoney(b.total_invested)} help="在建买入价 + 已支出" />
             <StatTile label="预计利润" value={compactMoney(b.expected_profit)} sub={incompleteNote(b.profit_incomplete_count) ?? '在建'} />
             <StatTile label="已实现利润" value={compactMoney(b.realized_profit)} sub={`${b.portfolio} 套已售`} />
             <StatTile label="超预算" value={`${b.over_budget_count}`} sub="套" tone={b.over_budget_count > 0 ? 'bad' : undefined} />
@@ -543,7 +564,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
         const fs = widgets?.funnel ?? [];
         return fs.length ? (
           <HBars rows={fs.map((r) => ({ key: r.substage, label: r.label, values: [r.count] }))} ordinal format={(n) => `${n} 条`} labelWidth={72} />
-        ) : empty('没有线索');
+        ) : empty('没有未购入的房子');
       }
     }
   };
@@ -556,7 +577,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
   const urgent = new Set(insights.filter((i) => i.level !== 'info').map((i) => i.projectId)).size;
   const pageDescription = [
     urgent ? `今天有 ${urgent} 套需要处理。` : null,
-    `在建 ${summary?.active ?? '—'} 套，线索 ${summary?.leads ?? '—'} 条，已完成 ${summary?.portfolio ?? '—'} 套。`,
+    `在建 ${summary?.active ?? '—'} 套，未购入 ${summary?.leads ?? '—'} 套，收尾 ${summary?.portfolio ?? '—'} 套。`,
   ].filter(Boolean).join('');
 
   return (
@@ -576,48 +597,53 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
             </SpaceBetween>
           }
         >
-          项目
+          {me ? `${me.display_name} 的工作台` : '项目'}
         </Header>
       }
     >
       <SpaceBetween size="l">
+        {/* KAN-75 块 4：登录后工作台先看「项目关注」——每套房走到哪、下一动作是谁的、等我确认的交付；
+            数据来自任务表。没登录（演示访客）保留原来的四个数与项目表。 */}
+        {me && <WorkbenchFocus refreshKey={projects.length} />}
         {/* 四个数字直接跟在页头下面。原先套一层叫「今日概览」的 Container，
             等于给四个数字单独起了个栏目名——控制台里这层壳没有意义。 */}
-        <ColumnLayout columns={4} minColumnWidth={120} variant="text-grid">
-              <Stat label="线索" value={String(summary?.leads ?? '—')} sub={`${projects.filter((p) => p.lead_heat === 'hot_lead').length} 条热线索`} />
+        {!me && <CardFrame cardId="dashboard-metrics"><ColumnLayout columns={4} minColumnWidth={120} variant="text-grid">
+              <Stat label="买房 · 未购入" value={String(summary?.leads ?? '—')} sub={`${projects.filter((p) => isLead(p) && p.lead_heat === 'hot_lead').length} 套热线索`} />
               <Stat label="在建" value={String(summary?.active ?? '—')} sub={summary?.money_hidden ? '正在施工或挂牌' : `${summary?.over_budget_count ?? 0} 个超预算`} />
               {summary?.money_hidden ? (
                 <>
                   <Stat label="轮到我" value={String(roleData?.my_todo?.length ?? '—')} sub={`${roleData?.my_todo?.filter((r) => r.is_current).length ?? 0} 件是现在这段的`} />
-                  <Stat label="已完成" value={String(summary?.portfolio ?? '—')} sub="已售出的房子" />
+                  <Stat label="售出收尾" value={String(summary?.portfolio ?? '—')} help="已交割、在收尾或已走完" />
                 </>
               ) : (
                 <>
-                  <Stat label="已投入" value={compactMoney(summary?.total_invested)} sub="在建项目买入价 + 已支出" />
-                  <Stat label="预计利润" value={compactMoney(summary?.expected_profit)} sub={incompleteNote(summary?.profit_incomplete_count) ?? '在建：目标售价 − 买入 − 装修'} />
+                  <Stat label="已投入" value={compactMoney(summary?.total_invested)} help="在建项目买入价 + 已支出" />
+                  <Stat label="预计利润" value={compactMoney(summary?.expected_profit)} sub={incompleteNote(summary?.profit_incomplete_count) ?? undefined} help="在建：目标售价 − 买入 − 装修" />
                 </>
               )}
-        </ColumnLayout>
+        </ColumnLayout></CardFrame>}
 
-        {/* 项目表固定渲染，不再是看板的一项：没有拖动手柄、没有关闭按钮。 */}
-        <Table
-          {...collectionProps}
-          items={rows}
-          loading={loading}
-          loadingText="加载中"
-          variant="container"
-          resizableColumns
-          onRowClick={({ detail }) => go(`/projects/${detail.item.id}`)}
-          header={<Header variant="h2" counter={`(${filtered.length})`}>全部项目</Header>}
-          filter={
-            <SpaceBetween direction="horizontal" size="xs">
-              <TextFilter {...filterProps} filteringPlaceholder="按项目名或地址查找" countText={`${rows.length} 个匹配`} />
-              <Select selectedOption={stage} options={stageOptions} onChange={({ detail }) => setStage(detail.selectedOption as any)} />
-            </SpaceBetween>
-          }
-          pagination={<Pagination {...paginationProps} />}
-          columnDefinitions={projectColumns}
-        />
+        {/* 项目表固定渲染，不再是看板的一项：没有拖动手柄、没有关闭按钮。登录后由「项目关注」承担，这里只给未登录访客。 */}
+        {!me && (showLeadGroups ? leadView : (
+          <Table cardId="guest-projects"
+            {...collectionProps}
+            items={rows}
+            loading={loading}
+            loadingText="加载中"
+            variant="container"
+            resizableColumns
+            onRowClick={({ detail }) => go(`/projects/${detail.item.id}`)}
+            header={<Header variant="h2" counter={`(${filtered.length})`}>全部项目</Header>}
+            filter={
+              <SpaceBetween direction="horizontal" size="xs">
+                <TextFilter {...filterProps} filteringPlaceholder="按项目名或地址查找" countText={`${rows.length} 个匹配`} />
+                {groupSelect}
+              </SpaceBetween>
+            }
+            pagination={<Pagination {...paginationProps} />}
+            columnDefinitions={projectColumns}
+          />
+        ))}
 
         {items.length > 0 && <Board
           items={items}
@@ -626,7 +652,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
           empty={null}
           renderItem={(item, actions) => (
             <BoardItem
-              header={<Header variant="h2"><ReviewTag id={item.data.tag} />{item.data.title}</Header>}
+              header={<><ReviewTag cardId={`widget-${item.id as WidgetId}`} context={item.data.title} /><Header variant="h2">{item.data.title}</Header></>}
               i18nStrings={itemI18n}
               settings={<Button variant="icon" iconName="close" ariaLabel="移除小组件" onClick={() => actions.removeItem()} />}
             >

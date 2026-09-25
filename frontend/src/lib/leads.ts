@@ -4,6 +4,7 @@ import type { Meta, Project } from '../api/client';
  * 线索房的分组规则（KAN-50）。纯函数、不碰 DOM，所以能单测。
  *
  * 「线索房」= **清单当前段停在 s1（① 预买房）**，也就是 `open escrow` 还没被 D+J 双确认。
+ * KAN-75 块 2 起界面上叫「买房 · 未购入」：独立线索入口并入项目列表的筛选，判据不变。
  *
  * **判据只认 `current_stage`，不认旧的 `stage` 列。** 理由是一个实测过的陷阱：
  * `Project.stage` 是派生缓存，`sync_legacy_stage`（`backend/app/steps.py:206-212`）

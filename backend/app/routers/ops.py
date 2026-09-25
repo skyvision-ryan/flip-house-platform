@@ -78,7 +78,7 @@ def _inspections(db: Session, project_id: int) -> list[models.Inspection]:
 
 
 @router.get("/projects/{project_id}/inspections", response_model=list[schemas.InspectionOut])
-def list_inspections(project_id: int, db: Session = Depends(get_db)):
+def list_inspections(project_id: int, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
     _project(db, project_id)
     return _inspections(db, project_id)
 

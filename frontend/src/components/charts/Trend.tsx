@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { AXIS, FONT, GRID, SERIES, SURFACE, TEXT, TEXT_2 } from './palette';
 import { niceTicks } from './format';
+import { AXIS, FONT, SHADOW, GRID, SERIES, SURFACE, TEXT, TEXT_2 } from './palette';
 
 export interface TrendPoint { x: string; y: number }
 interface Props {
@@ -24,7 +24,7 @@ export default function Trend({ points, format = (n) => String(n), height = 160,
     ro.observe(wrap.current);
     return () => ro.disconnect();
   }, []);
-  if (!points.length) return <div style={{ fontFamily: FONT, color: TEXT_2, fontSize: 12 }}>{emptyText}</div>;
+  if (!points.length) return <div style={{ fontFamily: FONT, color: TEXT_2, fontSize: 13 }}>{emptyText}</div>;
 
   const padL = 44, padR = 56, padT = 12, padB = 24;
   const iw = w - padL - padR, ih = height - padT - padB;
@@ -53,16 +53,16 @@ export default function Trend({ points, format = (n) => String(n), height = 160,
         {ticks.map((t) => (
           <g key={t}>
             <line x1={padL} x2={w - padR} y1={Y(t)} y2={Y(t)} stroke={t === 0 ? AXIS : GRID} strokeWidth={1} />
-            <text x={padL - 8} y={Y(t) + 4} fontSize={11} fill={TEXT_2} textAnchor="end" style={{ fontVariantNumeric: 'tabular-nums' }}>{format(t)}</text>
+            <text x={padL - 8} y={Y(t) + 4} fontSize={12} fill={TEXT_2} textAnchor="end" style={{ fontVariantNumeric: 'tabular-nums' }}>{format(t)}</text>
           </g>
         ))}
         <path d={area} fill={color} opacity={0.1} />
         <path d={line} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
         {points.map((p, i) => xLabelIdx.has(i) && (
-          <text key={i} x={X(i)} y={height - 6} fontSize={11} fill={TEXT_2} textAnchor={i === 0 ? 'start' : i === points.length - 1 ? 'end' : 'middle'}>{p.x}</text>
+          <text key={i} x={X(i)} y={height - 6} fontSize={12} fill={TEXT_2} textAnchor={i === 0 ? 'start' : i === points.length - 1 ? 'end' : 'middle'}>{p.x}</text>
         ))}
         <circle cx={X(points.length - 1)} cy={Y(last.y)} r={4} fill={color} stroke={SURFACE} strokeWidth={2} />
-        <text x={X(points.length - 1) + 8} y={Y(last.y) + 4} fontSize={12} fontWeight={700} fill={TEXT}>{format(last.y)}</text>
+        <text x={X(points.length - 1) + 8} y={Y(last.y) + 4} fontSize={13} fontWeight={700} fill={TEXT}>{format(last.y)}</text>
         {hover != null && (
           <g>
             <line x1={X(hover)} x2={X(hover)} y1={padT} y2={padT + ih} stroke={AXIS} strokeWidth={1} />
@@ -71,7 +71,7 @@ export default function Trend({ points, format = (n) => String(n), height = 160,
         )}
       </svg>
       {hover != null && (
-        <div style={{ position: 'absolute', left: Math.min(X(hover) + 10, w - 130), top: Math.max(0, Y(points[hover].y) - 44), background: SURFACE, border: `1px solid ${GRID}`, borderRadius: 8, boxShadow: '0 4px 20px rgba(0,28,36,0.15)', padding: '6px 10px', fontSize: 12, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
+        <div style={{ position: 'absolute', left: Math.min(X(hover) + 10, w - 130), top: Math.max(0, Y(points[hover].y) - 44), background: SURFACE, border: `1px solid ${GRID}`, borderRadius: 8, boxShadow: SHADOW, padding: '6px 10px', fontSize: 13, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
           <div style={{ color: TEXT_2 }}>{points[hover].x} 那周</div>
           <div style={{ fontWeight: 700, color: TEXT }}>{format(points[hover].y)}</div>
         </div>

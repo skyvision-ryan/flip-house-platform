@@ -13,12 +13,23 @@ from .common import budget_totals, can_read_money, get_actor
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
 
+def _bucket(steps: dict) -> str:
+    """KAN-75 块 2：按分组位置分三桶——未购入 / 在建（escrow 中到卖房上市）/ 收尾。不再读旧 stage 列。"""
+    gp = steps["group_position"]
+    if gp["sub_key"] == "pre":
+        return "leads"
+    if gp["group_key"] == "closeout" or gp["complete"]:
+        return "portfolio"
+    return "active"
+
+
 @router.get("/summary", response_model=schemas.DashboardSummary)
 def summary(db: Session = Depends(get_db), actor: str = Depends(get_actor)):
     projects = db.scalars(select(models.Project)).all()
-    leads = sum(1 for p in projects if p.stage == "lead")
-    active = sum(1 for p in projects if p.stage == "active")
-    portfolio = sum(1 for p in projects if p.stage == "portfolio")
+    buckets = {p.id: _bucket(compute_steps(db, p, hide_money=True)) for p in projects}
+    leads = sum(1 for b in buckets.values() if b == "leads")
+    active = sum(1 for b in buckets.values() if b == "active")
+    portfolio = sum(1 for b in buckets.values() if b == "portfolio")
 
     invested = 0.0
     budget = 0.0
@@ -27,7 +38,7 @@ def summary(db: Session = Depends(get_db), actor: str = Depends(get_actor)):
     incomplete = 0
     for p in projects:
         planned, spent = budget_totals(db, p.id)
-        if p.stage == "active":
+        if buckets[p.id] == "active":
             invested += (p.purchase_price or 0) + spent
             budget += planned
             # KAN-71：买入价或目标售价缺任一项都不算这套房的利润。以前只看 ARV，
@@ -148,9 +159,10 @@ def widgets(db: Session = Depends(get_db), actor: str = Depends(get_actor)):
     vendors = sorted(({**v, "amount": round(v["amount"], 2), "projects": len(v["projects"])} for v in vend.values()),
                      key=lambda x: -x["amount"])[:5]
 
+    # 漏斗只数「买房 · 未购入」的房子，按人工档位分；判据是分组位置，不是旧 stage 列（KAN-75 块 2）
     counts: dict[str, int] = {}
     for p in projects:
-        if p.stage == "lead":
+        if compute_steps(db, p, hide_money=True)["group_position"]["sub_key"] == "pre":
             counts[p.substage or "new_lead"] = counts.get(p.substage or "new_lead", 0) + 1
     funnel = [{"substage": s["value"], "label": s["label"], "count": counts.get(s["value"], 0)} for s in SUBSTAGES["lead"]]
 
@@ -292,7 +304,7 @@ def role_widgets(db: Session = Depends(get_db), actor: str = Depends(get_actor))
 
     if widget_allowed(actor, "saledocs"):
         rows = []
-        for p in [x for x in projects if x.stage == "active" and x.substage == "listing" or (x.list_date and x.stage != "portfolio")]:
+        for p in [x for x in projects if (steps_by.get(x.id) or compute_steps(db, x, hide_money=hide))["group_position"]["group_key"] in ("prelisting", "selling")]:
             types = {f.doc_type for f in p.files}
             rows.append({**_brief(p), "list_date": p.list_date, "offer": "offer" in types, "sale_docs": "sale_docs" in types,
                          "disclosure": "seller_disclosure" in types, "sale_signed": "sale_signed" in types, "sale_closing": "sale_closing" in types})

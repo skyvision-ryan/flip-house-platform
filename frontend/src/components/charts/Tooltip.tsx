@@ -1,5 +1,5 @@
 import { ReactNode, useCallback, useRef, useState } from 'react';
-import { BORDER, FONT, SURFACE, TEXT, TEXT_2 } from './palette';
+import { BORDER, FONT, SHADOW, SURFACE, TEXT, TEXT_2 } from './palette';
 
 export interface TipRow { label: string; value: string; color?: string }
 interface TipState { x: number; y: number; title?: string; rows: TipRow[] }
@@ -27,8 +27,8 @@ export function useTooltip() {
         <div
           style={{
             position: 'absolute', left: state.x + 12, top: state.y - 8, transform: 'translateY(-100%)',
-            background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 8, boxShadow: '0 4px 20px rgba(0,28,36,0.15)',
-            padding: '8px 12px', fontFamily: FONT, fontSize: 12, color: TEXT, whiteSpace: 'nowrap', zIndex: 5, minWidth: 120,
+            background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 8, boxShadow: SHADOW,
+            padding: '8px 12px', fontFamily: FONT, fontSize: 13, color: TEXT, whiteSpace: 'nowrap', zIndex: 5, minWidth: 120,
           }}
         >
           {state.title && <div style={{ color: TEXT_2, marginBottom: 4 }}>{state.title}</div>}

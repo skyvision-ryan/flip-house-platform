@@ -1,8 +1,6 @@
 import Alert from '@cloudscape-design/components/alert';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
-import ExpandableSection from '@cloudscape-design/components/expandable-section';
-import KeyValuePairs from '@cloudscape-design/components/key-value-pairs';
 import Modal from '@cloudscape-design/components/modal';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
@@ -11,7 +9,10 @@ import { useMeta } from '../lib/meta';
 import { useRole } from '../lib/role';
 import { actionLabel, actionMode, canActOn, canConfirm } from '../lib/stepActions';
 import { attachmentsFor, factOf, limitsOf } from '../lib/stepDisplay';
-import { OwnerDot } from './OwnerTag';
+import { RoleNames } from './RoleLabel';
+import HelpText from './HelpText';
+import ExpandableSection from './ui/ExpandableSection';
+import KeyValuePairs from './ui/Facts';
 
 const shortDate = (iso?: string | null) => (iso ? iso.slice(5, 10).replace('-', '/') : '');
 
@@ -74,11 +75,10 @@ export default function TaskDetail({
       value: (
         <SpaceBetween size="xxs">
           <Box>
-            {item.owners.map((o) => <OwnerDot key={o} code={o} />)}
-            {item.owners.join('、') || '—'}
+            <RoleNames codes={item.owners} />
           </Box>
           {duties.map((d) => (
-            <Box key={d} color="text-body-secondary" fontSize="body-s">{d}</Box>
+            <HelpText key={d} inline>{d}</HelpText>
           ))}
         </SpaceBetween>
       ),

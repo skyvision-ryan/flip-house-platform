@@ -1,0 +1,1103 @@
+{
+  "as_of": "2026-09-24",
+  "projects": [
+    {
+      "id": "cedar",
+      "name": "12 Cedar",
+      "stage": "装修",
+      "lifecycle": "active",
+      "purchase_price": 420000,
+      "target_arv": 600000,
+      "budget": 85000,
+      "expenses": 40000,
+      "purchase_date": "2026-06-01",
+      "sale_date": null,
+      "sale_price": null,
+      "planned_end": "2026-10-15",
+      "financial_updated_at": "2026-09-23",
+      "coordinator": "Jessie",
+      "concern": "柜体规格待确认，采购与现场安装需对齐。",
+      "next_action": "核对尺寸资料与安装安排，确认后再更新采购记录。",
+      "issues": [
+        "progress"
+      ],
+      "gate": {
+        "title": "当前关键节点",
+        "prerequisite_met": false,
+        "d": false,
+        "j": false,
+        "detail": "这里展示合成节点事实；查看设计不执行审批，也不改变现有节点控制。"
+      },
+      "tasks": [
+        {
+          "id": "cedar-review",
+          "title": "厨房材料交付待审核",
+          "owner": "Jessie",
+          "status": "review",
+          "due_date": "2026-09-20",
+          "submitted_at": "2026-09-21T10:00:00",
+          "wait_reason": null,
+          "waiting_for": null
+        },
+        {
+          "id": "cedar-wait",
+          "title": "燃气到场安排",
+          "owner": "项目协作成员（示例）",
+          "status": "waiting",
+          "due_date": "2026-09-26",
+          "submitted_at": null,
+          "wait_reason": "服务公司尚未回复到场时间",
+          "waiting_for": "外部回复（示例）"
+        },
+        {
+          "id": "cedar-done",
+          "title": "完成现场测量记录",
+          "owner": "项目协作成员（示例）",
+          "status": "done",
+          "due_date": "2026-09-18",
+          "submitted_at": null,
+          "wait_reason": null,
+          "waiting_for": null
+        }
+      ],
+      "analyses": [
+        {
+          "id": "cedar-old",
+          "label": "上一版测算",
+          "recorded_at": "2026-09-10",
+          "current": false,
+          "missing": [],
+          "inputs": {
+            "purchase_price": 420000,
+            "sale_price": 610000,
+            "purchase_extras": [
+              {
+                "label": "购入附加费用",
+                "amount": 8000
+              }
+            ],
+            "holding_months": 6,
+            "monthly_costs": [
+              {
+                "label": "税费、保险及水电假设",
+                "amount": 1400
+              }
+            ],
+            "financing": {
+              "enabled": false,
+              "down_pct": 100,
+              "rate_pct": 0,
+              "years": 30
+            },
+            "rehab_items": [
+              {
+                "category": "装修",
+                "label": "装修估算",
+                "amount": 80000
+              }
+            ],
+            "selling_pct": 6,
+            "selling_extras": [
+              {
+                "label": "销售附加费用",
+                "amount": 1500
+              }
+            ]
+          },
+          "assumptions": [
+            {
+              "label": "模型买入价",
+              "value": "$420,000",
+              "source": "本分析版本的买入价输入；与项目登记资料分别核对"
+            },
+            {
+              "label": "预计售价",
+              "value": "$610,000",
+              "source": "人工估算 · 合成版本，非成交承诺"
+            },
+            {
+              "label": "装修",
+              "value": "$80,000",
+              "source": "此分析版本的装修输入，不与支出重复相加"
+            },
+            {
+              "label": "持有期",
+              "value": "6 个月 × $1,400/月",
+              "source": "测算假设，非实际持有时间"
+            },
+            {
+              "label": "融资",
+              "value": "假设全款，模型利息 $0",
+              "source": "本合成版本明确假设；不表示真实资金来源"
+            },
+            {
+              "label": "交易费用",
+              "value": "购入 $8,000；卖出 6% + $1,500",
+              "source": "测算假设，尚未发生的成本不当实际支出"
+            }
+          ]
+        },
+        {
+          "id": "cedar-current",
+          "label": "当前测算",
+          "recorded_at": "2026-09-23",
+          "current": true,
+          "missing": [],
+          "inputs": {
+            "purchase_price": 420000,
+            "sale_price": 600000,
+            "purchase_extras": [
+              {
+                "label": "购入附加费用",
+                "amount": 8000
+              }
+            ],
+            "holding_months": 6,
+            "monthly_costs": [
+              {
+                "label": "税费、保险及水电假设",
+                "amount": 1400
+              }
+            ],
+            "financing": {
+              "enabled": false,
+              "down_pct": 100,
+              "rate_pct": 0,
+              "years": 30
+            },
+            "rehab_items": [
+              {
+                "category": "装修",
+                "label": "装修估算",
+                "amount": 85000
+              }
+            ],
+            "selling_pct": 6,
+            "selling_extras": [
+              {
+                "label": "销售附加费用",
+                "amount": 1500
+              }
+            ]
+          },
+          "assumptions": [
+            {
+              "label": "模型买入价",
+              "value": "$420,000",
+              "source": "本分析版本的买入价输入；与项目登记资料分别核对"
+            },
+            {
+              "label": "预计售价",
+              "value": "$600,000",
+              "source": "人工估算 · 合成版本，非成交承诺"
+            },
+            {
+              "label": "装修",
+              "value": "$85,000",
+              "source": "此分析版本的装修输入，不与支出重复相加"
+            },
+            {
+              "label": "持有期",
+              "value": "6 个月 × $1,400/月",
+              "source": "测算假设，非实际持有时间"
+            },
+            {
+              "label": "融资",
+              "value": "假设全款，模型利息 $0",
+              "source": "本合成版本明确假设；不表示真实资金来源"
+            },
+            {
+              "label": "交易费用",
+              "value": "购入 $8,000；卖出 6% + $1,500",
+              "source": "测算假设，尚未发生的成本不当实际支出"
+            }
+          ]
+        }
+      ],
+      "documents": [
+        {
+          "id": "cedar-record",
+          "name": "12 Cedar · 资料核对摘要",
+          "source": "合成项目资料",
+          "detail": "柜体规格待确认，采购与现场安装需对齐。 核对尺寸资料与安装安排，确认后再更新采购记录。 该资料仅为设计比较样例，不能作为真实成交或到账凭证。"
+        }
+      ],
+      "updates": [
+        {
+          "date": "2026-09-23",
+          "title": "项目跟进记录",
+          "detail": "柜体规格待确认，采购与现场安装需对齐。"
+        },
+        {
+          "date": "2026-09-24",
+          "title": "接下来核对",
+          "detail": "核对尺寸资料与安装安排，确认后再更新采购记录。"
+        }
+      ]
+    },
+    {
+      "id": "oak",
+      "name": "38 Oak",
+      "stage": "装修",
+      "lifecycle": "active",
+      "purchase_price": 520000,
+      "target_arv": 700000,
+      "budget": 90000,
+      "expenses": 98000,
+      "purchase_date": "2026-03-15",
+      "sale_date": null,
+      "sale_price": null,
+      "planned_end": "2026-09-15",
+      "financial_updated_at": "2026-09-23",
+      "coordinator": "Jessie",
+      "concern": "登记支出超预算 $8,000，计划完工日已过；最新 Final 未通过。",
+      "next_action": "分别核对新增费用依据和整改复查安排，保留两条问题。",
+      "issues": [
+        "progress"
+      ],
+      "gate": {
+        "title": "Final 核对",
+        "prerequisite_met": false,
+        "d": false,
+        "j": false,
+        "detail": "最近一次 Final 检查未通过；历史通过不能覆盖，D/J 仍需各自确认。"
+      },
+      "tasks": [
+        {
+          "id": "oak-wait",
+          "title": "Final 整改与复查",
+          "owner": "项目协作成员（示例）",
+          "status": "waiting",
+          "due_date": "2026-09-18",
+          "submitted_at": null,
+          "wait_reason": "等待现场整改材料与复查排期",
+          "waiting_for": "外部回复（示例）"
+        },
+        {
+          "id": "oak-review",
+          "title": "追加费用依据待核对",
+          "owner": "Jessie",
+          "status": "review",
+          "due_date": "2026-09-22",
+          "submitted_at": "2026-09-19T09:00:00",
+          "wait_reason": null,
+          "waiting_for": null
+        }
+      ],
+      "analyses": [
+        {
+          "id": "oak-old",
+          "label": "上一版测算",
+          "recorded_at": "2026-09-10",
+          "current": false,
+          "missing": [],
+          "inputs": {
+            "purchase_price": 520000,
+            "sale_price": 710000,
+            "purchase_extras": [
+              {
+                "label": "购入附加费用",
+                "amount": 8000
+              }
+            ],
+            "holding_months": 6,
+            "monthly_costs": [
+              {
+                "label": "税费、保险及水电假设",
+                "amount": 1400
+              }
+            ],
+            "financing": {
+              "enabled": false,
+              "down_pct": 100,
+              "rate_pct": 0,
+              "years": 30
+            },
+            "rehab_items": [
+              {
+                "category": "装修",
+                "label": "装修估算",
+                "amount": 90000
+              }
+            ],
+            "selling_pct": 6,
+            "selling_extras": [
+              {
+                "label": "销售附加费用",
+                "amount": 1500
+              }
+            ]
+          },
+          "assumptions": [
+            {
+              "label": "模型买入价",
+              "value": "$520,000",
+              "source": "本分析版本的买入价输入；与项目登记资料分别核对"
+            },
+            {
+              "label": "预计售价",
+              "value": "$710,000",
+              "source": "人工估算 · 合成版本，非成交承诺"
+            },
+            {
+              "label": "装修",
+              "value": "$90,000",
+              "source": "此分析版本的装修输入，不与支出重复相加"
+            },
+            {
+              "label": "持有期",
+              "value": "6 个月 × $1,400/月",
+              "source": "测算假设，非实际持有时间"
+            },
+            {
+              "label": "融资",
+              "value": "假设全款，模型利息 $0",
+              "source": "本合成版本明确假设；不表示真实资金来源"
+            },
+            {
+              "label": "交易费用",
+              "value": "购入 $8,000；卖出 6% + $1,500",
+              "source": "测算假设，尚未发生的成本不当实际支出"
+            }
+          ]
+        },
+        {
+          "id": "oak-current",
+          "label": "当前测算",
+          "recorded_at": "2026-09-23",
+          "current": true,
+          "missing": [],
+          "inputs": {
+            "purchase_price": 520000,
+            "sale_price": 700000,
+            "purchase_extras": [
+              {
+                "label": "购入附加费用",
+                "amount": 8000
+              }
+            ],
+            "holding_months": 8,
+            "monthly_costs": [
+              {
+                "label": "税费、保险及水电假设",
+                "amount": 1400
+              }
+            ],
+            "financing": {
+              "enabled": false,
+              "down_pct": 100,
+              "rate_pct": 0,
+              "years": 30
+            },
+            "rehab_items": [
+              {
+                "category": "装修",
+                "label": "装修估算",
+                "amount": 98000
+              }
+            ],
+            "selling_pct": 6,
+            "selling_extras": [
+              {
+                "label": "销售附加费用",
+                "amount": 1500
+              }
+            ]
+          },
+          "assumptions": [
+            {
+              "label": "模型买入价",
+              "value": "$520,000",
+              "source": "本分析版本的买入价输入；与项目登记资料分别核对"
+            },
+            {
+              "label": "预计售价",
+              "value": "$700,000",
+              "source": "人工估算 · 合成版本，非成交承诺"
+            },
+            {
+              "label": "装修",
+              "value": "$98,000",
+              "source": "此分析版本的装修输入，不与支出重复相加"
+            },
+            {
+              "label": "持有期",
+              "value": "8 个月 × $1,400/月",
+              "source": "测算假设，非实际持有时间"
+            },
+            {
+              "label": "融资",
+              "value": "假设全款，模型利息 $0",
+              "source": "本合成版本明确假设；不表示真实资金来源"
+            },
+            {
+              "label": "交易费用",
+              "value": "购入 $8,000；卖出 6% + $1,500",
+              "source": "测算假设，尚未发生的成本不当实际支出"
+            }
+          ]
+        }
+      ],
+      "documents": [
+        {
+          "id": "oak-record",
+          "name": "38 Oak · 资料核对摘要",
+          "source": "合成项目资料",
+          "detail": "登记支出超预算 $8,000，计划完工日已过；最新 Final 未通过。 分别核对新增费用依据和整改复查安排，保留两条问题。 该资料仅为设计比较样例，不能作为真实成交或到账凭证。"
+        }
+      ],
+      "updates": [
+        {
+          "date": "2026-09-23",
+          "title": "项目跟进记录",
+          "detail": "登记支出超预算 $8,000，计划完工日已过；最新 Final 未通过。"
+        },
+        {
+          "date": "2026-09-24",
+          "title": "接下来核对",
+          "detail": "分别核对新增费用依据和整改复查安排，保留两条问题。"
+        }
+      ]
+    },
+    {
+      "id": "maple",
+      "name": "28 Maple",
+      "stage": "装修准备",
+      "lifecycle": "active",
+      "purchase_price": null,
+      "target_arv": 620000,
+      "budget": null,
+      "expenses": 25000,
+      "purchase_date": null,
+      "sale_date": null,
+      "sale_price": null,
+      "planned_end": null,
+      "financial_updated_at": "2026-09-23",
+      "coordinator": "Jessie",
+      "concern": "买入价、完整装修预算及业务日期尚未补齐，当前无法形成可靠预计利润。",
+      "next_action": "先补购入与预算依据，再比较本项目的收益和持有时间。",
+      "issues": [
+        "data",
+        "progress"
+      ],
+      "gate": {
+        "title": "当前关键节点",
+        "prerequisite_met": false,
+        "d": false,
+        "j": false,
+        "detail": "这里展示合成节点事实；查看设计不执行审批，也不改变现有节点控制。"
+      },
+      "tasks": [
+        {
+          "id": "maple-data",
+          "title": "补齐买入价与预算资料",
+          "owner": "项目协作成员（示例）",
+          "status": "todo",
+          "due_date": "2026-09-23",
+          "submitted_at": null,
+          "wait_reason": null,
+          "waiting_for": null
+        }
+      ],
+      "analyses": [
+        {
+          "id": "maple-current",
+          "label": "当前测算",
+          "recorded_at": "2026-09-23",
+          "current": true,
+          "missing": [
+            "买入价",
+            "装修估算"
+          ],
+          "inputs": {
+            "purchase_price": null,
+            "sale_price": 620000,
+            "purchase_extras": [
+              {
+                "label": "购入附加费用",
+                "amount": 8000
+              }
+            ],
+            "holding_months": 6,
+            "monthly_costs": [
+              {
+                "label": "税费、保险及水电假设",
+                "amount": 1400
+              }
+            ],
+            "financing": {
+              "enabled": false,
+              "down_pct": 100,
+              "rate_pct": 0,
+              "years": 30
+            },
+            "rehab_items": [
+              {
+                "category": "装修",
+                "label": "装修估算",
+                "amount": null
+              }
+            ],
+            "selling_pct": 6,
+            "selling_extras": [
+              {
+                "label": "销售附加费用",
+                "amount": 1500
+              }
+            ]
+          },
+          "assumptions": [
+            {
+              "label": "模型买入价",
+              "value": "资料未齐",
+              "source": "本分析版本的买入价输入；与项目登记资料分别核对"
+            },
+            {
+              "label": "预计售价",
+              "value": "$620,000",
+              "source": "人工估算 · 合成版本，非成交承诺"
+            },
+            {
+              "label": "装修",
+              "value": "未建完整估算",
+              "source": "此分析版本的装修输入，不与支出重复相加"
+            },
+            {
+              "label": "持有期",
+              "value": "6 个月 × $1,400/月",
+              "source": "测算假设，非实际持有时间"
+            },
+            {
+              "label": "融资",
+              "value": "假设全款，模型利息 $0",
+              "source": "本合成版本明确假设；不表示真实资金来源"
+            },
+            {
+              "label": "交易费用",
+              "value": "购入 $8,000；卖出 6% + $1,500",
+              "source": "测算假设，尚未发生的成本不当实际支出"
+            }
+          ]
+        }
+      ],
+      "documents": [
+        {
+          "id": "maple-record",
+          "name": "28 Maple · 资料核对摘要",
+          "source": "合成项目资料",
+          "detail": "买入价、完整装修预算及业务日期尚未补齐，当前无法形成可靠预计利润。 先补购入与预算依据，再比较本项目的收益和持有时间。 该资料仅为设计比较样例，不能作为真实成交或到账凭证。"
+        }
+      ],
+      "updates": [
+        {
+          "date": "2026-09-23",
+          "title": "项目跟进记录",
+          "detail": "买入价、完整装修预算及业务日期尚未补齐，当前无法形成可靠预计利润。"
+        },
+        {
+          "date": "2026-09-24",
+          "title": "接下来核对",
+          "detail": "先补购入与预算依据，再比较本项目的收益和持有时间。"
+        }
+      ]
+    },
+    {
+      "id": "pine",
+      "name": "7 Pine",
+      "stage": "卖房上市",
+      "lifecycle": "active",
+      "purchase_price": 360000,
+      "target_arv": 490000,
+      "budget": 60000,
+      "expenses": 56000,
+      "purchase_date": "2026-05-20",
+      "sale_date": null,
+      "sale_price": null,
+      "planned_end": "2026-08-30",
+      "financial_updated_at": "2026-09-23",
+      "coordinator": "Jessie",
+      "concern": "正在上市，目标售价是估算依据，未签成交价。",
+      "next_action": "查看市场反馈与当前报价依据；实际销售费用需结算后核对。",
+      "issues": [],
+      "gate": {
+        "title": "当前关键节点",
+        "prerequisite_met": true,
+        "d": false,
+        "j": true,
+        "detail": "这里展示合成节点事实；查看设计不执行审批，也不改变现有节点控制。"
+      },
+      "tasks": [
+        {
+          "id": "pine-doing",
+          "title": "整理本周市场反馈",
+          "owner": "项目协作成员（示例）",
+          "status": "doing",
+          "due_date": "2026-09-25",
+          "submitted_at": null,
+          "wait_reason": null,
+          "waiting_for": null
+        },
+        {
+          "id": "pine-done",
+          "title": "完成上市资料",
+          "owner": "项目协作成员（示例）",
+          "status": "done",
+          "due_date": "2026-09-15",
+          "submitted_at": null,
+          "wait_reason": null,
+          "waiting_for": null
+        }
+      ],
+      "analyses": [
+        {
+          "id": "pine-old",
+          "label": "上一版测算",
+          "recorded_at": "2026-09-10",
+          "current": false,
+          "missing": [],
+          "inputs": {
+            "purchase_price": 360000,
+            "sale_price": 500000,
+            "purchase_extras": [
+              {
+                "label": "购入附加费用",
+                "amount": 8000
+              }
+            ],
+            "holding_months": 5,
+            "monthly_costs": [
+              {
+                "label": "税费、保险及水电假设",
+                "amount": 1400
+              }
+            ],
+            "financing": {
+              "enabled": false,
+              "down_pct": 100,
+              "rate_pct": 0,
+              "years": 30
+            },
+            "rehab_items": [
+              {
+                "category": "装修",
+                "label": "装修估算",
+                "amount": 60000
+              }
+            ],
+            "selling_pct": 6,
+            "selling_extras": [
+              {
+                "label": "销售附加费用",
+                "amount": 1500
+              }
+            ]
+          },
+          "assumptions": [
+            {
+              "label": "模型买入价",
+              "value": "$360,000",
+              "source": "本分析版本的买入价输入；与项目登记资料分别核对"
+            },
+            {
+              "label": "预计售价",
+              "value": "$500,000",
+              "source": "人工估算 · 合成版本，非成交承诺"
+            },
+            {
+              "label": "装修",
+              "value": "$60,000",
+              "source": "此分析版本的装修输入，不与支出重复相加"
+            },
+            {
+              "label": "持有期",
+              "value": "5 个月 × $1,400/月",
+              "source": "测算假设，非实际持有时间"
+            },
+            {
+              "label": "融资",
+              "value": "假设全款，模型利息 $0",
+              "source": "本合成版本明确假设；不表示真实资金来源"
+            },
+            {
+              "label": "交易费用",
+              "value": "购入 $8,000；卖出 6% + $1,500",
+              "source": "测算假设，尚未发生的成本不当实际支出"
+            }
+          ]
+        },
+        {
+          "id": "pine-current",
+          "label": "当前测算",
+          "recorded_at": "2026-09-23",
+          "current": true,
+          "missing": [],
+          "inputs": {
+            "purchase_price": 360000,
+            "sale_price": 490000,
+            "purchase_extras": [
+              {
+                "label": "购入附加费用",
+                "amount": 8000
+              }
+            ],
+            "holding_months": 6,
+            "monthly_costs": [
+              {
+                "label": "税费、保险及水电假设",
+                "amount": 1400
+              }
+            ],
+            "financing": {
+              "enabled": false,
+              "down_pct": 100,
+              "rate_pct": 0,
+              "years": 30
+            },
+            "rehab_items": [
+              {
+                "category": "装修",
+                "label": "装修估算",
+                "amount": 60000
+              }
+            ],
+            "selling_pct": 6,
+            "selling_extras": [
+              {
+                "label": "销售附加费用",
+                "amount": 1500
+              }
+            ]
+          },
+          "assumptions": [
+            {
+              "label": "模型买入价",
+              "value": "$360,000",
+              "source": "本分析版本的买入价输入；与项目登记资料分别核对"
+            },
+            {
+              "label": "预计售价",
+              "value": "$490,000",
+              "source": "人工估算 · 合成版本，非成交承诺"
+            },
+            {
+              "label": "装修",
+              "value": "$60,000",
+              "source": "此分析版本的装修输入，不与支出重复相加"
+            },
+            {
+              "label": "持有期",
+              "value": "6 个月 × $1,400/月",
+              "source": "测算假设，非实际持有时间"
+            },
+            {
+              "label": "融资",
+              "value": "假设全款，模型利息 $0",
+              "source": "本合成版本明确假设；不表示真实资金来源"
+            },
+            {
+              "label": "交易费用",
+              "value": "购入 $8,000；卖出 6% + $1,500",
+              "source": "测算假设，尚未发生的成本不当实际支出"
+            }
+          ]
+        }
+      ],
+      "documents": [
+        {
+          "id": "pine-record",
+          "name": "7 Pine · 资料核对摘要",
+          "source": "合成项目资料",
+          "detail": "正在上市，目标售价是估算依据，未签成交价。 查看市场反馈与当前报价依据；实际销售费用需结算后核对。 该资料仅为设计比较样例，不能作为真实成交或到账凭证。"
+        }
+      ],
+      "updates": [
+        {
+          "date": "2026-09-23",
+          "title": "项目跟进记录",
+          "detail": "正在上市，目标售价是估算依据，未签成交价。"
+        },
+        {
+          "date": "2026-09-24",
+          "title": "接下来核对",
+          "detail": "查看市场反馈与当前报价依据；实际销售费用需结算后核对。"
+        }
+      ]
+    },
+    {
+      "id": "birch",
+      "name": "63 Birch",
+      "stage": "售出收尾",
+      "lifecycle": "closed",
+      "purchase_price": 310000,
+      "target_arv": 430000,
+      "budget": 70000,
+      "expenses": 65000,
+      "purchase_date": "2026-02-01",
+      "sale_date": "2026-09-10",
+      "sale_price": 425000,
+      "planned_end": "2026-07-30",
+      "financial_updated_at": "2026-09-23",
+      "coordinator": "Jessie",
+      "concern": "已记录成交，但贷款清偿、最终费用和到账核对未齐，净回款与最终净利润待核对。",
+      "next_action": "核对结算清单与到账依据，不能把成交额作为可用现金。",
+      "issues": [
+        "settlement"
+      ],
+      "gate": {
+        "title": "当前关键节点",
+        "prerequisite_met": true,
+        "d": true,
+        "j": true,
+        "detail": "这里展示合成节点事实；查看设计不执行审批，也不改变现有节点控制。"
+      },
+      "tasks": [
+        {
+          "id": "birch-settlement",
+          "title": "补齐结算核对资料",
+          "owner": "项目协作成员（示例）",
+          "status": "todo",
+          "due_date": "2026-09-26",
+          "submitted_at": null,
+          "wait_reason": null,
+          "waiting_for": null
+        }
+      ],
+      "analyses": [
+        {
+          "id": "birch-current",
+          "label": "当前测算",
+          "recorded_at": "2026-09-23",
+          "current": true,
+          "missing": [],
+          "inputs": {
+            "purchase_price": 310000,
+            "sale_price": 430000,
+            "purchase_extras": [
+              {
+                "label": "购入附加费用",
+                "amount": 8000
+              }
+            ],
+            "holding_months": 7,
+            "monthly_costs": [
+              {
+                "label": "税费、保险及水电假设",
+                "amount": 1400
+              }
+            ],
+            "financing": {
+              "enabled": false,
+              "down_pct": 100,
+              "rate_pct": 0,
+              "years": 30
+            },
+            "rehab_items": [
+              {
+                "category": "装修",
+                "label": "装修估算",
+                "amount": 70000
+              }
+            ],
+            "selling_pct": 6,
+            "selling_extras": [
+              {
+                "label": "销售附加费用",
+                "amount": 1500
+              }
+            ]
+          },
+          "assumptions": [
+            {
+              "label": "模型买入价",
+              "value": "$310,000",
+              "source": "本分析版本的买入价输入；与项目登记资料分别核对"
+            },
+            {
+              "label": "预计售价",
+              "value": "$430,000",
+              "source": "人工估算 · 合成版本，非成交承诺"
+            },
+            {
+              "label": "装修",
+              "value": "$70,000",
+              "source": "此分析版本的装修输入，不与支出重复相加"
+            },
+            {
+              "label": "持有期",
+              "value": "7 个月 × $1,400/月",
+              "source": "测算假设，非实际持有时间"
+            },
+            {
+              "label": "融资",
+              "value": "假设全款，模型利息 $0",
+              "source": "本合成版本明确假设；不表示真实资金来源"
+            },
+            {
+              "label": "交易费用",
+              "value": "购入 $8,000；卖出 6% + $1,500",
+              "source": "测算假设，尚未发生的成本不当实际支出"
+            }
+          ]
+        }
+      ],
+      "documents": [
+        {
+          "id": "birch-record",
+          "name": "63 Birch · 资料核对摘要",
+          "source": "合成项目资料",
+          "detail": "已记录成交，但贷款清偿、最终费用和到账核对未齐，净回款与最终净利润待核对。 核对结算清单与到账依据，不能把成交额作为可用现金。 该资料仅为设计比较样例，不能作为真实成交或到账凭证。"
+        }
+      ],
+      "updates": [
+        {
+          "date": "2026-09-23",
+          "title": "项目跟进记录",
+          "detail": "已记录成交，但贷款清偿、最终费用和到账核对未齐，净回款与最终净利润待核对。"
+        },
+        {
+          "date": "2026-09-24",
+          "title": "接下来核对",
+          "detail": "核对结算清单与到账依据，不能把成交额作为可用现金。"
+        }
+      ]
+    },
+    {
+      "id": "elm",
+      "name": "91 Elm",
+      "stage": "买房 · 未购入",
+      "lifecycle": "lead",
+      "purchase_price": null,
+      "target_arv": 540000,
+      "budget": 70000,
+      "expenses": 0,
+      "purchase_date": null,
+      "sale_date": null,
+      "sale_price": null,
+      "planned_end": null,
+      "financial_updated_at": "2026-09-23",
+      "coordinator": "Jessie",
+      "concern": "仍为未购入线索，不进入在手项目的投入或预计利润合计。",
+      "next_action": "保留估算假设，先核对是否继续跟进；本页不替代投资决定。",
+      "issues": [
+        "data"
+      ],
+      "gate": {
+        "title": "当前关键节点",
+        "prerequisite_met": false,
+        "d": false,
+        "j": false,
+        "detail": "这里展示合成节点事实；查看设计不执行审批，也不改变现有节点控制。"
+      },
+      "tasks": [
+        {
+          "id": "elm-check",
+          "title": "核对线索基础资料",
+          "owner": "项目协作成员（示例）",
+          "status": "todo",
+          "due_date": null,
+          "submitted_at": null,
+          "wait_reason": null,
+          "waiting_for": null
+        }
+      ],
+      "analyses": [
+        {
+          "id": "elm-current",
+          "label": "当前测算",
+          "recorded_at": "2026-09-23",
+          "current": true,
+          "missing": [],
+          "inputs": {
+            "purchase_price": 390000,
+            "sale_price": 540000,
+            "purchase_extras": [
+              {
+                "label": "购入附加费用",
+                "amount": 8000
+              }
+            ],
+            "holding_months": 6,
+            "monthly_costs": [
+              {
+                "label": "税费、保险及水电假设",
+                "amount": 1400
+              }
+            ],
+            "financing": {
+              "enabled": false,
+              "down_pct": 100,
+              "rate_pct": 0,
+              "years": 30
+            },
+            "rehab_items": [
+              {
+                "category": "装修",
+                "label": "装修估算",
+                "amount": 70000
+              }
+            ],
+            "selling_pct": 6,
+            "selling_extras": [
+              {
+                "label": "销售附加费用",
+                "amount": 1500
+              }
+            ]
+          },
+          "assumptions": [
+            {
+              "label": "模型买入价",
+              "value": "$390,000",
+              "source": "线索拟买价假设，尚未购入"
+            },
+            {
+              "label": "预计售价",
+              "value": "$540,000",
+              "source": "人工估算 · 合成版本，非成交承诺"
+            },
+            {
+              "label": "装修",
+              "value": "$70,000",
+              "source": "此分析版本的装修输入，不与支出重复相加"
+            },
+            {
+              "label": "持有期",
+              "value": "6 个月 × $1,400/月",
+              "source": "测算假设，非实际持有时间"
+            },
+            {
+              "label": "融资",
+              "value": "假设全款，模型利息 $0",
+              "source": "本合成版本明确假设；不表示真实资金来源"
+            },
+            {
+              "label": "交易费用",
+              "value": "购入 $8,000；卖出 6% + $1,500",
+              "source": "测算假设，尚未发生的成本不当实际支出"
+            }
+          ]
+        }
+      ],
+      "documents": [
+        {
+          "id": "elm-record",
+          "name": "91 Elm · 资料核对摘要",
+          "source": "合成项目资料",
+          "detail": "仍为未购入线索，不进入在手项目的投入或预计利润合计。 保留估算假设，先核对是否继续跟进；本页不替代投资决定。 该资料仅为设计比较样例，不能作为真实成交或到账凭证。"
+        }
+      ],
+      "updates": [
+        {
+          "date": "2026-09-23",
+          "title": "项目跟进记录",
+          "detail": "仍为未购入线索，不进入在手项目的投入或预计利润合计。"
+        },
+        {
+          "date": "2026-09-24",
+          "title": "接下来核对",
+          "detail": "保留估算假设，先核对是否继续跟进；本页不替代投资决定。"
+        }
+      ]
+    }
+  ]
+}

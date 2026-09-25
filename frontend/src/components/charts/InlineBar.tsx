@@ -16,7 +16,7 @@ export default function InlineBar({ value, max, target, text, width = 150 }: Pro
   const over = target != null && target > 0 && value > target;
   const scale = Math.max(max, target ?? 0, value) || 1;
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10, fontFamily: FONT, fontSize: 12, color: over ? TEXT_BAD : TEXT }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10, fontFamily: FONT, fontSize: 13, color: over ? TEXT_BAD : TEXT }}>
       <span style={{ width, display: 'inline-block', flexShrink: 0 }}>
         <BudgetBar actual={value} target={target ?? 0} scaleMax={scale} height={8} />
       </span>

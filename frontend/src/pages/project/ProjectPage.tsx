@@ -1,33 +1,32 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import Box from '@cloudscape-design/components/box';
 import BreadcrumbGroup from '@cloudscape-design/components/breadcrumb-group';
 import Button from '@cloudscape-design/components/button';
 import ButtonDropdown from '@cloudscape-design/components/button-dropdown';
-import Container from '@cloudscape-design/components/container';
 import ContentLayout from '@cloudscape-design/components/content-layout';
-import Grid from '@cloudscape-design/components/grid';
-import Header from '@cloudscape-design/components/header';
 import Modal from '@cloudscape-design/components/modal';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import Spinner from '@cloudscape-design/components/spinner';
 import Tabs from '@cloudscape-design/components/tabs';
-import StatusBadge from '../../components/StatusBadge';
-import KeyValuePairs from '@cloudscape-design/components/key-value-pairs';
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { api, Project, TaskList } from '../../api/client';
 import CoverImage from '../../components/CoverImage';
-import ReviewTag from '../../components/ReviewTag';
-import { api, Project } from '../../api/client';
+import StagePositionBar from '../../components/StagePositionBar';
+import StatusBadge from '../../components/StatusBadge';
+import ExpandableSection from '../../components/ui/ExpandableSection';
+import KeyValuePairs from '../../components/ui/Facts';
+import Header from '../../components/ui/Header';
+import Container from '../../components/ui/Surface';
 import { useFlash } from '../../lib/flash';
 import { money, num } from '../../lib/format';
 import { labelOf, useMeta } from '../../lib/meta';
 import { useRole } from '../../lib/role';
-import { stageText } from '../../lib/stepDisplay';
-import OverviewTab from './OverviewTab';
 import AnalysisTab from './AnalysisTab';
-import DataTab from './DataTab';
-import FilesTab from './FilesTab';
 import BudgetTab from './BudgetTab';
+import DataTab from './DataTab';
 import EditProjectModal from './EditProjectModal';
+import FilesTab from './FilesTab';
+import OverviewTab from './OverviewTab';
 
 // 审计 #A12：原先 lead/active/portfolio 用 severity-low/medium/green，拿「严重度」表「阶段」——
 // 线索项目顶着低告警色、在建顶着中告警色。阶段不是状态，区分靠 current_stage.label 的文字。
@@ -85,7 +84,7 @@ function segments(parts: string[], sep: string) {
       {parts.map((t, i) => (
         <span key={t}>
           {i > 0 && sep}
-          <span style={{ whiteSpace: 'nowrap' }}>{t}</span>
+          <span className="ui-nowrap">{t}</span>
         </span>
       ))}
     </span>
@@ -109,15 +108,22 @@ export default function ProjectPage() {
   const role = useRole();
   const [params, setParams] = useSearchParams();
   const [project, setProject] = useState<Project | null>(null);
+  // KAN-75 块 4：任务表在页面层加载一次，头卡三条事实与总览任务区共用同一份数据
+  const [tasks, setTasks] = useState<TaskList | null>(null);
+  const [tasksErr, setTasksErr] = useState<string | null>(null);
+  const reloadTasks = useCallback(() => api.projectTasks(pid).then((d) => { setTasks(d); setTasksErr(null); }).catch((e) => setTasksErr(e.message)), [pid]);
+  useEffect(() => { reloadTasks(); }, [reloadTasks]);
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const reload = useCallback(() => api.project(pid).then(setProject), [pid]);
+  const reload = useCallback(() => api.project(pid).then(setProject).then(() => reloadTasks()), [pid, reloadTasks]);
   useEffect(() => { reload(); }, [reload]);
 
   if (!project) return <Box padding="xxl" textAlign="center"><Spinner size="large" /></Box>;
 
-  const tab = params.get('tab') ?? 'overview';
+  const canAnalyze = !!meta && role.can('analysis');
+  const requestedTab = params.get('tab') ?? 'overview';
+  const tab = requestedTab === 'analysis' && !canAnalyze ? 'overview' : requestedTab;
   const step = params.get('step');
   const action = params.get('action');
   const section = params.get('section');
@@ -126,49 +132,36 @@ export default function ProjectPage() {
   const specParts = [prop.year_built ? `${prop.year_built} 年` : null, prop.sqft ? `${num(prop.sqft)} sqft` : null, prop.beds != null ? `${prop.beds} 卧 ${prop.baths_full ?? 0} 卫` : null, prop.style].filter(Boolean) as string[];
 
   return (
-    <ContentLayout
+    <ContentLayout maxContentWidth={1440}
       breadcrumbs={<BreadcrumbGroup items={[{ text: '工作台', href: '/' }, { text: '项目', href: '/projects' }, { text: project.name, href: `/projects/${pid}` }]} onFollow={(e) => { e.preventDefault(); navigate(e.detail.href); }} />}
       header={
-        <Container>
-          {/* KAN-63：页头收成资源头——照片 150→96，占 2 列不是 3 列。
-              页头是用来确认「我在哪个项目」的，不是展示位。窄屏仍各占 12。 */}
-          <Grid gridDefinition={[{ colspan: { default: 12, s: 2 } }, { colspan: { default: 12, s: 10 } }]}>
-            <CoverImage propertyId={prop.id} height={96} radius={8} showLabel={false} />
-            <SpaceBetween size="m">
-              <Header
-                variant="h1"
-
-                actions={
+        <Container embedded cardId="project-header" cardContext={project.name}>
+          <SpaceBetween size="l">
+            <div className="ui-project-identity">
+              <CoverImage propertyId={prop.id} width={96} height={96} radius={8} showLabel={false} />
+              <SpaceBetween size="s">
+                <Header variant="h1" actions={
                   <SpaceBetween direction="horizontal" size="xs">
-                    {role.can('edit_project') && <Button onClick={() => setEditing(true)}>编辑</Button>}
+                    {role.can('edit_project') && <Button iconName="edit" onClick={() => setEditing(true)}>编辑</Button>}
                     {role.can('delete_project') && <ButtonDropdown items={[{ id: 'delete', text: '删除项目' }]} onItemClick={({ detail }) => { if (detail.id === 'delete') setConfirmDelete(true); }}>操作</ButtonDropdown>}
                   </SpaceBetween>
-                }
-              >
-                {/* 窄屏要能换行：SpaceBetween 横向不换行，这里用 flex-wrap。 */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, minWidth: 0 }}>
-                  <ReviewTag id="A" />
-                  <span>{project.name}</span>
-                  <StatusBadge status={project.status} />
-                </div>
-              </Header>
-              {/* 地址、户型、阶段、策略原先拼成一句用「 · 」串起来的说明，读起来像一行小字。
-                  改成带标签的字段：每个值上面写清楚它是什么。 */}
-              <KeyValuePairs
-                columns={4}
-                items={[
-                  { label: '地址', value: prop.address_std },
-                  { label: '房子', value: specParts.length ? segments(specParts, ' · ') : '—' },
-                  // KAN-65：与工作台、项目列表共用同一个 stageText，三处口径一致。
-                  { label: '阶段', value: stageText(project, meta) },
-                  { label: '策略', value: labelOf(meta?.strategies, project.strategy) },
-                ]}
-              />
-              {/* 第二组字段：钱和日期。原先是「交易」「时间」两栏大字，
-                  每栏两句话，还和总览的工期条重复报同一件事。 */}
-              <KeyValuePairs columns={4} items={[...dealFields(project), { label: '关键日期', value: keyDates(project) }]} />
-            </SpaceBetween>
-          </Grid>
+                }>
+                  <div className="ui-row-wrap">
+                    <span>{project.name}</span><StatusBadge status={project.status} />
+                  </div>
+                </Header>
+                <Box color="text-body-secondary">{prop.address_std}{specParts.length ? ` · ${specParts.join(' · ')}` : ''}</Box>
+              </SpaceBetween>
+            </div>
+            {/* 当前事实与房屋身份分层；仍只陈述任务、日期和关键节点已有的数据。 */}
+            {tasks && tasks.focus.length > 0 && (
+              <KeyValuePairs columns={3} items={tasks.focus.map((f) => ({ label: f.label, value: f.tone === 'warning' ? <Box color="text-status-warning" fontWeight="bold">{f.value}</Box> : <Box fontWeight="bold">{f.value}</Box> }))} />
+            )}
+            <StagePositionBar position={project.group_position} />
+            <ExpandableSection headerText="房屋与交易资料">
+              <KeyValuePairs columns={4} items={[{ label: '策略', value: labelOf(meta?.strategies, project.strategy) }, ...dealFields(project), { label: '关键日期', value: keyDates(project) }]} />
+            </ExpandableSection>
+          </SpaceBetween>
         </Container>
       }
     >
@@ -177,8 +170,8 @@ export default function ProjectPage() {
           activeTabId={tab}
           onChange={({ detail }) => setParams((prev) => { const n = new URLSearchParams(prev); n.set('tab', detail.activeTabId); return n; })}
           tabs={[
-            { id: 'overview', label: '总览', content: <OverviewTab project={project} reload={reload} deepLink={{ step, action }} focus={focus} /> },
-            ...(role.canReadMoney ? [{ id: 'analysis', label: '分析', content: <AnalysisTab project={project} reload={reload} /> }] : []),
+            { id: 'overview', label: '总览', content: <OverviewTab project={project} reload={reload} deepLink={{ step, action }} focus={focus} tasks={tasks} tasksErr={tasksErr} reloadTasks={reloadTasks} /> },
+            ...(canAnalyze ? [{ id: 'analysis', label: '分析', content: <AnalysisTab project={project} reload={reload} /> }] : []),
             ...(role.tier !== 'grey' ? [{ id: 'data', label: '数据', content: <DataTab projectId={pid} reload={reload} section={section} /> }] : []),
             { id: 'files', label: '文件', content: <FilesTab projectId={pid} /> },
             ...(role.canReadMoney || role.can('procurement') ? [{ id: 'budget', label: '预算', content: <BudgetTab projectId={pid} reload={reload} section={section} /> }] : []),

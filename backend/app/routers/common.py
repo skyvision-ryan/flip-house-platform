@@ -35,6 +35,14 @@ def get_actor(request: Request, db: Session = Depends(get_db), x_actor: Optional
     raise HTTPException(401, "还没登录")
 
 
+def require_user(request: Request, db: Session = Depends(get_db)) -> models.User:
+    """KAN-75：写任务的接口要真登录。演示模式的 X-Actor 只能改「看」，不能替人「做」。"""
+    u = current_user(request, db)
+    if u is None:
+        raise HTTPException(401, "这个操作要先登录")
+    return u
+
+
 def allowed(actor: str, action: str, *extra_ok: str) -> bool:
     """这个身份能不能做这个动作：级别在名单里、代号在名单里、或调用方额外放行的代号。"""
     ok = PERMISSIONS.get(action, ["purple", "blue"])
@@ -104,6 +112,7 @@ def project_out(db: Session, p: models.Project, actor: str = "负责人") -> sch
         analysis_count=0 if hide else len(p.analyses),
         current_stage=steps["current_stage"], next_up=steps["next_up"],
         stage_progress=steps["stage_progress"], earlier_undone_count=len(steps["earlier_undone"]),
+        group_position=steps["group_position"], lead_substage_at_escrow=p.lead_substage_at_escrow,
     )
 
 

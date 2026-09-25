@@ -1,23 +1,24 @@
-import { useCallback, useEffect, useState } from 'react';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
 import Checkbox from '@cloudscape-design/components/checkbox';
 import ColumnLayout from '@cloudscape-design/components/column-layout';
 import DatePicker from '@cloudscape-design/components/date-picker';
-import FormField from '@cloudscape-design/components/form-field';
 import Input from '@cloudscape-design/components/input';
 import Modal from '@cloudscape-design/components/modal';
 import Select from '@cloudscape-design/components/select';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import Spinner from '@cloudscape-design/components/spinner';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
-import Table from '@cloudscape-design/components/table';
+import { useCallback, useEffect, useState } from 'react';
 import { api, Inspection } from '../api/client';
 import { useActor } from '../lib/actor';
+import { useRole } from '../lib/role';
 import { useFlash } from '../lib/flash';
 import { dateStr, text } from '../lib/format';
 import { labelOf, useMeta } from '../lib/meta';
-import { OwnerDot } from './OwnerTag';
+import { RoleLabel } from './RoleLabel';
+import FormField from './ui/FormField';
+import Table from './ui/Table';
 
 const RESULT_KIND: Record<string, 'success' | 'error' | 'pending'> = { passed: 'success', failed: 'error', scheduled: 'pending' };
 const EMPTY = { name: '', date: '', result: 'scheduled', is_final: false, fixer: '', note: '' };
@@ -27,6 +28,7 @@ export default function InspectionsPanel({ projectId, onChanged }: { projectId: 
   const meta = useMeta();
   const flash = useFlash();
   const { actor } = useActor();
+  const canEdit = useRole().can('inspections');
   const [rows, setRows] = useState<Inspection[] | null>(null);
   const [editing, setEditing] = useState<Inspection | 'new' | null>(null);
   const [draft, setDraft] = useState<typeof EMPTY>(EMPTY);
@@ -75,21 +77,21 @@ export default function InspectionsPanel({ projectId, onChanged }: { projectId: 
         empty={<Box textAlign="center" color="inherit">师傅做到一个程度，Z 约一次检查，就在这里记一行。</Box>}
         columnDefinitions={[
           { id: 'n', header: '第几次', width: 70, cell: (i) => rows.indexOf(i) + 1 },
-          { id: 'name', header: '查什么', cell: (i) => <span>{i.name}{i.is_final && <b style={{ marginLeft: 6 }}>final</b>}</span> },
+          { id: 'name', header: '查什么', cell: (i) => <span>{i.name}{i.is_final && <b className="ui-final-label">final</b>}</span> },
           { id: 'date', header: '日期', width: 110, cell: (i) => dateStr(i.date) },
           { id: 'res', header: '结果', width: 130, cell: (i) => <StatusIndicator type={RESULT_KIND[i.result] ?? 'pending'}>{labelOf(resultOptions, i.result)}</StatusIndicator> },
           { id: 'fixer', header: '没过谁整改', cell: (i) => (i.result === 'failed' ? text(i.fixer) || <Box color="text-status-error">还没写</Box> : '—') },
           { id: 'note', header: '备注', cell: (i) => text(i.note) },
-          { id: 'who', header: '谁记的', width: 80, cell: (i) => (i.recorded_by ? <OwnerDot code={i.recorded_by} /> : '—') },
-          { id: 'act', header: '', width: 120, cell: (i) => (
+          { id: 'who', header: '谁记的', width: 80, cell: (i) => (i.recorded_by ? <RoleLabel code={i.recorded_by} /> : '—') },
+          { id: 'act', header: '', width: 120, cell: (i) => canEdit ? (
             <SpaceBetween direction="horizontal" size="xs">
               <Button variant="inline-link" onClick={() => open(i)}>改</Button>
               <Button variant="inline-link" onClick={async () => { setRows(await api.deleteInspection(i.id)); onChanged?.(); }}>删</Button>
             </SpaceBetween>
-          ) },
+          ) : null },
         ]}
       />
-      <Box><Button iconName="add-plus" onClick={() => open('new')}>记一次检查</Button></Box>
+      <Box>{canEdit && <Button iconName="add-plus" onClick={() => open('new')}>记一次检查</Button>}</Box>
 
       <Modal
         visible={editing !== null}

@@ -11,6 +11,7 @@ import time
 from typing import Optional
 
 from fastapi import Request, Response
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from . import models
@@ -18,6 +19,19 @@ from .settings import COOKIE_SECURE, SECRET_KEY, SESSION_DAYS
 
 COOKIE_NAME = "session"
 _ITER = 200_000
+
+
+def normalize_email(value: str) -> str:
+    return value.strip().lower()
+
+
+def email_users(db: Session, email: str) -> list[models.User]:
+    """兼容旧邮箱大小写和以邮箱作 username 的账号；歧义由调用方拒绝。"""
+    email = normalize_email(email)
+    return list(db.scalars(select(models.User).where(or_(
+        func.lower(func.trim(models.User.email)) == email,
+        func.lower(func.trim(models.User.username)) == email,
+    ))).all())
 
 
 def hash_password(pw: str) -> str:

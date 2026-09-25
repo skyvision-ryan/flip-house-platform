@@ -1,17 +1,17 @@
-import { useState } from 'react';
-import Box from '@cloudscape-design/components/box';
 import Badge from '@cloudscape-design/components/badge';
+import Box from '@cloudscape-design/components/box';
 import ButtonDropdown from '@cloudscape-design/components/button-dropdown';
-import Container from '@cloudscape-design/components/container';
-import Header from '@cloudscape-design/components/header';
 import Link from '@cloudscape-design/components/link';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import Spinner from '@cloudscape-design/components/spinner';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Meta, Project, api } from '../api/client';
 import { useFlash } from '../lib/flash';
 import { money } from '../lib/format';
 import { groupBySubstage, heatLabel, isLead, nextUpText } from '../lib/leads';
+import Header from './ui/Header';
+import Container from './ui/Surface';
 
 /**
  * 线索房按子阶段分组的列表（KAN-50）。
@@ -42,7 +42,7 @@ export default function LeadGroups({
         // 空组：只留一行计数，说明这一档现在没有房子
         <Box key={g.value} color="text-body-secondary" fontSize="body-s">{g.label}　0 套</Box>
       ) : (
-        <Container key={g.value} header={<Header variant="h2" counter={`(${g.projects.length})`}>{g.label}</Header>}>
+        <Container cardId="lead-group" cardContext={g.label} key={g.value} header={<Header variant="h2" counter={`(${g.projects.length})`}>{g.label}</Header>}>
           <SpaceBetween size="m">
             {g.projects.map((p) => (
               <LeadRow key={p.id} p={p} meta={meta} canEdit={canEdit} onPatched={onPatched} />
@@ -89,10 +89,10 @@ function LeadRow({ p, meta, canEdit, onPatched }: {
   };
 
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: 12, minWidth: 0 }}>
-      <div style={{ flex: '1 1 260px', minWidth: 0 }}>
+    <div className="ui-lead-row">
+      <div className="ui-lead-body">
         <SpaceBetween size="xxs">
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, minWidth: 0 }}>
+          <div className="ui-row-wrap">
             <Link fontSize="heading-s" href={`/projects/${p.id}`} onFollow={(e) => { e.preventDefault(); navigate(`/projects/${p.id}`); }}>{p.name}</Link>
             {heat && <Badge>{heat}</Badge>}
           </div>

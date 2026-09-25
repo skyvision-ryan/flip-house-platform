@@ -393,3 +393,13 @@ test('meta 还没加载也不能崩', () => {
 test('子阶段值不在字典里时原样显示，不吞掉', () => {
   assert.equal(stageText(proj('lead', 'unknown_sub', { key: 's1', label: '① 预买房' }), META), '① 预买房 · unknown_sub');
 });
+
+test('KAN-75 块 2：有分组位置时按五格说，买房内区分未购入 / escrow 中', () => {
+  const gp = (over: Partial<Parameters<typeof stageText>[0]['group_position'] & object>) => ({
+    group_label: '买房', label: '买房 · 未购入', sub_key: 'pre', lead_substage_label: '已出价', frozen_substage_label: null, complete: false, ...over,
+  });
+  assert.equal(stageText({ ...proj('lead', 'offer_made', { key: 's1', label: '① 预买房' }), group_position: gp({}) }, META), '买房 · 未购入 · 已出价');
+  assert.equal(stageText({ ...proj('active', 'construction', { key: 's2', label: '② 买房与过户' }), group_position: gp({ label: '买房 · escrow 中', sub_key: 'escrow', lead_substage_label: null, frozen_substage_label: '待成交' }) }, META), '买房 · escrow 中');
+  assert.equal(stageText({ ...proj('active', 'construction', { key: 's3', label: '③ 装修' }), group_position: gp({ group_label: '装修', label: '装修', sub_key: null, lead_substage_label: null }) }, META), '装修');
+  assert.equal(stageText({ ...proj('portfolio', 'sold', { key: 'done', label: '全部完成' }), group_position: gp({ group_label: '售出收尾', label: '售出收尾', sub_key: null, lead_substage_label: null, complete: true }) }, META), '售出收尾 · 已走完');
+});
