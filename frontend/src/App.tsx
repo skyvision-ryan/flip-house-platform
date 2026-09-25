@@ -23,6 +23,7 @@ import { readReviewPref, writeReviewPref } from './lib/reviewPref';
 import { Tier, TIER_FALLBACK } from './lib/role';
 import AddProject from './pages/AddProject';
 import Dashboard from './pages/Dashboard';
+import ProcurementWorkspace from './pages/ProcurementWorkspace';
 import Login from './pages/Login';
 import MyTodo from './pages/MyTodo';
 import ProjectPage from './pages/project/ProjectPage';
@@ -83,7 +84,7 @@ export default function App() {
     id: `g-${t}`, text: (meta?.tiers?.[t] ?? TIER_FALLBACK[t]).label,
     items: (meta?.roles ?? []).filter((r) => r.tier === t).map((r) => ({ id: r.code, text: r.label, description: r.duties || undefined })),
   })).filter((g) => g.items.length);
-  const activeHref = location.pathname.startsWith('/todo') ? '/todo' : location.pathname === '/projects/new' ? '/projects/new' : location.pathname.startsWith('/projects') ? '/projects' : location.pathname.startsWith('/users') ? '/users' : location.pathname.startsWith('/design-') ? DESIGN_DIRECTIONS_PATH : '/';
+  const activeHref = location.pathname.startsWith('/procurement') ? (me?.role_code === '采购' ? '/' : '/procurement') : location.pathname.startsWith('/todo') ? '/todo' : location.pathname === '/projects/new' ? '/projects/new' : location.pathname.startsWith('/projects') ? '/projects' : location.pathname.startsWith('/users') ? '/users' : location.pathname.startsWith('/design-') ? DESIGN_DIRECTIONS_PATH : '/';
 
   if (demoMode === null) {
     return <div className="ui-loading"><Spinner size="large" /></div>;
@@ -189,6 +190,7 @@ export default function App() {
             items={[
               { type: 'link', text: '工作台', href: '/', icon: <Icon name="grid-view" /> },
               ...(canDo('read_money') ? [{ type: 'link' as const, text: '项目', href: '/projects', icon: <Icon name="folder" /> }] : []),
+              ...(me && me.role_code !== '采购' && canDo('procurement') ? [{ type: 'link' as const, text: '采购工作台', href: '/procurement', icon: <Icon name="grid-view" /> }] : []),
               { type: 'link', text: '我的事项', href: '/todo', icon: <Icon name="check" /> },
               ...(hasDesignDirections(me) ? [{ type: 'link' as const, text: '设计方向', href: DESIGN_DIRECTIONS_PATH, icon: <Icon name="view-full" /> }] : []),
               ...(canDo('create_project') ? [{ type: 'link' as const, text: '新建项目', href: '/projects/new', icon: <Icon name="add-plus" /> }] : []),
@@ -199,7 +201,8 @@ export default function App() {
         content={<>
           {(helpOn || reviewOn) && <div className="ui-mode-bar"><span><strong>{helpOn ? '辅助说明已开启' : ''}{helpOn && reviewOn ? ' · ' : ''}{reviewOn ? '卡片编号已开启' : ''}</strong>{reviewOn && ' · 点击编号复制反馈位置'}</span><Button variant="inline-link" onClick={() => setDisplayOpen(true)}>显示设置</Button></div>}
           <Routes>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={me?.role_code === '采购' ? <ProcurementWorkspace /> : <Dashboard />} />
+            <Route path="/procurement" element={me && canDo('procurement') ? <ProcurementWorkspace /> : <Navigate to="/" replace />} />
             <Route path="/todo" element={<MyTodo />} />
             <Route path={DESIGN_DIRECTIONS_PATH} element={<DesignDirections />} />
             <Route path="/design-choices" element={<LegacyDesignRedirect />} />

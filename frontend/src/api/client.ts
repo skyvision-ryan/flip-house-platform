@@ -133,13 +133,23 @@ export interface Inspection {
   id: number; project_id: number; name: string; date: string | null; result: string; is_final: boolean; fixer: string | null; note: string | null; recorded_by: string | null; created_at: string;
 }
 
-export interface ProcurementItem {
-  id: number; project_id: number; wave: string; name: string; status: string; note: string | null; sort_order: number; updated_by: string | null; updated_at: string;
+export interface ProcurementImage { id: number; filename: string; mime: string; size: number }
+export interface ProcurementFields {
+  retailer: string | null; order_number: string | null; order_url: string | null; carrier: string | null; tracking_number: string | null; tracking_url: string | null; shipment_status: string | null; follow_up: string | null;
+
+  note: string | null; ordered_on: string | null; expected_on: string | null; received_on: string | null;
+  delivery_type: 'company' | 'project' | 'custom' | null; delivery_address: string | null;
+  amount: number | null; quantity: number | null; specification: string | null; product_url: string | null;
+}
+export type ProcurementPatch = Partial<ProcurementFields & { name: string; wave: string; status: string; expected_updated_at: string; mark_checked: boolean }>;
+export interface ProcurementItem extends ProcurementFields {
+  id: number; project_id: number; wave: string; name: string; status: string; note: string | null; sort_order: number; updated_by: string | null; updated_at: string; updated_by_user_id: number | null; images: ProcurementImage[]; checked_at: string | null; checked_by_user_id: number | null;
 }
 export interface ProcurementSummary {
   total: number; pending_spec: number; pending_order: number; ordered: number; received: number; exception: number; na: number;
 }
-export interface ProcurementList { items: ProcurementItem[]; summary: ProcurementSummary; template_missing?: boolean }
+export interface ProcurementWorkspaceData { items: (ProcurementItem & { project_name: string })[]; projects: { id: number; name: string; address: string }[]; source: string }
+export interface ProcurementList { created_item_id?: number | null; items: ProcurementItem[]; summary: ProcurementSummary; template_missing?: boolean }
 
 export interface BudgetLine { id: number; project_id: number; category: string; planned_amount: number; note: string | null }
 export interface Expense { id: number; project_id: number; category: string; amount: number; date: string | null; vendor: string | null; note: string | null; file_id: number | null }
@@ -316,9 +326,14 @@ export const api = {
   addInspection: (id: number, body: Partial<Inspection>) => req<Inspection[]>(`/api/projects/${id}/inspections`, { method: 'POST', body: JSON.stringify(body) }),
   patchInspection: (iid: number, body: Partial<Inspection>) => req<Inspection[]>(`/api/inspections/${iid}`, { method: 'PATCH', body: JSON.stringify(body) }),
   deleteInspection: (iid: number) => req<Inspection[]>(`/api/inspections/${iid}`, { method: 'DELETE' }),
+  procurementTracking: () => req<ProcurementWorkspaceData>('/api/me/procurement-tracking'),
   procurement: (id: number) => req<ProcurementList>(`/api/projects/${id}/procurement`),
   initProcurement: (id: number) => req<ProcurementList>(`/api/projects/${id}/procurement/init`, { method: 'POST' }),
-  patchProcurement: (itemId: number, body: { status?: string; note?: string | null }) => req<ProcurementList>(`/api/procurement/${itemId}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  patchProcurement: (itemId: number, body: ProcurementPatch) => req<ProcurementList>(`/api/procurement/${itemId}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  addProcurement: (id: number, body: Partial<ProcurementFields> & { name: string; wave: string }) => req<ProcurementList>(`/api/projects/${id}/procurement`, { method: 'POST', body: JSON.stringify(body) }),
+  uploadProcurementImage: (itemId: number, file: File) => { const data = new FormData(); data.append('file', file); return req<ProcurementImage>(`/api/procurement/${itemId}/images`, { method: 'POST', body: data }); },
+  deleteProcurementImage: (imageId: number) => req<void>(`/api/procurement-images/${imageId}`, { method: 'DELETE' }),
+
   updates: (limit = 30) => req<Update[]>(`/api/updates?limit=${limit}`),
   projectUpdates: (id: number, limit = 30) => req<Update[]>(`/api/projects/${id}/updates?limit=${limit}`),
 };

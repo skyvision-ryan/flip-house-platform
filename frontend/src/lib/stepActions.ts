@@ -82,7 +82,7 @@ export function actionHref(projectId: number, item: StepItem, opts?: { forConfir
   const dv = item.deliverable;
   if (mode === 'navigate' && dv?.record === 'utilities') return `${base}?tab=data&section=utilities`;
   if (mode === 'navigate' && dv?.record === 'expenses') return `${base}?tab=budget`;
-  if (mode === 'navigate' && dv?.record === 'procurement') return `${base}?tab=budget&section=procurement`;
+  if (mode === 'navigate' && dv?.record === 'procurement') return `/procurement?project=${projectId}`;
   if (mode === 'navigate' && dv?.record === 'inspections') return `${base}?tab=overview&focus=inspections`;
   if (mode === 'navigate' && dv?.record === 'analyses') return `${base}?tab=analysis`;
   const action = opts?.action ?? (mode === 'upload' ? 'upload' : mode === 'field' ? 'field' : mode === 'confirm' ? 'confirm' : mode === 'tick' ? 'tick' : undefined);

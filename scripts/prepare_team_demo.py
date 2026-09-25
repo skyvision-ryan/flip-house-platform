@@ -37,8 +37,8 @@ EXTRA_TITLES = {
     "jessie": ("核对当前房屋的协作安排", "汇总跨职责资料缺口"),
     "david": ("复核本房定价依据", "记录合同与节点核对意见"),
     "kody": ("核对水电燃气账户卡点", "核对保险文件与到期日"),
-    "tristin": ("核对厨房材料规格与交期", "跟进厨房材料采购异常"),
-    "jeremy": ("核对卫浴材料规格与交期", "跟进卫浴材料到货记录"),
+    "tristin": ("核对材料选型与下单准备", "跟进订单交期与异常"),
+    "jeremy": ("核对材料选型与下单准备", "跟进订单交期与收货"),
     "zoey": ("核对设计与Permit资料版本", "整理本房检查与整改说明"),
     "sabrina": ("核对分类预算与费用归集", "核对本房费用凭证缺口"),
     "admin": ("记录本房现场资料核对意见", "整理经营风险与下一步说明"),
@@ -152,12 +152,16 @@ def _delete_projects(db: Session, ids: list[int], uploads: Path) -> list[Path]:
             raise ValueError("有范围外历史引用待替换任务，拒绝删除")
     if db.scalar(select(models.SubmissionFile.id).where(models.SubmissionFile.submission_id.not_in(sub_ids), models.SubmissionFile.file_id.in_(file_ids)).limit(1)):
         raise ValueError("有范围外提交引用待替换文件，拒绝删除")
-    paths = [Path(row.stored_path).resolve() for row in file_rows if row.stored_path]
+    purchase_ids = select(models.ProcurementItem.id).where(models.ProcurementItem.project_id.in_(ids))
+    purchase_images = list(db.scalars(select(models.ProcurementImage).where(models.ProcurementImage.item_id.in_(purchase_ids))).all())
+    paths = [Path(row.stored_path).resolve() for row in [*file_rows, *purchase_images] if row.stored_path]
     if any(uploads not in path.parents for path in paths):
         raise ValueError("待替换附件路径不在显式 uploads 目录内，拒绝删除")
     other_paths = {Path(value).resolve() for value in db.scalars(select(models.ProjectFile.stored_path).where(models.ProjectFile.project_id.not_in(ids))).all() if value}
+    other_paths.update(Path(value).resolve() for value in db.scalars(select(models.ProcurementImage.stored_path).where(models.ProcurementImage.item_id.not_in(purchase_ids))).all() if value)
     if set(paths).intersection(other_paths):
         raise ValueError("范围外项目仍引用同一物理附件，拒绝删除")
+    db.execute(delete(models.ProcurementImage).where(models.ProcurementImage.item_id.in_(purchase_ids)))
     db.execute(delete(models.SubmissionFile).where(models.SubmissionFile.submission_id.in_(sub_ids)))
     db.execute(models.Task.__table__.update().where(models.Task.id.in_(task_ids)).values(linked_task_id=None))
     # Metadata order accounts for expenses -> budgets/files and submissions -> tasks.
@@ -265,7 +269,29 @@ def _make_project(db: Session, index: int, scope: str, team: dict, as_of: date, 
                 date=day(-9 + part * 3), vendor=f"Demo {category} vendor", note="合成支出登记；不代表付款台账", file_id=invoice.id if part == 0 else None))
     for item_index, item in enumerate(ensure_procurement(db, project.id, commit=False)):
         item.status = "received" if index == 2 or (index == 1 and item.wave == "before_rough") else ("pending_spec", "ordered", "exception", "pending_order")[item_index % 4]
-        item.updated_by = team["tristin" if item_index % 2 == 0 else "jeremy"].role_code
+        buyer = team["tristin" if item_index % 2 == 0 else "jeremy"]
+        item.updated_by = buyer.display_name
+        item.updated_by_user_id = buyer.id
+        placed = item.status in {"ordered", "received", "exception"}
+        item.ordered_on = day(-12) if placed else None
+        item.expected_on = day(-3 if item.status in {"received", "exception"} else (2 if item_index % 3 == 1 else 5)) if placed else None
+        item.received_on = day(-2) if item.status == "received" else None
+        item.delivery_type = ("company", "project", "custom")[item_index % 3]
+        item.delivery_address = project.property.address_std if item.delivery_type == "project" else "Synthetic Company · Demo 收货点" if item.delivery_type == "company" else "Synthetic Warehouse · Demo 临时仓库"
+        item.quantity = 1 + item_index % 4
+        item.amount = round((79.95 + item_index * 21.5) * item.quantity, 2) if item.status != "pending_spec" else None
+        item.specification = "合成规格；现场核对尺寸后下单"
+        item.product_url = "https://example.com/demo-material"
+        item.retailer = ("Amazon", "Wayfair", "Home Depot")[item_index % 3]
+        item.order_number = f"DEMO-{index + 1}-{item_index + 1:03}" if placed else None
+        item.order_url = "https://example.com/demo-order" if placed else None
+        item.carrier = "Demo carrier" if placed else None
+        item.tracking_number = f"DEMO-TRACK-{index + 1}-{item_index + 1:03}" if placed else None
+        item.tracking_url = "https://example.com/demo-tracking" if placed else None
+        item.shipment_status = "delivered" if item.status == "received" else "exception" if item.status == "exception" else ("delivered" if item_index % 5 == 1 else "in_transit") if placed else None
+        item.follow_up = "合成：联系商家核实交期与现场收货安排" if item.status == "exception" else None
+        item.checked_at = timestamp(-1) if placed and item_index % 3 == 0 else None
+        item.checked_by_user_id = buyer.id if item.checked_at else None
         item.note = "合成：尺寸/交期需跟进；实际到货不以预计日期替代" if item.status == "exception" else "合成采购记录"
     for kind in ("water", "electric", "gas"):
         state = "pending" if index == 0 and kind == "gas" else "off" if index == 2 and kind != "gas" else "on"

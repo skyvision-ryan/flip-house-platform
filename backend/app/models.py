@@ -290,9 +290,43 @@ class ProcurementItem(Base):
     name: Mapped[str] = mapped_column(String)
     status: Mapped[str] = mapped_column(String, default="pending_spec")  # pending_spec / pending_order / ordered / received / exception / na
     note: Mapped[Optional[str]] = mapped_column(String)
+    ordered_on: Mapped[Optional[str]] = mapped_column(String)
+    expected_on: Mapped[Optional[str]] = mapped_column(String)
+    received_on: Mapped[Optional[str]] = mapped_column(String)
+    delivery_type: Mapped[Optional[str]] = mapped_column(String)  # company / project / custom
+    delivery_address: Mapped[Optional[str]] = mapped_column(String)  # saved snapshot, not inferred on edits
+    amount: Mapped[Optional[float]] = mapped_column(Float)  # item total USD; never an Expense
+    product_url: Mapped[Optional[str]] = mapped_column(String)
+    specification: Mapped[Optional[str]] = mapped_column(String)
+    quantity: Mapped[Optional[float]] = mapped_column(Float)
+    retailer: Mapped[Optional[str]] = mapped_column(String)
+    order_number: Mapped[Optional[str]] = mapped_column(String)
+    order_url: Mapped[Optional[str]] = mapped_column(String)
+    carrier: Mapped[Optional[str]] = mapped_column(String)
+    tracking_number: Mapped[Optional[str]] = mapped_column(String)
+    tracking_url: Mapped[Optional[str]] = mapped_column(String)
+    shipment_status: Mapped[Optional[str]] = mapped_column(String)
+    follow_up: Mapped[Optional[str]] = mapped_column(String)
+    checked_at: Mapped[Optional[str]] = mapped_column(String)
+    checked_by_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"))
+    updated_by_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"))
+    images: Mapped[list["ProcurementImage"]] = relationship(cascade="all, delete-orphan", order_by="ProcurementImage.id")
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     updated_by: Mapped[Optional[str]] = mapped_column(String)
     updated_at: Mapped[str] = mapped_column(String, default=now_iso, onupdate=now_iso)
+
+
+class ProcurementImage(Base):
+    """Private images belonging to a purchase item, separate from financial documents."""
+    __tablename__ = "procurement_images"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    item_id: Mapped[int] = mapped_column(ForeignKey("procurement_items.id"), index=True)
+    filename: Mapped[str] = mapped_column(String)
+    stored_path: Mapped[str] = mapped_column(String)
+    mime: Mapped[str] = mapped_column(String)
+    size: Mapped[int] = mapped_column(Integer)
+    uploaded_by_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[str] = mapped_column(String, default=now_iso)
 
 
 class User(Base):

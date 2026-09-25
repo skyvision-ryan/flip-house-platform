@@ -2,7 +2,7 @@ from typing import Optional
 from datetime import date
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, HttpUrl, field_validator
+from pydantic import BaseModel, ConfigDict, HttpUrl, Field, field_validator
 
 
 class ORM(BaseModel):
@@ -488,6 +488,56 @@ class InspectionOut(ORM):
     created_at: str
 
 
+class ProcurementImageOut(ORM):
+    id: int
+    filename: str
+    mime: str
+    size: int
+
+
+class ProcurementFields(BaseModel):
+    note: Optional[str] = Field(default=None, max_length=10000)
+    ordered_on: Optional[date] = None
+    expected_on: Optional[date] = None
+    received_on: Optional[date] = None
+    delivery_type: Optional[str] = None
+    delivery_address: Optional[str] = Field(default=None, max_length=1000)
+    amount: Optional[float] = Field(default=None, ge=0, le=9999999999, allow_inf_nan=False)
+    product_url: Optional[HttpUrl] = None
+    specification: Optional[str] = Field(default=None, max_length=2000)
+    quantity: Optional[float] = Field(default=None, gt=0, le=1000000, allow_inf_nan=False)
+
+    retailer: Optional[str] = Field(default=None, max_length=200)
+    order_number: Optional[str] = Field(default=None, max_length=200)
+    order_url: Optional[HttpUrl] = None
+    carrier: Optional[str] = Field(default=None, max_length=200)
+    tracking_number: Optional[str] = Field(default=None, max_length=200)
+    tracking_url: Optional[HttpUrl] = None
+    shipment_status: Optional[str] = Field(default=None, max_length=200)
+    follow_up: Optional[str] = Field(default=None, max_length=2000)
+
+    @field_validator("shipment_status")
+    @classmethod
+    def valid_shipping(cls, value):
+        if value not in (None, "not_shipped", "in_transit", "out_for_delivery", "delivered", "exception"):
+            raise ValueError("未知物流状态")
+        return value
+
+    @field_validator("delivery_type")
+    @classmethod
+    def valid_destination(cls, value):
+        if value not in (None, "company", "project", "custom"):
+            raise ValueError("收货地点请选择公司、房屋地址或自定义")
+        return value
+
+    @field_validator("amount")
+    @classmethod
+    def valid_currency(cls, value):
+        if value is not None and abs(value - round(value, 2)) > 0.000001:
+            raise ValueError("金额最多保留两位小数")
+        return value
+
+
 class ProcurementItemOut(ORM):
     id: int
     project_id: int
@@ -495,14 +545,60 @@ class ProcurementItemOut(ORM):
     name: str
     status: str
     note: Optional[str] = None
+    ordered_on: Optional[str] = None
+    expected_on: Optional[str] = None
+    received_on: Optional[str] = None
+    delivery_type: Optional[str] = None
+    delivery_address: Optional[str] = None
+    amount: Optional[float] = None
+    product_url: Optional[str] = None
+    specification: Optional[str] = None
+    quantity: Optional[float] = None
+    retailer: Optional[str] = None
+    order_number: Optional[str] = None
+    order_url: Optional[str] = None
+    carrier: Optional[str] = None
+    tracking_number: Optional[str] = None
+    tracking_url: Optional[str] = None
+    shipment_status: Optional[str] = None
+    follow_up: Optional[str] = None
+    checked_at: Optional[str] = None
+    checked_by_user_id: Optional[int] = None
+    images: list[ProcurementImageOut] = []
     sort_order: int = 0
     updated_by: Optional[str] = None
+    updated_by_user_id: Optional[int] = None
     updated_at: str
 
 
-class ProcurementPatchIn(BaseModel):
+class ProcurementPatchIn(ProcurementFields):
+    mark_checked: bool = False
     status: Optional[str] = None
-    note: Optional[str] = None
+    name: Optional[str] = Field(default=None, min_length=1, max_length=200)
+    wave: Optional[str] = None
+    expected_updated_at: Optional[str] = None
+
+
+class ProcurementCreateIn(ProcurementFields):
+    name: str = Field(min_length=1, max_length=200)
+    wave: str = "other"
+    # New recommendations always start as pending_spec; no automatic approval.
+
+
+class ProcurementTrackingItemOut(ProcurementItemOut):
+    project_name: str
+
+
+class ProcurementProjectOut(BaseModel):
+    id: int
+    name: str
+    address: str
+
+
+class ProcurementTrackingOut(BaseModel):
+    projects: list[ProcurementProjectOut]
+    items: list[ProcurementTrackingItemOut]
+    source: str = "manual"
 
 
 class ProcurementSummary(BaseModel):
@@ -516,6 +612,7 @@ class ProcurementSummary(BaseModel):
 
 
 class ProcurementListOut(BaseModel):
+    created_item_id: Optional[int] = None
     items: list[ProcurementItemOut]
     summary: ProcurementSummary
     template_missing: bool = False   # 老项目没灌过模板

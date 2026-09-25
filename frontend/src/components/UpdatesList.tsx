@@ -5,7 +5,7 @@ import SpaceBetween from '@cloudscape-design/components/space-between';
 import { Update } from '../api/client';
 import { RoleLabel } from './RoleLabel';
 
-const KIND_TAB: Record<string, string> = { file: 'files', data: 'data', expense: 'budget', budget: 'budget', analysis: 'analysis', step: 'overview', project: 'overview', utility: 'data&section=utilities', inspection: 'overview', procurement: 'budget&section=procurement' };
+const KIND_TAB: Record<string, string> = { file: 'files', data: 'data', expense: 'budget', budget: 'budget', analysis: 'analysis', step: 'overview', project: 'overview', utility: 'data&section=utilities', inspection: 'overview', procurement: 'procurement' };
 const KIND_LABEL: Record<string, string> = { file: '文件', data: '数据', expense: '支出', budget: '预算', analysis: '分析', step: '清单', project: '项目', utility: '水电', inspection: '检查', procurement: '采购' };
 
 const dayKey = (iso: string) => iso.slice(0, 10);
