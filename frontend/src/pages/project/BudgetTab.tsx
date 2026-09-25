@@ -6,10 +6,8 @@ import Input from '@cloudscape-design/components/input';
 import Modal from '@cloudscape-design/components/modal';
 import Select from '@cloudscape-design/components/select';
 import SpaceBetween from '@cloudscape-design/components/space-between';
-import StatusIndicator from '@cloudscape-design/components/status-indicator';
-import Tabs from '@cloudscape-design/components/tabs';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { api, BudgetLine, BudgetSummary, Expense, ProcurementItem, ProcurementSummary } from '../../api/client';
+import { useCallback, useEffect, useState } from 'react';
+import { api, BudgetLine, BudgetSummary, Expense } from '../../api/client';
 import { compactMoney, DeltaBadge, InlineBar, Meter, StatTile } from '../../components/charts';
 import FormField from '../../components/ui/FormField';
 import Header from '../../components/ui/Header';
@@ -20,16 +18,7 @@ import { dateStr, money, pct, text } from '../../lib/format';
 import { useMeta } from '../../lib/meta';
 import { useRole } from '../../lib/role';
 
-const STATUS_TONE: Record<string, 'error' | 'warning' | 'success' | 'info' | 'stopped'> = {
-  pending_spec: 'warning',
-  pending_order: 'info',
-  ordered: 'info',
-  received: 'success',
-  exception: 'error',
-  na: 'stopped',
-};
-
-export default function BudgetTab({ projectId, reload, section }: { projectId: number; reload: () => Promise<any>; section?: string | null }) {
+export default function BudgetTab({ projectId, reload }: { projectId: number; reload: () => Promise<any> }) {
   const meta = useMeta();
   const role = useRole();
   const flash = useFlash();
@@ -37,40 +26,20 @@ export default function BudgetTab({ projectId, reload, section }: { projectId: n
   const [summary, setSummary] = useState<BudgetSummary | null>(null);
   const [lines, setLines] = useState<BudgetLine[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [procItems, setProcItems] = useState<ProcurementItem[]>([]);
-  const [procSummary, setProcSummary] = useState<ProcurementSummary | null>(null);
-  const [procMissing, setProcMissing] = useState(false);
   const [lineModal, setLineModal] = useState(false);
   const [expModal, setExpModal] = useState(false);
   const [lineDraft, setLineDraft] = useState({ category: '', planned_amount: '' });
   const [expDraft, setExpDraft] = useState({ category: '', amount: '', date: '', vendor: '', note: '' });
-  const [waveFilter, setWaveFilter] = useState<{ label: string; value: string }>({ label: '全部节点', value: '' });
-  const [statusFilter, setStatusFilter] = useState<{ label: string; value: string }>({ label: '全部状态', value: '' });
-  const [activeTab, setActiveTab] = useState(section === 'procurement' || !canMoney ? 'procurement' : 'money');
 
   const load = useCallback(async () => {
-    const proc = await api.procurement(projectId).catch(() => null);
-    if (proc) { setProcItems(proc.items); setProcSummary(proc.summary); setProcMissing(!!proc.template_missing); }
     if (canMoney) {
       const [s, l, e] = await Promise.all([api.budgetSummary(projectId), api.budgetLines(projectId), api.expenses(projectId)]);
       setSummary(s); setLines(l); setExpenses(e);
     }
   }, [projectId, canMoney]);
   useEffect(() => { load(); }, [load]);
-  useEffect(() => { if (section === 'procurement') setActiveTab('procurement'); }, [section]);
 
   const catOptions = meta?.budget_categories.map((c) => ({ label: c, value: c })) ?? [];
-  const waveOptions = [{ label: '全部节点', value: '' }, ...(meta?.procurement_waves ?? [])];
-  const statusOptions = [{ label: '全部状态', value: '' }, ...(meta?.procurement_statuses ?? [])];
-  const statusLabel = (v: string) => meta?.procurement_statuses.find((s) => s.value === v)?.label ?? v;
-  const waveLabel = (v: string) => meta?.procurement_waves.find((s) => s.value === v)?.label ?? v;
-
-  const filteredProc = useMemo(() => procItems.filter((i) => {
-    if (waveFilter.value && i.wave !== waveFilter.value) return false;
-    if (statusFilter.value && i.status !== statusFilter.value) return false;
-    return true;
-  }), [procItems, waveFilter.value, statusFilter.value]);
-
   const addLine = async () => {
     await api.addBudgetLine(projectId, { category: lineDraft.category, planned_amount: Number(lineDraft.planned_amount) });
     setLineModal(false); setLineDraft({ category: '', planned_amount: '' });
@@ -81,13 +50,6 @@ export default function BudgetTab({ projectId, reload, section }: { projectId: n
     setExpModal(false); setExpDraft({ category: '', amount: '', date: '', vendor: '', note: '' });
     await load(); await reload(); flash({ type: 'success', content: '支出已记录' });
   };
-  const setProcStatus = async (item: ProcurementItem, status: string) => {
-    const next = await api.patchProcurement(item.id, { status });
-    setProcItems(next.items); setProcSummary(next.summary);
-    await reload();
-    flash({ type: 'success', content: `「${item.name}」→ ${statusLabel(status)}` });
-  };
-
   const moneyPanel = (
     <SpaceBetween size="l">
       <Container cardId="budget-summary" header={<Header variant="h2">汇总</Header>}>
@@ -147,70 +109,9 @@ export default function BudgetTab({ projectId, reload, section }: { projectId: n
     </SpaceBetween>
   );
 
-  const procurementPanel = (
-    <SpaceBetween size="l">
-      <div id="procurement" />
-      <Container cardId="procurement-summary" header={<Header variant="h2" help="水电检查前那组材料都到货（或不适用），「分阶段采购」才算有证据。异常项优先处理。" actions={procMissing ? <Button variant="primary" onClick={async () => { const r = await api.initProcurement(projectId); setProcItems(r.items); setProcSummary(r.summary); setProcMissing(false); flash({ type: 'success', content: `已按采购表模板建了 ${r.items.length} 行` }); }}>按模板初始化</Button> : undefined}>采购清单</Header>}>
-        {procMissing && <Box color="text-body-secondary" margin={{ bottom: 's' }}>这套房还没有采购清单，点右上角按 J 的采购表模板建 37 行。</Box>}
-        <ColumnLayout columns={5} variant="text-grid">
-          <StatTile label="待选型" value={String(procSummary?.pending_spec ?? 0)} />
-          <StatTile label="待下单" value={String(procSummary?.pending_order ?? 0)} />
-          <StatTile label="已下单" value={String(procSummary?.ordered ?? 0)} />
-          <StatTile label="已到货" value={String(procSummary?.received ?? 0)} />
-          <StatTile label="异常" value={String(procSummary?.exception ?? 0)} tone={(procSummary?.exception ?? 0) > 0 ? 'bad' : undefined} />
-        </ColumnLayout>
-      </Container>
-      <Table cardId="procurement-items"
-        header={
-          <Header
-            variant="h2"
-            counter={`(${filteredProc.length})`}
-            actions={
-              <SpaceBetween direction="horizontal" size="xs">
-                <Select selectedOption={waveFilter} options={waveOptions} onChange={({ detail }) => setWaveFilter(detail.selectedOption as any)} />
-                <Select selectedOption={statusFilter} options={statusOptions} onChange={({ detail }) => setStatusFilter(detail.selectedOption as any)} />
-              </SpaceBetween>
-            }
-          >
-            材料明细
-          </Header>
-        }
-        items={filteredProc}
-        empty={<Box textAlign="center" color="inherit">没有匹配的采购项</Box>}
-        columnDefinitions={[
-          { id: 'n', header: '材料', minWidth: 200, cell: (i) => <div><div className="ui-medium">{i.name}</div>{i.note && <Box variant="small" color="text-body-secondary">{i.note}</Box>}</div> },
-          { id: 'w', header: '节点', cell: (i) => waveLabel(i.wave) },
-          {
-            id: 's', header: '状态', width: 140,
-            cell: (i) => <StatusIndicator type={STATUS_TONE[i.status] ?? 'info'}>{statusLabel(i.status)}</StatusIndicator>,
-          },
-          {
-            id: 'a', header: '改状态', minWidth: 160,
-            cell: (i) => (
-              <Select
-                selectedOption={{ label: statusLabel(i.status), value: i.status }}
-                options={meta?.procurement_statuses ?? []}
-                onChange={({ detail }) => setProcStatus(i, detail.selectedOption.value!)}
-              />
-            ),
-          },
-        ]}
-      />
-    </SpaceBetween>
-  );
-
   return (
     <>
-      {canMoney ? (
-        <Tabs
-          activeTabId={activeTab}
-          onChange={({ detail }) => setActiveTab(detail.activeTabId)}
-          tabs={[
-            { id: 'money', label: '预算与支出', content: moneyPanel },
-            { id: 'procurement', label: `采购${procSummary ? `（待办 ${(procSummary.pending_spec + procSummary.pending_order + procSummary.exception)}）` : ''}`, content: procurementPanel },
-          ]}
-        />
-      ) : procurementPanel}
+      {moneyPanel}
 
       <Modal visible={lineModal} onDismiss={() => setLineModal(false)} header="添加预算项"
         footer={<Box float="right"><SpaceBetween direction="horizontal" size="xs"><Button variant="link" onClick={() => setLineModal(false)}>取消</Button><Button variant="primary" disabled={!lineDraft.category || !lineDraft.planned_amount} onClick={addLine}>添加</Button></SpaceBetween></Box>}>

@@ -2,8 +2,8 @@ import { type ReactNode, useEffect, useRef } from 'react';
 import Button from '@cloudscape-design/components/button';
 
 /** Continuous list/detail surface. On narrow screens selecting a task opens its detail. */
-export default function CollaborationWorkspace({ main, detail, processing = false, detailOpen, onBack }: {
-  main: ReactNode; detail: ReactNode; processing?: boolean; detailOpen?: boolean; onBack?: () => void;
+export default function CollaborationWorkspace({ main, detail, processing = false, detailOpen, onBack, backLabel = '返回任务列表' }: {
+  main: ReactNode; detail: ReactNode; processing?: boolean; detailOpen?: boolean; onBack?: () => void; backLabel?: string;
 }) {
   const detailRef = useRef<HTMLElement>(null);
   const mainRef = useRef<HTMLDivElement>(null);
@@ -24,7 +24,7 @@ export default function CollaborationWorkspace({ main, detail, processing = fals
   return <div className="ui-workspace-scope"><div className={`ui-workspace${processing ? ' ui-workspace-processing' : ''}`} data-detail-open={!!detailOpen} data-mobile-detail={!!onBack}>
     <div className="ui-workspace-main" ref={mainRef}>{main}</div>
     <aside className="ui-workspace-detail" ref={detailRef} tabIndex={-1} aria-label={processing ? '事项处理' : '摘要'}>
-      {onBack && <div className="ui-workspace-back"><Button iconName="arrow-left" onClick={back}>返回任务列表</Button></div>}
+      {onBack && <div className="ui-workspace-back"><Button iconName="arrow-left" onClick={back}>{backLabel}</Button></div>}
       {detail}
     </aside>
   </div></div>;

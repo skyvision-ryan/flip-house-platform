@@ -25,6 +25,7 @@ import { RoleLabel } from '../components/RoleLabel';
 import HelpText from '../components/HelpText';
 import StatusBadge from '../components/StatusBadge';
 import UpdatesList from '../components/UpdatesList';
+import ProcurementTracker from '../components/ProcurementTracker';
 import WorkbenchFocus from '../components/WorkbenchFocus';
 import { BulletList, compactMoney, DeltaBadge, fullMoney, HBars, InlineBar, Meter, StackedBar, StatTile, Trend } from '../components/charts';
 import Header from '../components/ui/Header';
@@ -60,7 +61,7 @@ const WIDGETS: Record<WidgetId, ItemData & { cols: number; rows: number }> = {
   turns: { title: '每套房轮到谁', cols: 4, rows: 7 },
   gates: { title: '待我确认的门', cols: 2, rows: 4 },
   mytodo: { title: '我的待办', cols: 4, rows: 6 },
-  procurement: { title: '采购异常与待下单', cols: 2, rows: 4 },
+  procurement: { title: '采购订单跟进', cols: 4, rows: 6 },
   site: { title: '施工现场', cols: 4, rows: 4 },
   utilities: { title: '水电瓦斯与保险', cols: 3, rows: 4 },
   permits: { title: 'permit 与检查', cols: 3, rows: 4 },
@@ -125,7 +126,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
   // 注意**不动** DASHBOARD_LAYOUTS 那份后端字典——它同时决定 widget_access，
   // 动了角色就加不回自己的小组件。下面 canAdd 仍然读 widget_access，
   // 所以「添加小组件」照样能把关注、门、水电加回来，加回来的出现在表下面。
-  const defaults: WidgetId[] = [];
+  const defaults: WidgetId[] = me?.role_code === '采购' ? ['procurement'] : [];
   const canAdd = (id: WidgetId) => (role.actor === '老板' || role.actor === '负责人' || (meta?.widget_access?.[id] ?? []).includes(role.actor)) && (!MONEY_WIDGETS.includes(id) || role.canReadMoney);
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [roleData, setRoleData] = useState<DashboardRole | null>(null);
@@ -455,21 +456,8 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
       }
       case 'mytodo':
         return <MyTodoTable compact rows={roleData ? (roleData.my_todo ?? []) : null} onReload={reloadRole} />;
-      case 'procurement': {
-        const rs = roleData?.procurement_alerts ?? [];
-        return rs.length ? (
-          <SpaceBetween size="s">
-            {rs.map((r) => (
-              <div key={r.project_id}>
-                <Box fontWeight="bold">{projLink(r.project_id, r.project_name)} <Link href={`/projects/${r.project_id}?tab=budget&section=procurement`} onFollow={(e) => { e.preventDefault(); go(`/projects/${r.project_id}?tab=budget&section=procurement`); }} fontSize="body-s">管采购</Link></Box>
-                {r.exception.length > 0 && <Box fontSize="body-s"><StatusIndicator type="error">异常 {r.exception.length}</StatusIndicator> {r.exception.join('、')}</Box>}
-                {r.pending_order.length > 0 && <Box fontSize="body-s"><StatusIndicator type="warning">待下单 {r.pending_order.length}</StatusIndicator> {r.pending_order.slice(0, 5).join('、')}{r.pending_order.length > 5 ? '…' : ''}</Box>}
-                {r.pending_spec_count > 0 && <Box variant="small" color="text-body-secondary">还有 {r.pending_spec_count} 项待选型</Box>}
-              </div>
-            ))}
-          </SpaceBetween>
-        ) : empty('采购没有异常，也没有待下单的。');
-      }
+      case 'procurement':
+        return me ? <ProcurementTracker /> : empty('登录后查看项目采购订单。');
       case 'site': {
         const rs = roleData?.site ?? [];
         return rs.length ? (

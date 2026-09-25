@@ -22,6 +22,8 @@ import { money, num } from '../../lib/format';
 import { labelOf, useMeta } from '../../lib/meta';
 import { useRole } from '../../lib/role';
 import AnalysisTab from './AnalysisTab';
+import { projectTab } from '../../lib/procurement';
+import ProcurementTab from './ProcurementTab';
 import BudgetTab from './BudgetTab';
 import DataTab from './DataTab';
 import EditProjectModal from './EditProjectModal';
@@ -122,8 +124,7 @@ export default function ProjectPage() {
   if (!project) return <Box padding="xxl" textAlign="center"><Spinner size="large" /></Box>;
 
   const canAnalyze = !!meta && role.can('analysis');
-  const requestedTab = params.get('tab') ?? 'overview';
-  const tab = requestedTab === 'analysis' && !canAnalyze ? 'overview' : requestedTab;
+  const tab = projectTab(params.get('tab'), params.get('section'), { money: role.canReadMoney, procurement: role.can('procurement'), analysis: canAnalyze, data: role.tier !== 'grey' });
   const step = params.get('step');
   const action = params.get('action');
   const section = params.get('section');
@@ -168,13 +169,14 @@ export default function ProjectPage() {
       <SpaceBetween size="l">
         <Tabs
           activeTabId={tab}
-          onChange={({ detail }) => setParams((prev) => { const n = new URLSearchParams(prev); n.set('tab', detail.activeTabId); return n; })}
+          onChange={({ detail }) => setParams((prev) => { const n = new URLSearchParams(prev); n.set('tab', detail.activeTabId); n.delete('section'); return n; })}
           tabs={[
             { id: 'overview', label: '总览', content: <OverviewTab project={project} reload={reload} deepLink={{ step, action }} focus={focus} tasks={tasks} tasksErr={tasksErr} reloadTasks={reloadTasks} /> },
             ...(canAnalyze ? [{ id: 'analysis', label: '分析', content: <AnalysisTab project={project} reload={reload} /> }] : []),
             ...(role.tier !== 'grey' ? [{ id: 'data', label: '数据', content: <DataTab projectId={pid} reload={reload} section={section} /> }] : []),
             { id: 'files', label: '文件', content: <FilesTab projectId={pid} /> },
-            ...(role.canReadMoney || role.can('procurement') ? [{ id: 'budget', label: '预算', content: <BudgetTab projectId={pid} reload={reload} section={section} /> }] : []),
+            ...(role.can('procurement') ? [{ id: 'procurement', label: '项目采购', content: <ProcurementTab key={pid} project={project} initialItemId={Number(params.get('item')) || undefined} /> }] : []),
+            ...(role.canReadMoney ? [{ id: 'budget', label: '预算', content: <BudgetTab projectId={pid} reload={reload} /> }] : []),
           ]}
         />
       </SpaceBetween>
