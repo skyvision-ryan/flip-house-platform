@@ -120,7 +120,11 @@ export default function ProcurementWorkspace() {
     <Header variant="h2" actions={<Button disabled={busy || dirty} variant="icon" iconName="close" ariaLabel="关闭采购详情" onClick={close} />}>{selectedId === 'new' ? '新增采购项' : selected?.name}</Header>
     <Box color="text-body-secondary">{project?.name ?? '请选择房屋'} · {selectedId === 'new' ? '新增材料从待选型开始' : '修改后点保存，对同项目采购同事可见'}</Box>
     {error && <Alert type="error">{error}</Alert>}
-    {selectedId === 'new' && <FormField label="所属房屋"><Select disabled={busy} ariaLabel="新增采购所属房屋" options={data.projects.map(p => ({ value: String(p.id), label: p.name }))} selectedOption={project ? { value: String(project.id), label: project.name } : null} onChange={({ detail }) => setNewProjectId(detail.selectedOption.value!)} /></FormField>}
+    {selectedId === 'new' && <FormField label="所属房屋"><Select disabled={busy} ariaLabel="新增采购所属房屋" options={data.projects.map(p => ({ value: String(p.id), label: p.name }))} selectedOption={project ? { value: String(project.id), label: project.name } : null} onChange={({ detail }) => {
+      const id = detail.selectedOption.value!;
+      setNewProjectId(id);
+      if (draft.delivery_type === 'project') setDraft({ ...draft, delivery_address: data.projects.find(p => String(p.id) === id)?.address ?? '' });
+    }} /></FormField>}
     <FormField label="材料名称"><Input disabled={busy} value={draft.name} onChange={({ detail }) => setDraft({ ...draft, name: detail.value })} /></FormField>
     <FormField label="使用节点"><Select disabled={busy} selectedOption={waveOptions.find(w => w.value === draft.wave) ?? null} options={waveOptions} onChange={({ detail }) => setDraft({ ...draft, wave: detail.selectedOption.value! })} /></FormField>
     {selectedId !== 'new' && <FormField label="采购状态"><Select disabled={busy} options={statusOptions} selectedOption={statusOptions.find(s => s.value === draft.status) ?? null} onChange={({ detail }) => setDraft({ ...draft, status: detail.selectedOption.value! })} /></FormField>}
