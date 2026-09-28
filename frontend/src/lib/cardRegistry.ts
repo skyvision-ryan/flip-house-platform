@@ -94,7 +94,8 @@ export const CARD_REGISTRY = {
   'step-card': { id: 93, title: '阶段证据事项' },
   'recent-project-card': { id: 94, title: '最近项目卡' },
   'turn-project-card': { id: 95, title: '交接项目卡' },
-  'dashboard-metrics': { id: 96, title: '项目指标' }
+  'dashboard-metrics': { id: 96, title: '项目指标' },
+  'purchase-orders': { id: 97, title: '采购订单' }
 } as const;
 export type CardKey = keyof typeof CARD_REGISTRY;
 

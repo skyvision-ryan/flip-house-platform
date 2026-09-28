@@ -2,10 +2,9 @@ import Alert from '@cloudscape-design/components/alert';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
 import Modal from '@cloudscape-design/components/modal';
-import ProcurementOrderFields from '../ProcurementOrderFields';
 import ProcurementFields from '../ProcurementFields';
 import { money } from '../../lib/format';
-import { procurementWorkGroups, procurementWorkGroup, deliveryLabel, procurementDraft, procurementChanges, procurementError, type ProcurementDraft } from '../../lib/procurement';
+import { deliveryLabel, procurementDraft, procurementChanges, procurementError, type ProcurementDraft } from '../../lib/procurement';
 import Select from '@cloudscape-design/components/select';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
@@ -26,7 +25,6 @@ const statusKind = (value: string): 'pending' | 'in-progress' | 'success' | 'err
 export default function ProcurementDesign({ preview, design }: { preview: SpecialistPreview; design: RoleDesign }) {
   const [query, setQuery] = useState('');
   const [house, setHouse] = useState('all');
-  const [workGroup, setWorkGroup] = useState('all');
   const [status, setStatus] = useState('all');
   const [category, setCategory] = useState('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -45,8 +43,7 @@ export default function ProcurementDesign({ preview, design }: { preview: Specia
   const houseOptions = [{ value: 'all', label: '全部房屋' }, ...preview.houses.map(item => ({ value: item.id, label: item.name }))];
   const categoryOptions = [{ value: 'all', label: '全部采购节点' }, ...Array.from(new Set(rows.map(row => row.category))).map(value => ({ value, label: value }))];
   const statusOptions = [{ value: 'all', label: '全部状态' }, ...STATUSES.map(value => ({ value, label: value }))];
-  const groupOf = (row: RecordItem) => procurementWorkGroup({ ...row.procurement, status: ({ '待选型': 'pending_spec', '待下单': 'pending_order', '已下单': 'ordered', '已到货': 'received', '异常': 'exception', '不适用': 'na' } as Record<string, string>)[row.status] });
-  const visible = rows.filter(row => (house === 'all' || row.house === house) && (workGroup === 'all' || groupOf(row) === workGroup)
+  const visible = rows.filter(row => (house === 'all' || row.house === house)
     && (status === 'all' || row.status === status) && (category === 'all' || row.category === category)
     && `${row.title} ${houseName(row.house)} ${row.detail} ${row.owner}`.toLowerCase().includes(query.trim().toLowerCase()));
   const selected = visible.find(row => row.id === selectedId) ?? null;
@@ -59,7 +56,7 @@ export default function ProcurementDesign({ preview, design }: { preview: Specia
     setError('');
   }, [selected?.id]);
   const pick = (row: RecordItem) => { setSelectedId(row.id); setDocumentId(null); setSaved(false); };
-  const clearFilters = () => { setQuery(''); setHouse('all'); setWorkGroup('all'); setStatus('all'); setCategory('all'); };
+  const clearFilters = () => { setQuery(''); setHouse('all'); setStatus('all'); setCategory('all'); };
   const statusBadge = (row: RecordItem) => <StatusIndicator type={statusKind(row.status)}>{row.status}</StatusIndicator>;
   const empty = <div className="ui-rd-empty"><SpaceBetween size="m"><span>没有符合当前筛选的采购项。</span><Button onClick={clearFilters}>清除筛选</Button></SpaceBetween></div>;
 
@@ -129,9 +126,7 @@ export default function ProcurementDesign({ preview, design }: { preview: Specia
       <Header variant="h3" description="仅修改当前设计预览，切换 A/B/C 时保留，离开页面后清除。">试用采购项编辑</Header>
       <FormField label="采购状态"><Select selectedOption={STATUSES.map(value => ({ value, label: value })).find(item => item.value === draftStatus) ?? null}
         options={STATUSES.map(value => ({ value, label: value }))} onChange={({ detail }) => { setDraftStatus(detail.selectedOption.value!); setSaved(false); }} /></FormField>
-      <ProcurementFields draft={draft} onChange={value => { setDraft(value); setSaved(false); }} projectAddress={preview.houses.find(h => h.id === selected.house)?.address ?? ''} />
-      <Header variant="h3" description="同一采购项的订单与物流，可在工作台集中跟进；预览不读取真实商家账户。">订单跟进</Header>
-      <ProcurementOrderFields draft={draft} onChange={value => { setDraft(value); setSaved(false); }} />
+      <ProcurementFields draft={draft} onChange={value => { setDraft(value); setSaved(false); }} />
       {error && <Alert type="error">{error}</Alert>}
       <Button variant="primary" onClick={() => {
         const invalid = procurementError(draft); if (invalid) { setError(invalid); return; }
@@ -153,8 +148,7 @@ export default function ProcurementDesign({ preview, design }: { preview: Specia
 
   return <SpaceBetween size="m">
     <Modal visible={!!fullImage} size="max" header={fullImage?.name ?? '材料图片'} onDismiss={() => setFullImage(null)}>{fullImage && <img className="ui-proc-full-image" src={fullImage.url} alt={fullImage.name} />}</Modal>
-    <Box color="text-body-secondary">工作台负责日常采购执行，项目页只看概况。大类包含材料记录，Jeremy / Tristin 共用，不按单件材料分派任务。</Box>
-    <div className="ui-proc-work-groups">{procurementWorkGroups.map(group => <Button key={group.value} onClick={() => setWorkGroup(group.value)}><span className={workGroup === group.value ? 'ui-proc-active-group' : ''}>{group.label} · {rows.filter(row => group.value === 'all' || groupOf(row) === group.value).length}</span></Button>)}</div>
+    <Box color="text-body-secondary">工作台负责日常采购执行，项目页只看概况。按房屋、使用节点与材料状态查看，Jeremy / Tristin 共用。</Box>
     <div className="ui-rd-toolbar">
       <TextFilter filteringText={query} onChange={({ detail }) => setQuery(detail.filteringText)} filteringPlaceholder="搜索材料、房屋或备注" filteringAriaLabel="搜索采购预览" />
       <Select ariaLabel="采购房屋" options={houseOptions} selectedOption={houseOptions.find(item => item.value === house)!} onChange={({ detail }) => setHouse(detail.selectedOption.value!)} />

@@ -25,7 +25,6 @@ import { RoleLabel } from '../components/RoleLabel';
 import HelpText from '../components/HelpText';
 import StatusBadge from '../components/StatusBadge';
 import UpdatesList from '../components/UpdatesList';
-import ProcurementTracker from '../components/ProcurementTracker';
 import WorkbenchFocus from '../components/WorkbenchFocus';
 import { BulletList, compactMoney, DeltaBadge, fullMoney, HBars, InlineBar, Meter, StackedBar, StatTile, Trend } from '../components/charts';
 import Header from '../components/ui/Header';
@@ -457,7 +456,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
       case 'mytodo':
         return <MyTodoTable compact rows={roleData ? (roleData.my_todo ?? []) : null} onReload={reloadRole} />;
       case 'procurement':
-        return me ? <ProcurementTracker /> : empty('登录后查看项目采购订单。');
+        return me ? <Button onClick={() => go('/procurement')}>进入采购工作台</Button> : empty('登录后查看项目采购。');
       case 'site': {
         const rs = roleData?.site ?? [];
         return rs.length ? (

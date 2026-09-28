@@ -1,5 +1,4 @@
 """Purchase item lifecycle, account/project boundaries and private image storage."""
-from datetime import date
 from io import BytesIO
 from pathlib import Path
 import tempfile
@@ -64,67 +63,61 @@ class ProcurementTests(unittest.TestCase):
         self.assertEqual(result.status_code, expected, result.text)
         return result
 
-    def test_both_buyers_share_fields_but_keep_actual_updater_and_financial_scope(self):
+    def test_both_buyers_share_requirements_and_preserve_legacy_purchase_facts(self):
+        legacy = {'retailer': 'Legacy vendor', 'order_number': 'OLD-001', 'amount': 239.95,
+                  'ordered_on': '2026-09-22', 'expected_on': '2026-09-27', 'received_on': None,
+                  'delivery_type': 'custom', 'delivery_address': None, 'quantity': 2, 'status': 'ordered',
+                  'checked_at': '2026-09-20T10:00:00', 'checked_by_user_id': self.ids['buyer1']}
+        # Existing imported/old columns, including incomplete legacy address, are read-only fixtures.
+        with Session(self.engine) as session:
+            row = session.get(models.ProcurementItem, self.item)
+            for key, value in legacy.items(): setattr(row, key, value)
+            session.commit()
         before = self.rows()[0]
-        values = {'note': 'Confirm site dimensions', 'ordered_on': '2026-09-22', 'expected_on': '2026-09-27',
-                  'delivery_type': 'project', 'amount': 239.95, 'quantity': 2, 'specification': '30 inch',
-                  'product_url': 'https://example.com/sink', 'status': 'ordered', 'expected_updated_at': before['updated_at']}
+        values = {'note': 'Confirm site dimensions', 'required_quantity': 3, 'budget_amount': 300,
+                  'specification': '30 inch', 'product_url': 'https://example.com/sink', 'use_location': 'Kitchen',
+                  'needed_on': '2026-10-01', 'unit': '件', 'expected_updated_at': before['updated_at']}
         self.update(values)
         item = self.rows('buyer2')[0]
         self.assertEqual(item['updated_by_user_id'], self.ids['buyer1'])
-        self.assertEqual(item['delivery_address'], '100 Synthetic Test Road')
-        self.update({'delivery_address': 'Spoofed project address'})
-        self.assertEqual(self.rows()[0]['delivery_address'], '100 Synthetic Test Road')
-        item = self.rows('buyer2')[0]
-        self.assertEqual(item['amount'], 239.95)
-        self.assertIsNone(item['received_on'])
-        self.update({'note': 'Vendor called back', 'expected_updated_at': item['updated_at']}, 'buyer2')
+        self.assertEqual({k: item[k] for k in legacy}, legacy)
+        self.assertEqual(item['budget_amount'], 300); self.assertEqual(item['required_quantity'], 3)
+        self.update({'note': 'Updated requirement', 'expected_updated_at': item['updated_at']}, 'buyer2')
         after = self.rows()[0]
         self.assertEqual(after['updated_by_user_id'], self.ids['buyer2'])
-        for key in ('ordered_on', 'expected_on', 'amount', 'quantity', 'delivery_address'):
-            self.assertEqual(after[key], item[key])
-        with Session(self.engine) as session:
-            self.assertEqual(session.query(models.Expense).count(), 0)
+        self.assertEqual({k: after[k] for k in legacy}, legacy)
+        with Session(self.engine) as session: self.assertEqual(session.query(models.Expense).count(), 0)
         for who in ('buyer1', 'buyer2'):
             self.assertEqual(self.clients[who].get(f'/api/projects/{self.pid}/budget-summary').status_code, 403)
 
-    def test_tracking_uses_member_scope_and_manual_check_keeps_business_dates(self):
-        self.update({'status': 'ordered', 'retailer': 'Amazon', 'order_number': 'DEMO-001',
-                     'order_url': 'https://example.com/order', 'tracking_url': 'https://example.com/tracking',
-                     'carrier': 'Synthetic carrier', 'tracking_number': 'DEMO-TRACK', 'shipment_status': 'delivered',
-                     'follow_up': 'Verify delivery at site', 'expected_on': '2026-09-28'})
-        # Shipping-site delivery never marks on-site receipt or the procurement status.
+    def test_tracking_reads_legacy_facts_and_keeps_member_scope(self):
+        with Session(self.engine) as session:
+            row = session.get(models.ProcurementItem, self.item)
+            row.status = 'ordered'; row.shipment_status = 'delivered'; row.expected_on = '2026-09-28'
+            row.retailer = 'Legacy vendor'; session.commit()
         row = self.rows()[0]
-        self.assertEqual(row['status'], 'ordered'); self.assertIsNone(row['received_on']); self.assertIsNone(row['checked_at'])
-        self.update({'mark_checked': True, 'expected_updated_at': row['updated_at']}, 'buyer2')
-        after = self.rows()[0]
-        self.assertIsNotNone(after['checked_at']); self.assertEqual(after['checked_by_user_id'], self.ids['buyer2'])
-        self.assertEqual(after['expected_on'], '2026-09-28'); self.assertIsNone(after['received_on'])
+        self.assertEqual(row['status'], 'ordered'); self.assertIsNone(row['received_on'])
         for who in ('buyer1', 'buyer2', 'planner', 'director', 'admin'):
             response = self.clients[who].get('/api/me/procurement-tracking')
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.json()['source'], 'manual')
             self.assertEqual([item['id'] for item in response.json()['items']], [self.item])
-            self.assertEqual(response.json()['items'][0]['project_name'], 'Synthetic test house')
+            self.assertEqual(response.json()['items'][0]['retailer'], 'Legacy vendor')
         self.assertEqual(self.clients['outsider'].get('/api/me/procurement-tracking').json()['items'], [])
         self.assertEqual(self.clients['outsider'].get('/api/me/procurement-tracking').json()['projects'], [])
-        project = self.clients['buyer1'].get('/api/me/procurement-tracking').json()['projects'][0]
-        self.assertEqual(project, {'id': self.pid, 'name': 'Synthetic test house', 'address': '100 Synthetic Test Road'})
         for who in ('assistant', 'finance'):
             self.assertEqual(self.clients[who].get('/api/me/procurement-tracking').status_code, 403)
         self.assertEqual(self.anon.get('/api/me/procurement-tracking').status_code, 401)
-        self.update({'tracking_url': 'javascript:alert(1)'}, expected=422)
-        self.update({'shipment_status': 'fake'}, expected=422)
 
-    def test_zero_clearing_and_address_type_changes(self):
-        self.update({'amount': 0, 'note': 'free sample', 'delivery_type': 'custom', 'delivery_address': 'Synthetic warehouse'})
-        self.assertEqual(self.rows()[0]['amount'], 0)
-        self.update({'amount': None, 'note': None, 'delivery_type': 'company'})
+    def test_budget_and_requirements_can_be_cleared_without_clearing_purchase_amount(self):
+        with Session(self.engine) as session:
+            session.get(models.ProcurementItem, self.item).amount = 0; session.commit()
+        self.update({'budget_amount': 0, 'required_quantity': 2, 'note': 'free sample'})
+        self.assertEqual(self.rows()[0]['budget_amount'], 0)
+        self.update({'budget_amount': None, 'required_quantity': None, 'note': None})
         row = self.rows()[0]
-        self.assertIsNone(row['amount']); self.assertIsNone(row['note']); self.assertIsNone(row['delivery_address'])
-        self.update({'delivery_type': 'custom'}, expected=422)
-        self.update({'delivery_type': None})
-        self.assertIsNone(self.rows()[0]['delivery_address'])
+        self.assertIsNone(row['budget_amount']); self.assertIsNone(row['required_quantity']); self.assertIsNone(row['note'])
+        self.assertEqual(row['amount'], 0)
 
     def test_bad_values_leave_data_unchanged(self):
         for body in ({'amount': -1}, {'amount': 1.999}, {'quantity': 0}, {'ordered_on': '2026-02-30'},
@@ -158,14 +151,17 @@ class ProcurementTests(unittest.TestCase):
         self.assertEqual(self.clients['buyer2'].get(f'/api/projects/{self.pid}/procurement').status_code, 403)
 
     def test_create_recommendation_and_status_never_infer_actual_dates(self):
-        result = self.clients['buyer1'].post(f'/api/projects/{self.pid}/procurement', json={'name': 'Another material', 'wave': 'other', 'expected_on': '2026-10-01'})
+        result = self.clients['buyer1'].post(f'/api/projects/{self.pid}/procurement', json={'name': 'Another material', 'wave': 'other', 'needed_on': '2026-10-01'})
         self.assertEqual(result.status_code, 201, result.text)
         new = next(item for item in result.json()['items'] if item['id'] == result.json()['created_item_id'])
         self.assertEqual(new['status'], 'pending_spec')
         with Session(self.engine) as session:
             self.assertEqual(session.query(models.Task).count(), 0)
         self.assertIsNone(new['received_on']); self.assertIsNone(new['ordered_on'])
-        self.update({'status': 'received'})
+        self.update({'status': 'received'}, expected=422)
+        for status in ('pending_order', 'exception', 'na', 'pending_spec'):
+            self.update({'status': status})
+            self.assertEqual(self.rows()[0]['status'], status)
         self.assertIsNone(self.rows()[0]['received_on'])
         first = self.clients['buyer1'].post(f'/api/projects/{self.pid}/procurement/init').json()['items']
         second = self.clients['buyer2'].post(f'/api/projects/{self.pid}/procurement/init').json()['items']

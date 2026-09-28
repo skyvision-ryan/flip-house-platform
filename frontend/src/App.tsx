@@ -24,6 +24,8 @@ import { Tier, TIER_FALLBACK } from './lib/role';
 import AddProject from './pages/AddProject';
 import Dashboard from './pages/Dashboard';
 import ProcurementWorkspace from './pages/ProcurementWorkspace';
+import ProcurementItemPage from './pages/ProcurementItemPage';
+import PurchaseOrders from './pages/PurchaseOrders';
 import Login from './pages/Login';
 import MyTodo from './pages/MyTodo';
 import ProjectPage from './pages/project/ProjectPage';
@@ -203,6 +205,10 @@ export default function App() {
           <Routes>
             <Route path="/" element={me?.role_code === '采购' ? <ProcurementWorkspace /> : <Dashboard />} />
             <Route path="/procurement" element={me && canDo('procurement') ? <ProcurementWorkspace /> : <Navigate to="/" replace />} />
+            <Route path="/projects/:projectId/purchase-orders/new" element={me && canDo('procurement') ? <PurchaseOrders /> : <Navigate to="/" replace />} />
+            <Route path="/projects/:projectId/procurement/:itemId" element={me && canDo('procurement') ? <ProcurementItemPage /> : <Navigate to="/" replace />} />
+            <Route path="/procurement/items/new" element={me && canDo('procurement') ? <ProcurementItemPage /> : <Navigate to="/" replace />} />
+            <Route path="/procurement/orders" element={me && canDo('procurement') ? <PurchaseOrders /> : <Navigate to="/" replace />} />
             <Route path="/todo" element={<MyTodo />} />
             <Route path={DESIGN_DIRECTIONS_PATH} element={<DesignDirections />} />
             <Route path="/design-choices" element={<LegacyDesignRedirect />} />

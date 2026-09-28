@@ -136,6 +136,8 @@ def _delete_projects(db: Session, ids: list[int], uploads: Path) -> list[Path]:
     projects = list(db.scalars(select(models.Project).where(models.Project.id.in_(ids))).all())
     if len(projects) != len(set(ids)):
         raise ValueError("待替换项目 ID 不存在或重复")
+    if db.scalar(select(models.PurchaseOrder.id).where(models.PurchaseOrder.project_id.in_(ids)).limit(1)):
+        raise ValueError("项目已有采购订单和收货历史，拒绝用演示初始数据替换")
     task_ids = list(db.scalars(select(models.Task.id).where(models.Task.project_id.in_(ids))).all())
     file_rows = list(db.scalars(select(models.ProjectFile).where(models.ProjectFile.project_id.in_(ids))).all())
     file_ids = [row.id for row in file_rows]

@@ -1,22 +1,24 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { procurementChanges, procurementDraft, procurementError, deliveryLabel, projectTab, trackingFlag, trackingReason, procurementWorkGroup } from './procurement.ts';
+import { procurementChanges, procurementDraft, procurementError, deliveryLabel, projectTab, procurementNeedsAttention } from './procurement.ts';
 
-test('note edits preserve business dates and zero is distinct from missing amount', () => {
-  const original = procurementDraft({ name: 'Synthetic sink', amount: 0, ordered_on: '2026-09-22', expected_on: '2026-09-27' });
-  assert.equal(original.amount, '0');
-  assert.deepEqual(procurementChanges({ ...original, note: 'Call vendor' }, original), { note: 'Call vendor' });
-  assert.deepEqual(procurementChanges({ ...original, amount: '' }, original), { amount: null });
-  assert.deepEqual(procurementChanges({ ...original, received_on: '2026-09-25' }, original), { received_on: '2026-09-25' });
+test('requirement requests contain only changed requirement fields, never legacy purchase facts', () => {
+  const original = procurementDraft({ name: 'Synthetic sink', status: 'received', amount: 0, ordered_on: '2026-09-22', expected_on: '2026-09-27' });
+  assert.equal('amount' in original, false);
+  assert.deepEqual(procurementChanges({ ...original, note: 'Confirm dimensions' }, original), { note: 'Confirm dimensions' });
+  assert.deepEqual(procurementChanges({ ...original, budget_amount: '0', required_quantity: '3' }, original), { required_quantity: 3, budget_amount: 0 });
+  const legacy = { ...original, amount: '', received_on: '2026-09-25', retailer: 'Legacy merchant' };
+  assert.deepEqual(procurementChanges(legacy, original), {});
+  assert.equal(procurementError(original), null);
 });
-test('invalid dates, addresses, money and unsafe URLs cannot be submitted', () => {
+test('invalid requirement dates, budgets, quantities and unsafe reference URLs cannot be submitted', () => {
   const base = procurementDraft({ name: 'Synthetic material' });
   assert.equal(procurementError(base), null);
-  for (const change of [{ name: ' ' }, { amount: '-1' }, { amount: 'NaN' }, { amount: '1.001' }, { amount: '1e20' }, { quantity: '0' }, { product_url: 'javascript:alert(1)' }, { ordered_on: '2026-02-30' }, { ordered_on: '2026-09-25', expected_on: '2026-09-22' }, { delivery_type: 'custom', delivery_address: '' }]) {
+  for (const change of [{ name: ' ' }, { budget_amount: '-1' }, { budget_amount: 'NaN' }, { budget_amount: '1.001' }, { budget_amount: '1e20' }, { required_quantity: '0' }, { product_url: 'javascript:alert(1)' }, { needed_on: '2026-02-30' }]) {
     assert.notEqual(procurementError({ ...base, ...change }), null, JSON.stringify(change));
   }
-  assert.equal(procurementError({ ...base, amount: '0', product_url: 'https://example.com/item', delivery_type: 'custom', delivery_address: 'Test warehouse' }), null);
+  assert.equal(procurementError({ ...base, budget_amount: '0', product_url: 'https://example.com/item' }), null);
 });
 test('procurement comparison defaults to A and all layouts share populated fields', () => {
   const preview = JSON.parse(readFileSync(new URL('../../../backend/app/design_previews/procurement.json', import.meta.url), 'utf8'));
@@ -41,26 +43,7 @@ test('project procurement bookmarks resolve independently of budget permission',
   assert.equal(projectTab('unknown', null, buyer), 'overview');
 });
 
-test('tracking priorities distinguish site receipt from website status and estimates', () => {
-  const today = '2026-09-25';
-  assert.equal(trackingFlag({ status: 'ordered', expected_on: '2026-09-24' }, today), 'attention');
-  assert.equal(trackingReason({ status: 'ordered', expected_on: '2026-09-24' }, today), '预计日期已过，待核实');
-  assert.equal(trackingFlag({ status: 'ordered', shipment_status: 'delivered' }, today), 'attention');
-  assert.equal(trackingFlag({ status: 'ordered', expected_on: '2026-09-28' }, today), 'upcoming');
-  assert.equal(trackingFlag({ status: 'ordered', expected_on: '2026-09-29' }, today), 'unverified');
-  assert.equal(trackingFlag({ status: 'received', expected_on: '2026-09-24' }, today), 'other');
-  assert.equal(trackingFlag({ status: 'received', follow_up: 'Check missing part' }, today), 'attention');
-  assert.equal(trackingFlag({ status: 'na', follow_up: 'Old note' }, today), 'other');
-});
-
-test('work categories aggregate lifecycle records without treating delivery estimates as receipts', () => {
-  const cases: [object, string][] = [
-    [{ status: 'pending_spec' }, 'selection'], [{ status: 'pending_order' }, 'ordering'],
-    [{ status: 'ordered', expected_on: '2026-09-01' }, 'tracking'],
-    [{ status: 'ordered', shipment_status: 'delivered' }, 'receiving'],
-    [{ status: 'ordered', shipment_status: 'out_for_delivery' }, 'receiving'],
-    [{ status: 'received' }, 'closed'], [{ status: 'received', follow_up: 'Missing part' }, 'exceptions'],
-    [{ status: 'exception' }, 'exceptions'], [{ status: 'na', follow_up: 'Old note' }, 'closed'],
-  ];
-  for (const [item, group] of cases) assert.equal(procurementWorkGroup(item), group);
+test('material attention uses server reasons without reclassifying statuses', () => {
+  assert.equal(procurementNeedsAttention({attention_reasons: ['网站送达待确认']}), true);
+  assert.equal(procurementNeedsAttention({attention_reasons: []}), false);
 });

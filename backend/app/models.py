@@ -284,6 +284,8 @@ class ProcurementItem(Base):
     """材料采购行：按节点波次管理选型 / 下单 / 到货 / 异常。"""
     __tablename__ = "procurement_items"
 
+    worklist_selected: Mapped[Optional[bool]] = mapped_column(Boolean)  # presentation scope; never completion evidence
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), index=True)
     wave: Mapped[str] = mapped_column(String, index=True)  # before_rough / long_lead / after_waterproof / yard / other
@@ -299,6 +301,11 @@ class ProcurementItem(Base):
     product_url: Mapped[Optional[str]] = mapped_column(String)
     specification: Mapped[Optional[str]] = mapped_column(String)
     quantity: Mapped[Optional[float]] = mapped_column(Float)
+    required_quantity: Mapped[Optional[float]] = mapped_column(Float)
+    unit: Mapped[Optional[str]] = mapped_column(String)
+    needed_on: Mapped[Optional[str]] = mapped_column(String)
+    budget_amount: Mapped[Optional[float]] = mapped_column(Float)
+    use_location: Mapped[Optional[str]] = mapped_column(String)
     retailer: Mapped[Optional[str]] = mapped_column(String)
     order_number: Mapped[Optional[str]] = mapped_column(String)
     order_url: Mapped[Optional[str]] = mapped_column(String)
@@ -314,6 +321,43 @@ class ProcurementItem(Base):
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     updated_by: Mapped[Optional[str]] = mapped_column(String)
     updated_at: Mapped[str] = mapped_column(String, default=now_iso, onupdate=now_iso)
+
+
+class PurchaseOrder(Base):
+    """One house per order. Validated document holds stable line / delivery IDs.
+
+    A single versioned aggregate makes line allocation and receipt changes atomic;
+    immutable event snapshots preserve the exact document before later corrections.
+    Legacy procurement rows are never converted or overwritten on startup.
+    """
+    __tablename__ = "purchase_orders"
+    __table_args__ = (UniqueConstraint("vendor_key", "number_key"), UniqueConstraint("request_key"),)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), index=True)
+    vendor_key: Mapped[str] = mapped_column(String(200))
+    number_key: Mapped[str] = mapped_column(String(200))
+    request_key: Mapped[str] = mapped_column(String(36))
+    fingerprint: Mapped[str] = mapped_column(String(64))
+    document: Mapped[str] = mapped_column(Text)
+    version: Mapped[int] = mapped_column(Integer, default=1)
+    created_by: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    updated_by: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[str] = mapped_column(String, default=now_iso)
+    updated_at: Mapped[str] = mapped_column(String, default=now_iso)
+
+
+class PurchaseOrderEvent(Base):
+    __tablename__ = "purchase_order_events"
+    __table_args__ = (UniqueConstraint("order_id", "version"), UniqueConstraint("request_key"),)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    order_id: Mapped[int] = mapped_column(ForeignKey("purchase_orders.id"), index=True)
+    version: Mapped[int] = mapped_column(Integer)
+    request_key: Mapped[str] = mapped_column(String(36))
+    fingerprint: Mapped[str] = mapped_column(String(64))
+    kind: Mapped[str] = mapped_column(String)
+    actor_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    snapshot: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[str] = mapped_column(String, default=now_iso)
 
 
 class ProcurementImage(Base):
@@ -436,3 +480,14 @@ class TaskEvent(Base):
     after_json: Mapped[Optional[str]] = mapped_column(Text)
     reason: Mapped[Optional[str]] = mapped_column(Text)
     created_at: Mapped[str] = mapped_column(String, default=now_iso, index=True)
+
+
+class ProcurementRequest(Base):
+    """Idempotent creation without mutating the house task or its review history."""
+    __tablename__ = "procurement_requests"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    request_key: Mapped[str] = mapped_column(String, unique=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"))
+    actor_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    body_json: Mapped[str] = mapped_column(String)
+    item_id: Mapped[int] = mapped_column(ForeignKey("procurement_items.id"))

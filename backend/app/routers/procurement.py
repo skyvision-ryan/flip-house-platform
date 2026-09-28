@@ -1,5 +1,6 @@
 """采购清单：按节点波次管理选型 / 下单 / 到货 / 异常。"""
 
+import json
 from datetime import datetime
 from io import BytesIO
 from pathlib import Path
@@ -7,15 +8,19 @@ import warnings
 from uuid import uuid4
 from typing import Optional
 
-from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
+from fastapi import Body, APIRouter, Depends, File, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse
 from PIL import Image, UnidentifiedImageError
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
+from pydantic import BaseModel, ConfigDict, Field
+from fastapi.encoders import jsonable_encoder
 
 from .. import models, schemas
 from ..db import UPLOAD_DIR, get_db
 from ..auth import current_user
+from ..procurement_orders import order_material_projection, procurement_attention
 from ..dictionaries import PROCUREMENT_STATUSES, PROCUREMENT_TEMPLATE, PROCUREMENT_WAVES
 from .common import allowed, get_actor, log_update, require, require_user
 
@@ -76,17 +81,34 @@ def _access(db: Session, project_id: int, user: Optional[models.User], actor: st
     return project
 
 
+def _in_worklist(row, projected, attention):
+    # Existing purchases and actionable facts must never disappear through selection.
+    if row.id in projected or attention[row.id]:
+        return True
+    if row.status == "na":
+        return False
+    if row.worklist_selected is not None:
+        return row.worklist_selected
+    # Preserve meaningful pre-existing work; untouched template rows stay in the picker.
+    return row.status != "pending_spec" or any(getattr(row, field) is not None and getattr(row, field) != ""
+        for field in ("note", "specification", "required_quantity", "quantity", "product_url", "needed_on",
+                      "amount", "ordered_on", "expected_on", "retailer", "order_number")) or bool(row.images)
+
+
 def _payload(db, project_id):
     rows = _rows(db, project_id)
-    return schemas.ProcurementListOut(items=rows, summary=_summary(rows), template_missing=not rows)
+    projected = order_material_projection(db, rows)
+    attention = procurement_attention(rows, projected)
+    items = [schemas.ProcurementItemOut.model_validate({**schemas.ProcurementItemOut.model_validate(r).model_dump(), **projected.get(r.id, {}), "attention_reasons": attention[r.id], "in_worklist": _in_worklist(r, projected, attention)}) for r in rows]
+    return schemas.ProcurementListOut(items=items, summary=_summary(items), template_missing=not rows)
 
 
-def _validated(data, project, row=None):
+def _validated(data):
     data = dict(data)
-    for key in ("ordered_on", "expected_on", "received_on", "product_url", "order_url", "tracking_url"):
+    for key in ("needed_on", "product_url"):
         if data.get(key) is not None:
             data[key] = str(data[key])
-    for key in ("name", "note", "delivery_address", "specification", "retailer", "order_number", "carrier", "tracking_number", "follow_up"):
+    for key in ("name", "note", "specification", "unit", "use_location"):
         if key in data and isinstance(data[key], str):
             data[key] = data[key].strip() or None
     if "name" in data and not data["name"]:
@@ -95,24 +117,6 @@ def _validated(data, project, row=None):
         raise HTTPException(422, "未知采购节点")
     if "status" in data and data["status"] not in _STATUS_OK:
         raise HTTPException(400, "未知采购状态")
-    def resulting(key):
-        return data.get(key, getattr(row, key, None))
-    for key in ("expected_on", "received_on"):
-        if resulting(key) and resulting("ordered_on") and resulting(key) < resulting("ordered_on"):
-            raise HTTPException(422, "预计或实际到货日期不能早于下单日期")
-    if "delivery_type" in data:
-        if data["delivery_type"] == "project":
-            data["delivery_address"] = project.property.address_std
-        elif data["delivery_type"] is None:
-            data["delivery_address"] = None
-        elif row and data["delivery_type"] != row.delivery_type and "delivery_address" not in data:
-            data["delivery_address"] = None
-    if "delivery_address" in data and resulting("delivery_type") == "project":
-        data["delivery_address"] = project.property.address_std
-    if resulting("delivery_type") == "custom" and not resulting("delivery_address"):
-        raise HTTPException(422, "请填写自定义收货地址")
-    if "delivery_address" in data and resulting("delivery_type") is None and data["delivery_address"]:
-        raise HTTPException(422, "请先选择收货地点")
     return data
 
 
@@ -127,8 +131,16 @@ def procurement_tracking(db: Session = Depends(get_db), me: models.User = Depend
     visible = {p.id: p.name for p in scoped_projects}
     rows = db.scalars(select(models.ProcurementItem).where(models.ProcurementItem.project_id.in_(visible))
                       .order_by(models.ProcurementItem.project_id, models.ProcurementItem.sort_order, models.ProcurementItem.id)).all()
-    return {"projects": [{"id": p.id, "name": p.name, "address": p.property.address_std} for p in scoped_projects],
-            "items": [{**schemas.ProcurementItemOut.model_validate(row).model_dump(), "project_name": visible[row.project_id]} for row in rows], "source": "manual"}
+    projected = order_material_projection(db, rows)
+    attention = procurement_attention(rows, projected)
+    from .tasks import _tasks_payload
+    tasks = []
+    for project in scoped_projects:
+        purchase = db.scalar(select(models.Task).where(models.Task.project_id == project.id, models.Task.step_key == "purchase"))
+        if purchase:
+            tasks.extend(_tasks_payload(db, project, [purchase], me.role_code))
+    return {"tasks": tasks, "projects": [{"id": p.id, "name": p.name, "address": p.property.address_std} for p in scoped_projects],
+            "items": [{**schemas.ProcurementItemOut.model_validate(row).model_dump(), **projected.get(row.id, {}), "attention_reasons": attention[row.id], "in_worklist": _in_worklist(row, projected, attention), "project_name": visible[row.project_id]} for row in rows], "source": "manual"}
 
 
 @router.get("/projects/{project_id}/procurement", response_model=schemas.ProcurementListOut)
@@ -138,8 +150,10 @@ def list_procurement(project_id: int, request: Request, db: Session = Depends(ge
 
 
 @router.post("/projects/{project_id}/procurement/init", response_model=schemas.ProcurementListOut)
-def init_procurement(project_id: int, db: Session = Depends(get_db), me: models.User = Depends(require_user)):
+def init_procurement(project_id: int, body: dict | None = Body(default=None), db: Session = Depends(get_db), me: models.User = Depends(require_user)):
     _access(db, project_id, me, me.role_code)
+    if body:
+        raise HTTPException(422, "初始化清单不接收材料字段；采购需求请从材料接口维护，购买事实请通过订单管理记录")
     had = bool(_rows(db, project_id))
     rows = ensure_procurement(db, project_id, commit=False)
     if not had:
@@ -150,15 +164,52 @@ def init_procurement(project_id: int, db: Session = Depends(get_db), me: models.
 
 @router.post("/projects/{project_id}/procurement", response_model=schemas.ProcurementListOut, status_code=201)
 def create_procurement(project_id: int, body: schemas.ProcurementCreateIn, db: Session = Depends(get_db), me: models.User = Depends(require_user)):
-    project = _access(db, project_id, me, me.role_code)
-    data = _validated(body.model_dump(exclude_unset=True), project)
+    _access(db, project_id, me, me.role_code)
+    raw = body.model_dump(exclude_unset=True, exclude={"request_key"})
+    fingerprint = json.dumps(jsonable_encoder(raw), sort_keys=True, ensure_ascii=False)
+    def retry():
+        prior = db.scalar(select(models.ProcurementRequest).where(models.ProcurementRequest.request_key == body.request_key))
+        if prior:
+            if prior.project_id != project_id or prior.actor_id != me.id or prior.body_json != fingerprint:
+                raise HTTPException(409, "请求键已被其他新增操作使用")
+            payload = _payload(db, project_id); payload.created_item_id = prior.item_id
+            return payload
+    if body.request_key:
+        prior = retry()
+        if prior: return prior
+    if body.request_key:
+        events = db.scalars(select(models.TaskEvent).where(models.TaskEvent.project_id == project_id,
+            models.TaskEvent.kind == "procurement_requirement_added")).all()
+        for event in events:
+            prior = json.loads(event.after_json or "{}")
+            if prior.get("request_key") == body.request_key:
+                if prior.get("request_body") != jsonable_encoder(raw):
+                    raise HTTPException(409, "这次新增请求的内容已变化，请重新提交")
+                payload = _payload(db, project_id)
+                payload.created_item_id = prior["item_id"]
+                return payload
+    data = _validated(raw)
     wave = data.pop("wave", "other")
-    row = models.ProcurementItem(project_id=project_id, **data, wave=wave,
-        sort_order=max((i.sort_order for i in _rows(db, project_id)), default=-1) + 1,
+    # Additional needs supplement the baseline, including on a not-yet-initialized project.
+    rows = ensure_procurement(db, project_id, commit=False)
+    row = models.ProcurementItem(project_id=project_id, **data, wave=wave, worklist_selected=True,
+        sort_order=max((i.sort_order for i in rows), default=-1) + 1,
         updated_by=me.display_name, updated_by_user_id=me.id)
     db.add(row)
-    log_update(db, project_id, me.role_code, "procurement", f"{me.display_name} 新增采购材料「{row.name}」（待选型）")
-    db.commit()
+    reason = f"新增采购需求：{row.name}"
+    try:
+        db.flush()
+        if body.request_key:
+            db.add(models.ProcurementRequest(request_key=body.request_key, project_id=project_id,
+                actor_id=me.id, body_json=fingerprint, item_id=row.id))
+        log_update(db, project_id, me.role_code, "procurement", reason)
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        if body.request_key:
+            prior = retry()
+            if prior: return prior
+        raise HTTPException(409, "新增需求发生冲突，请重新载入后重试")
     payload = _payload(db, project_id)
     payload.created_item_id = row.id
     return payload
@@ -169,13 +220,12 @@ def patch_procurement(item_id: int, body: schemas.ProcurementPatchIn, db: Sessio
     row = db.get(models.ProcurementItem, item_id)
     if not row:
         raise HTTPException(404, "采购项不存在")
-    project = _access(db, row.project_id, me, me.role_code)
+    _access(db, row.project_id, me, me.role_code)
     data = body.model_dump(exclude_unset=True)
     expected = data.pop("expected_updated_at", None)
-    mark_checked = data.pop("mark_checked", False)
-    data = _validated(data, project, row)
-    if mark_checked:
-        data.update(checked_at=datetime.now().isoformat(timespec="seconds"), checked_by_user_id=me.id)
+    if "status" in data and order_material_projection(db, [row]):
+        raise HTTPException(409, "本项购买信息由关联订单自动更新，请在订单中修改或登记收货；无需重复维护材料状态")
+    data = _validated(data)
     if not data:
         return _payload(db, row.project_id)
     data.update(updated_by=me.display_name, updated_by_user_id=me.id,
@@ -191,6 +241,77 @@ def patch_procurement(item_id: int, body: schemas.ProcurementPatchIn, db: Sessio
     project_id = row.project_id
     db.commit()
     db.expire_all()
+    return _payload(db, project_id)
+
+
+class NotNeededItem(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    id: int = Field(gt=0)
+    updated_at: str = Field(min_length=1)
+
+
+class WorklistItem(NotNeededItem):
+    selected: bool
+
+
+class WorklistSelection(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    items: list[WorklistItem] = Field(min_length=1, max_length=200)
+
+
+@router.post("/projects/{project_id}/procurement/worklist", response_model=schemas.ProcurementListOut)
+def select_worklist(project_id: int, body: WorklistSelection, db: Session = Depends(get_db), me=Depends(require_user)):
+    _access(db, project_id, me, me.role_code)
+    from ..procurement_workflow import require_purchase_assigned
+    require_purchase_assigned(db, project_id)
+    ids = [item.id for item in body.items]
+    if len(set(ids)) != len(ids): raise HTTPException(422, "采购项重复")
+    rows = list(db.scalars(select(models.ProcurementItem).where(models.ProcurementItem.project_id == project_id, models.ProcurementItem.id.in_(ids))))
+    if len(rows) != len(ids): raise HTTPException(422, "只能选择本房采购项")
+    projected = order_material_projection(db, rows)
+    attention = procurement_attention(rows, projected)
+    for item in body.items:
+        row = next(r for r in rows if r.id == item.id)
+        if (not item.selected and (row.id in projected or attention[row.id])) or (item.selected and row.status == "na"):
+            raise HTTPException(409, "已关联订单或需处理的材料保留在清单中；本房不需要项请先修改需求状态")
+    now = datetime.now().isoformat(timespec="microseconds")
+    for item in body.items:
+        changed = db.execute(update(models.ProcurementItem).where(models.ProcurementItem.id == item.id,
+            models.ProcurementItem.updated_at == item.updated_at).values(worklist_selected=item.selected,
+            updated_by=me.display_name, updated_by_user_id=me.id, updated_at=now).execution_options(synchronize_session=False))
+        if changed.rowcount != 1:
+            db.rollback(); raise HTTPException(409, "材料刚被同事修改，整批未保存，请刷新后重试")
+    log_update(db, project_id, me.role_code, "procurement", f"{me.display_name} 调整本次采购清单：{len(body.items)} 项")
+    db.commit(); db.expire_all()
+    return _payload(db, project_id)
+
+
+class BulkNotNeeded(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    items: list[NotNeededItem] = Field(min_length=1, max_length=200)
+    reason: str = Field(min_length=1, max_length=1000)
+
+
+@router.post("/projects/{project_id}/procurement/not-needed", response_model=schemas.ProcurementListOut)
+def not_needed(project_id: int, body: BulkNotNeeded, db: Session = Depends(get_db), me=Depends(require_user)):
+    _access(db, project_id, me, me.role_code)
+    if not body.reason.strip(): raise HTTPException(422, "请填写本房不需要这些材料的原因")
+    ids = [item.id for item in body.items]
+    if len(set(ids)) != len(ids): raise HTTPException(422, "采购项重复")
+    rows = list(db.scalars(select(models.ProcurementItem).where(models.ProcurementItem.project_id == project_id, models.ProcurementItem.id.in_(ids))))
+    if len(rows) != len(ids): raise HTTPException(422, "只能选择本房采购项")
+    if order_material_projection(db, rows): raise HTTPException(409, "已关联订单的材料请先在订单处理取消或退货，不能直接标为不需要")
+    now = datetime.now().isoformat(timespec="microseconds")
+    for item in body.items:
+        row = next(r for r in rows if r.id == item.id)
+        changed = db.execute(update(models.ProcurementItem).where(models.ProcurementItem.id == row.id,
+            models.ProcurementItem.updated_at == item.updated_at).values(status="na",
+            note="；".join(filter(None, [row.note, "本房不需要：" + body.reason.strip()])), updated_by=me.display_name,
+            updated_by_user_id=me.id, updated_at=now).execution_options(synchronize_session=False))
+        if changed.rowcount != 1:
+            db.rollback(); raise HTTPException(409, "材料刚被同事修改，整批未保存，请刷新后重试")
+    log_update(db, project_id, me.role_code, "procurement", f"{me.display_name} 将 {len(rows)} 项标为本房不需要：{body.reason.strip()}")
+    db.commit(); db.expire_all()
     return _payload(db, project_id)
 
 

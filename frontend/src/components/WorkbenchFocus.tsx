@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { api, Workbench, WorkbenchProject } from '../api/client';
 import { useRole } from '../lib/role';
 import { dateTime } from '../lib/format';
+import { moneyValue } from '../lib/purchaseOrders';
 import { dueText, statusIndicator } from '../lib/taskGroups';
 import CollaborationWorkspace from './ui/CollaborationWorkspace';
 import HelpText from './HelpText';
@@ -63,6 +64,7 @@ export default function WorkbenchFocus({ refreshKey = 0 }: { refreshKey?: number
             { id: 'pos', header: '当前位置', width: 150, cell: (p) => <div onClick={(e) => e.stopPropagation()}><StagePositionBar position={p.group_position} compact /></div> },
             { id: 'next', header: '下一动作', minWidth: 150, cell: (p) => <div onClick={(e) => e.stopPropagation()}><div>{actionText(p)}</div>{p.next_action && <StatusIndicator type={statusIndicator(p.next_action.exec_status)}>{p.next_action.exec_status_label}</StatusIndicator>}</div> },
             { id: 'who', header: '行动者', width: 130, cell: (p) => (p.next_action ? <PersonAvatar user={p.next_action.actor} size="small" showRole={false} /> : '—') },
+            ...(data?.projects.some(p => p.procurement) ? [{ id: 'procurement', header: '采购', minWidth: 200, cell: (p: WorkbenchProject) => p.procurement ? <div onClick={e=>e.stopPropagation()}><Button variant="inline-link" onClick={()=>navigate(`/projects/${p.project_id}?tab=procurement`)}>{p.procurement.owner || '待分派'} · {p.procurement.ready}/{p.procurement.total} 项已齐</Button><Box>已登记订单净额 {p.procurement.order_count ? moneyValue(p.procurement.order_count === p.procurement.missing_totals ? null : p.procurement.spent) : '暂无订单'}{p.procurement.missing_totals ? ` · ${p.procurement.missing_totals} 笔实付未填，汇总不完整` : ''}</Box><Box variant="small" color="text-body-secondary">仅订单实付减退款，不含材料旧记录；非财务核款结果。</Box><Box>{p.procurement.problems.length ? `${p.procurement.problems.length} 项需处理 · ${p.procurement.problems[0].name}：${p.procurement.problems[0].note}` : '无待处理事项'}</Box></div> : '—' }] : []),
             { id: 'due', header: '截止', width: 96, cell: (p) => <span className="ui-nowrap">{p.next_action?.due_at ? dueText(p.next_action.due_at) : <Box variant="span" color="text-body-secondary">未设定</Box>}</span> },
           ]}
         />

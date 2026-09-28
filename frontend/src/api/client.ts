@@ -135,20 +135,25 @@ export interface Inspection {
 
 export interface ProcurementImage { id: number; filename: string; mime: string; size: number }
 export interface ProcurementFields {
+  required_quantity?: number | null; unit?: string | null; needed_on?: string | null; budget_amount?: number | null; use_location?: string | null;
   retailer: string | null; order_number: string | null; order_url: string | null; carrier: string | null; tracking_number: string | null; tracking_url: string | null; shipment_status: string | null; follow_up: string | null;
 
   note: string | null; ordered_on: string | null; expected_on: string | null; received_on: string | null;
   delivery_type: 'company' | 'project' | 'custom' | null; delivery_address: string | null;
   amount: number | null; quantity: number | null; specification: string | null; product_url: string | null;
 }
-export type ProcurementPatch = Partial<ProcurementFields & { name: string; wave: string; status: string; expected_updated_at: string; mark_checked: boolean }>;
+export type ProcurementRequirements = Pick<ProcurementFields, 'required_quantity' | 'unit' | 'needed_on' | 'budget_amount' | 'use_location' | 'note' | 'specification' | 'product_url'>;
+export type ProcurementPatch = Partial<ProcurementRequirements & { name: string; wave: string; status: string; expected_updated_at: string }>;
 export interface ProcurementItem extends ProcurementFields {
+  in_worklist?: boolean;
+  attention_reasons?: string[];
+  order_managed?: boolean; legacy_purchase?: Partial<ProcurementFields & { status: string; checked_at: string | null; checked_by_user_id: number | null }> | null; order_progress_note?: string; order_notes?: string | null;
   id: number; project_id: number; wave: string; name: string; status: string; note: string | null; sort_order: number; updated_by: string | null; updated_at: string; updated_by_user_id: number | null; images: ProcurementImage[]; checked_at: string | null; checked_by_user_id: number | null;
 }
 export interface ProcurementSummary {
   total: number; pending_spec: number; pending_order: number; ordered: number; received: number; exception: number; na: number;
 }
-export interface ProcurementWorkspaceData { items: (ProcurementItem & { project_name: string })[]; projects: { id: number; name: string; address: string }[]; source: string }
+export interface ProcurementWorkspaceData { tasks: Task[]; items: (ProcurementItem & { project_name: string })[]; projects: { id: number; name: string; address: string }[]; source: string }
 export interface ProcurementList { created_item_id?: number | null; items: ProcurementItem[]; summary: ProcurementSummary; template_missing?: boolean }
 
 export interface BudgetLine { id: number; project_id: number; category: string; planned_amount: number; note: string | null }
@@ -208,6 +213,7 @@ export interface Submission {
   files: SubmissionFile[];
 }
 export interface Task {
+  procurement_progress?: { excluded?: number; total: number; ready: number; complete: boolean; nodes: { wave: string; total: number; ready: number }[] } | null;
   id: number; project_id: number; project_name: string; project_address: string;
   step_key: string | null; source: string; stage_key: string; stage_label: string; stage_short: string; stage_index: number;
   project_current_stage_index: number; project_current_stage_label: string;
@@ -226,6 +232,7 @@ export interface TaskList { tasks: Task[]; stages: { key: string; label: string;
 export interface WorkbenchProject {
   project_id: number; project_name: string; address: string; group_position: GroupPosition; position_label: string;
   next_action: { task_id: number; title: string; exec_status: TaskExecStatus; exec_status_label: string; due_at: string | null; actor: UserBrief | null; kind: 'review' | 'assign' | 'do' } | null;
+  procurement?: { owner: string | null; ready: number; total: number; spent: string; missing_totals: number; order_count: number; problems: {id: number; name: string; note: string}[] } | null;
   waiting_count: number; unassigned_current_count: number;
 }
 export interface Workbench { projects: WorkbenchProject[]; my_pending: Task[]; counts: { projects: number; pending_review_mine: number; unassigned_current: number; waiting: number }; recent_handoffs: (TaskEvent & { project_name: string | null; task_title: string | null })[] }
@@ -260,6 +267,13 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  purchaseOrders: (projectId?: number) => req<import('../lib/purchaseOrders').PurchaseOrder[]>(`/api/purchase-orders${projectId ? `?project_id=${projectId}` : ''}`),
+  purchaseOrder: (id: number) => req<import('../lib/purchaseOrders').PurchaseOrder>(`/api/purchase-orders/${id}`),
+  previewPurchaseOrder: (projectId: number, text: string) => req<import('../lib/purchaseOrders').ImportPreview>(`/api/projects/${projectId}/purchase-orders/preview`, { method: 'POST', body: JSON.stringify({ text }) }),
+  createPurchaseOrder: (projectId: number, body: import('../lib/purchaseOrders').SaveOrder) => req<import('../lib/purchaseOrders').PurchaseOrder>(`/api/projects/${projectId}/purchase-orders`, { method: 'POST', body: JSON.stringify(body) }),
+  savePurchaseOrder: (id: number, body: import('../lib/purchaseOrders').SaveOrder) => req<import('../lib/purchaseOrders').PurchaseOrder>(`/api/purchase-orders/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  receivePurchaseOrder: (id: number, body: { request_key: string; expected_version: number; receipt: import('../lib/purchaseOrders').Receipt }) => req<import('../lib/purchaseOrders').PurchaseOrder>(`/api/purchase-orders/${id}/receipts`, { method: 'POST', body: JSON.stringify(body) }),
+  voidPurchaseReceipt: (id: number, receiptId: string, body: { request_key: string; expected_version: number; reason: string }) => req<import('../lib/purchaseOrders').PurchaseOrder>(`/api/purchase-orders/${id}/receipts/${receiptId}/void`, { method: 'POST', body: JSON.stringify(body) }),
   designWorkspaces: () => req<{ items: DesignWorkspaceSummary[]; can_view_all: boolean }>('/api/design-workspaces'),
   designWorkspace: (key: string) => req<DesignWorkspaceSummary & { preview: import('../lib/roleDesigns').DesignPreview | import('../lib/roleDesigns').SpecialistPreview | import('../lib/leadershipDesign').LeadershipPreview | null }>(`/api/design-workspaces/${encodeURIComponent(key)}`),
   meta: () => req<Meta>('/api/meta'),
@@ -330,7 +344,9 @@ export const api = {
   procurement: (id: number) => req<ProcurementList>(`/api/projects/${id}/procurement`),
   initProcurement: (id: number) => req<ProcurementList>(`/api/projects/${id}/procurement/init`, { method: 'POST' }),
   patchProcurement: (itemId: number, body: ProcurementPatch) => req<ProcurementList>(`/api/procurement/${itemId}`, { method: 'PATCH', body: JSON.stringify(body) }),
-  addProcurement: (id: number, body: Partial<ProcurementFields> & { name: string; wave: string }) => req<ProcurementList>(`/api/projects/${id}/procurement`, { method: 'POST', body: JSON.stringify(body) }),
+  procurementWorklist: (id: number, items: {id: number; updated_at: string; selected: boolean}[]) => req<ProcurementList>(`/api/projects/${id}/procurement/worklist`, { method: 'POST', body: JSON.stringify({items}) }),
+  procurementNotNeeded: (id: number, body: { reason: string; items: {id: number; updated_at: string}[] }) => req<ProcurementList>(`/api/projects/${id}/procurement/not-needed`, { method: 'POST', body: JSON.stringify(body) }),
+  addProcurement: (id: number, body: Partial<ProcurementRequirements> & { name: string; wave: string; request_key?: string }) => req<ProcurementList>(`/api/projects/${id}/procurement`, { method: 'POST', body: JSON.stringify(body) }),
   uploadProcurementImage: (itemId: number, file: File) => { const data = new FormData(); data.append('file', file); return req<ProcurementImage>(`/api/procurement/${itemId}/images`, { method: 'POST', body: data }); },
   deleteProcurementImage: (imageId: number) => req<void>(`/api/procurement-images/${imageId}`, { method: 'DELETE' }),
 

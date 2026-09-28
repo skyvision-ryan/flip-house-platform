@@ -119,8 +119,8 @@ class TeamDemoWorkflowTests(unittest.TestCase):
         pid = self.pids[1]
         rows = self.request("tristin", "get", f"/api/projects/{pid}/procurement")["items"]
         for slot, row in zip(("tristin", "jeremy"), rows[:2]):
-            updated = self.request(slot, "patch", f"/api/procurement/{row['id']}", {"status": "received", "note": "Synthetic checked delivery"})
-            self.assertEqual(next(i for i in updated["items"] if i["id"] == row["id"])["status"], "received")
+            updated = self.request(slot, "patch", f"/api/procurement/{row['id']}", {"note": "Synthetic requirement checked", "required_quantity": 2})
+            self.assertEqual(next(i for i in updated["items"] if i["id"] == row["id"])["required_quantity"], 2)
         updated = self.request("kody", "put", f"/api/projects/{pid}/utilities/gas", {"company": "Synthetic utility", "status": "on", "blocker": "Confirmed appointment", "account_no": "DEMO-ONLY"})
         self.assertEqual(next(u for u in updated if u["kind"] == "gas")["blocker"], "Confirmed appointment")
         expense = self.request("sabrina", "post", f"/api/projects/{pid}/expenses", {"category": "厨房", "amount": 123.45, "date": "2026-09-25", "note": "Synthetic receipt"}, expected=201)

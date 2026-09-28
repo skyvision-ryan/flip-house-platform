@@ -58,6 +58,8 @@ export default function TaskWorkbench({ task, meId, onChanged, onConflict }: { t
     } finally { setBusy(false); }
   };
 
+  if (task.step_key === 'purchase') return <SpaceBetween size="m"><Alert type="info" action={<Button onClick={() => navigate(`/procurement?project=${task.project_id}`)}>进入本房采购</Button>}>采购负责人：{task.assignee?.display_name || '待分派'} · {task.procurement_progress?.ready ?? 0} / {task.procurement_progress?.total ?? 0} 项已备齐。采购进度由清单自动更新，无需提交审核。</Alert><TaskTimeline projectId={task.project_id} taskId={task.id} refreshKey={task.version} /></SpaceBetween>;
+
   const detail = (
     <SpaceBetween size="m">
       <KeyValuePairs columns={2} items={[

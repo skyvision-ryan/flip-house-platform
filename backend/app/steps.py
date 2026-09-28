@@ -5,9 +5,10 @@
 """
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, object_session
 
 from . import models
+from .procurement_orders import order_material_projection
 from .dictionaries import FILE_TYPES, GROUP_BY_KEY, GROUP_OF_STAGE, MONEY_FIELDS, STAGE_CHECKLIST, STAGE_GROUPS, STAGE_TO_LEGACY, SUB_OF_STAGE, SUBSTAGES, UTILITY_KINDS
 
 UTILITY_LABEL = {u["value"]: u["label"] for u in UTILITY_KINDS}
@@ -74,7 +75,8 @@ def _evidence(rule: str, p: models.Project, hide_money: bool = False) -> tuple[b
                 crit = [i for i in items if i.wave == "before_rough"]
                 if not crit:
                     return False, None
-                pending = [i for i in crit if i.status not in _PROC_OK]
+                projected = order_material_projection(object_session(p), crit)
+                pending = [i for i in crit if projected.get(i.id, {}).get('status', i.status) not in _PROC_OK]
                 if not pending:
                     return True, f"水电检查前材料已齐（{len(crit)} 项）"
                 return False, None

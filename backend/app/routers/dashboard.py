@@ -8,6 +8,7 @@ from .. import models, schemas
 from ..db import get_db
 from ..dictionaries import SUBSTAGES, widget_allowed
 from ..steps import compute_steps
+from ..procurement_orders import order_material_projection, procurement_attention
 from .common import budget_totals, can_read_money, get_actor
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
@@ -239,9 +240,12 @@ def role_widgets(db: Session = Depends(get_db), actor: str = Depends(get_actor))
             items = p.procurement_items
             if not items:
                 continue
-            exc = [i.name for i in items if i.status == "exception"]
-            po = [i.name for i in items if i.status == "pending_order"]
-            spec = sum(1 for i in items if i.status == "pending_spec")
+            projected = order_material_projection(db, items)
+            def status(i): return projected.get(i.id, {}).get('status', i.status)
+            attention = procurement_attention(items, projected)
+            exc = [i.name for i in items if attention[i.id]]
+            po = [i.name for i in items if status(i) == "pending_order"]
+            spec = sum(1 for i in items if status(i) == "pending_spec")
             if exc or po:
                 rows.append({**_brief(p), "exception": exc, "pending_order": po, "pending_spec_count": spec})
         out["procurement_alerts"] = rows

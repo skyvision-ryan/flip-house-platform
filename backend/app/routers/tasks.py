@@ -13,7 +13,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, object_session
 from sqlalchemy.orm.exc import StaleDataError
 
 from .. import models, schemas
@@ -22,6 +22,7 @@ from ..db import get_db
 from ..dictionaries import STAGE_CHECKLIST, STEP_BY_KEY, TASK_EVENT_KINDS, TASK_EXEC_STATUSES
 from ..models import now_iso
 from ..steps import compute_steps
+from ..procurement_workflow import purchase_progress, purchase_overview
 from .common import allowed, can_read_money, get_actor, log_update, require, require_user
 from .files import _can_download
 
@@ -104,6 +105,8 @@ def _event_text(ev: models.TaskEvent, names: dict[int, str]) -> str:
         t = f"第 {after.get('seq')} 次提交" + (f"，{after.get('files')} 个文件" if after.get("files") else "，只交了说明")
     elif k == "returned":
         t = f"退回第 {after.get('seq')} 次提交"
+    elif k == "procurement_requirement_added":
+        return ev.reason or "新增采购需求"
     elif k == "confirmed":
         t = f"确认第 {after.get('seq')} 次交付，任务完成"
     else:
@@ -164,6 +167,8 @@ def _task_out(t: models.Task, p: models.Project, steps: dict, users: dict[int, m
             if si["key"] == t.step_key:
                 step_item = si
                 break
+    procurement = purchase_progress(object_session(t), t.project_id) if t.step_key == "purchase" else None
+    execution = ("not_started" if not t.assignee_user_id else "done" if procurement["complete"] else "in_progress") if procurement else t.exec_status
     cur = steps["current_stage"]
     cur_idx = len(STAGE_CHECKLIST) + 1 if cur["key"] == "done" else STAGE_INDEX.get(cur["key"], 1)
     return {
@@ -171,18 +176,20 @@ def _task_out(t: models.Task, p: models.Project, steps: dict, users: dict[int, m
         "step_key": t.step_key, "source": t.source,
         "stage_key": t.stage_key, "stage_label": STAGE_LABEL.get(t.stage_key, t.stage_key), "stage_short": STAGE_SHORT.get(t.stage_key, t.stage_key),
         "stage_index": STAGE_INDEX.get(t.stage_key, 0), "project_current_stage_index": cur_idx, "project_current_stage_label": cur["label"],
-        "title": t.title, "ws": it.get("ws"), "purpose": it.get("purpose"), "done_when": it.get("done_when"),
+        "title": "房屋采购" if t.step_key == "purchase" and t.title == "分阶段采购" else t.title, "ws": it.get("ws"), "purpose": it.get("purpose"),
+        "done_when": "采购进度随清单自动更新；水电前材料到场作为阶段证据，整房备齐无需提交审核。" if procurement else it.get("done_when"),
+        "procurement_progress": procurement,
         "owners": it.get("owners", []), "deliverable": it.get("deliverable"),
         "description": t.description, "deliverable_note": t.deliverable_note,
         "assignee": _brief(users.get(t.assignee_user_id)) if t.assignee_user_id else None,
-        "reviewer": _brief(users.get(t.reviewer_user_id)) if t.reviewer_user_id else None,
-        "exec_status": t.exec_status, "exec_status_label": STATUS_LABEL.get(t.exec_status, t.exec_status),
-        "due_at": t.due_at, "wait_for": t.wait_for, "wait_reason": t.wait_reason, "wait_until": t.wait_until,
+        "reviewer": _brief(users.get(t.reviewer_user_id)) if t.reviewer_user_id and not procurement else None,
+        "exec_status": execution, "exec_status_label": ("已备齐" if procurement and execution == "done" else STATUS_LABEL.get(execution, execution)),
+        "due_at": t.due_at, "wait_for": None if procurement else t.wait_for, "wait_reason": None if procurement else t.wait_reason, "wait_until": None if procurement else t.wait_until,
         "version": t.version,
         "satisfied": bool(step_item and step_item["done"]), "satisfied_how": (step_item or {}).get("how"),
         "satisfied_evidence": (step_item or {}).get("evidence"), "evidence_hint": (step_item or {}).get("evidence_hint"),
         "last_event": _event_out(last, users) if last else None,
-        "done_at": t.done_at, "requires_file": (it.get("deliverable") or {}).get("kind") in FILE_KINDS,
+        "done_at": None if procurement else t.done_at, "requires_file": (it.get("deliverable") or {}).get("kind") in FILE_KINDS,
         "submissions": subs or [],
         "created_at": t.created_at, "updated_at": t.updated_at,
     }
@@ -412,6 +419,7 @@ def my_workbench(db: Session = Depends(get_db), me: models.User = Depends(requir
             "group_position": steps["group_position"], "position_label": steps["group_position"]["label"],
             "next_action": ({"task_id": nxt["id"], "title": nxt["title"], "exec_status": nxt["exec_status"], "exec_status_label": nxt["exec_status_label"],
                              "due_at": nxt["due_at"], "actor": actor_brief, "kind": "review" if nxt["exec_status"] == "pending_review" else ("assign" if not nxt["assignee"] else "do")} if nxt else None),
+            "procurement": purchase_overview(db, p.id) if allowed(me.role_code, "procurement") else None,
             "waiting_count": sum(1 for r in payload if r["exec_status"] == "waiting"),
             "unassigned_current_count": sum(1 for r in cur_rows if not r["assignee"]),
         })
@@ -508,6 +516,8 @@ def assign_task(project_id: int, task_id: int, body: schemas.TaskAssignIn, db: S
             target = db.get(models.User, new_assignee)
             if target is None or not target.active:
                 raise HTTPException(400, "这个账号不存在或已停用，不能分派")
+            if t.step_key == "purchase" and not allowed(target.role_code, "procurement"):
+                raise HTTPException(400, "采购主负责人须具有采购权限")
             is_member = any(m.user_id == target.id for m in _members(db, project_id))
             if not is_member:
                 if not body.join_project:
@@ -527,11 +537,11 @@ def assign_task(project_id: int, task_id: int, body: schemas.TaskAssignIn, db: S
     if changed_assignee:
         before = {"assignee_user_id": prev_assignee, "exec_status": t.exec_status}
         t.assignee_user_id = new_assignee
-        if prev_assignee is not None:
+        if prev_assignee is not None and t.step_key != "purchase":
             # 换人后执行状态回到未开始：原负责人的开始 / 等待属于他自己，不能算在新负责人头上；历史仍在事件里。
             t.exec_status = "not_started"
             t.wait_for = t.wait_reason = t.wait_until = None
-        if new_assignee is not None and t.reviewer_user_id is None:
+        if new_assignee is not None and t.reviewer_user_id is None and t.step_key != "purchase":
             t.reviewer_user_id = me.id  # 审核人为空时默认是分派的人（待 Ryan 最终确认，可改）
         kind = "assigned" if prev_assignee is None else ("unassigned" if new_assignee is None else "reassigned")
         _event(db, t, project_id, kind, me, before=before,
@@ -557,6 +567,9 @@ def task_status(project_id: int, task_id: int, body: schemas.TaskStatusIn, db: S
     """开始 / 记录等待 / 恢复。只有当前负责人能做；改派后旧负责人 403。没有「完成」——完成由审核确认（块 5）。"""
     p = _project(db, project_id)
     t = _task(db, project_id, task_id)
+    if t.step_key == "purchase":
+        _require_task_read(db, project_id, me)
+        raise HTTPException(409, "采购由清单自动更新，无需开始、等待、提交或审核；请进入采购工作台")
     if t.assignee_user_id != me.id:
         owner = db.get(models.User, t.assignee_user_id) if t.assignee_user_id else None
         raise HTTPException(403, f"这项任务现在由 {owner.display_name if owner else '待分派'} 负责，你不能改它的进度")
@@ -599,6 +612,9 @@ def submit_task(project_id: int, task_id: int, body: schemas.TaskSubmitIn, db: S
     引用的文件必须属于本项目且当前账号能访问；上传本身还是走文件接口，这里不复制文件。"""
     p = _project(db, project_id)
     t = _task(db, project_id, task_id)
+    if t.step_key == "purchase":
+        _require_task_read(db, project_id, me)
+        raise HTTPException(409, "采购由清单自动更新，无需开始、等待、提交或审核；请进入采购工作台")
     if t.assignee_user_id != me.id:
         raise HTTPException(403, "只有这项任务的负责人能提交")
     if t.version != body.version:
@@ -644,6 +660,9 @@ def submit_task(project_id: int, task_id: int, body: schemas.TaskSubmitIn, db: S
 def _decide(db: Session, project_id: int, task_id: int, body: schemas.TaskDecisionIn, me: models.User, decision: str):
     p = _project(db, project_id)
     t = _task(db, project_id, task_id)
+    if t.step_key == "purchase":
+        _require_task_read(db, project_id, me)
+        raise HTTPException(409, "采购由清单自动更新，无需开始、等待、提交或审核；请进入采购工作台")
     if t.reviewer_user_id != me.id:
         owner = db.get(models.User, t.reviewer_user_id) if t.reviewer_user_id else None
         raise HTTPException(403, f"这项任务的审核人是 {owner.display_name if owner else '未指定'}，你不能{'退回' if decision == 'returned' else '确认'}")

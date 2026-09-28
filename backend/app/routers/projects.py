@@ -211,5 +211,7 @@ def patch_project(project_id: int, body: schemas.ProjectPatch, db: Session = Dep
 def delete_project(project_id: int, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
     require(actor, "delete_project", what="删除项目")
     p = _get(db, project_id)
+    if db.scalar(select(models.PurchaseOrder.id).where(models.PurchaseOrder.project_id == project_id).limit(1)):
+        raise HTTPException(409, "项目已有采购订单及收货历史，请保留项目记录，不能直接删除")
     db.delete(p)
     db.commit()

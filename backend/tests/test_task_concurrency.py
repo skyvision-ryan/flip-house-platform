@@ -50,7 +50,7 @@ class TaskConcurrencyTests(unittest.TestCase):
         self.planner = self.login("planner")
         self.worker = self.login("worker")
         self.worker_other_browser = self.login("worker")
-        row = next(t for t in self.planner.get(f"/api/projects/{self.pid}/tasks").json()["tasks"] if t["step_key"] == "purchase")
+        row = next(t for t in self.planner.get(f"/api/projects/{self.pid}/tasks").json()["tasks"] if t["step_key"] == "utilities_on")
         response = self.planner.post(self.url(row, "assign"), json={"version": row["version"], "assignee_user_id": self.users["worker"]})
         self.assertEqual(response.status_code, 200, response.text)
         self.task = response.json()
