@@ -1,8 +1,8 @@
-from typing import Optional
+from typing import Optional, Literal
 from datetime import date
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, HttpUrl, field_validator
+from pydantic import model_validator, BaseModel, ConfigDict, HttpUrl, Field, field_validator
 
 
 class ORM(BaseModel):
@@ -132,7 +132,8 @@ class ProjectCreate(BaseModel):
     strategy: str = "flip"
     stage: str = "lead"
     substage: Optional[str] = None
-    lead_heat: Optional[str] = "warm_lead"
+    lead_heat: Optional[str] = None
+    initial_stage_key: Literal["s1", "s2", "s3", "s4", "s5", "s6"] = "s1"
     address: AddressCandidateOut
     apn: Optional[str] = None
     fields: list[FieldIn] = []
@@ -488,21 +489,138 @@ class InspectionOut(ORM):
     created_at: str
 
 
+class ProcurementImageOut(ORM):
+    id: int
+    filename: str
+    mime: str
+    size: int
+
+
+# Material inputs contain requirements only. Legacy columns remain in ProcurementItemOut.
+LEGACY_PURCHASE_FIELDS = frozenset({
+    "ordered_on", "expected_on", "received_on", "delivery_type", "delivery_address", "amount", "quantity",
+    "retailer", "order_number", "order_url", "carrier", "tracking_number", "tracking_url", "shipment_status",
+    "follow_up", "checked_at", "checked_by_user_id", "mark_checked",
+})
+
+
+class ProcurementFields(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    required_quantity: Optional[float] = Field(default=None, gt=0, le=1000000, allow_inf_nan=False)
+    unit: Optional[str] = Field(default=None, max_length=30)
+    needed_on: Optional[date] = None
+    budget_amount: Optional[float] = Field(default=None, ge=0, le=9999999999, allow_inf_nan=False)
+    use_location: Optional[str] = Field(default=None, max_length=1000)
+    note: Optional[str] = Field(default=None, max_length=10000)
+    product_url: Optional[HttpUrl] = None
+    specification: Optional[str] = Field(default=None, max_length=2000)
+
+    @model_validator(mode="before")
+    @classmethod
+    def requirements_only(cls, value):
+        # Inspect submitted keys before parsing values: null, empty and false are writes too.
+        if isinstance(value, dict):
+            forbidden = LEGACY_PURCHASE_FIELDS.intersection(value)
+            if forbidden or value.get("status") in ("ordered", "received"):
+                fields = sorted(forbidden | ({"status"} if value.get("status") in ("ordered", "received") else set()))
+                raise ValueError("材料接口仅维护采购需求；购买、物流、金额及实际收货请通过订单管理记录，不能直接修改：" + "、".join(fields))
+        return value
+
+    @field_validator("budget_amount")
+    @classmethod
+    def valid_currency(cls, value):
+        if value is not None and abs(value - round(value, 2)) > 0.000001:
+            raise ValueError("金额最多保留两位小数")
+        return value
+
+
 class ProcurementItemOut(ORM):
+    in_worklist: bool = False
+    attention_reasons: list[str] = Field(default_factory=list)
+    order_managed: bool = False
+    legacy_purchase: Optional[dict] = None
+    order_progress_note: str = ""
+    order_notes: Optional[str] = None
+    required_quantity: Optional[float] = None
+    unit: Optional[str] = None
+    needed_on: Optional[str] = None
+    budget_amount: Optional[float] = None
+    use_location: Optional[str] = None
     id: int
     project_id: int
     wave: str
     name: str
     status: str
     note: Optional[str] = None
+    ordered_on: Optional[str] = None
+    expected_on: Optional[str] = None
+    received_on: Optional[str] = None
+    delivery_type: Optional[str] = None
+    delivery_address: Optional[str] = None
+    amount: Optional[float] = None
+    product_url: Optional[str] = None
+    specification: Optional[str] = None
+    quantity: Optional[float] = None
+    retailer: Optional[str] = None
+    order_number: Optional[str] = None
+    order_url: Optional[str] = None
+    carrier: Optional[str] = None
+    tracking_number: Optional[str] = None
+    tracking_url: Optional[str] = None
+    shipment_status: Optional[str] = None
+    follow_up: Optional[str] = None
+    checked_at: Optional[str] = None
+    checked_by_user_id: Optional[int] = None
+    images: list[ProcurementImageOut] = []
     sort_order: int = 0
     updated_by: Optional[str] = None
+    updated_by_user_id: Optional[int] = None
     updated_at: str
 
 
-class ProcurementPatchIn(BaseModel):
+class ProcurementPatchIn(ProcurementFields):
     status: Optional[str] = None
-    note: Optional[str] = None
+    name: Optional[str] = Field(default=None, min_length=1, max_length=200)
+    wave: Optional[str] = None
+    expected_updated_at: Optional[str] = None
+
+
+class ProcurementCreateIn(ProcurementFields):
+    request_key: Optional[str] = Field(default=None, min_length=1, max_length=100)
+    name: str = Field(min_length=1, max_length=200)
+    wave: str = "other"
+    # New recommendations always start as pending_spec; no automatic approval.
+
+
+class ProcurementTrackingItemOut(ProcurementItemOut):
+    project_name: str
+
+
+class ProcurementProjectOut(BaseModel):
+    id: int
+    name: str
+    address: str
+
+
+class ProcurementNodeProgress(BaseModel):
+    wave: str
+    total: int
+    ready: int
+
+
+class ProcurementProgress(BaseModel):
+    excluded: int = 0
+    total: int
+    ready: int
+    complete: bool
+    nodes: list[ProcurementNodeProgress]
+
+
+class ProcurementTrackingOut(BaseModel):
+    projects: list[ProcurementProjectOut]
+    items: list[ProcurementTrackingItemOut]
+    source: str = "manual"
+    tasks: list["TaskOut"] = Field(default_factory=list)
 
 
 class ProcurementSummary(BaseModel):
@@ -516,6 +634,7 @@ class ProcurementSummary(BaseModel):
 
 
 class ProcurementListOut(BaseModel):
+    created_item_id: Optional[int] = None
     items: list[ProcurementItemOut]
     summary: ProcurementSummary
     template_missing: bool = False   # 老项目没灌过模板
@@ -579,6 +698,8 @@ class SubmissionOut(BaseModel):
 
 
 class TaskOut(BaseModel):
+    node_confirmation: Optional[dict] = None
+    procurement_progress: Optional[ProcurementProgress] = None
     id: int
     project_id: int
     project_name: str
@@ -678,3 +799,5 @@ class TaskStatusIn(BaseModel):
     wait_for: Optional[str] = None
     wait_reason: Optional[str] = None
     wait_until: Optional[str] = None
+
+ProcurementTrackingOut.model_rebuild()

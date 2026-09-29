@@ -36,18 +36,27 @@ export default function MyTodo() {
   const [data, setData] = useState<MyTasks | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(wanted);
-  const [tab, setTab] = useState('mine');
-  const [query, setQuery] = useState('');
-  const [projectFilter, setProjectFilter] = useState('all');
+  const tab = params.get('view') === 'review' ? 'review' : 'mine';
+  const setTab = (value: string) => setParams(prev => { const n = new URLSearchParams(prev); n.set('view', value); return n; }, { replace: true });
+  const query = params.get('q') ?? '';
+  const setQuery = (value: string) => setParams(prev => { const n = new URLSearchParams(prev); value ? n.set('q', value) : n.delete('q'); return n; }, { replace: true });
+  const projectFilter = params.get('project') ?? 'all';
+  const setProjectFilter = (value: string) => setParams(prev => { const n = new URLSearchParams(prev); value === 'all' ? n.delete('project') : n.set('project', value); return n; }, { replace: true });
 
   const load = useCallback(async () => {
     if (!me) { setData(null); return; }
     try { setData(await api.myTasks()); setErr(null); } catch (e: any) { setErr(e.message); }
   }, [me]);
   useEffect(() => { load(); }, [load]);
-  useEffect(() => { if (wanted) setSelectedId(wanted); }, [wanted]);
   useEffect(() => {
-    if (!data || !wanted) return;
+    const refresh = () => { if (document.visibilityState === 'visible') void load(); };
+    window.addEventListener('focus', refresh);
+    const timer = window.setInterval(refresh, 20000);
+    return () => { window.removeEventListener('focus', refresh); window.clearInterval(timer); };
+  }, [load]);
+  useEffect(() => { setSelectedId(wanted); }, [wanted]);
+  useEffect(() => {
+    if (!data || !wanted || params.has('view')) return;
     if (data.reviewing.some((t) => t.id === wanted) && (!data.assigned.some((t) => t.id === wanted) || data.reviewing.some((t) => t.id === wanted && t.exec_status === 'pending_review'))) setTab('review');
   }, [data, wanted]);
 
@@ -73,7 +82,7 @@ export default function MyTodo() {
   };
   const pane = (subset: Task[]) => (selected && filtered(subset).some((t) => t.id === selected.id)
     ? <Container embedded cardId="task-processing" cardContext={selected?.title} header={<Header variant="h2" description={`${selected.project_name} · ${selected.project_address}`}>{selected.title}</Header>}><TaskWorkbench task={selected} meId={me?.id ?? null} onChanged={replace} onConflict={load} /></Container>
-    : <Container embedded cardId="task-processing"><Box color="text-body-secondary">左边点一项，在这里处理。</Box></Container>);
+    : <Container embedded cardId="task-processing"><Box color="text-body-secondary">选择一项任务，查看要求并处理。</Box></Container>);
   const layout = (left: JSX.Element, subset: Task[]) => <CollaborationWorkspace processing main={left} detail={pane(subset)} detailOpen={!!selected && filtered(subset).some((t) => t.id === selected.id)} onBack={() => {
     setSelectedId(null); setParams((prev) => { const next = new URLSearchParams(prev); next.delete('task'); return next; }, { replace: true });
   }} />;
@@ -82,7 +91,8 @@ export default function MyTodo() {
     <ContentLayout maxContentWidth={1440} header={<Header variant="h1" help={me ? '处理分派给你的任务，以及等你审核的交付。' : '登录后查看你的任务。'}>我的事项</Header>}>
       <SpaceBetween size="l">
         {!me && <Alert type="info" action={<Button onClick={() => navigate('/login')}>登录</Button>}>任务按账号分派。现在没有登录，这里没有内容；演示访客可以到工作台看「按角色」的参考待办小组件。</Alert>}
-        {err && <Alert type="error">{err}</Alert>}
+        {err && <Alert type="error" action={<Button onClick={load}>重试</Button>}>{err}</Alert>}
+        {wanted && data && !selected && <Alert type="info">这项任务不在你的负责或审核范围内。请选择列表中的事项。</Alert>}
         {me && !data && !err && <Box textAlign="center" padding="l"><Spinner /></Box>}
         {me && data && <div className={css.toolbar}><TextFilter filteringText={query} onChange={({ detail }) => setQuery(detail.filteringText)} filteringPlaceholder="搜索项目或任务" filteringAriaLabel="搜索我的事项" /><Select selectedOption={projectOptions.find((o) => o.value === projectFilter)!} options={projectOptions} onChange={({ detail }) => setProjectFilter(detail.selectedOption.value!)} ariaLabel="筛选项目" /></div>}
         {me && data && (
@@ -92,7 +102,7 @@ export default function MyTodo() {
               setTab(detail.activeTabId);
               const rows = detail.activeTabId === 'review' ? data.reviewing : data.assigned;
               const first = rows.find((t) => t.exec_status === 'pending_review') ?? rows[0];
-              if (first) pick(first); else setSelectedId(null);
+              if (first) pick(first); else { setSelectedId(null); setParams(prev => { const n = new URLSearchParams(prev); n.delete('task'); return n; }, { replace: true }); }
             }}
             tabs={[
               {
@@ -118,10 +128,6 @@ export default function MyTodo() {
                   </Container>,
                   data.reviewing,
                 ),
-              },
-              {
-                id: 'change', label: '需求待确认 (0)',
-                content: <Container cardId="my-changes"><Box color="text-body-secondary">需求确认功能准备中。当前事项可在「我的任务」和「待我审核」中处理。</Box></Container>,
               },
             ]}
           />

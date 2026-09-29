@@ -1,3 +1,4 @@
+import Alert from '@cloudscape-design/components/alert';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
 import Checkbox from '@cloudscape-design/components/checkbox';
@@ -32,6 +33,7 @@ export default function InspectionsPanel({ projectId, onChanged }: { projectId: 
   const [rows, setRows] = useState<Inspection[] | null>(null);
   const [editing, setEditing] = useState<Inspection | 'new' | null>(null);
   const [draft, setDraft] = useState<typeof EMPTY>(EMPTY);
+  const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(() => api.inspections(projectId).then(setRows), [projectId]);
@@ -41,11 +43,13 @@ export default function InspectionsPanel({ projectId, onChanged }: { projectId: 
 
   const resultOptions = meta?.inspection_results ?? [];
   const open = (i: Inspection | 'new') => {
-    setEditing(i);
+    setError(''); setEditing(i);
     setDraft(i === 'new' ? EMPTY : { name: i.name, date: i.date ?? '', result: i.result, is_final: i.is_final, fixer: i.fixer ?? '', note: i.note ?? '' });
   };
   const submit = async () => {
-    if (!draft.name.trim()) { flash({ type: 'error', content: '先写查什么' }); return; }
+    if (busy) return;
+    if (!draft.name.trim()) { setError('请填写本次检查的内容。'); return; }
+    setError('');
     setBusy(true);
     try {
       const body = { name: draft.name.trim(), date: draft.date || null, result: draft.result, is_final: draft.is_final, fixer: draft.fixer || null, note: draft.note || null };
@@ -54,7 +58,7 @@ export default function InspectionsPanel({ projectId, onChanged }: { projectId: 
       flash({ type: 'success', content: `检查记录已保存（${actor}）` });
       onChanged?.();
     } catch (e: any) {
-      flash({ type: 'error', content: `没保存上：${e.message}` });
+      setError(`未保存：${e.message}`);
     } finally {
       setBusy(false);
     }
@@ -95,11 +99,12 @@ export default function InspectionsPanel({ projectId, onChanged }: { projectId: 
 
       <Modal
         visible={editing !== null}
-        onDismiss={() => setEditing(null)}
+        onDismiss={() => { if (!busy) setEditing(null); }}
         header={editing === 'new' ? '记一次检查' : '改检查记录'}
-        footer={<Box float="right"><SpaceBetween direction="horizontal" size="xs"><Button variant="link" onClick={() => setEditing(null)}>取消</Button><Button variant="primary" loading={busy} onClick={submit}>保存</Button></SpaceBetween></Box>}
+        footer={<Box float="right"><SpaceBetween direction="horizontal" size="xs"><Button variant="link" disabled={busy} onClick={() => setEditing(null)}>取消</Button><Button variant="primary" loading={busy} onClick={submit}>保存</Button></SpaceBetween></Box>}
       >
         <SpaceBetween size="m">
+          {error && <Alert type="error">{error}</Alert>}
           <ColumnLayout columns={2}>
             <FormField label="查什么" description="比如 框架、水电粗装、屋顶、final">
               <Input value={draft.name} onChange={({ detail }) => setDraft((d) => ({ ...d, name: detail.value }))} />
@@ -112,7 +117,7 @@ export default function InspectionsPanel({ projectId, onChanged }: { projectId: 
               <Input value={draft.fixer} disabled={draft.result !== 'failed'} placeholder="PM + 承包商名字" onChange={({ detail }) => setDraft((d) => ({ ...d, fixer: detail.value }))} />
             </FormField>
           </ColumnLayout>
-          <Checkbox checked={draft.is_final} onChange={({ detail }) => setDraft((d) => ({ ...d, is_final: detail.checked }))}>这是最后一次（final）。通过后清单里的“final”大节点自动过。</Checkbox>
+          <Checkbox checked={draft.is_final} onChange={({ detail }) => setDraft((d) => ({ ...d, is_final: detail.checked }))}>这是 Final 检查。最新一次结果作为节点证据，条件满足后仍需有权限的一人确认节点。</Checkbox>
           <FormField label="备注"><Input value={draft.note} onChange={({ detail }) => setDraft((d) => ({ ...d, note: detail.value }))} /></FormField>
         </SpaceBetween>
       </Modal>

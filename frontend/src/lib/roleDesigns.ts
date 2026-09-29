@@ -1,4 +1,4 @@
-import type { UserBrief } from '../api/client';
+import type { ProcurementFields, UserBrief } from '../api/client';
 export type CorePersona = 'jessie' | 'kody';
 export type SpecialistPersona = 'procurement' | 'zoey' | 'sabrina';
 export type DesignPersona = CorePersona | SpecialistPersona | 'david' | 'admin';
@@ -40,9 +40,10 @@ export function parseDesignPreferences(raw: string | null): Partial<Record<Desig
 export interface DesignRecord {
   id: string; house: string; title: string; status: string; category: string; owner: string;
   detail: string; source: string; fields: { label: string; value: string }[];
+  procurement?: Omit<ProcurementFields, 'note'>;
   documents: { id: string; name: string; detail: string }[]; amount?: number; planned?: number;
 }
 export interface SpecialistPreview {
-  person: UserBrief; designs: RoleDesign[]; houses: { id: string; name: string; stage: string }[];
+  person: UserBrief; designs: RoleDesign[]; houses: { id: string; name: string; stage: string; address?: string }[];
   records: DesignRecord[]; role_title: string; role_description: string; default_design: DesignId;
 }

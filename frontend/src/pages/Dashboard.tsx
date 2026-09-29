@@ -1,3 +1,4 @@
+import Alert from '@cloudscape-design/components/alert';
 import Board, { BoardProps } from '@cloudscape-design/board-components/board';
 import BoardItem from '@cloudscape-design/board-components/board-item';
 import { useCollection } from '@cloudscape-design/collection-hooks';
@@ -60,7 +61,7 @@ const WIDGETS: Record<WidgetId, ItemData & { cols: number; rows: number }> = {
   turns: { title: '每套房轮到谁', cols: 4, rows: 7 },
   gates: { title: '待我确认的门', cols: 2, rows: 4 },
   mytodo: { title: '我的待办', cols: 4, rows: 6 },
-  procurement: { title: '采购异常与待下单', cols: 2, rows: 4 },
+  procurement: { title: '采购订单跟进', cols: 4, rows: 6 },
   site: { title: '施工现场', cols: 4, rows: 4 },
   utilities: { title: '水电瓦斯与保险', cols: 3, rows: 4 },
   permits: { title: 'permit 与检查', cols: 3, rows: 4 },
@@ -125,7 +126,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
   // 注意**不动** DASHBOARD_LAYOUTS 那份后端字典——它同时决定 widget_access，
   // 动了角色就加不回自己的小组件。下面 canAdd 仍然读 widget_access，
   // 所以「添加小组件」照样能把关注、门、水电加回来，加回来的出现在表下面。
-  const defaults: WidgetId[] = [];
+  const defaults: WidgetId[] = me?.role_code === '采购' ? ['procurement'] : [];
   const canAdd = (id: WidgetId) => (role.actor === '老板' || role.actor === '负责人' || (meta?.widget_access?.[id] ?? []).includes(role.actor)) && (!MONEY_WIDGETS.includes(id) || role.canReadMoney);
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [roleData, setRoleData] = useState<DashboardRole | null>(null);
@@ -133,6 +134,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
   const [projects, setProjects] = useState<Project[]>([]);
   const [insights, setInsights] = useState<Insight[]>([]);
   const [updates, setUpdates] = useState<Update[]>([]);
+  const [loadError, setLoadError] = useState('');
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<ReadonlyArray<Item>>(() => loadLayout(role.actor, defaults));
   // KAN-75 块 2：列表按「位置」筛（买房 · 未购入 / escrow 中 / 装修 …），从 URL ?group=&sub= 取初值；
@@ -143,11 +145,11 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
 
   const reloadRole = async () => { setRoleData(await api.dashboardRole().catch(() => null)); };
   useEffect(() => {
-    setLoading(true);
+    setLoading(true); setLoadError('');
     setItems(loadLayout(role.actor, defaults));
     Promise.all([api.dashboard(), api.projects(), api.widgets(), api.updates(20).catch(() => [] as Update[]), api.dashboardRole().catch(() => null)])
       .then(async ([s, p, w, u, r]) => { setSummary(s); setProjects(p); setWidgets(w); setUpdates(u); setRoleData(r); setInsights(await loadInsights(p, role.actor)); })
-      .finally(() => setLoading(false));
+      .catch(e => setLoadError(e.message)).finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [role.actor, meta]);
 
@@ -156,16 +158,20 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
   // 判据走 lib/leads 的 isLead（current_stage 停在 s1），和分组视图是同一个函数。
   const notLead = useMemo(() => projects.filter((p) => !isLead(p)), [projects]);
   const showLeadGroups = groupFilter === 'buying:pre';
-  const filtered = useMemo(() => (groupFilter ? projects.filter((p) => matchesGroupFilter(p.group_position, groupFilter)) : notLead), [projects, notLead, groupFilter]);
-  const { items: rows, collectionProps, filterProps, paginationProps } = useCollection(filtered, {
+  const filtered = useMemo(() => (groupFilter ? projects.filter((p) => matchesGroupFilter(p.group_position, groupFilter)) : listOnly ? projects : notLead), [projects, notLead, groupFilter, listOnly]);
+  const { items: rows, actions, collectionProps, filterProps, paginationProps } = useCollection(filtered, {
     filtering: {
+      defaultFilteringText: params.get('q') ?? '',
       filteringFunction: (item, s) => { const t = s.toLowerCase(); return item.name.toLowerCase().includes(t) || item.property.address_std.toLowerCase().includes(t); },
-      empty: <Box textAlign="center" color="inherit"><b>还没有项目</b><Box padding={{ bottom: 's' }} variant="p" color="inherit">输入一个地址，系统会自动补全房产数据。</Box><Button variant="primary" onClick={() => navigate('/projects/new')}>新建项目</Button></Box>,
+      empty: <Box textAlign="center" color="inherit"><b>还没有项目</b><Box padding={{ bottom: 's' }} variant="p" color="inherit">输入一个地址，系统会自动补全房产数据。</Box><span>{role.can('create_project') ? <Button variant="primary" onClick={() => navigate('/projects/new')}>新建项目</Button> : '请联系项目负责人安排房屋。'}</span></Box>,
       noMatch: <Box textAlign="center" color="inherit"><b>没有匹配的项目</b></Box>,
     },
     pagination: { pageSize: 10 },
     sorting: { defaultState: { sortingColumn: { sortingField: 'updated_at' }, isDescending: true } },
   });
+
+  useEffect(() => { actions.setFiltering(params.get('q') ?? ''); }, [params.get('q')]);
+  const searchProps = { ...filterProps, onChange: ({ detail }: { detail: { filteringText: string } }) => { actions.setFiltering(detail.filteringText); setParams(prev => { const next = new URLSearchParams(prev); if (detail.filteringText) next.set('q', detail.filteringText); else next.delete('q'); return next; }, { replace: true }); } };
 
   const recent = [...projects].sort((a, b) => (a.updated_at < b.updated_at ? 1 : -1)).slice(0, 3);
   const groupOptions = groupFilterOptions(meta?.stage_groups);
@@ -219,16 +225,16 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
       loadingText="加载中"
       variant={listOnly ? 'container' : 'embedded'}
       resizableColumns
-      onRowClick={({ detail }) => go(`/projects/${detail.item.id}`)}
-      header={listOnly ? <Header variant="h2" counter={`(${filtered.length})`} actions={<Button variant="primary" onClick={() => go('/projects/new')}>新建项目</Button>}>项目列表</Header> : undefined}
+
+      header={listOnly ? <Header variant="h2" counter={`(${filtered.length})`} actions={role.can('create_project') ? <Button variant="primary" onClick={() => go('/projects/new')}>新建项目</Button> : undefined}>项目列表</Header> : undefined}
       filter={
         <SpaceBetween direction="horizontal" size="xs">
-          <TextFilter {...filterProps} filteringPlaceholder="按项目名或地址查找" countText={`${rows.length} 个匹配`} />
+          <TextFilter {...searchProps} filteringPlaceholder="按项目名或地址查找" countText={`${rows.length} 个匹配`} />
           {groupSelect}
         </SpaceBetween>
       }
       pagination={<Pagination {...paginationProps} />}
-      columnDefinitions={projectColumns}
+      columnDefinitions={role.canReadMoney ? projectColumns : projectColumns.filter(c => !['budget','arv'].includes(c.id))}
     />
   );
 
@@ -236,8 +242,9 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
     return (
       <ContentLayout
         breadcrumbs={<BreadcrumbGroup items={[{ text: '工作台', href: '/' }, { text: '项目', href: '/projects' }]} onFollow={(e) => { e.preventDefault(); go(e.detail.href); }} />}
-        header={<Header variant="h1" help="按阶段筛选，点任意一行进入项目。">所有项目</Header>}
+        header={<Header variant="h1" description="按房屋名称进入项目，查看进展与负责事项。">所有项目</Header>}
       >
+        {loadError && <Alert type="error" header="项目读取失败">{loadError}</Alert>}
         {table}
       </ContentLayout>
     );
@@ -455,21 +462,8 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
       }
       case 'mytodo':
         return <MyTodoTable compact rows={roleData ? (roleData.my_todo ?? []) : null} onReload={reloadRole} />;
-      case 'procurement': {
-        const rs = roleData?.procurement_alerts ?? [];
-        return rs.length ? (
-          <SpaceBetween size="s">
-            {rs.map((r) => (
-              <div key={r.project_id}>
-                <Box fontWeight="bold">{projLink(r.project_id, r.project_name)} <Link href={`/projects/${r.project_id}?tab=budget&section=procurement`} onFollow={(e) => { e.preventDefault(); go(`/projects/${r.project_id}?tab=budget&section=procurement`); }} fontSize="body-s">管采购</Link></Box>
-                {r.exception.length > 0 && <Box fontSize="body-s"><StatusIndicator type="error">异常 {r.exception.length}</StatusIndicator> {r.exception.join('、')}</Box>}
-                {r.pending_order.length > 0 && <Box fontSize="body-s"><StatusIndicator type="warning">待下单 {r.pending_order.length}</StatusIndicator> {r.pending_order.slice(0, 5).join('、')}{r.pending_order.length > 5 ? '…' : ''}</Box>}
-                {r.pending_spec_count > 0 && <Box variant="small" color="text-body-secondary">还有 {r.pending_spec_count} 项待选型</Box>}
-              </div>
-            ))}
-          </SpaceBetween>
-        ) : empty('采购没有异常，也没有待下单的。');
-      }
+      case 'procurement':
+        return me ? <Button onClick={() => go('/procurement')}>进入采购工作台</Button> : empty('登录后查看项目采购。');
       case 'site': {
         const rs = roleData?.site ?? [];
         return rs.length ? (
@@ -632,16 +626,16 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
             loadingText="加载中"
             variant="container"
             resizableColumns
-            onRowClick={({ detail }) => go(`/projects/${detail.item.id}`)}
+
             header={<Header variant="h2" counter={`(${filtered.length})`}>全部项目</Header>}
             filter={
               <SpaceBetween direction="horizontal" size="xs">
-                <TextFilter {...filterProps} filteringPlaceholder="按项目名或地址查找" countText={`${rows.length} 个匹配`} />
+                <TextFilter {...searchProps} filteringPlaceholder="按项目名或地址查找" countText={`${rows.length} 个匹配`} />
                 {groupSelect}
               </SpaceBetween>
             }
             pagination={<Pagination {...paginationProps} />}
-            columnDefinitions={projectColumns}
+            columnDefinitions={role.canReadMoney ? projectColumns : projectColumns.filter(c => !['budget','arv'].includes(c.id))}
           />
         ))}
 

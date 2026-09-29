@@ -9,7 +9,7 @@ export default function StagePositionBar({ position, compact = false }: { positi
   const meta = useMeta();
   const segments = segmentsOf(meta?.stage_groups, position);
   if (!segments.length) return null;
-  const stateLabel = { done: '已完成', current: '当前位置', future: '未到达' } as const;
+  const stateLabel = { done: '已完成', current: '当前位置', future: '未到达', history: '录入前历史待核验' } as const;
   return <div role="group" aria-label={`阶段位置：${position?.label ?? ''}`} className={compact ? 'ui-stage-compact' : undefined}>
     {compact && <div className="ui-stage-position-label">{position?.label}</div>}
     <div className={`ui-stage-segments${compact ? ' ui-stage-segments-compact' : ''}`}>

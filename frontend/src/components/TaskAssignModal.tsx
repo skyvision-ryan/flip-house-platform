@@ -8,6 +8,8 @@ import SpaceBetween from '@cloudscape-design/components/space-between';
 import Textarea from '@cloudscape-design/components/textarea';
 import { useEffect, useMemo, useState } from 'react';
 import { api, ProjectMembers, Task, UserBrief } from '../api/client';
+import { useMeta } from '../lib/meta';
+import { userCan } from '../lib/role';
 import { useFlash } from '../lib/flash';
 import FormField from './ui/FormField';
 import HelpText from './HelpText';
@@ -25,7 +27,7 @@ const UNASSIGN = '__none__';
 export default function TaskAssignModal({ projectId, tasks, onDone, onConflict, onDismiss }: {
   projectId: number; tasks: Task[]; onDone: (t: Task) => void; onConflict: () => void; onDismiss: () => void;
 }) {
-  const flash = useFlash();
+  const flash = useFlash(); const meta = useMeta();
   // 单项：可改人、改截止；批量（勾选多行后「分派任务」）：同一个人、同一截止，逐项保存，哪一项失败就说哪一项
   const task = tasks[0];
   const bulk = tasks.length > 1;
@@ -47,10 +49,11 @@ export default function TaskAssignModal({ projectId, tasks, onDone, onConflict, 
   }, [members]);
 
   const opt = (u: UserBrief): SelectProps.Option => ({ value: String(u.id), label: u.display_name, description: u.role_code, tags: [u.username] });
+  const eligible = (u: UserBrief) => !tasks.some(t => t.step_key === 'purchase') || userCan(meta, u, 'procurement');
   const options: SelectProps.Options = [
     ...(task.assignee && !bulk ? [{ value: UNASSIGN, label: '取消分派', description: '任务回到待分派' }] : []),
-    { label: '项目成员', options: (members?.members ?? []).map(opt) },
-    { label: '不在项目里 · 选中即加入项目并分派', options: (members?.others ?? []).map(opt) },
+    { label: '项目成员', options: (members?.members ?? []).filter(eligible).map(opt) },
+    { label: '不在项目里 · 选中即加入项目并分派', options: (members?.others ?? []).filter(eligible).map(opt) },
   ];
   const selected = who === UNASSIGN
     ? (task.assignee ? { value: UNASSIGN, label: '取消分派' } : null)
@@ -130,7 +133,7 @@ export default function TaskAssignModal({ projectId, tasks, onDone, onConflict, 
         </FormField>
         {target && <PersonAvatar user={target} />}
         {task.assignee && !bulk && (
-          <Box fontSize="body-s" color="text-body-secondary">原负责人：{task.assignee.display_name}（{task.assignee.role_code}）{isReassign && '。换人后进度回到「未开始」，原负责人的记录保留在活动记录里。'}</Box>
+          <Box fontSize="body-s" color="text-body-secondary">原负责人：{task.assignee.display_name}（{task.assignee.role_code}）{isReassign && (task.step_key === 'purchase' ? '。接手现有采购进度，原负责人的记录保留。' : '。换人后进度回到「未开始」，原负责人的记录保留在活动记录里。')}</Box>
         )}
         {needJoin && <Alert type="info">{target!.display_name} 还不是本项目成员。保存时会加入项目，活动记录里会记一条「加入项目」。</Alert>}
         <FormField label="截止日期" description="可以先空着，之后在任务摘要里补。">
@@ -139,7 +142,7 @@ export default function TaskAssignModal({ projectId, tasks, onDone, onConflict, 
         <FormField label={isReassign ? '改派原因（必填）' : '说明（可选）'} description="会写进活动记录。">
           <Textarea value={reason} rows={2} onChange={({ detail }) => setReason(detail.value)} placeholder={isReassign ? '例如：员工 A 休假，由 A2 接手' : ''} />
         </FormField>
-        <Box fontSize="body-s" color="text-body-secondary">审核人：{task.reviewer?.display_name ?? '你自己'}。</Box>
+        <>{task.step_key !== 'purchase' && <Box fontSize="body-s" color="text-body-secondary">审核人：{task.reviewer?.display_name ?? '你自己'}。</Box>}</>
         <HelpText>分派只调整负责人和截止日期；关键节点仍需单独确认。</HelpText>
         {err && <Alert type="error">{err}</Alert>}
       </SpaceBetween>

@@ -51,21 +51,16 @@ class MockProvider(PropertyDataProvider):
         if not q:
             return []
         hits = [c for c in BUILTIN if q in _norm(c.label)]
-        # 若用户输入的是一个看起来完整的新地址，也把它作为候选拼出来
+        # 未接真实地址服务：陌生地址只保留人工输入，不编造城市、邮编和坐标。
         if not hits and len(q) >= 5:
-            rnd = _seed(query)
-            city, state, zip_ = rnd.choice([
-                ("Kansas City", "MO", "64116"), ("Overland Park", "KS", "66210"),
-                ("Los Angeles", "CA", "90026"), ("Pasadena", "CA", "91101"),
-            ])
-            street = query.strip().title()
-            hits = [AddressCandidate(f"{street}, {city}, {state} {zip_}", street, city, state, zip_,
-                                     round(34 + rnd.random() * 6, 4), round(-118 + rnd.random() * 24, 4))]
+            hits = [AddressCandidate(query.strip(), query.strip(), "", "", "")]
         return hits[:5]
 
     def lookup(self, address: str) -> PropertyLookupResult:
         cands = self.geocode(address)
         cand = cands[0] if cands else AddressCandidate(address, address, "", "", "")
+        if cand not in BUILTIN:
+            return PropertyLookupResult(address=cand, apn=None, provider="manual")
         rnd = _seed(cand.label)
 
         year_built = rnd.randint(1925, 2005)

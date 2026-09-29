@@ -64,6 +64,22 @@ class TeamDemoGeneratorTests(unittest.TestCase):
         return demo.prepare_demo(self.database, self.uploads, self.roster, self.admin_id, date(2026, 9, 24),
                                  backup_dir=self.backups, **kwargs)
 
+    def test_replacement_cleans_item_images_and_backs_them_up(self):
+        picture = self.uploads / "synthetic-item.png"
+        picture.write_bytes(b"synthetic test image fixture")
+        with Session(self.engine) as session:
+            item = models.ProcurementItem(project_id=self.sentinel_id, name="Synthetic old material", wave="other")
+            session.add(item); session.flush()
+            session.add(models.ProcurementImage(item_id=item.id, filename=picture.name, stored_path=str(picture),
+                mime="image/png", size=picture.stat().st_size, uploaded_by_user_id=self.admin_id))
+            session.commit()
+        result = self.run_generator(apply=True, replace_project_ids=[self.sentinel_id])
+        self.assertTrue(result["restore_verified"])
+        self.assertFalse(picture.exists())
+        self.assertTrue(any(path.name == picture.name for path in Path(result["backup"]).rglob("*")))
+        with Session(self.engine) as session:
+            self.assertEqual(session.query(models.ProcurementImage).count(), 0)
+
     def test_default_dry_run_leaves_database_uploads_and_accounts_untouched(self):
         checksum = demo._sha(self.database)
         result = self.run_generator()
@@ -88,7 +104,12 @@ class TeamDemoGeneratorTests(unittest.TestCase):
                 self.assertEqual(session.scalar(select(func.count()).select_from(models.Task).where(models.Task.project_id == project.id, models.Task.source == "template")), 24)
                 self.assertIsNone(project.sale_date)
                 self.assertIsNone(project.sale_price)
-            self.assertEqual(session.scalar(select(func.count()).select_from(models.Task)), 120)
+            self.assertEqual(session.scalar(select(func.count()).select_from(models.Task)), 135)
+            purchases = session.scalars(select(models.ProcurementItem).where(models.ProcurementItem.project_id.in_(result["project_ids"]))).all()
+            self.assertTrue(any(i.status == "ordered" and i.shipment_status == "delivered" and i.received_on is None for i in purchases))
+            self.assertTrue(any(i.status == "ordered" and i.expected_on == "2026-09-26" and i.shipment_status == "in_transit" for i in purchases))
+            self.assertTrue(any(i.status == "ordered" and i.checked_at is None for i in purchases))
+            self.assertEqual({i.retailer for i in purchases}, {"Amazon", "Wayfair", "Home Depot"})
             for uid in result["assignee_ids"].values():
                 own = session.scalars(select(models.Task).where(models.Task.assignee_user_id == uid)).all()
                 self.assertGreaterEqual(len(own), 6)
@@ -139,6 +160,8 @@ class TeamDemoGeneratorTests(unittest.TestCase):
                 self.assertEqual(len(extra), 16)
                 self.assertTrue(all(task.stage_key == current and task.exec_status != "done" for task in extra))
                 for task in tasks:
+                    if task.source == "node_confirmation":
+                        continue  # readiness is derived; only actual confirmations have events
                     if task.source == "template" and int(task.stage_key[1:]) < int(current[1:]):
                         self.assertEqual(task.exec_status, "done")
                         self.assertIsNotNone(task.done_at)
@@ -189,9 +212,9 @@ class TeamDemoGeneratorTests(unittest.TestCase):
 
     def test_failure_rolls_back_projects_and_only_removes_attempt_files(self):
         original = demo._make_project
-        def failing(db, index, *args):
+        def failing(db, index, *args, **kwargs):
             if index == 1: raise RuntimeError("Synthetic injected failure")
-            return original(db, index, *args)
+            return original(db, index, *args, **kwargs)
         with patch.object(demo, "_make_project", side_effect=failing):
             with self.assertRaises(RuntimeError): self.run_generator(apply=True, replace_project_ids=[self.sentinel_id])
         with Session(self.engine) as session:

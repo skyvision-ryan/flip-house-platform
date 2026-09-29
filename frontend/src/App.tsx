@@ -1,3 +1,6 @@
+import Alert from '@cloudscape-design/components/alert';
+import ContentLayout from '@cloudscape-design/components/content-layout';
+import Header from './components/ui/Header';
 import AppLayout from '@cloudscape-design/components/app-layout';
 import Autosuggest from '@cloudscape-design/components/autosuggest';
 import Button from '@cloudscape-design/components/button';
@@ -10,7 +13,7 @@ import { DESIGN_DIRECTIONS_PATH, hasDesignDirections } from './lib/designNavigat
 import Icon from '@cloudscape-design/components/icon';
 import { useCallback, useEffect, useState } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { AddressCandidate, api, AUTH_EVENT, Me } from './api/client';
+import { AddressCandidate, api, AUTH_EVENT, SESSION_EVENT, setSessionIdentity, broadcastSession, Me } from './api/client';
 import AssistantPanel from './components/AssistantPanel';
 import DisplaySettings from './components/DisplaySettings';
 import { HelpContext } from './components/HelpText';
@@ -23,6 +26,9 @@ import { readReviewPref, writeReviewPref } from './lib/reviewPref';
 import { Tier, TIER_FALLBACK } from './lib/role';
 import AddProject from './pages/AddProject';
 import Dashboard from './pages/Dashboard';
+import ProcurementWorkspace from './pages/ProcurementWorkspace';
+import ProcurementItemPage from './pages/ProcurementItemPage';
+import PurchaseOrders from './pages/PurchaseOrders';
 import Login from './pages/Login';
 import MyTodo from './pages/MyTodo';
 import ProjectPage from './pages/project/ProjectPage';
@@ -41,27 +47,44 @@ export default function App() {
   const meta = useMeta();
 
   // ---- 会话：登录了用账号的角色；演示模式没登录用顶栏“我是”；管理员在演示模式下可临时切换 ----
+  const [sessionReady, setSessionReady] = useState(false);
   const [me, setMe] = useState<Me | null>(null);
   const [demoMode, setDemoMode] = useState<boolean | null>(null);
   const [override, setOverride] = useState<string | null>(getOverride);
   useEffect(() => {
     (async () => {
       try { setDemoMode((await api.authMode()).demo_mode); } catch { setDemoMode(true); }
-      try { setMe(await api.me()); } catch { setMe(null); }
+      try { const user = await api.me(); setSessionIdentity(user.id); setMe(user); } catch { setMe(null); } finally { setSessionReady(true); }
     })();
   }, []);
   useEffect(() => {
-    const onExpired = () => setMe(null);
+    const onExpired = () => { setSessionIdentity(null); setMe(null); };
     window.addEventListener(AUTH_EVENT, onExpired);
     return () => window.removeEventListener(AUTH_EVENT, onExpired);
+  }, []);
+  useEffect(() => {
+    let active = true;
+    const refresh = async () => {
+      try {
+        const user = await api.me();
+        if (!active) return;
+        setSessionIdentity(user.id);
+        setMe((previous) => previous?.id === user.id && previous.role_code === user.role_code ? previous : user);
+      } catch (error) { if (active && (error as { status?: number }).status === 401) { setSessionIdentity(null); setMe(null); } }
+    };
+    const changed = (event: StorageEvent) => { if (event.key === 'session-updated') void refresh(); };
+    window.addEventListener('storage', changed);
+    window.addEventListener('focus', refresh);
+    window.addEventListener(SESSION_EVENT, refresh);
+    return () => { active = false; window.removeEventListener('storage', changed); window.removeEventListener('focus', refresh); window.removeEventListener(SESSION_EVENT, refresh); };
   }, []);
   const canSwitch = me ? (!!demoMode && me.is_admin) : true;
   useEffect(() => { if (me && !canSwitch && override) { clearActor(); setOverride(null); } }, [me, canSwitch, override]);
   const actor = me ? (canSwitch && override ? override : me.role_code) : (override ?? getActor());
   const setActor = (c: string) => { persistActor(c); setOverride(c); };
   const resetActor = () => { clearActor(); setOverride(null); };
-  const onLogin = useCallback((m: Me) => { clearActor(); setOverride(null); setMe(m); navigate(location.pathname.startsWith('/design-') ? location.pathname + location.search : '/'); }, [navigate, location.pathname, location.search]);
-  const logout = async () => { try { await api.logout(); } catch { /* ignore */ } clearActor(); setOverride(null); setMe(null); navigate('/'); };
+  const onLogin = useCallback((m: Me) => { clearActor(); setOverride(null); setSessionIdentity(m.id); setMe(m); broadcastSession(); navigate(location.pathname === '/login' ? '/' : location.pathname + location.search + location.hash, { replace: true }); }, [navigate, location.pathname, location.search, location.hash]);
+  const logout = async () => { try { await api.logout(); } catch { /* ignore */ } clearActor(); setOverride(null); setSessionIdentity(null); setMe(null); broadcastSession(); navigate('/'); };
   const [reviewOn, setReviewOn] = useState<boolean>(() => readReviewPref(localStorage));
   const toggleReview = (v: boolean) => { setReviewOn(v); writeReviewPref(localStorage, v); };
   const [helpOn, setHelpOn] = useState(() => readHelpPref(localStorage));
@@ -83,10 +106,10 @@ export default function App() {
     id: `g-${t}`, text: (meta?.tiers?.[t] ?? TIER_FALLBACK[t]).label,
     items: (meta?.roles ?? []).filter((r) => r.tier === t).map((r) => ({ id: r.code, text: r.label, description: r.duties || undefined })),
   })).filter((g) => g.items.length);
-  const activeHref = location.pathname.startsWith('/todo') ? '/todo' : location.pathname === '/projects/new' ? '/projects/new' : location.pathname.startsWith('/projects') ? '/projects' : location.pathname.startsWith('/users') ? '/users' : location.pathname.startsWith('/design-') ? DESIGN_DIRECTIONS_PATH : '/';
+  const activeHref = location.pathname.startsWith('/procurement') ? (me?.role_code === '采购' ? '/' : '/procurement') : location.pathname.startsWith('/todo') ? '/todo' : location.pathname === '/projects/new' ? '/projects/new' : location.pathname.startsWith('/projects') ? '/projects' : location.pathname.startsWith('/users') ? '/users' : location.pathname.startsWith('/design-') ? DESIGN_DIRECTIONS_PATH : '/';
 
-  if (demoMode === null) {
-    return <div className="ui-loading"><Spinner size="large" /></div>;
+  if (demoMode === null || !sessionReady) {
+    return <div className="ui-loading" role="status"><Spinner size="large" /> 正在加载账号与权限…</div>;
   }
   if (!me && (!demoMode || location.pathname === '/login' || location.pathname.startsWith('/design-'))) {
     return <ReviewContext.Provider value={reviewOn}><HelpContext.Provider value={helpOn}>
@@ -129,6 +152,7 @@ export default function App() {
         },
       };
 
+  const unavailable = (title: string, message: string) => <ContentLayout header={<Header variant="h1">{title}</Header>}><Alert type="info" action={<Button onClick={() => navigate('/')}>返回工作台</Button>}>{message}</Alert></ContentLayout>;
   return (
     <FlashContext.Provider value={pushFlash}>
     <ReviewContext.Provider value={reviewOn}>
@@ -137,7 +161,7 @@ export default function App() {
       {/* KAN-75 B：轻量顶栏，橙色只留给主要操作。 */}
       <div id="top-nav" className="ui-top-nav">
         <ProductTopBar me={me} identityMenu={identityMenu} onHome={() => navigate('/')} onDisplay={() => setDisplayOpen(true)}
-          search={
+          search={canDo('create_project') ?
             <Autosuggest
               value={q}
               placeholder="输入地址新建项目"
@@ -152,14 +176,14 @@ export default function App() {
               onLoadItems={async ({ detail }) => {
                 if (detail.filteringText.length < 2) { setCands([]); return; }
                 setSearching(true);
-                try { setCands(await api.lookupAddress(detail.filteringText)); } finally { setSearching(false); }
+                try { setCands(await api.lookupAddress(detail.filteringText)); } catch { setCands([]); pushFlash({ type: 'error', content: '地址查找失败。可以在新建项目中手动填写地址。' }); } finally { setSearching(false); }
               }}
               onSelect={({ detail }) => {
                 const v = detail.selectedOption?.value ?? detail.value;
                 setQ('');
                 navigate(`/projects/new?address=${encodeURIComponent(v)}`);
               }}
-            />
+            /> : null
           }
         />
       </div>
@@ -185,10 +209,11 @@ export default function App() {
         navigation={
           <SideNavigation
             activeHref={activeHref}
-            onFollow={(e) => { if (!e.detail.external) { e.preventDefault(); navigate(e.detail.href); } }}
+            onFollow={(e) => { if (!e.detail.external) { e.preventDefault(); navigate(e.detail.href); if (window.matchMedia('(max-width: 688px)').matches) setNavOpen(false); } }}
             items={[
               { type: 'link', text: '工作台', href: '/', icon: <Icon name="grid-view" /> },
-              ...(canDo('read_money') ? [{ type: 'link' as const, text: '项目', href: '/projects', icon: <Icon name="folder" /> }] : []),
+              { type: 'link', text: '项目', href: '/projects', icon: <Icon name="folder" /> },
+              ...(me && me.role_code !== '采购' && canDo('procurement_read') ? [{ type: 'link' as const, text: '采购工作台', href: '/procurement', icon: <Icon name="grid-view" /> }] : []),
               { type: 'link', text: '我的事项', href: '/todo', icon: <Icon name="check" /> },
               ...(hasDesignDirections(me) ? [{ type: 'link' as const, text: '设计方向', href: DESIGN_DIRECTIONS_PATH, icon: <Icon name="view-full" /> }] : []),
               ...(canDo('create_project') ? [{ type: 'link' as const, text: '新建项目', href: '/projects/new', icon: <Icon name="add-plus" /> }] : []),
@@ -198,21 +223,26 @@ export default function App() {
         }
         content={<>
           {(helpOn || reviewOn) && <div className="ui-mode-bar"><span><strong>{helpOn ? '辅助说明已开启' : ''}{helpOn && reviewOn ? ' · ' : ''}{reviewOn ? '卡片编号已开启' : ''}</strong>{reviewOn && ' · 点击编号复制反馈位置'}</span><Button variant="inline-link" onClick={() => setDisplayOpen(true)}>显示设置</Button></div>}
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
+          <Routes key={me?.id ?? "guest"}>
+            <Route path="/" element={me?.role_code === '采购' ? <ProcurementWorkspace /> : <Dashboard />} />
+            <Route path="/procurement" element={me && canDo('procurement_read') ? <ProcurementWorkspace /> : <Navigate to="/" replace />} />
+            <Route path="/projects/:projectId/purchase-orders/new" element={me && canDo('procurement') ? <PurchaseOrders /> : <Navigate to="/" replace />} />
+            <Route path="/projects/:projectId/procurement/:itemId" element={me && canDo('procurement') ? <ProcurementItemPage /> : <Navigate to="/" replace />} />
+            <Route path="/procurement/items/new" element={me && canDo('procurement') ? <ProcurementItemPage /> : <Navigate to="/" replace />} />
+            <Route path="/procurement/orders" element={me && canDo('procurement_read') ? <PurchaseOrders /> : <Navigate to="/" replace />} />
             <Route path="/todo" element={<MyTodo />} />
             <Route path={DESIGN_DIRECTIONS_PATH} element={<DesignDirections />} />
             <Route path="/design-choices" element={<LegacyDesignRedirect />} />
             <Route path="/design-collaboration" element={<LegacyDesignRedirect />} />
             {/* KAN-75 块 2：独立线索入口并入买房管理。旧链接 /leads 跳到项目列表的「买房 · 未购入」筛选；s1 段、档位、热度都还在。 */}
             <Route path="/leads" element={<Navigate to="/projects?group=buying&sub=pre" replace />} />
-            <Route path="/projects" element={canDo('read_money') ? <Dashboard listOnly /> : <MyTodo />} />
-            <Route path="/projects/new" element={<AddProject />} />
+            <Route path="/projects" element={<Dashboard listOnly />} />
+            <Route path="/projects/new" element={canDo('create_project') ? <AddProject /> : unavailable("无法新建项目", "当前账号没有新建项目权限，请联系项目负责人。")} />
             <Route path="/projects/:id" element={<ProjectPage />} />
             <Route path="/projects/:id/tasks/:taskId" element={<TaskHistoryPage />} />
-            <Route path="/users" element={me?.is_admin ? <Users /> : <Dashboard />} />
+            <Route path="/users" element={me?.is_admin ? <Users /> : unavailable("无法访问用户管理", "此页面仅供管理员使用。当前账号的项目权限没有变化。")} />
             <Route path="/login" element={<Dashboard />} />
-            <Route path="*" element={<Dashboard />} />
+            <Route path="*" element={unavailable("找不到这个页面", "链接可能已失效，请从工作台重新进入房屋或事项。")} />
           </Routes>
         </>}
       />

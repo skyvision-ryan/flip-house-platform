@@ -57,31 +57,25 @@ class StageGroupTests(unittest.TestCase):
         self.assertEqual(gp["label"], "买房 · 未购入")
         self.assertEqual(self.client.get("/api/projects/1/steps").json()["group_position"]["sub_key"], "pre")
 
-    def test_open_escrow_moves_to_escrow_and_freezes_substage_once(self):
-        self.client.post("/api/projects/1/steps/open_escrow", json={"done": True, "confirm_as": "D"})
-        self.assertIsNone(self.client.get("/api/projects/1").json()["lead_substage_at_escrow"], "只确认一个席位不冻结")
-        self.client.post("/api/projects/1/steps/open_escrow", json={"done": True, "confirm_as": "J"})
+    def legacy_gate(self, key):
+        with Session(self.engine) as s:
+            for who in ("D", "J"):
+                s.add(models.ProjectStep(project_id=1, key=f"{key}:{who}", done=True, done_by=who, done_at="2026-09-01"))
+            s.commit()
+
+    def test_legacy_escrow_preserves_frozen_substage_and_history(self):
+        self.legacy_gate("open_escrow")
+        with Session(self.engine) as s:
+            s.get(models.Project, 1).lead_substage_at_escrow = "negotiating"
+            s.commit()
         r = self.client.get("/api/projects/1").json()
-        gp = r["group_position"]
-        self.assertEqual((gp["group_key"], gp["sub_key"]), ("buying", "escrow"))
+        self.assertEqual(r["group_position"]["sub_key"], "escrow")
         self.assertEqual(r["lead_substage_at_escrow"], "negotiating")
-        self.assertEqual(gp["frozen_substage_label"], "谈判中")
-        self.assertEqual(r["substage"], "construction", "旧列仍被 sync_legacy_stage 覆盖，快照另存")
-        with Session(self.engine) as s:
-            evs = s.scalars(select(models.TaskEvent).where(models.TaskEvent.kind == "lead_substage_frozen")).all()
-            self.assertEqual(len(evs), 1)
-            self.assertIsNone(evs[0].task_id)
-        # 取消再确认，不覆盖第一次的快照
-        self.client.post("/api/projects/1/steps/open_escrow", json={"done": False, "confirm_as": "J"})
-        self.client.post("/api/projects/1/steps/open_escrow", json={"done": True, "confirm_as": "J"})
-        self.assertEqual(self.client.get("/api/projects/1").json()["lead_substage_at_escrow"], "negotiating")
-        with Session(self.engine) as s:
-            self.assertEqual(len(s.scalars(select(models.TaskEvent).where(models.TaskEvent.kind == "lead_substage_frozen")).all()), 1)
+        self.assertEqual(self.client.post("/api/projects/1/steps/open_escrow", json={"done": True, "confirm_as": "D"}).status_code, 401)
 
     def test_close_escrow_moves_to_renovation_without_sub(self):
         for k in ("open_escrow", "close_escrow"):
-            for who in ("D", "J"):
-                self.client.post(f"/api/projects/1/steps/{k}", json={"done": True, "confirm_as": who})
+            self.legacy_gate(k)
         gp = self.client.get("/api/projects/1").json()["group_position"]
         self.assertEqual((gp["group_key"], gp["sub_key"], gp["label"]), ("renovation", None, "装修"))
 
@@ -89,8 +83,7 @@ class StageGroupTests(unittest.TestCase):
         s0 = self.client.get("/api/dashboard/summary").json()
         self.assertEqual((s0["leads"], s0["active"], s0["portfolio"]), (1, 0, 0))
         self.assertEqual([f["count"] for f in self.client.get("/api/dashboard/widgets").json()["funnel"] if f["substage"] == "negotiating"], [1])
-        for who in ("D", "J"):
-            self.client.post("/api/projects/1/steps/open_escrow", json={"done": True, "confirm_as": who})
+        self.legacy_gate("open_escrow")
         s1 = self.client.get("/api/dashboard/summary").json()
         self.assertEqual((s1["leads"], s1["active"], s1["portfolio"]), (0, 1, 0))
         self.assertEqual(sum(f["count"] for f in self.client.get("/api/dashboard/widgets").json()["funnel"]), 0, "escrow 中的房子不进漏斗")

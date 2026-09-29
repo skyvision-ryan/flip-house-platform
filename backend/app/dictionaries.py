@@ -170,6 +170,7 @@ PERMISSIONS = {
     "edit_project":      ["purple", "blue"],          # 日期、阶段、风险、备注
     "edit_money":        ["purple", "blue"],          # 买入价、目标售价、成交价
     "budget":            ["purple", "blue", "财务"],
+    "procurement_read":  ["purple", "blue", "J", "采购", "财务"],  # 财务仅限有效项目成员只读
     "procurement":       ["purple", "blue", "J", "采购"],  # 材料清单：J 主责
     "analysis":          ["purple", "blue"],
     "utilities":         ["purple", "blue", "K", "项目助理"],
@@ -192,6 +193,7 @@ TASK_EXEC_STATUSES = [
     {"value": "done", "label": "已完成", "kind": "success"},
 ]
 TASK_EVENT_KINDS = {
+    "procurement_requirement_added": "新增采购需求",
     "assigned": "分派", "reassigned": "改派", "unassigned": "取消分派", "rescheduled": "改截止",
     "started": "开始", "waiting": "等待", "resumed": "恢复", "member_added": "加入项目",
     "created": "新建", "submitted": "提交", "returned": "退回", "confirmed": "确认",
@@ -279,7 +281,7 @@ STAGE_CHECKLIST = [
         {"key": "prep_work", "title": "先干不用 permit 的活", "ws": "施工", "owners": ["PM"], "evidence": "photo:prep_work", "deliverable": _p("现场照片"), "purpose": "permit 下来之前先做不用 permit 的活，PM 把现场照片挂到这一步。业务规则待确认。", "done_when": "挂到这一步的照片有 1 张，系统就判定满足；这是现场记录，不代表这段工作已经做完。"},
         {"key": "permit_issued", "title": "拿到 permit 文件", "ws": "permit", "owners": ["Z"], "evidence": "file:permit", "deliverable": _f("permit 文件", "permit"), "purpose": "拿到政府核发的 permit 文件，存进项目。", "done_when": "项目里有一份「permit（政府已核发的文件）」类型的文件就判定满足；申请回执是另一个类型，不算在这一步。"},
         {"key": "start", "title": "可以开工", "ws": "施工", "owners": GATE_CONFIRM, "evidence": "confirm", "gate": True, "confirm": GATE_CONFIRM, "deliverable": _c("开工日期", field="construction_start"), "purpose": "确认可以正式开工的大节点，交付物是开工日期。", "done_when": "D 和 J 各确认一次，两个都确认才算过门；开工日期只作提示，不决定打勾。"},
-        {"key": "purchase", "title": "分阶段采购", "ws": "采购", "owners": ["J"], "evidence": "procurement:critical", "deliverable": _r("采购清单", "procurement"), "purpose": "J 按波次分阶段采购材料，在项目的采购清单里维护每项状态。", "done_when": "采购清单里「水电检查前需要」这一波至少有 1 项，且这一波全部是已到货或不适用时判定满足；这一波一项都没有时不算满足。"},
+        {"key": "purchase", "title": "房屋采购", "ws": "采购", "owners": ["J"], "evidence": "procurement:critical", "deliverable": _r("采购清单", "procurement"), "purpose": "Jessie 分派采购负责人；采购同事协助下单、跟进与收货。按材料分组整理，可提前采购，也可跨组下单。", "done_when": "采购清单里「水电检查前需要」这一波至少有 1 项，且这一波全部是已到货或不适用时判定满足；这一波一项都没有时不算满足。"},
         {"key": "progress", "title": "施工进度", "ws": "施工", "owners": ["PM"], "evidence": "photo:progress", "deliverable": _p("进度照片"), "purpose": "PM 盯施工进度，把现场进度照片挂到这一步。", "done_when": "挂到这一步的照片有 1 张，系统就判定满足；这是现场记录，不代表整段施工已经结束。"},
         {"key": "inspections", "title": "阶段性检查", "ws": "检查", "owners": ["Z"], "evidence": "inspections:any", "deliverable": _r("检查记录", "inspections"), "purpose": "Z 约施工阶段检查，把检查记录留在项目里。", "done_when": "项目的检查记录里至少有 1 次结果是通过就判定满足。"},
         {"key": "final", "title": "final（City 验收通过）", "ws": "City Final", "owners": GATE_CONFIRM, "evidence": "confirm", "gate": True, "confirm": GATE_CONFIRM, "deliverable": _c("final 检查通过", field=None), "purpose": "City final 验收通过的大节点。", "done_when": "D 和 J 各确认一次，同时最近一次标为 final 的检查必须是通过；没有 final 检查记录、或最近一次没通过，双确认也不算过门。"},
@@ -322,6 +324,25 @@ LEGACY_STAGE_MAP = {"s1": "s1", "s2": "s2", "s3": "s3", "s4": "s3", "s5": "s5"}
 # 派生旧模型：清单当前段 → projects.stage / substage（旧字段只为筛选与状态规则兼容，不再手改）
 STAGE_TO_LEGACY = {"s1": ("lead", None), "s2": ("active", "construction"), "s3": ("active", "construction"),
                    "s4": ("active", "listing"), "s5": ("active", "listing"), "s6": ("portfolio", "sold"), "done": ("portfolio", "sold")}
+
+# KAN-29：五个已确认的节点采用必要证据 + 一位有权限的实际账号确认。
+SINGLE_CONFIRM_KEYS = {"open_escrow", "close_escrow", "start", "final", "listing"}
+GATE_REQUIREMENTS = {
+    "open_escrow": [("file:purchase_contract", "购房合同")],
+    "close_escrow": [("field:purchase_date", "买入日期"), ("file:closing_statement", "过户结算单")],
+    "start": [("file:permit", "Permit 已核发文件"), ("field:construction_start", "开工日期")],
+    "final": [("inspections:final", "最近一次 Final 检查通过")],
+    "listing": [("field:list_date|file:listing_agreement", "挂牌日期或上市协议")],
+}
+for _stage in STAGE_CHECKLIST:
+    for _item in _stage["items"]:
+        if _item["key"] in SINGLE_CONFIRM_KEYS:
+            _item["confirm"] = ["J"] if _item["key"] == "listing" else ["D", "J"]
+            _item["confirmation_mode"] = "any"
+            _item["requirements"] = [label for _, label in GATE_REQUIREMENTS[_item["key"]]]
+            _item["evidence"] = "confirm"
+            _item["done_when"] = "、".join(_item["requirements"]) + "齐备后，由 " + " / ".join(_item["confirm"]) + " 或负责人中的一人确认满足。"
+            _item["deliverable"] = _c("、".join(_item["requirements"]))
 
 STEP_BY_KEY = {it["key"]: it for st in STAGE_CHECKLIST for it in st["items"]}
 ITEM_EVIDENCE = {it["key"]: it["evidence"] for st in STAGE_CHECKLIST for it in st["items"]}

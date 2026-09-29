@@ -1,3 +1,4 @@
+import { colorBackgroundCellShaded } from '@cloudscape-design/design-tokens';
 import { applyTheme } from '@cloudscape-design/components/theming';
 import { brandOverrides } from './brand';
 import { productTokens } from './tokens';
@@ -7,6 +8,7 @@ export const DISPLAY_STACK = BASE_STACK;
 
 // 默认字号、行高、间距、圆角、背景和状态色都由 Cloudscape 决定。
 applyTheme({ theme: { tokens: {
+  colorBackgroundLayoutMain: colorBackgroundCellShaded,
   fontFamilyBase: BASE_STACK,
   fontFamilyHeading: DISPLAY_STACK,
   fontFamilyDisplay: DISPLAY_STACK,

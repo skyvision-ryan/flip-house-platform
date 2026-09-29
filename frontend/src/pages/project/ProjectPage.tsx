@@ -1,3 +1,4 @@
+import Alert from '@cloudscape-design/components/alert';
 import Box from '@cloudscape-design/components/box';
 import BreadcrumbGroup from '@cloudscape-design/components/breadcrumb-group';
 import Button from '@cloudscape-design/components/button';
@@ -22,6 +23,8 @@ import { money, num } from '../../lib/format';
 import { labelOf, useMeta } from '../../lib/meta';
 import { useRole } from '../../lib/role';
 import AnalysisTab from './AnalysisTab';
+import { projectTab } from '../../lib/procurement';
+import ProcurementTab from './ProcurementTab';
 import BudgetTab from './BudgetTab';
 import DataTab from './DataTab';
 import EditProjectModal from './EditProjectModal';
@@ -113,17 +116,18 @@ export default function ProjectPage() {
   const [tasksErr, setTasksErr] = useState<string | null>(null);
   const reloadTasks = useCallback(() => api.projectTasks(pid).then((d) => { setTasks(d); setTasksErr(null); }).catch((e) => setTasksErr(e.message)), [pid]);
   useEffect(() => { reloadTasks(); }, [reloadTasks]);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const reload = useCallback(() => api.project(pid).then(setProject).then(() => reloadTasks()), [pid, reloadTasks]);
+  const reload = useCallback(() => api.project(pid).then(p => { setProject(p); setLoadError(null); }).then(() => reloadTasks()).catch(e => setLoadError(e.message)), [pid, reloadTasks]);
   useEffect(() => { reload(); }, [reload]);
 
+  if (loadError) return <Alert type="error" header="无法打开这套房" action={<Button onClick={reload}>重试</Button>}>{loadError} <Button variant="inline-link" onClick={() => navigate('/')}>返回工作台</Button></Alert>;
   if (!project) return <Box padding="xxl" textAlign="center"><Spinner size="large" /></Box>;
 
   const canAnalyze = !!meta && role.can('analysis');
-  const requestedTab = params.get('tab') ?? 'overview';
-  const tab = requestedTab === 'analysis' && !canAnalyze ? 'overview' : requestedTab;
+  const tab = projectTab(params.get('tab'), params.get('section'), { money: role.canReadMoney, procurement: role.can('procurement_read'), analysis: canAnalyze, data: role.tier !== 'grey' });
   const step = params.get('step');
   const action = params.get('action');
   const section = params.get('section');
@@ -155,9 +159,10 @@ export default function ProjectPage() {
             </div>
             {/* 当前事实与房屋身份分层；仍只陈述任务、日期和关键节点已有的数据。 */}
             {tasks && tasks.focus.length > 0 && (
-              <KeyValuePairs columns={3} items={tasks.focus.map((f) => ({ label: f.label, value: f.tone === 'warning' ? <Box color="text-status-warning" fontWeight="bold">{f.value}</Box> : <Box fontWeight="bold">{f.value}</Box> }))} />
+              <div className="ui-project-focus"><KeyValuePairs columns={3} items={tasks.focus.map((f) => ({ label: f.label, value: f.tone === 'warning' ? <Box color="text-status-warning" fontWeight="bold">{f.value}</Box> : <Box fontWeight="bold">{f.value}</Box> }))} /></div>
             )}
             <StagePositionBar position={project.group_position} />
+            {project.group_position?.history_pending && <Alert type="info">本房从中途阶段录入。此前任务与节点不视为完成，历史资料待补、待核验。</Alert>}
             <ExpandableSection headerText="房屋与交易资料">
               <KeyValuePairs columns={4} items={[{ label: '策略', value: labelOf(meta?.strategies, project.strategy) }, ...dealFields(project), { label: '关键日期', value: keyDates(project) }]} />
             </ExpandableSection>
@@ -168,13 +173,14 @@ export default function ProjectPage() {
       <SpaceBetween size="l">
         <Tabs
           activeTabId={tab}
-          onChange={({ detail }) => setParams((prev) => { const n = new URLSearchParams(prev); n.set('tab', detail.activeTabId); return n; })}
+          onChange={({ detail }) => setParams((prev) => { const n = new URLSearchParams(prev); n.set('tab', detail.activeTabId); n.delete('section'); return n; })}
           tabs={[
             { id: 'overview', label: '总览', content: <OverviewTab project={project} reload={reload} deepLink={{ step, action }} focus={focus} tasks={tasks} tasksErr={tasksErr} reloadTasks={reloadTasks} /> },
             ...(canAnalyze ? [{ id: 'analysis', label: '分析', content: <AnalysisTab project={project} reload={reload} /> }] : []),
             ...(role.tier !== 'grey' ? [{ id: 'data', label: '数据', content: <DataTab projectId={pid} reload={reload} section={section} /> }] : []),
             { id: 'files', label: '文件', content: <FilesTab projectId={pid} /> },
-            ...(role.canReadMoney || role.can('procurement') ? [{ id: 'budget', label: '预算', content: <BudgetTab projectId={pid} reload={reload} section={section} /> }] : []),
+            ...(role.can('procurement_read') ? [{ id: 'procurement', label: '项目采购', content: <ProcurementTab key={pid} project={project} initialItemId={Number(params.get('item')) || undefined} /> }] : []),
+            ...(role.canReadMoney ? [{ id: 'budget', label: '预算', content: <BudgetTab projectId={pid} reload={reload} /> }] : []),
           ]}
         />
       </SpaceBetween>

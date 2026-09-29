@@ -1,5 +1,6 @@
 """Isolated subprocess coverage of the optional team-demo startup profile."""
 import json
+import hashlib
 import os
 from pathlib import Path
 import sqlite3
@@ -34,7 +35,7 @@ class TeamDemoStartupTests(unittest.TestCase):
         self.env = {key: value for key, value in os.environ.items() if key not in {
             "DATA_DIR", "DB_URL", "DEMO_MODE", "SEED_DEMO", "SECRET_KEY", "INITIAL_PASSWORD",
             "ADMIN_USER", "ADMIN_PASSWORD", "TEAM_DEMO_USERS_JSON", "TEAM_DEMO_USERS_FILE",
-            "TEAM_DEMO_AS_OF", "PORT", "STORAGE"}}
+            "TEAM_DEMO_AS_OF", "TEAM_DEMO_HOUSES", "TEAM_DEMO_RESET_ID", "PORT", "STORAGE"}}
         self.env.update(DATA_DIR=str(self.data), DEMO_MODE="0", SEED_DEMO="0", SECRET_KEY="synthetic-stable-session-key-for-startup-test",
                         INITIAL_PASSWORD="synthetic-employee-passphrase", ADMIN_USER="synthetic-admin",
                         ADMIN_PASSWORD="synthetic-admin-passphrase", TEAM_DEMO_USERS_JSON=json.dumps(ROSTER),
@@ -64,6 +65,8 @@ class TeamDemoStartupTests(unittest.TestCase):
         for overrides in ({"DEMO_MODE": "1"}, {"SEED_DEMO": "1"}, {"DATA_DIR": "relative-data"},
                           {"SECRET_KEY": "short"}, {"DB_URL": "sqlite:////unrelated-database.db"},
                           {"TEAM_DEMO_USERS_JSON": "invalid private content"}, {"STORAGE": "s3"},
+                          {"TEAM_DEMO_HOUSES": "2"}, {"TEAM_DEMO_RESET_ID": "reset-with-three-houses"},
+                          {"TEAM_DEMO_HOUSES": "1", "TEAM_DEMO_RESET_ID": "../invalid"},
                           {"TEAM_DEMO_USERS_FILE": "also-selected.json"}, {"TEAM_DEMO_AS_OF": "invalid"}):
             with self.subTest(keys=list(overrides)):
                 result = self.run_start({**self.env, **overrides})
@@ -149,6 +152,73 @@ starter.os.execv = capture
         result = self.run_start({**self.env, "TEAM_DEMO_USERS_JSON": json.dumps(roster)})
         self.assertEqual(result.returncode, 1)
         self.assertEqual(before, self.sql("SELECT * FROM users ORDER BY id"))
+
+    def test_explicit_single_house_reset_preserves_all_users_and_runs_once(self):
+        self.assertEqual(self.run_start().returncode, 0)
+        self.sql("INSERT INTO users (username, display_name, role_code, is_admin, password_hash, active, email, created_at) VALUES (?, ?, ?, 0, ?, 1, ?, ?)",
+                 ("extra", "Extra retained account", "财务", "old-hash", "extra@example.com", "2026-01-01"))
+        self.sql("UPDATE users SET last_login_at='2026-09-24' WHERE username='extra'")
+        self.sql("INSERT INTO purchase_orders (project_id,vendor_key,number_key,request_key,fingerprint,document,version,created_by,updated_by,created_at,updated_at) VALUES (1,'demo','old','request','fingerprint','{}',1,1,1,'old','old')")
+        self.sql("INSERT INTO purchase_order_events (order_id,version,request_key,fingerprint,kind,actor_id,snapshot,created_at) VALUES (1,1,'old-event','fingerprint','created',1,'{}','old')")
+        old_file = self.data / "uploads" / "old-attachment.txt"
+        old_file.write_text("Original attachment", encoding="utf-8")
+        fields = "id, username, display_name, role_code, is_admin, active, email, created_at, last_login_at"
+        before = self.sql(f"SELECT {fields} FROM users ORDER BY id")
+        env = {**self.env, "TEAM_DEMO_HOUSES": "1", "TEAM_DEMO_RESET_ID": "single-house-test", "INITIAL_PASSWORD": "new-shared-demo-password"}
+        result = self.run_start(env)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.sql("SELECT count(*) FROM projects"), [(1,)])
+        self.assertEqual(self.sql(f"SELECT {fields} FROM users ORDER BY id"), before)
+        self.assertEqual(self.sql("SELECT count(*) FROM purchase_orders"), [(0,)])
+        self.assertEqual(self.sql("SELECT count(*) FROM purchase_order_events"), [(0,)])
+        self.assertFalse(old_file.exists())
+        self.assertTrue(any((p / "uploads" / "old-attachment.txt").exists() for p in (self.data / "team-demo-backups").iterdir()))
+        for (stored,) in self.sql("SELECT password_hash FROM users"):
+            _, iterations, salt, digest = stored.split("$")
+            self.assertEqual(hashlib.pbkdf2_hmac("sha256", env["INITIAL_PASSWORD"].encode(), salt.encode(), int(iterations)).hex(), digest)
+        self.sql("UPDATE projects SET notes='New live operation'")
+        self.sql("UPDATE users SET password_hash='User changed password' WHERE username='extra'")
+        after_users = self.sql("SELECT * FROM users ORDER BY id")
+        again = self.run_start({**env, "INITIAL_PASSWORD": "another-valid-demo-password"})
+        self.assertEqual(again.returncode, 0, again.stderr)
+        self.assertEqual(self.sql("SELECT notes FROM projects"), [("New live operation",)])
+        self.assertEqual(self.sql("SELECT * FROM users ORDER BY id"), after_users)
+        self.assertEqual(len(list((self.data / "team-demo-resets").glob("*.json"))), 1)
+
+    def test_single_house_reset_bootstraps_empty_storage(self):
+        env = {**self.env, "TEAM_DEMO_HOUSES": "1", "TEAM_DEMO_RESET_ID": "first-deploy"}
+        result = self.run_start(env)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.sql("SELECT count(*) FROM projects"), [(1,)])
+        self.assertEqual(self.sql("SELECT count(*) FROM users"), [(8,)])
+        for (stored,) in self.sql("SELECT password_hash FROM users"):
+            _, iterations, salt, digest = stored.split("$")
+            self.assertEqual(hashlib.pbkdf2_hmac("sha256", env["INITIAL_PASSWORD"].encode(), salt.encode(), int(iterations)).hex(), digest)
+
+    def test_reset_failure_restores_original_data_and_can_retry(self):
+        self.assertEqual(self.run_start().returncode, 0)
+        before_users = self.sql("SELECT * FROM users ORDER BY id")
+        before_projects = self.sql("SELECT * FROM projects ORDER BY id")
+        old_file = self.data / "uploads" / "keep.txt"
+        old_file.write_text("Retained after failure", encoding="utf-8")
+        env = {**self.env, "TEAM_DEMO_HOUSES": "1", "TEAM_DEMO_RESET_ID": "restore-test"}
+        runner = RUNNER.replace("starter.os.execv = capture", """
+import prepare_team_demo
+def fail_generation(*args, **kwargs):
+    raise RuntimeError('injected seed failure')
+prepare_team_demo.prepare_demo = fail_generation
+starter.os.execv = capture
+""")
+        result = self.run_start(env, runner)
+        self.assertEqual(result.returncode, 1)
+        self.assertNotIn("SERVER_EXECUTED", result.stdout)
+        self.assertEqual(self.sql("SELECT * FROM users ORDER BY id"), before_users)
+        self.assertEqual(self.sql("SELECT * FROM projects ORDER BY id"), before_projects)
+        self.assertEqual(old_file.read_text(), "Retained after failure")
+        self.assertEqual(list((self.data / "team-demo-resets").glob("*.json")), [])
+        result = self.run_start(env)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.sql("SELECT count(*) FROM projects"), [(1,)])
 
 
 if __name__ == "__main__":

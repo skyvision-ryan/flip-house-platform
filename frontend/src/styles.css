@@ -1,7 +1,23 @@
 /* 产品层：稳定的自有类名。Cloudscape 内部结构不靠哈希类选择器覆盖。 */
 body { font-family: var(--ui-font-body); margin: 0; color: var(--ui-text); background: var(--ui-page); font-size: var(--ui-font-size-body); line-height: var(--ui-line-height-body); }
 * { box-sizing: border-box; }
-#top-nav { border-bottom: 3px solid var(--ui-orange); }
+a { text-underline-offset: 3px; }
+button, input, textarea, select { font: inherit; }
+:focus-visible { outline: 2px solid var(--ui-blue); outline-offset: 3px; }
+input, textarea { caret-color: var(--ui-blue); }
+::selection { background: var(--ui-blue-soft); color: var(--ui-text); }
+table, .ui-facts, .ui-metrics { font-variant-numeric: tabular-nums; }
+.ui-card th { white-space: nowrap; }
+.ui-table { min-width: 0; }
+.ui-table table { min-width: var(--ui-table-min-width); }
+.ui-card td { overflow-wrap: anywhere; }
+.ui-card[data-card-key="project-header"] { background: var(--ui-surface); padding: 8px 20px; border-radius: var(--ui-radius-container); }
+.ui-workspace.ui-workspace-wide { grid-template-columns: minmax(0,1fr) 300px; }
+@container (max-width: 1320px) {
+  .ui-workspace.ui-workspace-wide { grid-template-columns: minmax(0,1fr); }
+  .ui-workspace-wide .ui-workspace-detail { border-left: 0; border-top: 1px solid var(--ui-border); }
+}
+
 .ui-card { position: relative; min-width: 0; container-type: inline-size; }
 .ui-card > * { min-width: 0; }
 .ui-card h2, .ui-card h3 { font-family: var(--ui-font-heading); letter-spacing: normal; }
@@ -70,7 +86,16 @@ body { font-family: var(--ui-font-body); margin: 0; color: var(--ui-text); backg
 .ui-property-icon { display: inline-flex; padding: 10px; margin-bottom: 14px; background: var(--ui-orange-soft); border-radius: 8px; color: var(--ui-text); }
 
 .ui-project-identity { display: grid; grid-template-columns: 96px minmax(0,1fr); align-items: start; gap: 24px; }
-@container (max-width: 550px) { .ui-project-identity { grid-template-columns: 1fr; gap: 16px; } }
+@container (max-width: 550px) {
+  .ui-project-identity { grid-template-columns: 48px minmax(0,1fr); gap: 12px; }
+  .ui-project-identity .ui-property-cover { width: 48px; height: 48px; }
+  .ui-card[data-card-key="project-header"] { padding: 0 12px; }
+  .ui-card[data-card-key="project-header"] h1 { font-size: 20px; line-height: 1.4; }
+  .ui-project-focus .ui-facts { grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 12px; }
+  .ui-project-focus .ui-fact:first-child { grid-column: 1 / -1; }
+}
+.ui-rd-reference-disclosure { margin-block: 20px; }
+.ui-rd-reference-disclosure > summary { cursor: pointer; min-height: 44px; display: list-item; padding-block: 12px; color: var(--ui-blue); }
 
 .ui-login-settings { position: absolute; top: 16px; right: 20px; z-index: 1; }
 
@@ -149,7 +174,7 @@ body { font-family: var(--ui-font-body); margin: 0; color: var(--ui-text); backg
 .ui-final-label { margin-left: 6px; }
 .ui-person-empty { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .ui-person { display: inline-flex; align-items: center; gap: var(--ui-space-xs); min-width: 0; }
-.ui-person-label { min-width: 0; line-height: var(--ui-line-height-body); }
+.ui-person-label { min-width: 0; word-break: keep-all; white-space: nowrap; line-height: var(--ui-line-height-body); }
 .ui-avatar-empty { width: 28px; height: 28px; }
 .ui-avatar-empty[data-size="small"] { width: 24px; height: 24px; }
 .ui-property-cover { position: relative; width: var(--cover-width); height: var(--cover-height); border-radius: var(--cover-radius); overflow: hidden; flex-shrink: 0; background: var(--ui-page); color: var(--ui-secondary); }
@@ -166,12 +191,12 @@ body { font-family: var(--ui-font-body); margin: 0; color: var(--ui-text); backg
 .ui-identity-compact { display: none; }
 .ui-workspace-scope { container-type: inline-size; min-width: 0; }
 .ui-workspace { display: grid; grid-template-columns: minmax(0,1fr) 340px; gap: 0; background: var(--ui-surface); border-top: 1px solid var(--ui-border); }
-.ui-workspace-main { min-width: 0; padding: 16px 24px 24px 0; }
+.ui-workspace-main { min-width: 0; padding: 16px 20px 24px; }
 .ui-workspace-detail { min-width: 0; padding: 16px 24px 24px; border-left: 1px solid var(--ui-border); background: var(--ui-panel); }
 .ui-workspace-detail:focus-visible { outline: 2px solid var(--ui-blue); outline-offset: -2px; }
 .ui-workspace-detail .ui-card + .ui-card { border-top: 1px solid var(--ui-border); }
 .ui-workspace-processing { grid-template-columns: 320px minmax(0,1fr); }
-.ui-workspace-processing .ui-workspace-main { padding-right: 0; }
+.ui-workspace-processing .ui-workspace-main { padding-inline: 16px; }
 .ui-workspace-back { display: none; padding-bottom: 16px; }
 .ui-summary-title { font-size: 24px; line-height: 1.4; font-weight: 600; }
 .ui-metrics { gap: 0; background: var(--ui-panel); border-block: 1px solid var(--ui-border); }
@@ -180,7 +205,7 @@ body { font-family: var(--ui-font-body); margin: 0; color: var(--ui-text); backg
 .ui-metric-value { font-size: 30px; }
 @container (max-width: 940px) {
   .ui-workspace { grid-template-columns: minmax(0,1fr); }
-  .ui-workspace-main { padding-right: 0; }
+  .ui-workspace-main { padding-inline: 16px; }
   .ui-workspace-detail { border-left: 0; border-top: 1px solid var(--ui-border); padding-inline: 16px; }
   .ui-workspace[data-mobile-detail="true"] .ui-workspace-detail { display: none; }
   .ui-workspace[data-mobile-detail="true"][data-detail-open="true"] .ui-workspace-main { display: none; }
@@ -457,4 +482,298 @@ body { font-family: var(--ui-font-body); margin: 0; color: var(--ui-text); backg
   .ui-ld-summary { grid-template-columns: minmax(0,1fr); gap: 20px; }
   .ui-ld-stage-button { grid-template-columns: minmax(0,1fr) 100px; gap: 8px 12px; }
   .ui-ld-stage-button svg { grid-row: 2; grid-column: 1 / -1; }
+}
+
+/* Project procurement: house + usage-node register, with an adjacent item editor. */
+.ui-proc-toolbar { display: grid; grid-template-columns: minmax(200px, 1fr) 180px 150px; gap: 12px; }
+.ui-proc-dates { display: grid; gap: 6px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ui-proc-note { color: var(--ui-secondary); max-width: 28ch; overflow-wrap: anywhere; margin-top: 4px; }
+.ui-proc-form-grid { display: grid; gap: 16px; }
+.ui-proc-images { border-top: 1px solid var(--ui-border); padding-top: 24px; }
+.ui-proc-image-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-block: 16px; overflow-wrap: anywhere; }
+.ui-proc-image-button { padding: 0; border: 1px solid var(--ui-border); background: var(--ui-surface); border-radius: 8px; width: 100%; cursor: pointer; overflow: hidden; }
+.ui-proc-image-button img { width: 100%; height: 120px; object-fit: contain; display: block; }
+.ui-proc-full-image { display: block; max-width: 100%; height: auto; margin-inline: auto; }
+.ui-proc-upload { display: grid; gap: 8px; line-height: 1.6; }
+.ui-proc-upload input { width: 100%; min-width: 0; color: var(--ui-secondary); }
+.ui-proc-image-button:focus-visible { outline: 2px solid var(--ui-blue); outline-offset: 3px; }
+@media (max-width: 760px) { .ui-proc-toolbar { grid-template-columns: minmax(0, 1fr); } }
+
+
+/* KAN-54: order review stays in the shared Cloudscape surface system. */
+.ui-order-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--ui-space-m); margin-block: var(--ui-space-s); }
+.ui-order-line { padding-block: var(--ui-space-m); border-bottom: 1px solid var(--ui-border); }
+.ui-order-source { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; }
+.ui-order-actions { padding-block: var(--ui-space-m); }
+@media (max-width: 700px) { .ui-order-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* Procurement: full-width rows expand in place; editing has its own page. */
+.ui-proc-items { border: 1px solid var(--ui-border); border-radius: var(--ui-radius-container); overflow: hidden; margin-block: 8px 20px; }
+.ui-proc-item + .ui-proc-item { border-top: 1px solid var(--ui-border); }
+.ui-proc-item-summary { padding: 20px 24px 24px 48px; border-top: 1px solid var(--ui-border); background: var(--ui-panel); overflow-wrap: anywhere; }
+.ui-proc-item-summary-heading, .ui-proc-order-heading, .ui-proc-order-product { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 20px; }
+.ui-proc-item-destination, .ui-proc-item-unordered { color: var(--ui-secondary); margin-top: 8px; }
+.ui-proc-order-summary { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--ui-border); }
+.ui-proc-order-product { margin-top: 8px; }
+.ui-proc-item-attention { margin-top: 8px; }
+.ui-proc-order-footnote { margin-top: 8px; color: var(--ui-secondary); font-size: .875rem; }
+.ui-proc-item-page { max-width: 1080px; margin-inline: auto; }
+@media (max-width: 1000px) {
+  .ui-proc-item-summary { padding: 16px 20px; }
+}
+@media (max-width: 520px) {
+  .ui-proc-item-summary { padding: 16px 12px; }
+  .ui-proc-order-heading { align-items: flex-start; }
+}
+
+.ui-proc-task { padding: 16px; margin-block: 8px 20px; background: var(--ui-panel); border-block: 1px solid var(--ui-border); }
+
+/* Purchase entry: shared order details, compact material rows. */
+.ui-order-entry-common { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--ui-space-m); }
+.ui-order-entry-address { grid-column: 1 / -1; }
+.ui-order-entry-labels, .ui-order-entry-row { display: grid; grid-template-columns: minmax(220px, 3fr) minmax(80px, 1fr) minmax(100px, 1fr) minmax(90px, 1fr) 40px; gap: var(--ui-space-m); align-items: center; }
+.ui-order-entry-labels { color: var(--ui-secondary); padding-block: var(--ui-space-s); border-bottom: 1px solid var(--ui-border); }
+.ui-order-entry-item { padding-block: var(--ui-space-m); border-bottom: 1px solid var(--ui-border); margin-bottom: var(--ui-space-s); }
+.ui-order-entry-item > button { margin-top: var(--ui-space-xs); }
+.ui-order-entry-subtotal { font-variant-numeric: tabular-nums; }
+.ui-order-entry-mobile-label { display: none; }
+.ui-order-entry-total { display: flex; gap: var(--ui-space-l); justify-content: flex-end; align-items: center; padding-block: var(--ui-space-s); }
+@media (max-width: 760px) {
+  .ui-order-entry-common { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ui-order-entry-labels { display: none; }
+  .ui-order-entry-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 40px; gap: var(--ui-space-s); }
+  .ui-order-entry-row > :first-child { grid-column: 1 / 3; }
+  .ui-order-entry-row > :last-child { grid-column: 3; grid-row: 1; }
+  .ui-order-entry-row > :nth-child(2) { grid-column: 1; }
+  .ui-order-entry-subtotal { grid-column: 1 / -1; }
+  .ui-order-entry-mobile-label { display: block; color: var(--ui-secondary); margin-bottom: var(--ui-space-xs); }
+  .ui-order-entry-total { align-items: stretch; flex-direction: column; gap: var(--ui-space-s); }
+}
+
+.ui-order-entry-stage { max-width: 420px; }
+.ui-proc-requirement { padding: var(--ui-space-m); margin-block: var(--ui-space-s); background: var(--ui-panel); border-block: 1px solid var(--ui-border); }
+
+/* Procurement working list: quiet table rhythm, useful expansion, shared selection. */
+.ui-proc-list-caption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; margin-block: 24px 12px; }
+.ui-proc-list-caption > span { color: var(--ui-secondary); font-size: .875rem; }
+.ui-proc-item-summary { padding-block: 14px; }
+
+
+
+/* KAN-54: scoped procurement operating surfaces. No global/component defaults. */
+.procurement-surface { min-width: 0; color: var(--ui-text); }
+.procurement-surface :is(h1,h2,h3,p,strong,dd) { overflow-wrap: anywhere; }
+.procurement-surface :is(input,textarea) { caret-color: var(--ui-blue); }
+.procurement-surface ::selection { background: var(--ui-blue-soft); color: var(--ui-text); }
+.procurement-surface :is(button,a,input,textarea):focus-visible { outline: 2px solid var(--ui-blue); outline-offset: 3px; }
+.procurement-surface [data-form-error]:focus { outline: 2px solid var(--ui-blue); outline-offset: 4px; }
+.procurement-workspace { background: var(--ui-panel); padding: 20px; }
+.procurement-surface .proc-house { background: var(--ui-surface); padding: 24px; margin-top: 8px; }
+.procurement-workspace .proc-house-selector { background: var(--ui-panel); padding: 16px; }
+.procurement-surface .proc-view-switch { display: flex; gap: 4px; border-bottom: 1px solid var(--ui-border); }
+.procurement-surface .proc-view-switch button { appearance: none; background: transparent; color: var(--ui-secondary); border: 0; border-bottom: 2px solid transparent; font: inherit; font-weight: 600; padding: 10px 16px; min-height: 44px; cursor: pointer; }
+.procurement-surface .proc-view-switch button[aria-pressed="true"] { color: var(--ui-blue); border-bottom-color: var(--ui-blue); }
+.procurement-surface .proc-view-switch button:hover { background: var(--ui-blue-soft); }
+.procurement-surface .proc-view-switch button:disabled { cursor: not-allowed; opacity: .55; }
+.procurement-surface .ui-proc-items { border: 0; border-radius: 0; overflow: visible; }
+.procurement-surface .ui-proc-item-summary { border: 0; padding: 20px 24px; background: var(--ui-panel); }
+.procurement-surface .ui-proc-item-page { padding-block: 16px; margin: 0; max-width: none; }
+.procurement-surface .proc-requirement-basics { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+.procurement-surface .proc-order-facts { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 32px; padding: 16px 20px; background: var(--ui-panel); }
+.procurement-surface .proc-order-facts > span { display: grid; gap: 4px; color: var(--ui-secondary); min-width: 0; }
+.procurement-surface .proc-order-facts strong { color: var(--ui-text); font-variant-numeric: tabular-nums; font-weight: 600; }
+.procurement-surface .proc-order-facts > button { margin-left: auto; }
+.procurement-surface .proc-receiving { padding-block: 0 12px; }
+.procurement-surface .proc-receiving > * + * { margin-top: 16px; }
+.procurement-surface .proc-receipt-row { display: grid; grid-template-columns: minmax(180px, 1.4fr) minmax(300px, 2fr); gap: 12px 24px; align-items: center; padding: 16px 12px; border-bottom: 1px solid var(--ui-border); }
+.procurement-surface .proc-receipt-row dl { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; margin: 0; }
+.procurement-surface .proc-receipt-row dt { font-size: .875rem; color: var(--ui-secondary); margin-bottom: 6px; }
+.procurement-surface .proc-receipt-row dd { margin: 0; font-variant-numeric: tabular-nums; font-weight: 600; }
+.procurement-surface .proc-receipt-row .proc-shortage { color: var(--ui-blue); }
+.procurement-surface .proc-receipt-row > span { grid-column: 1 / -1; color: var(--ui-secondary); }
+.procurement-surface .proc-receipt-form { background: var(--ui-panel); padding: 20px; scroll-margin-top: 150px; }
+.procurement-surface .proc-receipt-input { grid-column:1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 12px; border-top: 1px solid var(--ui-border); }
+.procurement-surface .proc-receipt-input > :is(strong,p) { grid-column: 1 / -1; margin: 0; }
+.procurement-surface .proc-receipt-input > p { font-size: .875rem; color: var(--ui-secondary); }
+.procurement-surface .proc-order-edit { background: var(--ui-panel); padding: 24px; }
+.procurement-surface .proc-common-fields { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 16px; }
+.procurement-surface .proc-line-edit { display: grid; grid-template-columns: minmax(180px,2fr) minmax(80px,.75fr) minmax(100px,1fr) minmax(130px,1fr); gap: 16px; align-items: start; }
+.procurement-surface .proc-line-issue { grid-column: 1 / -1; }
+.procurement-surface .proc-order-products { margin-top: 24px; }
+.procurement-surface .ui-order-line { padding-block: 20px; }
+.procurement-surface .proc-line-differences { font-size: .875rem; line-height: 1.6; margin: 8px 0; color: var(--ui-secondary); overflow-wrap: anywhere; }
+.procurement-surface .ui-order-entry-labels, .procurement-surface .ui-order-entry-row { grid-template-columns: minmax(180px, 2.5fr) minmax(85px, .7fr) minmax(95px, .9fr) minmax(90px, .9fr) 56px; align-items: start; }
+.procurement-surface .ui-order-entry-subtotal { padding-top: 8px; text-align: right; font-weight: 600; }
+.procurement-surface .ui-order-entry-row input[type="number"] { font-variant-numeric: tabular-nums; }
+.procurement-surface .proc-savebar { position: sticky; bottom: 0; background: var(--ui-surface); border-top: 1px solid var(--ui-border); padding: 14px 20px; z-index: 5; margin-bottom: 0; }
+.procurement-surface .ui-order-entry-total { margin-block: 20px; }
+.procurement-surface .proc-requirement-fields { padding-bottom: 16px; }
+.procurement-surface .proc-receipt-form button { min-height: 36px; }
+@media (max-width: 1100px) {
+  .procurement-surface .proc-common-fields, .procurement-surface .proc-line-edit { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media (max-width: 700px) {
+  .procurement-workspace { padding: 12px; }
+  .procurement-surface .proc-house { padding: 16px 12px; }
+  .procurement-surface .ui-proc-item-summary { padding: 16px 12px; }
+  .procurement-surface .proc-requirement-basics { grid-template-columns: minmax(0,1fr); }
+  .procurement-surface .proc-order-edit { padding: 16px 12px; }
+  .procurement-surface .proc-common-fields, .procurement-surface .ui-order-entry-common { grid-template-columns: minmax(0,1fr); }
+  .procurement-surface .proc-line-edit > :first-child { grid-column: 1 / -1; }
+  .procurement-surface .proc-receipt-row { grid-template-columns: minmax(0,1fr); padding-inline: 0; }
+  .procurement-surface .proc-receipt-form { padding: 16px 12px; }
+  .procurement-surface .ui-order-entry-row { grid-template-columns: minmax(0,1fr) minmax(0,1fr) 48px; }
+  .procurement-surface .ui-order-entry-subtotal { grid-column: 1 / -1; display: flex; justify-content: space-between; text-align: left; padding-top: 0; }
+  .procurement-surface .proc-savebar { padding: 12px 0 calc(12px + env(safe-area-inset-bottom)); }
+  .procurement-surface :is(input,textarea) { font-size: 16px; }
+  .procurement-surface button { min-height: 44px; }
+  .procurement-surface .proc-view-switch button { padding-inline: 12px; }
+}
+
+.procurement-surface .proc-item-issue { color: var(--ui-text); padding-left: 10px; border-left: 1px solid var(--ui-border); margin: 10px 0 0; line-height: 1.6; overflow-wrap: anywhere; }
+.procurement-surface .proc-overview-issues { border-left: 1px solid var(--ui-border); padding-left: 16px; }
+.procurement-surface .proc-overview-issues p { margin-block: 10px; line-height: 1.6; }
+@media (max-width: 700px) {
+  .procurement-order { padding-bottom: 96px; }
+  .procurement-surface .proc-savebar { position: fixed; bottom: 0; left: 0; right: 0; padding: 12px 20px calc(12px + env(safe-area-inset-bottom)); z-index: 1001; box-shadow: 0 -2px 8px var(--ui-border); }
+}
+
+.ui-expense-records { scroll-margin-top: 96px; min-width: 0; }
+
+/* Procurement workspace (KAN-54): house → status → scope → material rows. Facts wrap by content width. */
+.procurement-workspace { container-type: inline-size; }
+.procurement-workspace .proc-house-panel { background:var(--ui-surface); }
+.procurement-workspace .proc-house-context { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:12px 24px; padding:20px 24px; }
+.proc-house-context > div:first-child { flex:1; min-width:240px; }
+.proc-house-context h2 { margin:0; font-size:22px; line-height:1.35; overflow-wrap:anywhere; }
+.proc-house-context h2 a { color:var(--ui-blue); text-decoration:none; }
+.proc-house-context h2 a:hover { text-decoration:underline; text-underline-offset:4px; }
+.proc-house-context p { margin:6px 0 0; color:var(--ui-secondary); line-height:1.5; overflow-wrap:anywhere; }
+.proc-house-facts { display:flex; flex-wrap:wrap; gap:6px 24px; margin:12px 0 0; }
+.proc-house-facts > div { display:flex; gap:8px; min-width:0; line-height:1.5; }
+.proc-house-facts dt { color:var(--ui-secondary); white-space:nowrap; }
+.proc-house-facts dd { margin:0; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.proc-house-context-actions { flex-shrink:0; }
+.proc-house-context > small { flex-basis:100%; color:var(--ui-secondary); }
+.procurement-workspace .proc-house-status { padding:12px 24px; border-top:1px solid var(--ui-border); }
+.proc-status-strip { display:flex; flex-wrap:wrap; align-items:flex-start; gap:10px 28px; margin:0; }
+.proc-status-strip > div { min-width:0; }
+.proc-status-strip dt { color:var(--ui-secondary); font-size:.8125rem; line-height:1.4; margin-bottom:2px; display:flex; align-items:center; gap:2px; white-space:nowrap; }
+.proc-status-strip dd { margin:0; font-weight:600; line-height:1.4; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.proc-status-strip dd small { font-size:.8125rem; font-weight:400; color:var(--ui-secondary); }
+.proc-status-strip dd > .proc-status-note { display:block; }
+.proc-status-strip .proc-status-key dd { font-size:1.125rem; }
+.proc-status-strip .proc-status-key dd small { font-size:.875rem; }
+.proc-status-strip .proc-status-key:nth-child(3) { padding-right:28px; border-right:1px solid var(--ui-border); }
+.proc-status-manage { margin-left:auto; display:flex; flex-wrap:wrap; gap:6px 16px; align-self:center; }
+.proc-attention-filter { font:inherit; font-weight:600; color:var(--ui-blue); background:transparent; border:1px solid transparent; border-radius:6px; padding:1px 8px; margin:-2px -9px; cursor:pointer; text-decoration:underline; text-underline-offset:4px; }
+.proc-attention-filter small { color:var(--ui-blue); }
+.proc-attention-filter:hover { background:var(--ui-blue-soft); }
+.proc-attention-filter[aria-pressed="true"] { background:var(--ui-blue-soft); border-color:var(--ui-blue); text-decoration:none; }
+.proc-attention-filter:disabled { cursor:not-allowed; opacity:.55; }
+.proc-scope-bar { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:8px 16px; border-bottom:1px solid var(--ui-border); }
+.proc-scope-search { flex:0 1 360px; min-width:220px; padding-bottom:6px; }
+.procurement-surface .proc-scope-bar .proc-view-switch { border-bottom:0; }
+.procurement-workspace .proc-house { margin:0; padding:24px; }
+.proc-material-group h3 { margin:0; font-size:1rem; }
+.proc-material-group h3 button { display:flex; align-items:center; gap:10px; width:100%; min-height:48px; padding:12px; color:var(--ui-text); font:inherit; font-weight:600; text-align:left; border:0; background:var(--ui-panel); cursor:pointer; }
+.proc-material-group h3 small { color:var(--ui-secondary); font-weight:400; margin-left:auto; white-space:nowrap; }
+.proc-material-group + .proc-material-group { margin-top:24px; }
+.proc-material-group h3 button:hover { background:var(--ui-hover); }
+.procurement-workspace .ui-proc-items { margin:0; }
+.ui-proc-item-main { padding:16px 12px 14px; background:var(--ui-surface); }
+.ui-proc-item[data-expanded="true"] > .ui-proc-item-main { background:var(--ui-blue-soft); }
+.proc-material-main { display:flex; justify-content:space-between; align-items:flex-start; gap:20px; }
+.ui-proc-item-name { min-width:0; }
+.ui-proc-item-name strong { font-size:1rem; font-weight:600; overflow-wrap:anywhere; }
+.proc-material-progress { flex-shrink:0; text-align:right; }
+.proc-material-facts { display:grid; grid-template-columns:minmax(90px,.7fr) minmax(150px,1fr) minmax(140px,1fr) minmax(170px,1.2fr); gap:12px 24px; margin:12px 0 0; }
+.proc-material-cell { display:flex; flex-direction:column; gap:3px; min-width:0; font-variant-numeric:tabular-nums; line-height:1.5; }
+.proc-material-cell > dt { color:var(--ui-secondary); font-size:.8125rem; }
+.proc-material-cell > dd { margin:0; overflow-wrap:anywhere; }
+.proc-material-cell strong { font-weight:600; }
+.proc-material-secondary { display:block; color:var(--ui-secondary); font-size:.875rem; line-height:1.6; margin-top:4px; overflow-wrap:anywhere; }
+.proc-material-cell .proc-material-secondary { margin-top:0; }
+.proc-material-unordered { grid-column:2 / -1; }
+.proc-material-unordered > dd { color:var(--ui-secondary); }
+.proc-material-foot { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px 24px; margin-top:12px; }
+.proc-material-attention { display:flex; gap:8px 16px; align-items:baseline; flex-wrap:wrap; flex:1; min-width:240px; }
+.proc-material-actions { display:flex; flex-wrap:wrap; gap:6px 16px; margin-left:auto; }
+.proc-material-reason { line-height:1.6; white-space:pre-wrap; overflow-wrap:anywhere; flex:1; min-width:180px; }
+.procurement-workspace .ui-proc-list-caption { margin-block:16px 8px; align-items:center; }
+.proc-detail-facts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px 24px; margin:12px 0; }
+.proc-detail-facts dt { color:var(--ui-secondary); font-size:.875rem; margin-bottom:4px; }
+.proc-detail-facts dd { margin:0; white-space:pre-wrap; overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+.proc-detail-wide { grid-column:1 / -1; }
+.ui-proc-item-summary h4 { font-size:1rem; margin:20px 0 4px; }
+.ui-proc-item-summary-heading h4 { margin:0; }
+.ui-proc-item-summary > .ui-proc-item-summary-heading { margin-bottom:4px; }
+.ui-proc-item-summary h5 { font-size:1rem; font-weight:600; margin:0; overflow-wrap:anywhere; }
+.proc-detail-note { color:var(--ui-secondary); font-size:.875rem; line-height:1.6; margin:8px 0; overflow-wrap:anywhere; }
+.proc-detail-links { display:flex; flex-wrap:wrap; gap:12px 24px; margin-block:12px; }
+.proc-detail-images { display:flex; flex-wrap:wrap; gap:12px; margin-block:16px; }
+.proc-detail-images button { width:128px; border:1px solid var(--ui-border); background:var(--ui-surface); padding:8px; color:var(--ui-blue); font:inherit; cursor:pointer; overflow-wrap:anywhere; }
+.proc-detail-images img { display:block; width:100%; height:90px; object-fit:contain; }
+.proc-detail-images span { font-size:.875rem; }
+.proc-order-line p { margin:6px 0; line-height:1.6; overflow-wrap:anywhere; }
+.proc-history-entry { margin:4px 0; line-height:1.6; color:var(--ui-secondary); }
+@container (max-width:800px) {
+  .proc-material-facts { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .proc-material-unordered { grid-column:2; }
+}
+@media (max-width:720px) {
+  .procurement-workspace .proc-house-context { padding:16px 12px; }
+  .procurement-workspace .proc-house-status,.procurement-workspace .proc-house { padding:16px 12px; }
+  .proc-house-context h2 { font-size:20px; }
+  .proc-house-facts { flex-direction:column; gap:4px; }
+  .proc-status-strip { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px 16px; }
+  .proc-status-strip .proc-status-key:nth-child(3) { padding-right:0; border-right:0; }
+  .proc-status-strip dt { white-space:normal; }
+  .proc-status-manage { grid-column:1 / -1; margin-left:0; }
+  .proc-scope-search { flex-basis:100%; }
+  .proc-material-main { flex-wrap:wrap; gap:8px; }
+  .proc-material-progress { width:100%; text-align:left; }
+  .proc-material-facts { grid-template-columns:minmax(0,1fr); margin-left:0; gap:8px; }
+  .proc-material-cell { display:grid; grid-template-columns:7em minmax(0,1fr); gap:2px 12px; align-items:baseline; }
+  .proc-material-cell > dt { font-size:.875rem; }
+  .proc-material-cell .proc-material-secondary { display:block; }
+  .proc-material-unordered { grid-column:1; grid-template-columns:minmax(0,1fr); }
+  .proc-material-attention { display:block; min-width:0; flex-basis:100%; }
+  .proc-material-actions { margin-left:0; }
+  .proc-material-reason { display:block; margin-top:6px; }
+  .proc-detail-facts { grid-template-columns:minmax(0,1fr); }
+}
+
+/* KAN-54: one house context and demand-led purchasing. */
+.proc-house-options {display:flex;flex-direction:column;gap:8px;}
+.proc-house-options>button {display:flex;flex-direction:column;gap:6px;text-align:left;padding:14px 16px;border:1px solid var(--ui-border);border-radius:8px;background:var(--ui-surface);font:inherit;color:var(--ui-text);cursor:pointer;overflow-wrap:anywhere;}
+.proc-house-options>button:hover {background:var(--ui-hover);border-color:var(--ui-blue);}
+.proc-house-options>button[aria-pressed=true] {background:var(--ui-blue-soft);border-color:var(--ui-blue);}
+.proc-house-options>button:focus-visible {outline:3px solid var(--ui-blue);outline-offset:2px;}
+.proc-house-options small,.proc-house-options span {color:var(--ui-secondary);}
+.proc-demand-picker {background:var(--ui-panel);padding:16px;margin:12px 0 20px;}
+.proc-demand-picker h3 {font-size:15px;margin:20px 0 8px;}
+.proc-demand-option {display:grid;grid-template-columns:minmax(180px,1fr) minmax(200px,1fr);gap:4px 16px;padding:12px 0;border-bottom:1px solid var(--ui-border);}
+.proc-demand-option>small {grid-column:2;font-variant-numeric:tabular-nums;color:var(--ui-secondary);}
+.proc-demand-option>span {color:var(--ui-secondary);font-size:14px;overflow-wrap:anywhere;}
+.proc-demand-new {padding:16px;background:var(--ui-panel);margin-top:12px;}
+.procurement-overview .proc-house-summary {display:grid;gap:16px;}
+@media(max-width:720px){
+  .proc-demand-option {grid-template-columns:1fr;gap:6px;}
+  .proc-demand-option>small {grid-column:1;}
+}
+
+/* Procurement detail, management and project reuse. */
+.procurement-surface .proc-order-notes { padding:16px 20px; background:var(--ui-panel); }
+.proc-order-notes h2 { font-size:1.125rem; margin:0 0 8px; }
+.proc-order-notes p { white-space:pre-wrap; line-height:1.6; margin:8px 0; }
+.procurement-overview .proc-house-summary { grid-template-columns:minmax(0,1fr) minmax(0,1fr); background:var(--ui-panel); padding:20px; align-items:start; }
+.procurement-overview .ui-proc-task { padding:0; border:0; margin:0; }
+.proc-overview-issues p { display:grid; grid-template-columns:minmax(160px,1fr) minmax(0,3fr); gap:8px 24px; }
+.proc-management { line-height:1.6; }
+.proc-management p { margin:8px 0 16px; }
+.procurement-surface .ui-proc-requirement h3 { margin:0 0 12px; font-size:1rem; }
+@media(max-width:900px) {
+  .procurement-overview .proc-house-summary { grid-template-columns:1fr; }
+  .proc-overview-issues p { grid-template-columns:1fr; }
 }

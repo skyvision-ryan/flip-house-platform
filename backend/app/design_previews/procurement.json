@@ -1,27 +1,448 @@
 {
-  "person": {"id": 0, "username": "procurement-preview", "display_name": "采购工作区", "role_code": "采购", "active": true},
+  "person": {
+    "id": 0,
+    "username": "procurement-preview",
+    "display_name": "采购工作区",
+    "role_code": "采购",
+    "active": true
+  },
   "role_title": "采购工作区",
-  "role_description": "Tristin / Jeremy 共用：核对每套房的材料、选型备注、下单与到货状态。示例分工仅供比较界面，不替代真实账号任务分派。",
+  "role_description": "Jeremy / Tristin 是同一岗位，共用采购工作台。工作按选型、下单、交期、收货与异常等大类推进，材料是业务记录，不逐件分派任务。项目页只看采购概况。",
   "default_design": "A",
   "designs": [
-    {"id":"A","source":"IBM Carbon","title":"房屋采购核对台","question":"我先核对哪套房、哪个使用节点还缺材料？","borrowed":"搜索、筛选和按列核对的资料表，点一条进入对应详情。","adapted":"按房屋分组，采购节点、材料、状态并排；金额保持隐藏。","gain":"同一套房的采购全貌清楚，方便核对不同使用节点。","cost":"跨房集中处理异常时，需要切换筛选或阅读多组表格。","url":"https://carbondesignsystem.com/components/data-table/usage/","sourceLabel":"Carbon · Data table 官方规范","layout":"house"},
-    {"id":"B","source":"Linear","title":"跨房采购状态队列","question":"把不同房屋中同一状态的材料放一起，会不会更好处理？","borrowed":"列表分组、筛选和与选中记录连续阅读的详情。","adapted":"围绕现有采购状态分组，每项保留房屋、使用节点及备注。","gain":"异常、待选型和待下单可以集中查看，少在房屋间来回切换。","cost":"房屋完整清单分散在不同状态组，整体核对不如 A 直接。","url":"https://linear.app/docs/display-options","sourceLabel":"Linear · Display options 官方说明","layout":"queue"},
-    {"id":"C","source":"Microsoft Fluent 2","title":"材料选型资料台","question":"先围绕材料读规格备注和资料，是否更贴近选型工作？","borrowed":"围绕一个对象组织标题、正文、资料入口和操作的卡片。","adapted":"一张卡对应一件材料，突出当前备注和状态；资料为合成备注摘录。","gain":"选型时直接读材料上下文，资料不被压缩进狭窄表格。","cost":"同屏可见条目更少，批量核对状态不如 A、B 紧凑。","url":"https://fluent2.microsoft.design/components/web/react/core/card/usage","sourceLabel":"Fluent 2 · Card 官方规范","layout":"providers"}
+    {
+      "id": "A",
+      "source": "IBM Carbon",
+      "title": "房屋采购核对台",
+      "question": "我先核对哪套房、哪个使用节点还缺材料？",
+      "borrowed": "搜索、筛选和按列核对的资料表，点一条进入对应详情。",
+      "adapted": "工作台按房屋与使用节点核对材料，顶部大类汇总选型、下单、交期、收货与异常；在右侧直接维护金额、备注、完整图片、订单和物流，项目页同步高层状态。",
+      "gain": "团队已选为实际采购页的默认分类。每套房缺什么、何时到、送哪里可以一起核对。",
+      "cost": "跨房集中处理异常时，需要切换筛选或阅读多组表格。",
+      "url": "https://carbondesignsystem.com/components/data-table/usage/",
+      "sourceLabel": "Carbon · Data table 官方规范",
+      "layout": "house"
+    },
+    {
+      "id": "B",
+      "source": "Linear",
+      "title": "跨房采购状态队列",
+      "question": "把不同房屋中同一状态的材料放一起，会不会更好处理？",
+      "borrowed": "列表分组、筛选和与选中记录连续阅读的详情。",
+      "adapted": "同一批材料改按状态组织，保留相同的交期、收货地点、金额、备注和图片编辑。 在工作台按大类推进，直接维护材料记录；项目页只看概况。",
+      "gain": "异常、待选型和待下单可以集中查看，少在房屋间来回切换。",
+      "cost": "房屋完整清单分散在不同状态组，整体核对不如 A 直接。",
+      "url": "https://linear.app/docs/display-options",
+      "sourceLabel": "Linear · Display options 官方说明",
+      "layout": "queue"
+    },
+    {
+      "id": "C",
+      "source": "Microsoft Fluent 2",
+      "title": "材料选型资料台",
+      "question": "先围绕材料读规格备注和资料，是否更贴近选型工作？",
+      "borrowed": "围绕一个对象组织标题、正文、资料入口和操作的卡片。",
+      "adapted": "一张卡对应一件材料，突出规格、备注和完整图片入口；沿用相同的采购字段。 在工作台按大类推进，直接维护材料记录；项目页只看概况。",
+      "gain": "选型时直接读材料上下文，资料不被压缩进狭窄表格。",
+      "cost": "同屏可见条目更少，批量核对状态不如 A、B 紧凑。",
+      "url": "https://fluent2.microsoft.design/components/web/react/core/card/usage",
+      "sourceLabel": "Fluent 2 · Card 官方规范",
+      "layout": "providers"
+    }
   ],
   "houses": [
-    {"id":"proc-maple","name":"Maple House · 示例房屋","stage":"装修 · 水电粗装"},
-    {"id":"proc-cedar","name":"Cedar House · 示例房屋","stage":"装修 · 防水后"},
-    {"id":"proc-pine","name":"Pine House · 示例房屋","stage":"装修 · 选型准备"}
+    {
+      "id": "proc-maple",
+      "name": "Maple House · 示例房屋",
+      "stage": "装修 · 水电粗装",
+      "address": "100 Synthetic Demo Lane, Demo City"
+    },
+    {
+      "id": "proc-cedar",
+      "name": "Cedar House · 示例房屋",
+      "stage": "装修 · 防水后",
+      "address": "200 Synthetic Demo Lane, Demo City"
+    },
+    {
+      "id": "proc-pine",
+      "name": "Pine House · 示例房屋",
+      "stage": "装修 · 选型准备",
+      "address": "300 Synthetic Demo Lane, Demo City"
+    }
   ],
   "records": [
-    {"id":"proc-01","house":"proc-maple","title":"淋浴花洒组件","status":"待选型","category":"水电检查前需要","owner":"Tristin","detail":"备注：墙内阀体与花洒款式尚未核对，先确认现场安装条件。","source":"合成数据；名称、节点、状态与备注对应现有采购字段。","fields":[{"label":"选型信息","value":"待现场核对，当前没有已确认规格"}],"documents":[{"id":"proc-01-note","name":"现场条件核对备注","detail":"示例备注：需要核对墙内阀体安装条件；尚未确定尺寸，不代表已批准购买。"}]},
-    {"id":"proc-02","house":"proc-maple","title":"镜前灯（点位）","status":"待下单","category":"水电检查前需要","owner":"Jeremy","detail":"备注：照明点位已在记录中确认，采购状态仍为待下单。","source":"合成采购记录；点位说明来自备注，不是结构化设计审批。","fields":[{"label":"点位备注","value":"查看材料记录摘录"}],"documents":[{"id":"proc-02-note","name":"镜前灯点位备注","detail":"示例备注：确认镜柜位置后采用当前点位记录；本页不提供价格或付款状态。"}]},
-    {"id":"proc-03","house":"proc-maple","title":"定制橱柜","status":"已下单","category":"定制/选样/配送需时间","owner":"Tristin","detail":"备注：已经下单，配送日期尚未确认。","source":"合成采购记录；现有状态可记已下单，预计到货并无独立字段。","fields":[{"label":"到货信息","value":"未记录实际到货，不能按下单状态推断"}],"documents":[{"id":"proc-03-note","name":"下单后跟进备注","detail":"示例备注：需要继续确认配送安排；当前没有可验证的到货日期。"}]},
-    {"id":"proc-04","house":"proc-cedar","title":"浴室地砖","status":"异常","category":"防水后、final 前需要","owner":"Jeremy","detail":"备注：现场收到的包装标识与原选型备注不一致，需要核对。","source":"合成采购记录；异常原因保存在备注。","fields":[{"label":"当前问题","value":"包装标识待核对"}],"documents":[{"id":"proc-04-note","name":"现场异常备注","detail":"示例备注：包装标识不一致，尚未核实是标识差异还是材料不符；不将异常记录自动解释为退货。"}]},
-    {"id":"proc-05","house":"proc-cedar","title":"室内门把手","status":"已到货","category":"防水后、final 前需要","owner":"Tristin","detail":"备注：已登记到货状态，现场尚需按安装位置整理。","source":"合成采购记录；只有已到货状态，没有实际到货日字段。","fields":[{"label":"日期边界","value":"维护时间不作为实际到货日期"}],"documents":[{"id":"proc-05-note","name":"材料整理备注","detail":"示例备注：按房间区分安装位置；当前记录不包含数量、单价和签收原件。"}]},
-    {"id":"proc-06","house":"proc-cedar","title":"庭院灯","status":"待选型","category":"院子","owner":"Jeremy","detail":"备注：需要核对庭院供电位置，再确认灯具形式。","source":"合成采购记录；当前只能通过备注表达现场条件。","fields":[{"label":"选择依据","value":"供电位置仍待核对"}],"documents":[{"id":"proc-06-note","name":"庭院现场条件备注","detail":"示例备注：先核对已有供电位置，不依据商品推荐直接下单。"}]},
-    {"id":"proc-07","house":"proc-pine","title":"独立浴缸及水龙头","status":"不适用","category":"水电检查前需要","owner":"Tristin","detail":"备注：当前示例房屋的方案不采用独立浴缸，采购项标记不适用。","source":"合成采购记录；不适用仅影响此采购项。","fields":[{"label":"范围","value":"不适用于这套示例房屋，不修改其他项目模板"}],"documents":[{"id":"proc-07-note","name":"方案范围备注","detail":"示例备注：当前方案未采用独立浴缸；这是采购项范围说明，不是审批凭证。"}]},
-    {"id":"proc-08","house":"proc-pine","title":"餐桌灯（点位）","status":"待选型","category":"水电检查前需要","owner":"Jeremy","detail":"备注：餐桌布局尚未定稿，灯具点位等待对应方案。","source":"合成采购记录；设计定稿与采购批准不是同一状态。","fields":[{"label":"等待内容","value":"餐桌布局与灯具点位的对应关系"}],"documents":[{"id":"proc-08-note","name":"选型等待备注","detail":"示例备注：先查看房间布局，再核对灯具位置；当前备注不表示设计推荐已经批准采购。"}]},
-    {"id":"proc-09","house":"proc-pine","title":"厨房水槽","status":"待下单","category":"定制/选样/配送需时间","owner":"Tristin","detail":"备注：需要与台面开孔记录再次核对后办理购买。","source":"合成采购记录；当前没有独立供应商或预计交期字段。","fields":[{"label":"购买前核对","value":"台面开孔与水槽方案一致性"}],"documents":[{"id":"proc-09-note","name":"台面开孔核对备注","detail":"示例备注：核对台面开孔记录，避免材料与现场条件不一致；本页没有模拟供应商报价。"}]}
+    {
+      "id": "proc-01",
+      "house": "proc-maple",
+      "title": "淋浴花洒组件",
+      "status": "待选型",
+      "category": "水电检查前需要",
+      "owner": "Tristin",
+      "detail": "备注：墙内阀体与花洒款式尚未核对，先确认现场安装条件。",
+      "source": "合成采购条目，仅供比较 A/B/C；金额是材料合计，不是财务付款记录。",
+      "fields": [
+        {
+          "label": "选型信息",
+          "value": "待现场核对，当前没有已确认规格"
+        }
+      ],
+      "documents": [
+        {
+          "id": "proc-01-note",
+          "name": "现场条件核对备注",
+          "detail": "合成备注：墙内阀体与花洒款式尚未核对，先确认现场安装条件。 设计推荐不代表已批准采购。"
+        }
+      ],
+      "procurement": {
+        "ordered_on": null,
+        "expected_on": null,
+        "received_on": null,
+        "delivery_type": "company",
+        "delivery_address": "Demo 公司收货点",
+        "amount": 249.95,
+        "quantity": 1,
+        "specification": "示例规格，购买前需核对现场尺寸",
+        "product_url": null,
+        "retailer": "Amazon",
+        "order_number": null,
+        "order_url": null,
+        "carrier": "Demo carrier",
+        "tracking_number": null,
+        "tracking_url": null,
+        "shipment_status": null,
+        "follow_up": null
+      }
+    },
+    {
+      "id": "proc-02",
+      "house": "proc-maple",
+      "title": "镜前灯（点位）",
+      "status": "待下单",
+      "category": "水电检查前需要",
+      "owner": "Jeremy",
+      "detail": "备注：照明点位已在记录中确认，采购状态仍为待下单。",
+      "source": "合成采购条目，仅供比较 A/B/C；金额是材料合计，不是财务付款记录。",
+      "fields": [
+        {
+          "label": "点位备注",
+          "value": "查看材料记录摘录"
+        }
+      ],
+      "documents": [
+        {
+          "id": "proc-02-note",
+          "name": "镜前灯点位备注",
+          "detail": "合成备注：照明点位已在记录中确认，采购状态仍为待下单。 设计推荐不代表已批准采购。"
+        }
+      ],
+      "procurement": {
+        "ordered_on": null,
+        "expected_on": null,
+        "received_on": null,
+        "delivery_type": "project",
+        "delivery_address": "100 Synthetic Demo Lane, Demo City",
+        "amount": 180,
+        "quantity": 2,
+        "specification": "示例规格，购买前需核对现场尺寸",
+        "product_url": null,
+        "retailer": "Wayfair",
+        "order_number": null,
+        "order_url": null,
+        "carrier": "Demo carrier",
+        "tracking_number": null,
+        "tracking_url": null,
+        "shipment_status": null,
+        "follow_up": null
+      }
+    },
+    {
+      "id": "proc-03",
+      "house": "proc-maple",
+      "title": "定制橱柜",
+      "status": "已下单",
+      "category": "定制/选样/配送需时间",
+      "owner": "Tristin",
+      "detail": "备注：已经下单，配送日期尚未确认。",
+      "source": "合成采购条目，仅供比较 A/B/C；金额是材料合计，不是财务付款记录。",
+      "fields": [
+        {
+          "label": "到货信息",
+          "value": "未记录实际到货，不能按下单状态推断"
+        }
+      ],
+      "documents": [
+        {
+          "id": "proc-03-note",
+          "name": "下单后跟进备注",
+          "detail": "合成备注：已经下单，配送日期尚未确认。 设计推荐不代表已批准采购。"
+        }
+      ],
+      "procurement": {
+        "ordered_on": "2026-09-20",
+        "expected_on": "2026-09-27",
+        "received_on": null,
+        "delivery_type": "custom",
+        "delivery_address": "Demo 临时仓库 · 预约收货",
+        "amount": 4200,
+        "quantity": 3,
+        "specification": "示例规格，购买前需核对现场尺寸",
+        "product_url": null,
+        "retailer": "Home Depot",
+        "order_number": "DEMO-003",
+        "order_url": "https://example.com/demo-order",
+        "carrier": "Demo carrier",
+        "tracking_number": null,
+        "tracking_url": null,
+        "shipment_status": "in_transit",
+        "follow_up": null
+      }
+    },
+    {
+      "id": "proc-04",
+      "house": "proc-cedar",
+      "title": "浴室地砖",
+      "status": "异常",
+      "category": "防水后、final 前需要",
+      "owner": "Jeremy",
+      "detail": "备注：现场收到的包装标识与原选型备注不一致，需要核对。",
+      "source": "合成采购条目，仅供比较 A/B/C；金额是材料合计，不是财务付款记录。",
+      "fields": [
+        {
+          "label": "当前问题",
+          "value": "包装标识待核对"
+        }
+      ],
+      "documents": [
+        {
+          "id": "proc-04-note",
+          "name": "现场异常备注",
+          "detail": "合成备注：现场收到的包装标识与原选型备注不一致，需要核对。 设计推荐不代表已批准采购。"
+        }
+      ],
+      "procurement": {
+        "ordered_on": "2026-09-20",
+        "expected_on": "2026-09-27",
+        "received_on": null,
+        "delivery_type": "company",
+        "delivery_address": "Demo 公司收货点",
+        "amount": 630,
+        "quantity": 1,
+        "specification": "示例规格，购买前需核对现场尺寸",
+        "product_url": null,
+        "retailer": "Amazon",
+        "order_number": "DEMO-004",
+        "order_url": "https://example.com/demo-order",
+        "carrier": "Demo carrier",
+        "tracking_number": null,
+        "tracking_url": null,
+        "shipment_status": null,
+        "follow_up": "核对包装标识与材料规格"
+      }
+    },
+    {
+      "id": "proc-05",
+      "house": "proc-cedar",
+      "title": "室内门把手",
+      "status": "已到货",
+      "category": "防水后、final 前需要",
+      "owner": "Tristin",
+      "detail": "备注：已登记到货状态，现场尚需按安装位置整理。",
+      "source": "合成采购条目，仅供比较 A/B/C；金额是材料合计，不是财务付款记录。",
+      "fields": [],
+      "documents": [
+        {
+          "id": "proc-05-note",
+          "name": "材料整理备注",
+          "detail": "合成备注：已登记到货状态，现场尚需按安装位置整理。 设计推荐不代表已批准采购。"
+        }
+      ],
+      "procurement": {
+        "ordered_on": "2026-09-20",
+        "expected_on": "2026-09-27",
+        "received_on": "2026-09-24",
+        "delivery_type": "project",
+        "delivery_address": "200 Synthetic Demo Lane, Demo City",
+        "amount": 128,
+        "quantity": 2,
+        "specification": "示例规格，购买前需核对现场尺寸",
+        "product_url": null,
+        "retailer": "Wayfair",
+        "order_number": "DEMO-005",
+        "order_url": "https://example.com/demo-order",
+        "carrier": "Demo carrier",
+        "tracking_number": null,
+        "tracking_url": null,
+        "shipment_status": "delivered",
+        "follow_up": null
+      }
+    },
+    {
+      "id": "proc-06",
+      "house": "proc-cedar",
+      "title": "庭院灯",
+      "status": "待选型",
+      "category": "院子",
+      "owner": "Jeremy",
+      "detail": "备注：需要核对庭院供电位置，再确认灯具形式。",
+      "source": "合成采购条目，仅供比较 A/B/C；金额是材料合计，不是财务付款记录。",
+      "fields": [
+        {
+          "label": "选择依据",
+          "value": "供电位置仍待核对"
+        }
+      ],
+      "documents": [
+        {
+          "id": "proc-06-note",
+          "name": "庭院现场条件备注",
+          "detail": "合成备注：需要核对庭院供电位置，再确认灯具形式。 设计推荐不代表已批准采购。"
+        }
+      ],
+      "procurement": {
+        "ordered_on": null,
+        "expected_on": null,
+        "received_on": null,
+        "delivery_type": "custom",
+        "delivery_address": "Demo 临时仓库 · 预约收货",
+        "amount": 320,
+        "quantity": 3,
+        "specification": "示例规格，购买前需核对现场尺寸",
+        "product_url": null,
+        "retailer": "Home Depot",
+        "order_number": null,
+        "order_url": null,
+        "carrier": "Demo carrier",
+        "tracking_number": null,
+        "tracking_url": null,
+        "shipment_status": null,
+        "follow_up": null
+      }
+    },
+    {
+      "id": "proc-07",
+      "house": "proc-pine",
+      "title": "独立浴缸及水龙头",
+      "status": "不适用",
+      "category": "水电检查前需要",
+      "owner": "Tristin",
+      "detail": "备注：当前示例房屋的方案不采用独立浴缸，采购项标记不适用。",
+      "source": "合成采购条目，仅供比较 A/B/C；金额是材料合计，不是财务付款记录。",
+      "fields": [
+        {
+          "label": "范围",
+          "value": "不适用于这套示例房屋，不修改其他项目模板"
+        }
+      ],
+      "documents": [
+        {
+          "id": "proc-07-note",
+          "name": "方案范围备注",
+          "detail": "合成备注：当前示例房屋的方案不采用独立浴缸，采购项标记不适用。 设计推荐不代表已批准采购。"
+        }
+      ],
+      "procurement": {
+        "ordered_on": null,
+        "expected_on": null,
+        "received_on": null,
+        "delivery_type": "company",
+        "delivery_address": "Demo 公司收货点",
+        "amount": null,
+        "quantity": 1,
+        "specification": "示例规格，购买前需核对现场尺寸",
+        "product_url": null,
+        "retailer": "Amazon",
+        "order_number": null,
+        "order_url": null,
+        "carrier": "Demo carrier",
+        "tracking_number": null,
+        "tracking_url": null,
+        "shipment_status": null,
+        "follow_up": null
+      }
+    },
+    {
+      "id": "proc-08",
+      "house": "proc-pine",
+      "title": "餐桌灯（点位）",
+      "status": "待选型",
+      "category": "水电检查前需要",
+      "owner": "Jeremy",
+      "detail": "备注：餐桌布局尚未定稿，灯具点位等待对应方案。",
+      "source": "合成采购条目，仅供比较 A/B/C；金额是材料合计，不是财务付款记录。",
+      "fields": [
+        {
+          "label": "等待内容",
+          "value": "餐桌布局与灯具点位的对应关系"
+        }
+      ],
+      "documents": [
+        {
+          "id": "proc-08-note",
+          "name": "选型等待备注",
+          "detail": "合成备注：餐桌布局尚未定稿，灯具点位等待对应方案。 设计推荐不代表已批准采购。"
+        }
+      ],
+      "procurement": {
+        "ordered_on": null,
+        "expected_on": null,
+        "received_on": null,
+        "delivery_type": "project",
+        "delivery_address": "300 Synthetic Demo Lane, Demo City",
+        "amount": null,
+        "quantity": 2,
+        "specification": "示例规格，购买前需核对现场尺寸",
+        "product_url": null,
+        "retailer": "Wayfair",
+        "order_number": null,
+        "order_url": null,
+        "carrier": "Demo carrier",
+        "tracking_number": null,
+        "tracking_url": null,
+        "shipment_status": null,
+        "follow_up": null
+      }
+    },
+    {
+      "id": "proc-09",
+      "house": "proc-pine",
+      "title": "厨房水槽",
+      "status": "待下单",
+      "category": "定制/选样/配送需时间",
+      "owner": "Tristin",
+      "detail": "备注：需要与台面开孔记录再次核对后办理购买。",
+      "source": "合成采购条目，仅供比较 A/B/C；金额是材料合计，不是财务付款记录。",
+      "fields": [
+        {
+          "label": "购买前核对",
+          "value": "台面开孔与水槽方案一致性"
+        }
+      ],
+      "documents": [
+        {
+          "id": "proc-09-note",
+          "name": "台面开孔核对备注",
+          "detail": "合成备注：需要与台面开孔记录再次核对后办理购买。 设计推荐不代表已批准采购。"
+        }
+      ],
+      "procurement": {
+        "ordered_on": null,
+        "expected_on": null,
+        "received_on": null,
+        "delivery_type": "custom",
+        "delivery_address": "Demo 临时仓库 · 预约收货",
+        "amount": 289,
+        "quantity": 3,
+        "specification": "示例规格，购买前需核对现场尺寸",
+        "product_url": null,
+        "retailer": "Home Depot",
+        "order_number": null,
+        "order_url": null,
+        "carrier": "Demo carrier",
+        "tracking_number": null,
+        "tracking_url": null,
+        "shipment_status": null,
+        "follow_up": null
+      }
+    }
   ]
 }

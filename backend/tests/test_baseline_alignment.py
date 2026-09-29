@@ -114,7 +114,8 @@ class LegacyDataSurvivesMigrationTests(unittest.TestCase):
             s.commit()
             steps = self._steps(s)
             gate = next(it for st in steps["stages"] for it in st["items"] if it["key"] == "open_escrow")
-            self.assertTrue(gate["done"], "旧库的 D/J 双勾在六段模板下应仍算过门")
+            self.assertTrue(gate["legacy_passage"], "旧确认仍保留历史阶段")
+            self.assertTrue(gate["needs_review"], "旧确认缺依据须明确待核验")
             self.assertEqual(sorted(gate["confirmed"]), ["D", "J"])
             self.assertEqual(gate["done_at"], "2026-05-01")
 

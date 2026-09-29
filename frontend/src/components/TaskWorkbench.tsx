@@ -24,8 +24,12 @@ import KeyValuePairs from './ui/Facts';
 import FormField from './ui/FormField';
 import Header from './ui/Header';
 import Container from './ui/Surface';
+import ImageViewer from './ui/ImageViewer';
 import UploadForm from './UploadForm';
 
+// In-memory drafts survive task/tab navigation, scoped to the signed-in account.
+// No project content is persisted to browser storage.
+const deliveryDrafts = new Map<string, { note: string; reason: string; picked: number[] }>();
 const kb = (n: number) => (n >= 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
 
 /**
@@ -50,13 +54,31 @@ export default function TaskWorkbench({ task, meId, onChanged, onConflict }: { t
 
   const bump = (t: Task) => { setRefreshKey((k) => k + 1); onChanged(t); };
   const handle = async (fn: () => Promise<Task>, ok: string) => {
+    if (busy) return;
     setBusy(true);
-    try { bump(await fn()); flash({ type: 'success', content: ok }); } catch (e: any) {
+    try { const changed = await fn(); deliveryDrafts.delete(`${meId}:${task.project_id}:${task.id}`); bump(changed); flash({ type: 'success', content: ok }); } catch (e: any) {
       const msg = String(e.message ?? e);
       flash({ type: msg.startsWith('409') ? 'warning' : 'error', content: msg });
       if (msg.startsWith('409')) onConflict();
     } finally { setBusy(false); }
   };
+
+  if (task.node_confirmation) {
+    const node = task.node_confirmation;
+    return <SpaceBetween size="m">
+      <StatusIndicator type={task.satisfied ? 'success' : node.ready ? 'pending' : 'warning'}>{task.exec_status_label}</StatusIndicator>
+      {node.needs_review && <Alert type="warning">此前已确认，前置资料发生变化，请复核。原确认记录保留在活动记录中。</Alert>}
+      <Box>{node.evidence_hint}</Box>
+      {node.history_pending && <Alert type="info">录入前历史，待补资料及核验；不视为平台内完成。</Alert>}
+      {node.confirmation && <Box color="text-body-secondary">{node.confirmation.name} · {dateTime(node.confirmation.at)} 确认</Box>}
+      {!task.satisfied && <Button variant="primary" loading={busy} disabled={!node.ready || !node.can_confirm} onClick={() => handle(() => api.confirmTask(task.project_id, task.id, { version: task.version }), `已确认满足：${task.title}`)}>确认满足</Button>}
+      {!node.can_confirm && <Box color="text-body-secondary">由 {node.confirm.join(' / ')} 或项目负责人账号确认。</Box>}
+      <Button variant="link" onClick={() => navigate(`/projects/${task.project_id}?tab=overview&step=${task.step_key}&action=confirm`)}>查看房屋与前置资料</Button>
+      <TaskTimeline projectId={task.project_id} taskId={task.id} refreshKey={task.version + refreshKey} />
+    </SpaceBetween>;
+  }
+
+  if (task.step_key === 'purchase') return <SpaceBetween size="m"><Alert type="info" action={<Button onClick={() => navigate(`/procurement?project=${task.project_id}`)}>进入本房采购</Button>}>采购负责人：{task.assignee?.display_name || '待分派'} · {task.procurement_progress?.ready ?? 0} / {task.procurement_progress?.total ?? 0} 项已备齐。采购进度由清单自动更新，无需提交审核。</Alert><TaskTimeline projectId={task.project_id} taskId={task.id} refreshKey={task.version} /></SpaceBetween>;
 
   const detail = (
     <SpaceBetween size="m">
@@ -120,17 +142,27 @@ function SubmissionList({ subs }: { subs: Submission[] }) {
 
 function DeliverTab({ task, meId, canSubmit, canReview, busy, onAction }: { task: Task; meId: number | null; canSubmit: boolean; canReview: boolean; busy: boolean; onAction: (fn: () => Promise<Task>, ok: string) => Promise<void> }) {
   const [files, setFiles] = useState<FileRow[] | null>(null);
-  const [picked, setPicked] = useState<number[]>([]);
-  const [note, setNote] = useState('');
-  const [reason, setReason] = useState('');
+  const [preview, setPreview] = useState<number | null>(null);
+  const draftKey = `${meId}:${task.project_id}:${task.id}`;
+  const [picked, setPicked] = useState<number[]>(() => deliveryDrafts.get(draftKey)?.picked ?? []);
+  const [note, setNote] = useState(() => deliveryDrafts.get(draftKey)?.note ?? '');
+  const [reason, setReason] = useState(() => deliveryDrafts.get(draftKey)?.reason ?? '');
+  const [fileError, setFileError] = useState('');
+  useEffect(() => {
+    if (!(canSubmit || canReview)) { deliveryDrafts.delete(draftKey); return; }
+    deliveryDrafts.set(draftKey, { note, reason, picked });
+    const prevent = (e: BeforeUnloadEvent) => { if (note || reason || picked.length) { e.preventDefault(); e.returnValue = ''; } };
+    window.addEventListener('beforeunload', prevent);
+    return () => window.removeEventListener('beforeunload', prevent);
+  }, [draftKey, note, reason, picked, canSubmit, canReview]);
   const [showUpload, setShowUpload] = useState(false);
   const docType = task.deliverable?.doc_type ?? null;
   useEffect(() => {
     let active = true;
-    setFiles(null); setPicked([]); setNote(''); setReason(''); setShowUpload(false);
+    setFiles(null); setFileError(''); setShowUpload(false);
     if (canSubmit) {
       api.files(task.project_id).then(rows => { if (active) setFiles(rows); })
-        .catch(() => { if (active) setFiles([]); });
+        .catch(e => { if (active) { setFiles([]); setFileError(e.message); } });
     }
     return () => { active = false; };
   }, [task.project_id, task.id, canSubmit]);
@@ -155,11 +187,12 @@ function DeliverTab({ task, meId, canSubmit, canReview, busy, onAction }: { task
             {latest.files.length ? latest.files.map((f) => (
               <div key={f.id} className="ui-file-choice">
                 {(f.mime ?? '').startsWith('image/') && <img src={`/api/files/${f.id}/download`} alt="" className="ui-thumbnail ui-thumbnail-delivery" />}
-                <div><Link href={`/api/files/${f.id}/download`} external>{f.filename}</Link><Box variant="small" color="text-body-secondary">{kb(f.size)}{f.uploaded_at ? ` · ${dateTime(f.uploaded_at)}` : ''}</Box></div>
+                <div>{f.mime?.startsWith('image/') ? <Button variant="inline-link" onClick={() => setPreview(f.id)}>{f.filename} · 查看图片</Button> : <Link href={`/api/files/${f.id}/download`} external>{f.filename}</Link>}<Box variant="small" color="text-body-secondary">{kb(f.size)}{f.uploaded_at ? ` · ${dateTime(f.uploaded_at)}` : ''}</Box></div>
               </div>
             )) : <Box color="text-body-secondary">没有文件，只交了说明。</Box>}
           </SpaceBetween>
         </Container>
+        {preview != null && <ImageViewer images={latest.files.filter(f => f.mime?.startsWith('image/')).map(f => ({ id: f.id, src: `/api/files/${f.id}/download`, label: f.filename }))} selectedId={preview} onClose={() => setPreview(null)} />}
         {requirement}
         <FormField label="审核意见（退回时必填）" description="写清修改要求，确认通过时可不填。" stretch>
           <Textarea value={reason} rows={3} onChange={({ detail }) => setReason(detail.value)} />
@@ -168,7 +201,7 @@ function DeliverTab({ task, meId, canSubmit, canReview, busy, onAction }: { task
           <Button loading={busy} onClick={() => { if (!reason.trim()) { return; } onAction(() => api.returnTask(task.project_id, task.id, { version: task.version, reason: reason.trim() }), `已退回「${task.title}」`); }} disabled={!reason.trim()}>退回修改</Button>
           <Button variant="primary" loading={busy} onClick={() => onAction(() => api.confirmTask(task.project_id, task.id, { version: task.version, reason: reason.trim() || null }), `已确认「${task.title}」完成`)}>确认本次交付</Button>
         </SpaceBetween>
-        <HelpText>确认后任务完成，工作台、项目总览、负责人的我的事项一起更新；关键节点的 D/J 确认不受影响。</HelpText>
+        <HelpText>确认后任务完成，工作台、项目总览、负责人的我的事项一起更新；节点仍按各自前置条件和权限确认。</HelpText>
         <SubmissionList subs={task.submissions.slice(1)} />
       </SpaceBetween>
     );
@@ -179,6 +212,7 @@ function DeliverTab({ task, meId, canSubmit, canReview, busy, onAction }: { task
       <SpaceBetween size="m">
         {requirement}
         {latest?.decision === 'returned' && <Alert type="warning" header={`第 ${latest.seq} 次提交被退回`}>{latest.decision_reason}</Alert>}
+        {fileError && <Alert type="error" header="文件读取失败">{fileError}</Alert>}
         <FormField label={task.requires_file ? '本次交付的文件（至少一个）' : '附文件（可选）'} description="从这套房已上传的文件里勾，或现在上传。">
           {files === null ? <Box color="text-body-secondary">读取文件中…</Box> : (
             <SpaceBetween size="xs">
@@ -196,7 +230,7 @@ function DeliverTab({ task, meId, canSubmit, canReview, busy, onAction }: { task
             </SpaceBetween>
           )}
         </FormField>
-        <FormField label={task.requires_file ? '交付说明（可选）' : '交付说明（必填）'} stretch>
+        <FormField label={task.requires_file ? '交付说明（可选）' : '交付说明（必填）'} constraintText="尚未提交的内容仅在当前页面会话保留；提交审核后才会交给审核人。" stretch>
           <Textarea value={note} rows={3} onChange={({ detail }) => setNote(detail.value)} placeholder={task.requires_file ? '例如：已补齐入口尺寸' : '写清做了什么、结果是什么'} />
         </FormField>
         <SpaceBetween direction="horizontal" size="xs">

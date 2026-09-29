@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { type ReactNode, type CSSProperties } from 'react';
 import BaseContainer, { type ContainerProps } from '@cloudscape-design/components/container';
 import BaseTable, { type TableProps } from '@cloudscape-design/components/table';
 import BaseExpandable, { type ExpandableSectionProps } from '@cloudscape-design/components/expandable-section';
@@ -26,7 +26,8 @@ export default function Container({ cardId, cardContext, embedded = false, ...pr
 }
 
 export function Table<T>({ cardId, cardContext, ...props }: TableProps<T> & Partial<CardProps>) {
-  const table = <BaseTable wrapLines {...props} />;
+  const minWidth = props.columnDefinitions.reduce((sum, column, index) => sum + (typeof column.minWidth === 'number' ? column.minWidth : typeof column.width === 'number' ? column.width : index === 0 ? 180 : 120), props.selectionType ? 48 : 0);
+  const table = <div className="ui-table" style={{ '--ui-table-min-width': `${minWidth}px` } as CSSProperties}><BaseTable wrapLines {...props} /></div>;
   return cardId ? <CardFrame cardId={cardId} cardContext={cardContext}>{table}</CardFrame> : table;
 }
 

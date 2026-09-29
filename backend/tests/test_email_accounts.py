@@ -136,7 +136,7 @@ class EmailAccountsTests(unittest.TestCase):
                 self.assertEqual(allowed(role, action), action in yes, (role, action))
             self.assertEqual(self.login(email).status_code, 200)
             self.assertEqual(self.client.get("/api/users").status_code, 403)
-            self.assertEqual(self.client.get(f"/api/projects/{self.pid}/procurement").status_code, 200 if role == "采购" else 403)
+            self.assertEqual(self.client.get(f"/api/projects/{self.pid}/procurement").status_code, 403)  # no active project membership
             self.assertEqual(self.client.get(f"/api/projects/{self.pid}/budget-lines").status_code, 200 if role == "财务" else 403)
             self.assertEqual(self.client.get(f"/api/projects/{self.pid}/analyses").status_code, 403)
             for as_who in ("D", "J"):

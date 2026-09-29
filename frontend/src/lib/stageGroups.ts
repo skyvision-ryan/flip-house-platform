@@ -4,15 +4,16 @@ import type { GroupPosition, StageGroup } from '../api/client';
  * 五格位置条的数据（KAN-75 块 2）。纯函数，能单测。
  * 位置只由后端 group_position 决定；这里不看任务、不看时间——「阶段位置 · 不代表任务完成比例」。
  */
-export type SegmentState = 'done' | 'current' | 'future';
+export type SegmentState = 'done' | 'current' | 'future' | 'history';
 export interface Segment { key: string; label: string; index: number; state: SegmentState; note: string | null }
 
 export function segmentsOf(groups: StageGroup[] | null | undefined, gp: GroupPosition | null | undefined): Segment[] {
   if (!groups?.length || !gp) return [];
   return groups.map((g, i) => {
     const idx = i + 1;
-    const state: SegmentState = gp.complete ? 'done' : idx < gp.group_index ? 'done' : idx === gp.group_index ? 'current' : 'future';
-    let note: string | null = null;
+    const history = !!gp.history_pending && g.stages.every((key) => key < (gp.initial_stage_key ?? 's1'));
+    const state: SegmentState = history ? 'history' : gp.complete ? 'done' : idx < gp.group_index ? 'done' : idx === gp.group_index ? 'current' : 'future';
+    let note: string | null = history ? '录入前 · 待核验' : null;
     if (state === 'current' && gp.sub_label) note = gp.sub_label + (gp.sub_key === 'pre' && gp.lead_substage_label ? ` · ${gp.lead_substage_label}` : '');
     if (state === 'done' && g.key === 'buying' && gp.frozen_substage_label) note = `过门前档位：${gp.frozen_substage_label}`;
     if (state === 'current' && g.key === 'buying' && gp.sub_key === 'escrow' && gp.frozen_substage_label) note = `escrow 中 · 过门前档位：${gp.frozen_substage_label}`;

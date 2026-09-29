@@ -45,6 +45,7 @@ export default function Users() {
     setModal(m);
   };
   const submit = async () => {
+    if (busy) return;
     if (modal !== 'password' && !draft.role_code) { setErr('先选一个角色'); return; }
     if (modal === 'create' && !draft.username.trim()) { setErr('账号不能为空'); return; }
     if (modal !== 'edit' && draft.password.length < 6) { setErr('密码至少 6 位'); return; }
@@ -69,6 +70,7 @@ export default function Users() {
         loading={rows === null}
         loadingText="读取中"
         selectionType="single"
+        ariaLabels={{ selectionGroupLabel: '选择一个账号', itemSelectionLabel: (_, user) => `选择 ${user.display_name || user.username}` }}
         selectedItems={selected}
         onSelectionChange={({ detail }) => setSelected(detail.selectedItems)}
         trackBy="id"
@@ -76,6 +78,7 @@ export default function Users() {
         stickyHeader
         header={
           <Header
+            description="先选择一个账号，再修改资料或管理访问。不能停用当前登录账号。"
             counter={rows ? `(${rows.length})` : undefined}
             actions={
               <SpaceBetween direction="horizontal" size="xs">
@@ -104,12 +107,12 @@ export default function Users() {
 
       <Modal
         visible={modal !== null}
-        onDismiss={() => setModal(null)}
+        onDismiss={() => { if (!busy) setModal(null); }}
         header={modal === 'create' ? '新建账号' : modal === 'edit' ? `改 ${sel?.username}` : `重置 ${sel?.username} 的密码`}
         footer={
           <Box float="right">
             <SpaceBetween direction="horizontal" size="xs">
-              <Button variant="link" onClick={() => setModal(null)}>取消</Button>
+              <Button variant="link" disabled={busy} onClick={() => setModal(null)}>取消</Button>
               <Button variant="primary" loading={busy} onClick={submit}>{modal === 'create' ? '建账号' : '保存'}</Button>
             </SpaceBetween>
           </Box>

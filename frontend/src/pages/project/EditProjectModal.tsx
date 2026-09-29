@@ -1,3 +1,4 @@
+import Alert from '@cloudscape-design/components/alert';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
 import ColumnLayout from '@cloudscape-design/components/column-layout';
@@ -7,7 +8,7 @@ import Modal from '@cloudscape-design/components/modal';
 import Select from '@cloudscape-design/components/select';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import Textarea from '@cloudscape-design/components/textarea';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api, Project } from '../../api/client';
 import FormField from '../../components/ui/FormField';
 import { useFlash } from '../../lib/flash';
@@ -22,10 +23,16 @@ export default function EditProjectModal({ visible, project, onDismiss, onSaved 
   const meta = useMeta();
   const flash = useFlash();
   const [f, setF] = useState<any>({});
+  const [dirty, setDirty] = useState(false);
+  const [error, setError] = useState('');
+  const [discard, setDiscard] = useState(false);
+  const discardRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (discard) discardRef.current?.focus(); }, [discard]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (visible) {
+      setDirty(false); setError(''); setDiscard(false);
       setF({
         name: project.name, strategy: project.strategy, stage: project.stage, substage: project.substage ?? '',
         lead_heat: project.lead_heat ?? 'warm_lead',
@@ -38,13 +45,15 @@ export default function EditProjectModal({ visible, project, onDismiss, onSaved 
     }
   }, [visible, project]);
 
-  const set = (k: string, v: any) => setF((p: any) => ({ ...p, [k]: v }));
+  const set = (k: string, v: any) => { setDirty(true); setF((p: any) => ({ ...p, [k]: v })); };
+  const close = () => { if (saving) return; if (dirty) setDiscard(true); else onDismiss(); };
   const substages = meta?.substages[f.stage] ?? [];
   const statusOptions = [{ label: '不覆盖（自动计算）', value: '' }, ...(meta?.statuses.filter((s) => s.value !== 'done') ?? [])];
   const heatOptions = [{ label: '热线索', value: 'hot_lead' }, { label: '温线索', value: 'warm_lead' }];
 
   const save = async () => {
-    setSaving(true);
+    if (saving) return;
+    setSaving(true); setError('');
     try {
       await api.patchProject(project.id, {
         name: f.name, strategy: f.strategy, stage: f.stage, substage: f.substage || null, lead_heat: f.lead_heat,
@@ -58,7 +67,7 @@ export default function EditProjectModal({ visible, project, onDismiss, onSaved 
       flash({ type: 'success', content: '项目已更新' });
       onSaved();
     } catch (e: any) {
-      flash({ type: 'error', content: `保存失败：${e.message}` });
+      setError(`未保存：${e.message}`);
     } finally {
       setSaving(false);
     }
@@ -73,19 +82,21 @@ export default function EditProjectModal({ visible, project, onDismiss, onSaved 
   return (
     <Modal
       visible={visible}
-      onDismiss={onDismiss}
+      onDismiss={close}
       size="large"
       header="编辑项目"
       footer={
         <Box float="right">
           <SpaceBetween direction="horizontal" size="xs">
-            <Button variant="link" onClick={onDismiss}>取消</Button>
+            <Button variant="link" disabled={saving} onClick={close}>取消</Button>
             <Button variant="primary" loading={saving} onClick={save}>保存</Button>
           </SpaceBetween>
         </Box>
       }
     >
       <SpaceBetween size="l">
+        {error && <Alert type="error">{error}</Alert>}
+        {discard && <div ref={discardRef} tabIndex={-1}><Alert type="warning" header="修改尚未保存" action={<SpaceBetween direction="horizontal" size="xs"><Button onClick={() => setDiscard(false)}>继续编辑</Button><Button onClick={onDismiss}>放弃修改</Button></SpaceBetween>}>关闭会丢弃本次输入。</Alert></div>}
         <ColumnLayout columns={3}>
           <FormField label="项目名称"><Input value={f.name ?? ''} onChange={({ detail }) => set('name', detail.value)} /></FormField>
           <FormField label="投资策略">

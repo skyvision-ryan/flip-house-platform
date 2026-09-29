@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prepare three synthetic team projects against existing accounts.
+"""Prepare synthetic team projects (three houses, or one renovation house) against existing accounts.
 
 Default is read-only. SQLite database, uploads, roster and admin identity must be
 explicit. Apply backs up and restores a copy for verification before any writes.
@@ -31,14 +31,16 @@ from app.routers.procurement import ensure_procurement
 from app.routers.tasks import ensure_tasks
 from app.steps import compute_steps, sync_legacy_stage
 
+HOUSE_SETS = {"3": (0, 1, 2), "1": (1,)}  # "1": renovation-stage house only, demand-only procurement showcase
+ALL_HOUSES = HOUSE_SETS["3"]
 SLOTS = {"jessie": "J", "david": "D", "kody": "项目助理", "tristin": "采购",
          "jeremy": "采购", "zoey": "Permit/设计", "sabrina": "财务"}
 EXTRA_TITLES = {
     "jessie": ("核对当前房屋的协作安排", "汇总跨职责资料缺口"),
     "david": ("复核本房定价依据", "记录合同与节点核对意见"),
     "kody": ("核对水电燃气账户卡点", "核对保险文件与到期日"),
-    "tristin": ("核对厨房材料规格与交期", "跟进厨房材料采购异常"),
-    "jeremy": ("核对卫浴材料规格与交期", "跟进卫浴材料到货记录"),
+    "tristin": ("核对材料选型与下单准备", "跟进订单交期与异常"),
+    "jeremy": ("核对材料选型与下单准备", "跟进订单交期与收货"),
     "zoey": ("核对设计与Permit资料版本", "整理本房检查与整改说明"),
     "sabrina": ("核对分类预算与费用归集", "核对本房费用凭证缺口"),
     "admin": ("记录本房现场资料核对意见", "整理经营风险与下一步说明"),
@@ -127,8 +129,8 @@ def backup_and_verify(database: Path, uploads: Path, backup_dir: Path) -> Path:
     return bundle
 
 
-def _owned(db: Session, scope: str) -> list[models.Project]:
-    return list(db.scalars(select(models.Project).join(models.Property).where(models.Property.apn.in_([f"TEAM-DEMO:{scope}:{i}" for i in range(3)]))).all())
+def _owned(db: Session, scope: str, houses=ALL_HOUSES) -> list[models.Project]:
+    return list(db.scalars(select(models.Project).join(models.Property).where(models.Property.apn.in_([f"TEAM-DEMO:{scope}:{i}" for i in houses]))).all())
 
 
 def _delete_projects(db: Session, ids: list[int], uploads: Path) -> list[Path]:
@@ -136,6 +138,8 @@ def _delete_projects(db: Session, ids: list[int], uploads: Path) -> list[Path]:
     projects = list(db.scalars(select(models.Project).where(models.Project.id.in_(ids))).all())
     if len(projects) != len(set(ids)):
         raise ValueError("待替换项目 ID 不存在或重复")
+    if db.scalar(select(models.PurchaseOrder.id).where(models.PurchaseOrder.project_id.in_(ids)).limit(1)):
+        raise ValueError("项目已有采购订单和收货历史，拒绝用演示初始数据替换")
     task_ids = list(db.scalars(select(models.Task.id).where(models.Task.project_id.in_(ids))).all())
     file_rows = list(db.scalars(select(models.ProjectFile).where(models.ProjectFile.project_id.in_(ids))).all())
     file_ids = [row.id for row in file_rows]
@@ -152,12 +156,16 @@ def _delete_projects(db: Session, ids: list[int], uploads: Path) -> list[Path]:
             raise ValueError("有范围外历史引用待替换任务，拒绝删除")
     if db.scalar(select(models.SubmissionFile.id).where(models.SubmissionFile.submission_id.not_in(sub_ids), models.SubmissionFile.file_id.in_(file_ids)).limit(1)):
         raise ValueError("有范围外提交引用待替换文件，拒绝删除")
-    paths = [Path(row.stored_path).resolve() for row in file_rows if row.stored_path]
+    purchase_ids = select(models.ProcurementItem.id).where(models.ProcurementItem.project_id.in_(ids))
+    purchase_images = list(db.scalars(select(models.ProcurementImage).where(models.ProcurementImage.item_id.in_(purchase_ids))).all())
+    paths = [Path(row.stored_path).resolve() for row in [*file_rows, *purchase_images] if row.stored_path]
     if any(uploads not in path.parents for path in paths):
         raise ValueError("待替换附件路径不在显式 uploads 目录内，拒绝删除")
     other_paths = {Path(value).resolve() for value in db.scalars(select(models.ProjectFile.stored_path).where(models.ProjectFile.project_id.not_in(ids))).all() if value}
+    other_paths.update(Path(value).resolve() for value in db.scalars(select(models.ProcurementImage.stored_path).where(models.ProcurementImage.item_id.not_in(purchase_ids))).all() if value)
     if set(paths).intersection(other_paths):
         raise ValueError("范围外项目仍引用同一物理附件，拒绝删除")
+    db.execute(delete(models.ProcurementImage).where(models.ProcurementImage.item_id.in_(purchase_ids)))
     db.execute(delete(models.SubmissionFile).where(models.SubmissionFile.submission_id.in_(sub_ids)))
     db.execute(models.Task.__table__.update().where(models.Task.id.in_(task_ids)).values(linked_task_id=None))
     # Metadata order accounts for expenses -> budgets/files and submissions -> tasks.
@@ -192,7 +200,7 @@ def _pdf(label: str) -> bytes:
     return bytes(out)
 
 
-def _make_project(db: Session, index: int, scope: str, team: dict, as_of: date, folder: Path) -> models.Project:
+def _make_project(db: Session, index: int, scope: str, team: dict, as_of: date, folder: Path, showcase: bool = False) -> models.Project:
     day = lambda offset: (as_of + timedelta(days=offset)).isoformat()
     timestamp = lambda offset: f"{day(offset)}T10:00:00+00:00"
     current_stage = ("s1", "s3", "s5")[index]
@@ -264,8 +272,48 @@ def _make_project(db: Session, index: int, scope: str, team: dict, as_of: date, 
             db.add(models.Expense(project_id=project.id, budget_line_id=budget.id, category=category, amount=round(planned * (0.12 + index * 0.09 + part * 0.04), 2),
                 date=day(-9 + part * 3), vendor=f"Demo {category} vendor", note="合成支出登记；不代表付款台账", file_id=invoice.id if part == 0 else None))
     for item_index, item in enumerate(ensure_procurement(db, project.id, commit=False)):
+        if showcase:
+            # Single-house procurement showcase: requirements only. Orders and receipts are
+            # created live by the buyers; no legacy purchase facts, so nothing reads as 旧记录.
+            buyer = team["jeremy"]
+            item.updated_by, item.updated_by_user_id = buyer.display_name, buyer.id
+            item.required_quantity = (1, 2, 4, 6)[item_index % 4]
+            item.unit = ("套", "个", "箱", "件")[item_index % 4]
+            item.specification = "合成规格；现场核对尺寸后下单"
+            item.needed_on = day(7 + (item_index % 3) * 7)
+            item.use_location = ("主卫", "厨房", "本房施工现场")[item_index % 3]
+            item.status = "pending_order" if item_index % 3 else "pending_spec"
+            item.worklist_selected = item_index % 3 == 0
+            item.note = "合成需求；仅供采购演示"
+            if item_index == 2:
+                item.status, item.worklist_selected = "exception", True
+                item.follow_up = "合成：请 Jessie 确认款式后再下单"
+                item.note = "合成：尺寸已复核，款式待确认"
+            continue
         item.status = "received" if index == 2 or (index == 1 and item.wave == "before_rough") else ("pending_spec", "ordered", "exception", "pending_order")[item_index % 4]
-        item.updated_by = team["tristin" if item_index % 2 == 0 else "jeremy"].role_code
+        buyer = team["tristin" if item_index % 2 == 0 else "jeremy"]
+        item.updated_by = buyer.display_name
+        item.updated_by_user_id = buyer.id
+        placed = item.status in {"ordered", "received", "exception"}
+        item.ordered_on = day(-12) if placed else None
+        item.expected_on = day(-3 if item.status in {"received", "exception"} else (2 if item_index % 3 == 1 else 5)) if placed else None
+        item.received_on = day(-2) if item.status == "received" else None
+        item.delivery_type = ("company", "project", "custom")[item_index % 3]
+        item.delivery_address = project.property.address_std if item.delivery_type == "project" else "Synthetic Company · Demo 收货点" if item.delivery_type == "company" else "Synthetic Warehouse · Demo 临时仓库"
+        item.quantity = 1 + item_index % 4
+        item.amount = round((79.95 + item_index * 21.5) * item.quantity, 2) if item.status != "pending_spec" else None
+        item.specification = "合成规格；现场核对尺寸后下单"
+        item.product_url = "https://example.com/demo-material"
+        item.retailer = ("Amazon", "Wayfair", "Home Depot")[item_index % 3]
+        item.order_number = f"DEMO-{index + 1}-{item_index + 1:03}" if placed else None
+        item.order_url = "https://example.com/demo-order" if placed else None
+        item.carrier = "Demo carrier" if placed else None
+        item.tracking_number = f"DEMO-TRACK-{index + 1}-{item_index + 1:03}" if placed else None
+        item.tracking_url = "https://example.com/demo-tracking" if placed else None
+        item.shipment_status = "delivered" if item.status == "received" else "exception" if item.status == "exception" else ("delivered" if item_index % 5 == 1 else "in_transit") if placed else None
+        item.follow_up = "合成：联系商家核实交期与现场收货安排" if item.status == "exception" else None
+        item.checked_at = timestamp(-1) if placed and item_index % 3 == 0 else None
+        item.checked_by_user_id = buyer.id if item.checked_at else None
         item.note = "合成：尺寸/交期需跟进；实际到货不以预计日期替代" if item.status == "exception" else "合成采购记录"
     for kind in ("water", "electric", "gas"):
         state = "pending" if index == 0 and kind == "gas" else "off" if index == 2 and kind != "gas" else "on"
@@ -294,11 +342,23 @@ def _make_project(db: Session, index: int, scope: str, team: dict, as_of: date, 
     if index == 2:
         db.add(models.ProjectStep(project_id=project.id, key="agent", done=True, done_by="J", done_at=timestamp(-30), note="合成 listing agent 已选定"))
     db.flush(); db.expire(project)
+    node_tasks = ensure_tasks(db, project.id, commit=False)
+    if index == 2:
+        from app.steps import gate_conditions
+        listing = next(t for t in node_tasks if t.step_key == "listing")
+        missing, facts = gate_conditions(project, "listing")
+        if missing: raise ValueError("合成上市节点缺少前置资料")
+        snap = {"user_id": team["jessie"].id, "name": team["jessie"].display_name, "role": "J", "at": timestamp(-7), "facts": facts}
+        listing.gate_confirmation_json = json.dumps(snap)
+        listing.done_at = snap["at"]
+        listing.exec_status = "done"
+        db.add(models.TaskEvent(task_id=listing.id, project_id=project.id, kind="node_confirmed", actor_user_id=team["jessie"].id, actor_role_snapshot="J", after_json=json.dumps(snap), created_at=snap["at"]))
+        db.flush()
     steps = compute_steps(db, project)
     if steps["current_stage"]["key"] != current_stage:
         raise ValueError("演示节点与既有阶段规则不一致")
     sync_legacy_stage(db, project, steps)
-    tasks = ensure_tasks(db, project.id, commit=False)
+    tasks = [t for t in ensure_tasks(db, project.id, commit=False) if t.source == "template"]
     for task in tasks:
         slot = TEMPLATE_OWNER.get(task.step_key, "jessie")
         if task.step_key == "purchase" and index == 1: slot = "jeremy"
@@ -371,7 +431,10 @@ def _make_project(db: Session, index: int, scope: str, team: dict, as_of: date, 
 
 
 def prepare_demo(database: Path, uploads: Path, roster: object, admin_user_id: int, as_of: date, *, apply=False,
-                 backup_dir: Path | None = None, replace_project_ids=(), scope="team-v1") -> dict:
+                 backup_dir: Path | None = None, replace_project_ids=(), scope="team-v1", houses=ALL_HOUSES) -> dict:
+    houses = tuple(houses)
+    if houses not in HOUSE_SETS.values():
+        raise ValueError("演示房屋集合只能是三套或仅装修房")
     database, uploads = Path(database).resolve(), Path(uploads).resolve()
     if not database.is_file() or not re.fullmatch(r"[a-z0-9-]{1,40}", scope):
         raise ValueError("必须提供已初始化的 SQLite 数据库及合法 scope")
@@ -384,10 +447,10 @@ def prepare_demo(database: Path, uploads: Path, roster: object, admin_user_id: i
     try:
         with Session(engine) as db:
             team = resolve_team(db, roster, admin_user_id)
-            existing = _owned(db, scope)
+            existing = _owned(db, scope, houses)
             existing_ids = {project.id for project in existing}
-            if existing and (len(existing) != 3 or (existing_ids.intersection(ids) and not existing_ids.issubset(ids))):
-                raise ValueError("已有演示范围不完整；只允许保留三套或显式同时替换三套")
+            if existing and (len(existing) != len(houses) or (existing_ids.intersection(ids) and not existing_ids.issubset(ids))):
+                raise ValueError("已有演示范围不完整；只允许保留全部演示房或显式同时替换全部")
             found = set(db.scalars(select(models.Project.id).where(models.Project.id.in_(ids))).all())
             if found != set(ids): raise ValueError("指定的替换项目不存在")
             if existing and not ids:
@@ -398,8 +461,8 @@ def prepare_demo(database: Path, uploads: Path, roster: object, admin_user_id: i
                         raise ValueError("已有演示绑定的账号与当前名单不一致，需显式核对后替换")
                 return {"mode": "unchanged", "project_ids": sorted(existing_ids), "users_changed": 0, "reason": "已有演示保留用户后续操作"}
             if existing and not existing_ids.issubset(ids):
-                raise ValueError("已有本scope演示，替换其他项目时也须明确三套旧演示ID")
-            plan = {"mode": "dry-run", "create_projects": 3, "template_tasks": 72, "current_role_tasks": 48,
+                raise ValueError("已有本scope演示，替换其他项目时也须明确全部旧演示ID")
+            plan = {"mode": "dry-run", "create_projects": len(houses), "template_tasks": 24 * len(houses), "current_role_tasks": 16 * len(houses),
                     "replace_project_ids": ids, "users_changed": 0, "assignee_ids": {slot: user.id for slot, user in team.items()}}
             if not apply: return plan
         if backup_dir is None: raise ValueError("--apply 必须提供 --backup-dir")
@@ -408,10 +471,10 @@ def prepare_demo(database: Path, uploads: Path, roster: object, admin_user_id: i
             db.execute(text("BEGIN IMMEDIATE"))
             team = resolve_team(db, roster, admin_user_id)
             # Serialize writers and re-check idempotency after the backup interval.
-            current = {project.id for project in _owned(db, scope)}
+            current = {project.id for project in _owned(db, scope, houses)}
             if current != existing_ids: raise ValueError("备份期间演示范围已变化，请重新核对")
             if ids: old_paths = _delete_projects(db, ids, uploads)
-            projects = [_make_project(db, index, scope, team, as_of, run_folder) for index in range(3)]
+            projects = [_make_project(db, index, scope, team, as_of, run_folder, showcase=len(houses) == 1) for index in houses]
             db.flush()
             project_ids = [project.id for project in projects]
             db.commit()
@@ -443,12 +506,13 @@ def main():
     parser.add_argument("--apply", action="store_true")
     parser.add_argument("--backup-dir", type=Path)
     parser.add_argument("--replace-project-ids", default="", help="仅填写已确认属于合成演示的项目ID，逗号分隔；不自动选择旧项目")
+    parser.add_argument("--houses", default="3", choices=sorted(HOUSE_SETS), help="3 = 三套演示房；1 = 仅装修房，材料只有需求，供采购演示现场下单")
     args = parser.parse_args()
     try:
         roster = json.loads(args.users_file.read_text(encoding="utf-8"))
         ids = [int(value) for value in args.replace_project_ids.split(",") if value]
         result = prepare_demo(args.database, args.uploads_dir, roster, args.admin_user_id, args.as_of,
-            apply=args.apply, backup_dir=args.backup_dir, replace_project_ids=ids, scope=args.scope)
+            apply=args.apply, backup_dir=args.backup_dir, replace_project_ids=ids, scope=args.scope, houses=HOUSE_SETS[args.houses])
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
     except Exception:

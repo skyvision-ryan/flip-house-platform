@@ -23,10 +23,10 @@ import Header from './ui/Header';
 import Container from './ui/Surface';
 import Table from './ui/Table';
 
-type Props = { meta: Meta; plan: TaskPlan; onChange: (p: TaskPlan) => void; users: UserBrief[]; loading: boolean; creatorId: number };
+type Props = { meta: Meta; plan: TaskPlan; onChange: (p: TaskPlan) => void; users: UserBrief[]; loading: boolean; creatorId: number; initialStage: string };
 
-export default function ProjectPreplan({ meta, plan, onChange, users, loading, creatorId }: Props) {
-  const [group, setGroup] = useState(meta.stage_groups?.[0]?.key ?? 'buying');
+export default function ProjectPreplan({ meta, plan, onChange, users, loading, creatorId, initialStage }: Props) {
+  const [group, setGroup] = useState(meta.stage_groups?.find((g) => g.stages.includes(initialStage))?.key ?? 'buying');
   const [editing, setEditing] = useState<{ key: string; title: string } | null>(null);
   const [who, setWho] = useState<number | null>(null);
   const [due, setDue] = useState('');
@@ -38,19 +38,19 @@ export default function ProjectPreplan({ meta, plan, onChange, users, loading, c
   const renderStage = (stage: PlanStage) => {
     const ordinary = stage.items.filter((i) => !i.gate);
     const gates = stage.items.filter((i) => i.gate);
-    const current = stage.key === meta.stage_checklist[0]?.key;
+    const current = stage.key === initialStage;
     const title = stage.key === 's1' ? '买房 · 未购入' : stage.key === 's2' ? '买房 · escrow 中' : stage.short;
     return <Container cardId="plan-stage" cardContext={title} key={stage.key} header={<Header variant="h2" counter={`(${ordinary.length})`} help={current ? '从这里开始；可先安排负责人和截止日期。' : '提前安排；创建后仍是未开始，关键节点按原规则推进。'}>{title}</Header>}>
       <div className={`${css.draftRow} ${css.rowHeading}`}><span>普通任务</span><span>主要负责人</span><span>截止日期</span></div>
       {ordinary.map((item) => {
         const user = users.find((u) => u.id === plan[item.key]?.assignee_user_id);
         return <div className={`${css.draftRow} ${css.draftItem}`} key={item.key}>
-          <div><Box fontWeight="bold">{item.title}</Box><Box variant="small" color="text-body-secondary">{item.deliverable?.label ?? item.evidence}{!current && ' · 提前准备'}</Box></div>
+          <div><Box fontWeight="bold">{item.title}</Box><Box variant="small" color="text-body-secondary">{item.deliverable?.label ?? item.evidence}{!current && (stage.key < initialStage ? ' · 录入前历史待核验' : ' · 提前准备')}</Box></div>
           <AssigneeButton user={user} label={`安排负责人：${item.title}`} disabled={loading} onClick={() => open(item)} />
           <Button variant="inline-link" iconName="calendar" ariaLabel={`安排截止：${item.title}`} onClick={() => open(item)}>{plan[item.key]?.due_at || '未设定'}</Button>
         </div>;
       })}
-      {gates.length > 0 && <Box padding={{ top: 'm' }}><SpaceBetween size="xs"><Box fontWeight="bold">关键节点 · 单独确认</Box>{gates.map((g) => <div key={g.key}><StatusIndicator type="not-started">{g.title}</StatusIndicator><Box variant="small" color="text-body-secondary">{(g.confirm ?? []).join(' / ')} 确认</Box></div>)}<HelpText inline>关键节点单独确认，不计入人员分派数。</HelpText></SpaceBetween></Box>}
+      {gates.length > 0 && <Box padding={{ top: 'm' }}><SpaceBetween size="xs"><Box fontWeight="bold">节点确认要求</Box>{gates.map((g) => <div key={g.key}><StatusIndicator type="not-started">{g.title}</StatusIndicator><Box variant="small" color="text-body-secondary">{g.done_when ?? `${(g.confirm ?? []).join(' / ')} 确认`}</Box></div>)}<HelpText inline>符合条件后自动进入有权限人员的待确认，不需要预先分派。</HelpText></SpaceBetween></Box>}
     </Container>;
   };
   return <>
@@ -71,16 +71,16 @@ export default function ProjectPreplan({ meta, plan, onChange, users, loading, c
   </>;
 }
 
-export function PlanSummary({ meta, plan, users, review = false }: { meta: Meta; plan: TaskPlan; users: UserBrief[]; review?: boolean }) {
+export function PlanSummary({ meta, plan, users, initialStage, review = false }: { meta: Meta; plan: TaskPlan; users: UserBrief[]; initialStage: string; review?: boolean }) {
   const [preview, setPreview] = useState(false);
-  const summary = summarizePlan(meta.stage_checklist, plan);
-  const recipients = planByPerson(meta.stage_checklist, plan, users);
+  const summary = summarizePlan(meta.stage_checklist, plan, initialStage);
+  const recipients = planByPerson(meta.stage_checklist, plan, users, initialStage);
   return <SpaceBetween size="l">
     <Container cardId="plan-summary" header={<Header variant="h2">安排摘要</Header>}>
       <SpaceBetween size="m">
         <ColumnLayout columns={2} minColumnWidth={100} variant="text-grid"><div><Box color="text-body-secondary">已安排负责人</Box><Box fontSize="heading-xl" fontWeight="bold">{summary.assigned} / {summary.total}</Box></div><div><Box color="text-body-secondary">待分派</Box><Box fontSize="heading-xl" fontWeight="bold">{summary.unassigned}</Box></div></ColumnLayout>
         <div>当前已分派 <b>{summary.current}</b> 项 · 后续已分派 <b>{summary.future}</b> 项</div>
-        <div>关键节点 <b>{summary.gates}</b> 个 · 单独确认</div>
+        <div>关键节点 <b>{summary.gates}</b> 个 · 按各节点要求确认</div>
         <HelpText>未分派任务也会创建，可在项目总览继续安排。</HelpText>
       </SpaceBetween>
     </Container>

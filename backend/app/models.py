@@ -131,6 +131,7 @@ class Project(Base):
     strategy: Mapped[str] = mapped_column(String, default="flip")
     stage: Mapped[str] = mapped_column(String, default="lead")
     substage: Mapped[Optional[str]] = mapped_column(String)
+    initial_stage_key: Mapped[Optional[str]] = mapped_column(String)  # 录入起点，之前的历史不视为完成
     lead_heat: Mapped[Optional[str]] = mapped_column(String)  # hot_lead / warm_lead
     # KAN-75 块 2：open_escrow 双确认成立那一刻的跟进档位快照。substage 列过门后会被 sync_legacy_stage
     # 覆盖成 construction（status.py / dashboard.py 还依赖它），所以历史档位另存一列，不改旧逻辑。
@@ -284,15 +285,93 @@ class ProcurementItem(Base):
     """材料采购行：按节点波次管理选型 / 下单 / 到货 / 异常。"""
     __tablename__ = "procurement_items"
 
+    worklist_selected: Mapped[Optional[bool]] = mapped_column(Boolean)  # presentation scope; never completion evidence
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), index=True)
     wave: Mapped[str] = mapped_column(String, index=True)  # before_rough / long_lead / after_waterproof / yard / other
     name: Mapped[str] = mapped_column(String)
     status: Mapped[str] = mapped_column(String, default="pending_spec")  # pending_spec / pending_order / ordered / received / exception / na
     note: Mapped[Optional[str]] = mapped_column(String)
+    ordered_on: Mapped[Optional[str]] = mapped_column(String)
+    expected_on: Mapped[Optional[str]] = mapped_column(String)
+    received_on: Mapped[Optional[str]] = mapped_column(String)
+    delivery_type: Mapped[Optional[str]] = mapped_column(String)  # company / project / custom
+    delivery_address: Mapped[Optional[str]] = mapped_column(String)  # saved snapshot, not inferred on edits
+    amount: Mapped[Optional[float]] = mapped_column(Float)  # item total USD; never an Expense
+    product_url: Mapped[Optional[str]] = mapped_column(String)
+    specification: Mapped[Optional[str]] = mapped_column(String)
+    quantity: Mapped[Optional[float]] = mapped_column(Float)
+    required_quantity: Mapped[Optional[float]] = mapped_column(Float)
+    unit: Mapped[Optional[str]] = mapped_column(String)
+    needed_on: Mapped[Optional[str]] = mapped_column(String)
+    budget_amount: Mapped[Optional[float]] = mapped_column(Float)
+    use_location: Mapped[Optional[str]] = mapped_column(String)
+    retailer: Mapped[Optional[str]] = mapped_column(String)
+    order_number: Mapped[Optional[str]] = mapped_column(String)
+    order_url: Mapped[Optional[str]] = mapped_column(String)
+    carrier: Mapped[Optional[str]] = mapped_column(String)
+    tracking_number: Mapped[Optional[str]] = mapped_column(String)
+    tracking_url: Mapped[Optional[str]] = mapped_column(String)
+    shipment_status: Mapped[Optional[str]] = mapped_column(String)
+    follow_up: Mapped[Optional[str]] = mapped_column(String)
+    checked_at: Mapped[Optional[str]] = mapped_column(String)
+    checked_by_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"))
+    updated_by_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"))
+    images: Mapped[list["ProcurementImage"]] = relationship(cascade="all, delete-orphan", order_by="ProcurementImage.id")
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     updated_by: Mapped[Optional[str]] = mapped_column(String)
     updated_at: Mapped[str] = mapped_column(String, default=now_iso, onupdate=now_iso)
+
+
+class PurchaseOrder(Base):
+    """One house per order. Validated document holds stable line / delivery IDs.
+
+    A single versioned aggregate makes line allocation and receipt changes atomic;
+    immutable event snapshots preserve the exact document before later corrections.
+    Legacy procurement rows are never converted or overwritten on startup.
+    """
+    __tablename__ = "purchase_orders"
+    __table_args__ = (UniqueConstraint("vendor_key", "number_key"), UniqueConstraint("request_key"),)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), index=True)
+    vendor_key: Mapped[str] = mapped_column(String(200))
+    number_key: Mapped[str] = mapped_column(String(200))
+    request_key: Mapped[str] = mapped_column(String(36))
+    fingerprint: Mapped[str] = mapped_column(String(64))
+    document: Mapped[str] = mapped_column(Text)
+    version: Mapped[int] = mapped_column(Integer, default=1)
+    created_by: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    updated_by: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[str] = mapped_column(String, default=now_iso)
+    updated_at: Mapped[str] = mapped_column(String, default=now_iso)
+
+
+class PurchaseOrderEvent(Base):
+    __tablename__ = "purchase_order_events"
+    __table_args__ = (UniqueConstraint("order_id", "version"), UniqueConstraint("request_key"),)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    order_id: Mapped[int] = mapped_column(ForeignKey("purchase_orders.id"), index=True)
+    version: Mapped[int] = mapped_column(Integer)
+    request_key: Mapped[str] = mapped_column(String(36))
+    fingerprint: Mapped[str] = mapped_column(String(64))
+    kind: Mapped[str] = mapped_column(String)
+    actor_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    snapshot: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[str] = mapped_column(String, default=now_iso)
+
+
+class ProcurementImage(Base):
+    """Private images belonging to a purchase item, separate from financial documents."""
+    __tablename__ = "procurement_images"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    item_id: Mapped[int] = mapped_column(ForeignKey("procurement_items.id"), index=True)
+    filename: Mapped[str] = mapped_column(String)
+    stored_path: Mapped[str] = mapped_column(String)
+    mime: Mapped[str] = mapped_column(String)
+    size: Mapped[int] = mapped_column(Integer)
+    uploaded_by_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[str] = mapped_column(String, default=now_iso)
 
 
 class User(Base):
@@ -339,7 +418,7 @@ class Task(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), index=True)
     step_key: Mapped[Optional[str]] = mapped_column(String, index=True)  # 模板项的稳定 key；临时事项为空
-    source: Mapped[str] = mapped_column(String, default="template")  # template / adhoc / change
+    source: Mapped[str] = mapped_column(String, default="template")  # template / node_confirmation / adhoc / change
     stage_key: Mapped[str] = mapped_column(String)  # s1…s6，展示分组由前端按 meta 映射
     title: Mapped[str] = mapped_column(String)
     description: Mapped[Optional[str]] = mapped_column(Text)
@@ -354,6 +433,7 @@ class Task(Base):
     version: Mapped[int] = mapped_column(Integer, default=1)  # 每次写递增；客户端带旧值就 409
     # UPDATE includes the version read by this transaction; a competing write must not be overwritten.
     __mapper_args__ = {"version_id_col": version}
+    gate_confirmation_json: Mapped[Optional[str]] = mapped_column(Text)  # 实际确认人、时间及前置事实快照
     requirement_version: Mapped[int] = mapped_column(Integer, default=1)
     linked_task_id: Mapped[Optional[int]] = mapped_column(ForeignKey("tasks.id"))
     created_by_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"))
@@ -402,3 +482,14 @@ class TaskEvent(Base):
     after_json: Mapped[Optional[str]] = mapped_column(Text)
     reason: Mapped[Optional[str]] = mapped_column(Text)
     created_at: Mapped[str] = mapped_column(String, default=now_iso, index=True)
+
+
+class ProcurementRequest(Base):
+    """Idempotent creation without mutating the house task or its review history."""
+    __tablename__ = "procurement_requests"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    request_key: Mapped[str] = mapped_column(String, unique=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"))
+    actor_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    body_json: Mapped[str] = mapped_column(String)
+    item_id: Mapped[int] = mapped_column(ForeignKey("procurement_items.id"))

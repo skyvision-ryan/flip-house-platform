@@ -119,8 +119,8 @@ class TeamDemoWorkflowTests(unittest.TestCase):
         pid = self.pids[1]
         rows = self.request("tristin", "get", f"/api/projects/{pid}/procurement")["items"]
         for slot, row in zip(("tristin", "jeremy"), rows[:2]):
-            updated = self.request(slot, "patch", f"/api/procurement/{row['id']}", {"status": "received", "note": "Synthetic checked delivery"})
-            self.assertEqual(next(i for i in updated["items"] if i["id"] == row["id"])["status"], "received")
+            updated = self.request(slot, "patch", f"/api/procurement/{row['id']}", {"note": "Synthetic requirement checked", "required_quantity": 2})
+            self.assertEqual(next(i for i in updated["items"] if i["id"] == row["id"])["required_quantity"], 2)
         updated = self.request("kody", "put", f"/api/projects/{pid}/utilities/gas", {"company": "Synthetic utility", "status": "on", "blocker": "Confirmed appointment", "account_no": "DEMO-ONLY"})
         self.assertEqual(next(u for u in updated if u["kind"] == "gas")["blocker"], "Confirmed appointment")
         expense = self.request("sabrina", "post", f"/api/projects/{pid}/expenses", {"category": "厨房", "amount": 123.45, "date": "2026-09-25", "note": "Synthetic receipt"}, expected=201)
@@ -151,17 +151,20 @@ class TeamDemoWorkflowTests(unittest.TestCase):
         for pid in self.pids:
             self.assertEqual(sum(len(s["items"]) for s in current(pid)["stages"]), 31)
         confirm(cedar, "open_escrow", "david")
-        self.assertEqual(current(cedar)["current_stage"]["key"], "s1")
+        self.assertEqual(current(cedar)["current_stage"]["key"], "s2")
         confirm(cedar, "open_escrow", "jessie")
         self.assertEqual(current(cedar)["current_stage"]["key"], "s2")
+        self.request("jessie", "patch", f"/api/projects/{cedar}", {"purchase_date": "2026-09-25"})
         for slot in ("david", "jessie"): confirm(cedar, "close_escrow", slot)
         self.assertEqual(current(cedar)["current_stage"]["key"], "s3")
         for slot in ("david", "jessie"):
-            self.request(slot, "post", f"/api/projects/{oak}/steps/final", {"done": True}, expected=400)
+            self.request(slot, "post", f"/api/projects/{oak}/steps/final", {"done": True}, expected=409)
         self.request("zoey", "post", f"/api/projects/{oak}/inspections", {"name": "Synthetic Final reinspection", "date": "2026-09-25", "result": "passed", "is_final": True}, expected=201)
-        # Existing D/J historical confirmations remain the existing business rule.
+        # Historical confirmation records are retained; latest Final evidence still governs.
         self.assertEqual(current(oak)["current_stage"]["key"], "s4")
         self.request("jessie", "patch", f"/api/projects/{oak}", {"list_date": "2026-09-25"})
+        self.assertEqual(current(oak)["current_stage"]["key"], "s4")
+        confirm(oak, "listing", "jessie")
         self.assertEqual(current(oak)["current_stage"]["key"], "s5")
         self.request("zoey", "post", f"/api/projects/{pine}/steps/closed", {"done": True, "confirm_as": "D"}, expected=403)
         for slot in ("david", "jessie"): confirm(pine, "closed", slot)

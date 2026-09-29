@@ -82,7 +82,7 @@ export const CARD_REGISTRY = {
   'widget-turns': { id: 81, title: '每套房轮到谁' },
   'widget-gates': { id: 82, title: '待我确认的门' },
   'widget-mytodo': { id: 83, title: '我的待办' },
-  'widget-procurement': { id: 84, title: '采购异常与待下单' },
+  'widget-procurement': { id: 84, title: '采购订单跟进' },
   'widget-site': { id: 85, title: '施工现场' },
   'widget-utilities': { id: 86, title: '水电瓦斯与保险' },
   'widget-permits': { id: 87, title: 'permit 与检查' },
@@ -94,7 +94,8 @@ export const CARD_REGISTRY = {
   'step-card': { id: 93, title: '阶段证据事项' },
   'recent-project-card': { id: 94, title: '最近项目卡' },
   'turn-project-card': { id: 95, title: '交接项目卡' },
-  'dashboard-metrics': { id: 96, title: '项目指标' }
+  'dashboard-metrics': { id: 96, title: '项目指标' },
+  'purchase-orders': { id: 97, title: '采购订单' }
 } as const;
 export type CardKey = keyof typeof CARD_REGISTRY;
 

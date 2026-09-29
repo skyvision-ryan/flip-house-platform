@@ -42,6 +42,16 @@ def toggle_step(project_id: int, key: str, body: schemas.StepToggleIn, request: 
     p = _project(db, project_id)
     if key not in ITEM_TITLE:
         raise HTTPException(400, "未知清单项")
+    from ..dictionaries import SINGLE_CONFIRM_KEYS
+    if key in SINGLE_CONFIRM_KEYS:
+        from .common import require_user
+        from .tasks import ensure_tasks, confirm_node
+        me = require_user(request, db)
+        if not body.done:
+            raise HTTPException(409, "确认历史不能取消；前置资料变化会显示待复核")
+        t = next(t for t in ensure_tasks(db, project_id) if t.step_key == key)
+        confirm_node(db, project_id, t, me)
+        return compute_steps(db, p, hide_money=not can_read_money(actor))
     confirm = ITEM_CONFIRM[key]
     store_key = key
     who_label = actor

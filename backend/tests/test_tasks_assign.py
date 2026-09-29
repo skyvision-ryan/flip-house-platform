@@ -76,10 +76,10 @@ class TaskAssignTests(_TaskBase):
     def test_ensure_tasks_builds_24_ordinary_items_and_is_idempotent(self):
         with Session(self.engine) as s:
             rows = ensure_tasks(s, self.pid)
-            self.assertEqual(len(rows), len(ORDINARY_ITEMS))
+            self.assertEqual(len(rows), len(ORDINARY_ITEMS) + 5)
             self.assertEqual(len(ORDINARY_ITEMS), 24)
-            self.assertEqual(len(ensure_tasks(s, self.pid)), 24)
-            self.assertFalse(any(t.step_key in ("open_escrow", "final", "listing") for t in rows), "关键节点不建任务实例")
+            self.assertEqual(len(ensure_tasks(s, self.pid)), 29)
+            self.assertEqual(sum(t.source == "node_confirmation" for t in rows), 5)
 
     # ---- 分派 ----
     def test_assign_requires_real_login_even_with_x_actor(self):
@@ -232,7 +232,7 @@ class WorkbenchAndFocusTests(_TaskBase):
         j = self.login("jessie")
         r = j.get(f"/api/projects/{self.pid}/tasks").json()
         labels = [f["label"] for f in r["focus"]]
-        self.assertEqual(labels, ["下一动作", "跟进档位", "待安排"])
+        self.assertEqual(labels, ["下一动作", "当前阶段", "待安排"])
         self.assertEqual(r["focus"][2]["value"], "4 项", "s1 的四项普通任务都没分派")
         self.assertEqual(r["focus"][0]["value"], "筛选房源", "没人分派时按模板顺序取第一项")
 

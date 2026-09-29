@@ -35,7 +35,7 @@ export default function TaskTable({ data, selectedId, onSelect, canAssign, onAss
     ...data.stages.map((s) => { const l = stageKeyLabel(meta?.stage_groups, s.key, s.short); return { value: s.key, label: s.index === data.current_stage_index ? `当前：${l}` : l }; }),
   ];
   const rows = useMemo(() => data.tasks.filter((t) => (stage === ALL || t.stage_key === stage) && (!q || t.title.toLowerCase().includes(q.toLowerCase()) || (t.assignee?.display_name ?? '').includes(q))), [data.tasks, stage, q]);
-  const unassigned = rows.filter((t) => !t.assignee).length;
+  const unassigned = rows.filter((t) => !t.assignee && !t.node_confirmation).length;
 
   return (
     <Table cardId="task-table"
@@ -74,7 +74,7 @@ export default function TaskTable({ data, selectedId, onSelect, canAssign, onAss
           id: 'assignee', header: '主要负责人', minWidth: 130,
           cell: (t) => (
             <div className="ui-task-person" onClick={(e) => e.stopPropagation()}>
-              {canAssign ? <AssigneeButton user={t.assignee} label={`${t.assignee ? '改派' : '分派'}：${t.title}`} onClick={() => onAssign([t])} />
+              {t.node_confirmation ? <span>节点确认 · {t.node_confirmation.confirm.join(" / ")}</span> : canAssign ? <AssigneeButton user={t.assignee} label={`${t.assignee ? '改派' : '分派'}：${t.title}`} onClick={() => onAssign([t])} />
                 : <PersonAvatar user={t.assignee} size="small" showRole={false} />}
             </div>
           ),
