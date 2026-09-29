@@ -10,7 +10,7 @@ export default function ProductTopBar({ search, identityMenu, me, onHome, onDisp
 }) {
   return <header className="ui-product-bar">
     <a href="/" className="ui-product-name" onClick={(e) => { e.preventDefault(); onHome(); }}>翻新项目平台</a>
-    <div className="ui-product-search">{search}</div>
+    {search && <div className="ui-product-search">{search}</div>}
     <div className="ui-product-tools">
       <Button variant="icon" iconName="settings" ariaLabel="显示设置" onClick={onDisplay} />
       {me && <EmployeeAvatar user={me} size="small" />}

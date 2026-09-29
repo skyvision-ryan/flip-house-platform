@@ -169,7 +169,13 @@ export default function StepsPanel({
   };
 
   /** 关键节点的确认框：D、J 各一个，后端仍会再校验一次。 */
-  const confirmBoxes = (it: StepItem) => (
+  const confirmBoxes = (it: StepItem) => it.confirmation_mode === 'any' ? (
+    <SpaceBetween size="xs">
+      {it.needs_review && <StatusIndicator type="warning">前置资料变化，待复核；历史确认保留</StatusIndicator>}
+      {it.done ? <StatusIndicator type="success">{it.done_by} 已确认满足</StatusIndicator> : <Button variant="primary" loading={busy === it.key} disabled={!it.ready || !(it.confirm.includes(role.actor) || role.can('confirm_for_others'))} onClick={() => toggle(it.key, true, undefined, it.title)}>确认满足</Button>}
+      <Box variant="small" color="text-body-secondary">{it.evidence_hint}</Box>
+    </SpaceBetween>
+  ) : (
     <SpaceBetween direction="horizontal" size="s">
       {it.confirm.map((c) => {
         const on = it.confirmed.includes(c);
@@ -189,7 +195,7 @@ export default function StepsPanel({
   );
 
   const primaryFor = (it: StepItem) => {
-    if (isFuture) return null;
+    if (isFuture && it.confirmation_mode !== "any") return null;
     if (it.gate && it.confirm.length > 0) return confirmBoxes(it);
     if (!it.deliverable || it.done) return null;
     if (!canActOn(it, role)) return null;
@@ -314,7 +320,7 @@ export default function StepsPanel({
                     两层绿色叠在一起，反而看不出现在走到哪。 */}
                 {state === 'current'
                   ? <StatusIndicator type="in-progress">在这一段</StatusIndicator>
-                  : <Box fontSize="body-s" color="text-body-secondary">{state === 'done' ? '已过' : '还没到'}</Box>}
+                  : <Box fontSize="body-s" color="text-body-secondary">{st.history_pending ? '录入前 · 待核验' : state === 'done' ? '已过' : '还没到'}</Box>}
                 <Box fontSize="body-s" color="text-body-secondary">{st.done_count} / {st.total} 项</Box>
                 {/* 这里不再放门名。宽屏每段只占 2/12（约 150px），而门的全称像
                     「Open escrow（决定买）」「final（City 验收通过）」都不换行，会伸进邻格。

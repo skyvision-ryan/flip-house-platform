@@ -139,3 +139,27 @@ class TaskConcurrencyTests(unittest.TestCase):
         self.assertEqual(current["done_at"] is not None, decision == "confirmed")
         events = self.planner.get(self.url(current, "events")).json()
         self.assertEqual(sum(e["kind"] in {"returned", "confirmed"} for e in events), 1)
+
+    def test_two_eligible_people_confirm_one_node_once(self):
+        with Session(self.engine) as session:
+            session.get(models.User, self.users['replacement']).role_code = 'D'
+            session.add(models.ProjectFile(project_id=self.pid, filename='Synthetic contract.pdf', stored_path='/tmp/synthetic.pdf', doc_type='purchase_contract', stage='买入', source='demo'))
+            session.commit()
+        david = self.login('replacement')
+        node = next(t for t in self.planner.get(f'/api/projects/{self.pid}/tasks').json()['tasks'] if t['step_key'] == 'open_escrow')
+        barrier = Barrier(2)
+        original = tasks.gate_conditions
+        def same_facts(*args):
+            result = original(*args)
+            barrier.wait(timeout=10)
+            return result
+        with patch.object(tasks, 'gate_conditions', side_effect=same_facts), ThreadPoolExecutor(max_workers=2) as pool:
+            futures = [pool.submit(client.post, self.url(node,'confirm'), json={'version': node['version']}) for client in [self.planner, david]]
+            responses = [f.result(timeout=20) for f in futures]
+        self.assertEqual(sorted(r.status_code for r in responses), [200,409], [r.text for r in responses])
+        with Session(self.engine) as session:
+            events = session.scalars(select(models.TaskEvent).where(models.TaskEvent.task_id == node['id'], models.TaskEvent.kind == 'node_confirmed')).all()
+            self.assertEqual(len(events), 1)
+            self.assertIn(events[0].actor_user_id, [self.users['planner'],self.users['replacement']])
+        for client in [self.planner,david]:
+            self.assertNotIn(node['id'],[t['id'] for t in client.get('/api/me/tasks').json()['reviewing']])

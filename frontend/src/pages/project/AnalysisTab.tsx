@@ -24,9 +24,12 @@ import FormField from '../../components/ui/FormField';
 import Header from '../../components/ui/Header';
 import Container from '../../components/ui/Surface';
 import { AnalysisInputs, fullOutputs, RehabRow, Row } from '../../lib/analysis';
+import { useActor } from '../../lib/actor';
 import { useFlash } from '../../lib/flash';
 import { money, pct } from '../../lib/format';
 import { useMeta } from '../../lib/meta';
+
+const analysisDrafts = new Map<string, AnalysisInputs>();
 
 const num = (v: unknown) => { const x = typeof v === 'string' ? parseFloat(v) : (v as number); return Number.isFinite(x) ? x : 0; };
 const str = (v: unknown) => (v === null || v === undefined ? '' : String(v));
@@ -55,6 +58,8 @@ function RowsEditor({ rows, onChange, sources, prefix, addLabel }: { rows: Row[]
 
 export default function AnalysisTab({ project, reload }: { project: Project; reload: () => Promise<any> }) {
   const meta = useMeta();
+  const { me } = useActor();
+  const draftPrefix = `${me?.id ?? 'demo'}:${project.id}:`;
   const flash = useFlash();
   const [list, setList] = useState<Analysis[] | null>(null);
   const [aid, setAid] = useState<number | null>(null);
@@ -64,25 +69,30 @@ export default function AnalysisTab({ project, reload }: { project: Project; rel
   const [applyPrices, setApplyPrices] = useState(true);
   const [applying, setApplying] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [retry, setRetry] = useState(0);
+  const latestInputs = useRef(inputs); latestInputs.current = inputs;
   const dirty = useRef(false);
   const timer = useRef<number | null>(null);
 
   const load = useCallback(async (selectId?: number) => {
+    if (dirty.current && !window.confirm('分析修改尚未保存。在本次浏览期间保留修改并切换方案？')) return;
     const rows = await api.analyses(project.id);
     setList(rows);
     const pick = rows.find((a) => a.id === selectId) ?? rows.find((a) => a.is_current) ?? rows[0] ?? null;
     setAid(pick?.id ?? null);
-    setInputs(pick ? pick.inputs : null);
-    dirty.current = false;
-  }, [project.id]);
-  useEffect(() => { load(); }, [load]);
+    const cached = pick ? analysisDrafts.get(`${draftPrefix}${pick.id}`) : undefined;
+    setInputs(cached ?? pick?.inputs ?? null);
+    dirty.current = !!cached;
+  }, [project.id, draftPrefix]);
+  useEffect(() => { load().catch(e => setSaveError(e.message)); }, [load]);
 
   const out = useMemo(() => (inputs ? fullOutputs(inputs) : null), [inputs]);
   const sources = inputs?.sources ?? {};
 
   const update = (patch: Partial<AnalysisInputs>) => {
-    setInputs((prev) => (prev ? { ...prev, ...patch } : prev));
-    dirty.current = true;
+    setInputs((prev) => { if (!prev) return prev; const next = { ...prev, ...patch }; if (aid) analysisDrafts.set(`${draftPrefix}${aid}`, next); return next; });
+    dirty.current = true; setSaveError('');
   };
 
   // 停顿 700ms 后保存到后端
@@ -90,12 +100,18 @@ export default function AnalysisTab({ project, reload }: { project: Project; rel
     if (!inputs || !aid || !dirty.current) return;
     if (timer.current) window.clearTimeout(timer.current);
     timer.current = window.setTimeout(async () => {
-      setSaving(true);
-      try { const saved = await api.patchAnalysis(aid, { inputs }); setList((l) => l?.map((a) => (a.id === saved.id ? saved : a)) ?? null); dirty.current = false; }
+      setSaving(true); setSaveError('');
+      try { const saved = await api.patchAnalysis(aid, { inputs }); setList((l) => l?.map((a) => (a.id === saved.id ? saved : a)) ?? null); if (latestInputs.current === inputs) { dirty.current = false; analysisDrafts.delete(`${draftPrefix}${aid}`); } }
+      catch (e: any) { setSaveError(e.message); }
       finally { setSaving(false); }
     }, 700);
     return () => { if (timer.current) window.clearTimeout(timer.current); };
-  }, [inputs, aid]);
+  }, [inputs, aid, retry]);
+  useEffect(() => {
+    const prevent = (e: BeforeUnloadEvent) => { if (dirty.current) { e.preventDefault(); e.returnValue = ''; } };
+    window.addEventListener('beforeunload', prevent);
+    return () => window.removeEventListener('beforeunload', prevent);
+  }, []);
 
   const create = async (tier: string) => {
     const a = await api.createAnalysis(project.id, { tier, name: `${{ light: '轻装', medium: '中装', heavy: '重装' }[tier]}方案 ${(list?.length ?? 0) + 1}` });
@@ -123,6 +139,7 @@ export default function AnalysisTab({ project, reload }: { project: Project; rel
     } finally { setApplying(false); }
   };
 
+  if (list === null && saveError) return <Alert type="error" action={<Button onClick={() => load().catch(e => setSaveError(e.message))}>重新读取</Button>}>{saveError}</Alert>;
   if (list === null) return <Box padding="l" textAlign="center"><Spinner /></Box>;
 
   if (!inputs || !out || !aid) {
@@ -154,6 +171,7 @@ export default function AnalysisTab({ project, reload }: { project: Project; rel
 
   return (
     <SpaceBetween size="l">
+      {saveError && <Alert type="error" header="修改尚未保存" action={<Button onClick={() => setRetry(v => v + 1)}>重试保存</Button>}>{saveError} 输入在本次浏览期间保留；离开再返回可继续保存，刷新前请先重试。</Alert>}
       <Container cardId="analysis-inputs"
         header={
           <Header
@@ -162,7 +180,7 @@ export default function AnalysisTab({ project, reload }: { project: Project; rel
             help="修改数字后自动重算。预填字段保留来源，采用前请核实。"
             actions={
               <SpaceBetween direction="horizontal" size="xs" alignItems="center">
-                {saving ? <StatusIndicator type="loading">保存中</StatusIndicator> : <StatusIndicator type="success">已保存</StatusIndicator>}
+                {saveError ? <StatusIndicator type="error">保存失败</StatusIndicator> : saving || dirty.current ? <StatusIndicator type="loading">保存中</StatusIndicator> : <StatusIndicator type="success">已保存</StatusIndicator>}
                 <Select
                   selectedOption={{ label: current.name + (current.is_current ? '（当前）' : ''), value: String(current.id) }}
                   options={list.map((a) => ({ label: a.name + (a.is_current ? '（当前）' : ''), value: String(a.id) }))}
@@ -180,7 +198,7 @@ export default function AnalysisTab({ project, reload }: { project: Project; rel
                     else if (detail.id === 'delete') remove();
                   }}
                 >版本</ButtonDropdown>
-                <Button variant="primary" onClick={() => setApplyOpen(true)}>应用到项目</Button>
+                <Button variant="primary" disabled={saving || dirty.current || !!saveError} disabledReason="请先等待分析保存成功，再应用到项目。" onClick={() => setApplyOpen(true)}>应用到项目</Button>
               </SpaceBetween>
             }
           >

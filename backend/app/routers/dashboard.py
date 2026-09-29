@@ -205,7 +205,7 @@ def role_widgets(db: Session = Depends(get_db), actor: str = Depends(get_actor))
                     continue
                 for it in stage["items"]:
                     overseer = actor in ("老板", "负责人")   # 盯的人看所有等确认的门
-                    if it["gate"] and not it["done"] and (overseer or (actor in it["confirm"] and actor not in it["confirmed"])):
+                    if it["gate"] and not it["done"] and (it.get("confirmation_mode") != "any" or it.get("ready")) and (overseer or (actor in it["confirm"] and actor not in it["confirmed"])):
                         gates.append({**_brief(p), "key": it["key"], "title": it["title"], "stage": stage["label"],
                                       "evidence_hint": it["evidence_hint"], "confirmed": it["confirmed"],
                                       "waiting": [c for c in it["confirm"] if c not in it["confirmed"]], "is_current": si == cur_idx})
@@ -221,7 +221,7 @@ def role_widgets(db: Session = Depends(get_db), actor: str = Depends(get_actor))
                 if p.stage != "portfolio" and si > cur_idx:
                     continue
                 for it in stage["items"]:
-                    if it["done"]:
+                    if it["done"] or (it.get("confirmation_mode") == "any" and not it.get("ready")):
                         continue
                     mine_tick = actor in it["owners"]
                     mine_confirm = actor in it["confirm"] and actor not in it["confirmed"]

@@ -84,5 +84,5 @@ export default function ZoeyDesign({ preview, design }: { preview: SpecialistPre
     {notice && <p role="status">{notice}</p>}
     <p className="ui-muted">仅比较信息与资料入口；备注不改变检查结果、任务状态或 D/J 关键确认。</p>
   </div> : <p className="ui-rd-empty">当前记录不在筛选结果中，请从列表选择一项。</p>;
-  return <><CollaborationWorkspace main={main} detail={detail} detailOpen={detailOpen && !!selected} onBack={() => setDetailOpen(false)} /><p className="ui-rd-caption">现有资料基础：图纸与 Permit 文件类型、任务及等待记录、检查日期 / 结果 / 整改人 / 备注。三种聚合工作界面是本次设计提案；没有新增政府审批状态、预计许可时长或图纸版本审批。申请回执不等于核发 Permit；Final 仍以最近一次 Final 检查及 D/J 规则为准。</p></>;
+  return <><CollaborationWorkspace main={main} detail={detail} detailOpen={detailOpen && !!selected} onBack={() => setDetailOpen(false)} /><p className="ui-rd-caption">现有资料基础：图纸与 Permit 文件类型、任务及等待记录、检查日期 / 结果 / 整改人 / 备注。三种聚合工作界面是本次设计提案；没有新增政府审批状态、预计许可时长或图纸版本审批。申请回执不等于核发 Permit；Final 仍以最近一次 Final 检查及节点确认规则为准。</p></>;
 }

@@ -92,6 +92,9 @@ export function orderAttention(order: PurchaseOrder, today: string): string[] {
   if (order.summary.lines.some(l => Number(l.damaged) > 0 && Number(l.remaining) > 0)) reasons.push('破损待处理');
   return [...new Set(reasons)];
 }
+/** Merchant-site shipping wording; never a statement of actual receipt. */
+export const websiteStatusLabel = (status?: Delivery['website_status'] | null) => status && status !== 'unknown'
+  ? ({ not_shipped: '未发货', in_transit: '运输中', ready_pickup: '可取货', delivered: '显示送达', exception: '异常' })[status] : null;
 export function importDocument(preview: ImportPreview): OrderDocument {
   return { ...newOrder(), ...preview.draft, lines: preview.draft.lines.map(l => ({ ...newLine(), ...l })) };
 }

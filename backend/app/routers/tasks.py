@@ -34,6 +34,9 @@ STAGE_SHORT = {st["key"]: st.get("short", st["label"]) for st in STAGE_CHECKLIST
 STATUS_LABEL = {s["value"]: s["label"] for s in TASK_EXEC_STATUSES}
 DECISION_LABEL = {"pending": "待确认", "confirmed": "已确认", "returned": "已退回"}
 FILE_KINDS = {"file", "photo"}   # 这两类交付物提交时至少要一个文件；其余交说明即可
+from ..dictionaries import SINGLE_CONFIRM_KEYS
+from ..steps import gate_conditions
+
 ORDINARY_ITEMS = [(st["key"], it) for st in STAGE_CHECKLIST for it in st["items"] if not it.get("gate")]
 
 
@@ -44,10 +47,10 @@ def ensure_tasks(db: Session, project_id: int, *, commit: bool = True) -> list[m
     rows = list(db.scalars(select(models.Task).where(models.Task.project_id == project_id)).all())
     have = {t.step_key for t in rows if t.step_key}
     added = False
-    for stage_key, it in ORDINARY_ITEMS:
+    for stage_key, it in [(st["key"], it) for st in STAGE_CHECKLIST for it in st["items"] if not it.get("gate") or it["key"] in SINGLE_CONFIRM_KEYS]:
         if it["key"] in have:
             continue
-        db.add(models.Task(project_id=project_id, step_key=it["key"], source="template", stage_key=stage_key, title=it["title"]))
+        db.add(models.Task(project_id=project_id, step_key=it["key"], source="node_confirmation" if it["key"] in SINGLE_CONFIRM_KEYS else "template", stage_key=stage_key, title=it["title"]))
         added = True
     if added:
         db.commit() if commit else db.flush()
@@ -85,7 +88,11 @@ def _event_text(ev: models.TaskEvent, names: dict[int, str]) -> str:
     after = json.loads(ev.after_json) if ev.after_json else {}
     who = lambda uid: names.get(uid, f"账号 {uid}") if uid is not None else "待分派"  # noqa: E731
     k = ev.kind
-    if k == "assigned":
+    if k == "node_confirmed":
+        t = f"{after.get('name', '确认人')} 确认节点满足，已保留前置依据"
+    elif k == "stage_intake":
+        t = "记录房屋录入起点；此前历史未自动完成"
+    elif k == "assigned":
         t = f"分派给 {who(after.get('assignee_user_id'))}"
     elif k == "reassigned":
         t = f"从 {who(before.get('assignee_user_id'))} 改派给 {who(after.get('assignee_user_id'))}"
@@ -169,6 +176,9 @@ def _task_out(t: models.Task, p: models.Project, steps: dict, users: dict[int, m
                 break
     procurement = purchase_progress(object_session(t), t.project_id) if t.step_key == "purchase" else None
     execution = ("not_started" if not t.assignee_user_id else "done" if procurement["complete"] else "in_progress") if procurement else t.exec_status
+    gate = step_item if t.step_key in SINGLE_CONFIRM_KEYS else None
+    if gate:
+        execution = "done" if gate["done"] else "pending_review" if gate["ready"] else "not_started"
     cur = steps["current_stage"]
     cur_idx = len(STAGE_CHECKLIST) + 1 if cur["key"] == "done" else STAGE_INDEX.get(cur["key"], 1)
     return {
@@ -178,12 +188,12 @@ def _task_out(t: models.Task, p: models.Project, steps: dict, users: dict[int, m
         "stage_index": STAGE_INDEX.get(t.stage_key, 0), "project_current_stage_index": cur_idx, "project_current_stage_label": cur["label"],
         "title": "房屋采购" if t.step_key == "purchase" and t.title == "分阶段采购" else t.title, "ws": it.get("ws"), "purpose": it.get("purpose"),
         "done_when": "采购进度随清单自动更新；水电前材料到场作为阶段证据，整房备齐无需提交审核。" if procurement else it.get("done_when"),
-        "procurement_progress": procurement,
+        "procurement_progress": procurement, "node_confirmation": gate,
         "owners": it.get("owners", []), "deliverable": it.get("deliverable"),
         "description": t.description, "deliverable_note": t.deliverable_note,
         "assignee": _brief(users.get(t.assignee_user_id)) if t.assignee_user_id else None,
         "reviewer": _brief(users.get(t.reviewer_user_id)) if t.reviewer_user_id and not procurement else None,
-        "exec_status": execution, "exec_status_label": ("已备齐" if procurement and execution == "done" else STATUS_LABEL.get(execution, execution)),
+        "exec_status": execution, "exec_status_label": ("已备齐" if procurement and execution == "done" else ("条件未满足" if gate and execution == "not_started" else STATUS_LABEL.get(execution, execution))),
         "due_at": t.due_at, "wait_for": None if procurement else t.wait_for, "wait_reason": None if procurement else t.wait_reason, "wait_until": None if procurement else t.wait_until,
         "version": t.version,
         "satisfied": bool(step_item and step_item["done"]), "satisfied_how": (step_item or {}).get("how"),
@@ -242,7 +252,11 @@ def _tasks_payload(db: Session, p: models.Project, tasks: list[models.Task], act
     users = _users_by_id(db, ids)
     order = {it["key"]: i for i, (_, it) in enumerate(ORDINARY_ITEMS)}
     tasks = sorted(tasks, key=lambda t: (order.get(t.step_key, 999), t.id))
-    return [_task_out(t, p, steps, users, last.get(t.id), [_submission_out(db, x, users) for x in subs.get(t.id, [])]) for t in tasks]
+    result = [_task_out(t, p, steps, users, last.get(t.id), [_submission_out(db, x, users) for x in subs.get(t.id, [])]) for t in tasks]
+    for row in result:
+        if row["node_confirmation"]:
+            row["node_confirmation"]["can_confirm"] = actor in row["node_confirmation"]["confirm"] or allowed(actor, "confirm_for_others")
+    return result
 
 
 def _event(db: Session, task: Optional[models.Task], project_id: int, kind: str, actor: models.User,
@@ -287,6 +301,8 @@ def _gate_text(g: Optional[dict]) -> str:
         return "—"
     if g["done"]:
         return "已过" + (f"（{g['done_at'][5:10].replace('-', '/')}）" if g.get("done_at") else "")
+    if g.get("confirmation_mode") == "any":
+        return "、".join(g["missing"]) + "待补" if g["missing"] else "条件已满足，待一人确认"
     if g["confirm"]:
         missing = [c for c in g["confirm"] if c not in g["confirmed"]]
         return f"{'、'.join(g['confirmed'])} 已确认，等 {'、'.join(missing)}" if g["confirmed"] else f"待 {'、'.join(g['confirm'])} 确认"
@@ -303,7 +319,7 @@ def focus_facts(p: models.Project, steps: dict, rows: list[dict]) -> list[dict]:
     cur_key = steps["current_stage"]["key"]
     cur = [r for r in rows if r["stage_key"] == cur_key]
     waiting = [r for r in rows if r["exec_status"] == "waiting"]
-    unassigned = [r for r in cur if not r["assignee"] and r["exec_status"] != "done"]
+    unassigned = [r for r in cur if not r["assignee"] and not r.get("node_confirmation") and r["exec_status"] != "done"]
     pending = [r for r in rows if r["exec_status"] == "pending_review"]
     running = sorted([r for r in cur if r["exec_status"] == "in_progress"], key=lambda r: r["due_at"] or "9999")
     unsatisfied = [r for r in cur if not r["satisfied"] and r["exec_status"] != "done"]
@@ -315,7 +331,7 @@ def focus_facts(p: models.Project, steps: dict, rows: list[dict]) -> list[dict]:
     g, sub = gp["group_key"], gp["sub_key"]
     if g == "buying" and sub == "pre":
         return [fact("下一动作", nxt["title"] if nxt else "本段任务都已安排"),
-                fact("跟进档位", gp["lead_substage_label"] or "未填"),
+                fact("当前阶段", gp["label"]),
                 fact("待安排", f"{len(unassigned)} 项", "warning" if unassigned else "normal")]
     if g == "buying":
         return [fact("目标过户", _mmdd(p.purchase_date)),
@@ -351,7 +367,7 @@ def next_action(rows: list[dict], cur_key: str) -> Optional[dict]:
         lambda r: r["exec_status"] == "in_progress",
         lambda r: r["exec_status"] == "not_started" and r["assignee"],
         lambda r: r["exec_status"] == "waiting",
-        lambda r: not r["assignee"],
+        lambda r: not r["assignee"] and not r.get("node_confirmation"),
     ):
         hit = sorted([r for r in cur if pick(r)], key=by_due)
         if hit:
@@ -408,9 +424,9 @@ def my_workbench(db: Session = Depends(get_db), me: models.User = Depends(requir
         cur_key = steps["current_stage"]["key"]
         nxt = next_action(payload, cur_key)
         cur_rows = [r for r in payload if r["stage_key"] == cur_key and r["exec_status"] != "done"]
-        unassigned += sum(1 for r in cur_rows if not r["assignee"])
+        unassigned += sum(1 for r in cur_rows if not r["assignee"] and not r.get("node_confirmation"))
         waiting += sum(1 for r in payload if r["exec_status"] == "waiting")
-        pending_mine.extend(r for r in payload if r["exec_status"] == "pending_review" and r["reviewer"] and r["reviewer"]["id"] == me.id)
+        pending_mine.extend(r for r in payload if r["exec_status"] == "pending_review" and (r["reviewer"] and r["reviewer"]["id"] == me.id or (r.get("node_confirmation") or {}).get("can_confirm")))
         actor_brief = None
         if nxt:
             actor_brief = nxt["reviewer"] if nxt["exec_status"] == "pending_review" else nxt["assignee"]
@@ -421,7 +437,7 @@ def my_workbench(db: Session = Depends(get_db), me: models.User = Depends(requir
                              "due_at": nxt["due_at"], "actor": actor_brief, "kind": "review" if nxt["exec_status"] == "pending_review" else ("assign" if not nxt["assignee"] else "do")} if nxt else None),
             "procurement": purchase_overview(db, p.id) if allowed(me.role_code, "procurement") else None,
             "waiting_count": sum(1 for r in payload if r["exec_status"] == "waiting"),
-            "unassigned_current_count": sum(1 for r in cur_rows if not r["assignee"]),
+            "unassigned_current_count": sum(1 for r in cur_rows if not r["assignee"] and not r.get("node_confirmation")),
         })
     pending_mine.sort(key=lambda r: (r["due_at"] or "9999", r["id"]))
     # 最近交接先按项目范围过滤，再取最近 6 条，避免其他项目的事件挤掉可见记录。
@@ -476,7 +492,7 @@ def task_events(project_id: int, task_id: int, request: Request, db: Session = D
 @router.get("/me/tasks", response_model=schemas.MyTasksOut)
 def my_tasks(db: Session = Depends(get_db), me: models.User = Depends(require_user)):
     """分派给我的 + 我是审核人的，按项目算满足与当前段。只按 user_id，不按角色。"""
-    query = select(models.Task).where((models.Task.assignee_user_id == me.id) | (models.Task.reviewer_user_id == me.id))
+    query = select(models.Task).where((models.Task.assignee_user_id == me.id) | (models.Task.reviewer_user_id == me.id) | models.Task.step_key.in_(SINGLE_CONFIRM_KEYS))
     if not allowed(me.role_code, "workbench_all_projects"):
         member_projects = select(models.ProjectMember.project_id).where(
             models.ProjectMember.user_id == me.id, models.ProjectMember.active.is_(True))
@@ -493,7 +509,7 @@ def my_tasks(db: Session = Depends(get_db), me: models.User = Depends(require_us
         out.extend(_tasks_payload(db, p, rows, me.role_code))
     out.sort(key=lambda r: (r["project_current_stage_index"] < r["stage_index"], r["project_name"], r["stage_index"]))
     return {"assigned": [r for r in out if r["assignee"] and r["assignee"]["id"] == me.id],
-            "reviewing": [r for r in out if r["reviewer"] and r["reviewer"]["id"] == me.id and not (r["assignee"] and r["assignee"]["id"] == me.id)]}
+            "reviewing": [r for r in out if (r["reviewer"] and r["reviewer"]["id"] == me.id and not (r["assignee"] and r["assignee"]["id"] == me.id)) or ((r.get("node_confirmation") or {}).get("can_confirm") and r["exec_status"] == "pending_review")]}
 
 
 # ---------------- 写 ----------------
@@ -504,6 +520,8 @@ def assign_task(project_id: int, task_id: int, body: schemas.TaskAssignIn, db: S
     require(me.role_code, "assign_tasks", what="分派任务")
     p = _project(db, project_id)
     t = _task(db, project_id, task_id)
+    if t.step_key in SINGLE_CONFIRM_KEYS:
+        raise HTTPException(409, "节点由前置条件自动进入待确认，请使用确认满足；无需分派、开始或提交")
     if t.version != body.version:
         _conflict(db, p, t, me.role_code)
     data = body.model_dump(exclude_unset=True)
@@ -567,6 +585,8 @@ def task_status(project_id: int, task_id: int, body: schemas.TaskStatusIn, db: S
     """开始 / 记录等待 / 恢复。只有当前负责人能做；改派后旧负责人 403。没有「完成」——完成由审核确认（块 5）。"""
     p = _project(db, project_id)
     t = _task(db, project_id, task_id)
+    if t.step_key in SINGLE_CONFIRM_KEYS:
+        raise HTTPException(409, "节点由前置条件自动进入待确认，请使用确认满足；无需分派、开始或提交")
     if t.step_key == "purchase":
         _require_task_read(db, project_id, me)
         raise HTTPException(409, "采购由清单自动更新，无需开始、等待、提交或审核；请进入采购工作台")
@@ -612,6 +632,8 @@ def submit_task(project_id: int, task_id: int, body: schemas.TaskSubmitIn, db: S
     引用的文件必须属于本项目且当前账号能访问；上传本身还是走文件接口，这里不复制文件。"""
     p = _project(db, project_id)
     t = _task(db, project_id, task_id)
+    if t.step_key in SINGLE_CONFIRM_KEYS:
+        raise HTTPException(409, "节点由前置条件自动进入待确认，请使用确认满足；无需分派、开始或提交")
     if t.step_key == "purchase":
         _require_task_read(db, project_id, me)
         raise HTTPException(409, "采购由清单自动更新，无需开始、等待、提交或审核；请进入采购工作台")
@@ -706,4 +728,36 @@ def return_task(project_id: int, task_id: int, body: schemas.TaskDecisionIn, db:
 @router.post("/projects/{project_id}/tasks/{task_id}/confirm", response_model=schemas.TaskOut)
 def confirm_task(project_id: int, task_id: int, body: schemas.TaskDecisionIn, db: Session = Depends(get_db), me: models.User = Depends(require_user)):
     """审核人确认本次交付：任务完成、记时间。**不补 ProjectStep 手工勾**——证据满足仍由 compute_steps 派生，两者并列显示。"""
+    t = db.get(models.Task, task_id)
+    if t and t.project_id == project_id and t.step_key in SINGLE_CONFIRM_KEYS:
+        confirm_node(db, project_id, t, me, body.version)
+        return _tasks_payload(db, _project(db, project_id), [t], me.role_code)[0]
     return _decide(db, project_id, task_id, body, me, "confirmed")
+
+
+def confirm_node(db: Session, project_id: int, t: models.Task, me: models.User, version: int | None = None):
+    _require_task_read(db, project_id, me)
+    roles = STEP_BY_KEY[t.step_key]["confirm"]
+    if me.role_code not in roles and not allowed(me.role_code, "confirm_for_others"):
+        raise HTTPException(403, "你的账号没有该节点的确认权限")
+    p = _project(db, project_id)
+    item = next(it for st in compute_steps(db, p)["stages"] for it in st["items"] if it["key"] == t.step_key)
+    if item["done"]:
+        return  # Retries, including another eligible confirmer, cannot create another event.
+    if not item["ready"]:
+        raise HTTPException(409, "条件未满足：" + ("、".join(item["missing"]) or "录入前历史待核验，不属于当前节点"))
+    if version is not None and t.version != version:
+        raise HTTPException(409, "节点已更新，请刷新后核对")
+    _, facts = gate_conditions(p, t.step_key)
+    snapshot = {"user_id": me.id, "name": me.display_name, "role": me.role_code, "at": models.now_iso(), "facts": facts}
+    before = json.loads(t.gate_confirmation_json) if t.gate_confirmation_json else None
+    t.gate_confirmation_json = json.dumps(snapshot, ensure_ascii=False)
+    t.done_at = snapshot["at"]
+    t.exec_status = "done"
+    _event(db, t, project_id, "node_confirmed", me, before=before, after=snapshot)
+    log_update(db, project_id, me.role_code, "task", f"{me.display_name} 确认满足：{t.title}")
+    try:
+        db.commit()
+    except StaleDataError:
+        db.rollback()
+        raise HTTPException(409, "其他确认人已更新该节点，请刷新查看")

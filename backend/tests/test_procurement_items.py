@@ -97,7 +97,7 @@ class ProcurementTests(unittest.TestCase):
             row.retailer = 'Legacy vendor'; session.commit()
         row = self.rows()[0]
         self.assertEqual(row['status'], 'ordered'); self.assertIsNone(row['received_on'])
-        for who in ('buyer1', 'buyer2', 'planner', 'director', 'admin'):
+        for who in ('buyer1', 'buyer2', 'planner', 'director', 'admin', 'finance'):
             response = self.clients[who].get('/api/me/procurement-tracking')
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.json()['source'], 'manual')
@@ -105,7 +105,7 @@ class ProcurementTests(unittest.TestCase):
             self.assertEqual(response.json()['items'][0]['retailer'], 'Legacy vendor')
         self.assertEqual(self.clients['outsider'].get('/api/me/procurement-tracking').json()['items'], [])
         self.assertEqual(self.clients['outsider'].get('/api/me/procurement-tracking').json()['projects'], [])
-        for who in ('assistant', 'finance'):
+        for who in ('assistant',):
             self.assertEqual(self.clients[who].get('/api/me/procurement-tracking').status_code, 403)
         self.assertEqual(self.anon.get('/api/me/procurement-tracking').status_code, 401)
 
@@ -138,7 +138,7 @@ class ProcurementTests(unittest.TestCase):
     def test_membership_role_and_anonymous_boundaries(self):
         for who in ('outsider', 'assistant', 'finance'):
             client = self.clients[who]
-            self.assertEqual(client.get(f'/api/projects/{self.pid}/procurement').status_code, 403)
+            self.assertEqual(client.get(f'/api/projects/{self.pid}/procurement').status_code, 200 if who == 'finance' else 403)
             self.assertEqual(client.patch(f'/api/procurement/{self.item}', json={'note': 'denied'}).status_code, 403)
             self.assertEqual(client.post(f'/api/projects/{self.pid}/procurement/init').status_code, 403)
             self.assertEqual(client.post(f'/api/projects/{self.pid}/procurement', json={'name': 'Denied'}).status_code, 403)
@@ -177,7 +177,7 @@ class ProcurementTests(unittest.TestCase):
         self.assertEqual(downloaded.content, content)
         self.assertEqual(downloaded.headers['content-type'], 'image/png')
         for who in ('outsider', 'assistant', 'finance'):
-            self.assertEqual(self.clients[who].get(path).status_code, 403)
+            self.assertEqual(self.clients[who].get(path).status_code, 200 if who == 'finance' else 403)
             self.assertEqual(self.clients[who].delete(path).status_code, 403)
             self.assertEqual(self.clients[who].post(f'/api/procurement/{self.item}/images', files={'file': ('x.png', content, 'image/png')}).status_code, 403)
         self.assertEqual(self.anon.get(path).status_code, 401)

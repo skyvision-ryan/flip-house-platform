@@ -10,7 +10,7 @@ import secrets
 import time
 from typing import Optional
 
-from fastapi import Request, Response
+from fastapi import HTTPException, Request, Response
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
@@ -81,6 +81,9 @@ def current_user(request: Request, db: Session) -> Optional[models.User]:
     u = db.get(models.User, uid)
     if u is None or not u.active:
         return None
+    expected = request.headers.get("X-Session-User")
+    if expected and expected != str(u.id) and request.url.path != "/api/auth/me":
+        raise HTTPException(409, "SESSION_CHANGED: 登录账号已在另一页签改变，请核对当前身份后重试")
     return u
 
 

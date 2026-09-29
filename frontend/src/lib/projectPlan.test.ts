@@ -29,3 +29,11 @@ test('只设截止也会保存，空截止发 null，关键节点永不发往普
   assert.equal(planPayload(stages, {}).length, 0);
   assert.equal(summarizePlan(stages, {}).unassigned, 4);
 });
+
+test('中途录入从所选阶段安排，历史任务不冒充后续阶段', () => {
+  const summary = summarizePlan(stages, plan, 's3');
+  assert.equal(summary.current, 1);
+  assert.equal(summary.future, 0);
+  const groups = planByPerson(stages, plan, [], 's3');
+  assert.equal(groups[0].items[0].future, false);
+});

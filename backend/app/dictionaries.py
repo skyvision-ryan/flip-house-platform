@@ -170,6 +170,7 @@ PERMISSIONS = {
     "edit_project":      ["purple", "blue"],          # 日期、阶段、风险、备注
     "edit_money":        ["purple", "blue"],          # 买入价、目标售价、成交价
     "budget":            ["purple", "blue", "财务"],
+    "procurement_read":  ["purple", "blue", "J", "采购", "财务"],  # 财务仅限有效项目成员只读
     "procurement":       ["purple", "blue", "J", "采购"],  # 材料清单：J 主责
     "analysis":          ["purple", "blue"],
     "utilities":         ["purple", "blue", "K", "项目助理"],
@@ -323,6 +324,25 @@ LEGACY_STAGE_MAP = {"s1": "s1", "s2": "s2", "s3": "s3", "s4": "s3", "s5": "s5"}
 # 派生旧模型：清单当前段 → projects.stage / substage（旧字段只为筛选与状态规则兼容，不再手改）
 STAGE_TO_LEGACY = {"s1": ("lead", None), "s2": ("active", "construction"), "s3": ("active", "construction"),
                    "s4": ("active", "listing"), "s5": ("active", "listing"), "s6": ("portfolio", "sold"), "done": ("portfolio", "sold")}
+
+# KAN-29：五个已确认的节点采用必要证据 + 一位有权限的实际账号确认。
+SINGLE_CONFIRM_KEYS = {"open_escrow", "close_escrow", "start", "final", "listing"}
+GATE_REQUIREMENTS = {
+    "open_escrow": [("file:purchase_contract", "购房合同")],
+    "close_escrow": [("field:purchase_date", "买入日期"), ("file:closing_statement", "过户结算单")],
+    "start": [("file:permit", "Permit 已核发文件"), ("field:construction_start", "开工日期")],
+    "final": [("inspections:final", "最近一次 Final 检查通过")],
+    "listing": [("field:list_date|file:listing_agreement", "挂牌日期或上市协议")],
+}
+for _stage in STAGE_CHECKLIST:
+    for _item in _stage["items"]:
+        if _item["key"] in SINGLE_CONFIRM_KEYS:
+            _item["confirm"] = ["J"] if _item["key"] == "listing" else ["D", "J"]
+            _item["confirmation_mode"] = "any"
+            _item["requirements"] = [label for _, label in GATE_REQUIREMENTS[_item["key"]]]
+            _item["evidence"] = "confirm"
+            _item["done_when"] = "、".join(_item["requirements"]) + "齐备后，由 " + " / ".join(_item["confirm"]) + " 或负责人中的一人确认满足。"
+            _item["deliverable"] = _c("、".join(_item["requirements"]))
 
 STEP_BY_KEY = {it["key"]: it for st in STAGE_CHECKLIST for it in st["items"]}
 ITEM_EVIDENCE = {it["key"]: it["evidence"] for st in STAGE_CHECKLIST for it in st["items"]}

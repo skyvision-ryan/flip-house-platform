@@ -88,6 +88,9 @@ def create_project(body: schemas.ProjectCreate, request: Request, db: Session = 
             if uid != creator.id and not body.join_assignees:
                 raise HTTPException(400, "请确认将所选负责人加入新项目并分派任务")
             targets[uid] = target
+    for plan in body.task_plan:
+        if plan.step_key == "purchase" and plan.assignee_user_id and not allowed(targets[plan.assignee_user_id].role_code, "procurement"):
+            raise HTTPException(400, "采购主负责人须具有采购权限")
     receipt = None
     try:
         if body.request_key:
@@ -133,7 +136,7 @@ def _create_with_plan(body, db, actor, creator, targets, receipt):
 
     project = models.Project(
         property_id=prop.id, name=body.name or body.address.street, strategy=body.strategy,
-        stage=body.stage, substage=body.substage, lead_heat=body.lead_heat,
+        stage=body.stage, substage=body.substage, lead_heat=body.lead_heat, initial_stage_key=body.initial_stage_key,
         purchase_price=body.purchase_price, target_arv=body.target_arv, purchase_date=body.purchase_date,
         construction_start=body.construction_start, construction_end=body.construction_end,
         risks=body.risks, notes=body.notes,
@@ -149,6 +152,8 @@ def _create_with_plan(body, db, actor, creator, targets, receipt):
     from .tasks import ensure_member, ensure_tasks
     tasks = ensure_tasks(db, project.id, commit=False)
     if creator is not None:
+        from .tasks import _event
+        _event(db, None, project.id, "stage_intake", creator, after={"initial_stage_key": body.initial_stage_key, "history_pending": body.initial_stage_key != "s1"})
         ensure_member(db, project.id, creator, creator)
     if body.task_plan:
         from .tasks import _event

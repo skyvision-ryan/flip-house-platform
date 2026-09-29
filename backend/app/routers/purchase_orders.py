@@ -58,10 +58,10 @@ def _keys(doc):
     return vendor, number
 
 
-def _order(db, oid, me):
+def _order(db, oid, me, *, read_only=False):
     order = db.get(models.PurchaseOrder, oid)
     if order is None: raise HTTPException(404, "订单不存在")
-    _access(db, order.project_id, me, me.role_code)
+    _access(db, order.project_id, me, me.role_code, read_only=read_only)
     return order
 
 
@@ -142,10 +142,10 @@ def _write(db, order, doc, me, key, fingerprint, version, kind, source="", note=
 
 @router.get("/purchase-orders")
 def list_orders(project_id: int | None = None, db: Session = Depends(get_db), me=Depends(require_user)):
-    require(me.role_code, "procurement", what="查看采购订单")
+    require(me.role_code, "procurement_read", what="查看采购订单")
     query = select(models.PurchaseOrder)
     if project_id is not None:
-        _access(db, project_id, me, me.role_code)
+        _access(db, project_id, me, me.role_code, read_only=True)
         query = query.where(models.PurchaseOrder.project_id == project_id)
     elif not me.is_admin and not allowed(me.role_code, "workbench_all_projects"):
         query = query.where(models.PurchaseOrder.project_id.in_(select(models.ProjectMember.project_id).where(
@@ -155,7 +155,7 @@ def list_orders(project_id: int | None = None, db: Session = Depends(get_db), me
 
 @router.get("/purchase-orders/{order_id}")
 def get_order(order_id: int, db: Session = Depends(get_db), me=Depends(require_user)):
-    return _result(db, _order(db, order_id, me), history=True)
+    return _result(db, _order(db, order_id, me, read_only=True), history=True)
 
 
 @router.post("/projects/{project_id}/purchase-orders/preview")

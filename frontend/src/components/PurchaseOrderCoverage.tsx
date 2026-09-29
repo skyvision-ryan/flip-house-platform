@@ -1,5 +1,6 @@
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
+import Popover from '@cloudscape-design/components/popover';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import { useNavigate } from 'react-router-dom';
 import { Table } from './ui/Surface';
@@ -19,8 +20,9 @@ export default function PurchaseOrderCoverage({ orders, projectId, materialId, d
     {!compact && <Header variant="h3" actions={<Button disabled={disabled} onClick={() => navigate(href)}>{materialId ? '查看购买记录' : '查看购买记录'}</Button>}>{materialId ? '本项实际购买与收货' : '本房订单汇总'}</Header>}
     {materialId && budgetAmount != null && <Box>本项采购预算 {moneyValue(budgetAmount)} · 已登记商品金额 {rows.length && rows.every(r => r.line.amount != null) ? moneyValue(rows.reduce((sum, r) => sum + Math.round(Number(r.line.amount) * 100), 0) / 100) : '待完整登记'}（订单税费、运费、折扣另列，不自动分摊）</Box>}
     {!materialId && <>
-      <Box>{scoped.length} 笔订单 · 已登记订单净额 {scoped.length ? moneyValue(missingTotal === scoped.length ? null : knownTotal - refunds) : '暂无订单'}{missingTotal ? `（${missingTotal} 笔实付未填，汇总不完整）` : ''}{refunds ? ` · 已扣退款 ${moneyValue(refunds)}` : ''}</Box>
-      <Box color="text-body-secondary" variant="small">仅订单实付减退款，不含材料旧记录；采购登记金额，非财务核款结果。</Box>
+      <dl className="proc-detail-facts"><div><dt>订单数量</dt><dd>{scoped.length ? `${scoped.length} 笔` : '暂无订单'}</dd></div><div><dt>已登记订单净额 <Popover header="金额范围" content="仅累计订单实付减退款，不含材料旧记录；采购登记金额，不代表财务核款。" dismissAriaLabel="关闭金额范围" triggerType="custom"><Button variant="inline-icon" iconName="status-info" ariaLabel="查看订单净额范围" /></Popover></dt><dd>{scoped.length ? moneyValue(missingTotal === scoped.length ? null : knownTotal - refunds) : '—'}</dd></div></dl>
+      {!!missingTotal && <Box color="text-status-warning">{missingTotal} 笔实付未填，汇总不完整。</Box>}
+      {!!refunds && <Box color="text-body-secondary">已扣退款 {moneyValue(refunds)}</Box>}
     </>}
     {materialId && <Table variant="embedded" items={rows} trackBy={row => `${row.order.id}-${row.line.id}`} empty={<Box>尚未关联购买记录。采购项及原有资料保留。</Box>}
       columnDefinitions={[

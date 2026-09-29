@@ -1,0 +1,8 @@
+.ui-image-canvas[role="region"] {
+  width: 100%; height: min(58vh, 680px); min-height: 240px;
+  background: var(--ui-panel); border: 1px solid var(--ui-border);
+  cursor: grab; touch-action: none;
+}
+.ui-image-canvas:active { cursor: grabbing; }
+.ui-image-canvas-content img { display: block; max-width: 100%; max-height: min(58vh, 680px); object-fit: contain; user-select: none; }
+.ui-image-canvas .ui-image-canvas-content { width: 100%; height: 100%; align-items: center; justify-content: center; }

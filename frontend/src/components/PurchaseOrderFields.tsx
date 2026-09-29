@@ -36,7 +36,7 @@ export default function PurchaseOrderFields({ doc, onChange, materials, busy, no
       <TextField error={errors.vendor} label="采购渠道 / 供应商" value={doc.vendor} disabled={busy} onChange={v => set('vendor', v)} />
       <TextField error={errors.order_number} label="商家订单号" value={doc.order_number} disabled={busy} onChange={v => set('order_number', v)} />
       <TextField error={errors.ordered_on} label="下单日期" date value={doc.ordered_on} disabled={busy} onChange={v => set('ordered_on', v || null)} />
-      <TextField error={errors.total} label="订单实付（USD）" numeric value={doc.total} disabled={busy} onChange={v => set('total', v || null)} />
+      <TextField error={errors.total} label="登记订单实付（USD）" numeric value={doc.total} disabled={busy} onChange={v => set('total', v || null)} />
     </div>
     <section className="proc-order-products"><Header variant="h2" actions={<Button disabled={busy} onClick={() => set('lines', [...doc.lines, newLine()])}>添加采购项</Button>}>买了什么</Header>
       {doc.lines.map((line, index) => <section className="ui-order-line" key={line.id}>
@@ -55,7 +55,7 @@ export default function PurchaseOrderFields({ doc, onChange, materials, busy, no
           <div className="proc-line-issue"><TextField label={`商品 ${index + 1} 问题说明`} value={line.issue_note || ''} disabled={busy} onChange={issue_note => lineSet(line.id, { issue_note })} /></div>
         </div>
         {(line.brand || line.vendor || (line.delivery_address != null && line.delivery_address !== doc.delivery_address)) && <p className="proc-line-differences">{[line.brand && `品牌 ${line.brand}`, line.vendor && `卖家 ${line.vendor}`, line.delivery_address != null && line.delivery_address !== doc.delivery_address && `本项送至 ${line.delivery_address || '地址未填'}`].filter(Boolean).join(' · ')}</p>}
-        <ExpandableSection headerText={`商品 ${index + 1} 品牌、规格与物流`}><div className="ui-order-grid">
+        <ExpandableSection headerText={`商品 ${index + 1} 规格、卖家与物流`}><div className="ui-order-grid">
           <TextField label={`商品 ${index + 1} 实际卖家`} value={line.vendor} disabled={busy} onChange={v => lineSet(line.id, { vendor: v })} />
           <TextField label={`商品 ${index + 1} 品牌`} value={line.brand} disabled={busy} onChange={v => lineSet(line.id, { brand: v })} />
           <TextField label={`商品 ${index + 1} 商品名称`} value={line.name} disabled={busy} onChange={v => lineSet(line.id, { name: v })} />

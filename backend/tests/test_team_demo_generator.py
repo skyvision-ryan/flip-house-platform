@@ -104,7 +104,7 @@ class TeamDemoGeneratorTests(unittest.TestCase):
                 self.assertEqual(session.scalar(select(func.count()).select_from(models.Task).where(models.Task.project_id == project.id, models.Task.source == "template")), 24)
                 self.assertIsNone(project.sale_date)
                 self.assertIsNone(project.sale_price)
-            self.assertEqual(session.scalar(select(func.count()).select_from(models.Task)), 120)
+            self.assertEqual(session.scalar(select(func.count()).select_from(models.Task)), 135)
             purchases = session.scalars(select(models.ProcurementItem).where(models.ProcurementItem.project_id.in_(result["project_ids"]))).all()
             self.assertTrue(any(i.status == "ordered" and i.shipment_status == "delivered" and i.received_on is None for i in purchases))
             self.assertTrue(any(i.status == "ordered" and i.expected_on == "2026-09-26" and i.shipment_status == "in_transit" for i in purchases))
@@ -160,6 +160,8 @@ class TeamDemoGeneratorTests(unittest.TestCase):
                 self.assertEqual(len(extra), 16)
                 self.assertTrue(all(task.stage_key == current and task.exec_status != "done" for task in extra))
                 for task in tasks:
+                    if task.source == "node_confirmation":
+                        continue  # readiness is derived; only actual confirmations have events
                     if task.source == "template" and int(task.stage_key[1:]) < int(current[1:]):
                         self.assertEqual(task.exec_status, "done")
                         self.assertIsNotNone(task.done_at)
@@ -210,9 +212,9 @@ class TeamDemoGeneratorTests(unittest.TestCase):
 
     def test_failure_rolls_back_projects_and_only_removes_attempt_files(self):
         original = demo._make_project
-        def failing(db, index, *args):
+        def failing(db, index, *args, **kwargs):
             if index == 1: raise RuntimeError("Synthetic injected failure")
-            return original(db, index, *args)
+            return original(db, index, *args, **kwargs)
         with patch.object(demo, "_make_project", side_effect=failing):
             with self.assertRaises(RuntimeError): self.run_generator(apply=True, replace_project_ids=[self.sentinel_id])
         with Session(self.engine) as session:

@@ -29,6 +29,16 @@ SOURCE_VALUES = {s["value"] for s in dictionaries.SOURCES}
 class MockProviderSourceTests(unittest.TestCase):
     """路径 1：provider 生成的字段。"""
 
+    def test_unknown_address_keeps_missing_facts_empty(self):
+        result = MockProvider().lookup("98 Synthetic Unknown Lane")
+        self.assertEqual(result.address.label, "98 Synthetic Unknown Lane")
+        self.assertEqual(result.address.city, "")
+        self.assertIsNone(result.address.lat)
+        self.assertIsNone(result.apn)
+        self.assertEqual(result.fields, [])
+        self.assertEqual(result.mortgages, [])
+        self.assertIsNone(result.valuation)
+
     def test_every_field_is_demo_with_no_confidence(self):
         r = MockProvider().lookup("4928 NW Fisk Ave")
         self.assertGreaterEqual(len(r.fields), 16)

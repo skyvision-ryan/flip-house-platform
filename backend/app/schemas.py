@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Literal
 from datetime import date
 from uuid import UUID
 
@@ -132,7 +132,8 @@ class ProjectCreate(BaseModel):
     strategy: str = "flip"
     stage: str = "lead"
     substage: Optional[str] = None
-    lead_heat: Optional[str] = "warm_lead"
+    lead_heat: Optional[str] = None
+    initial_stage_key: Literal["s1", "s2", "s3", "s4", "s5", "s6"] = "s1"
     address: AddressCandidateOut
     apn: Optional[str] = None
     fields: list[FieldIn] = []
@@ -697,6 +698,7 @@ class SubmissionOut(BaseModel):
 
 
 class TaskOut(BaseModel):
+    node_confirmation: Optional[dict] = None
     procurement_progress: Optional[ProcurementProgress] = None
     id: int
     project_id: int

@@ -1,15 +1,13 @@
-"""阶段清单：按负责人拆的 5 个阶段算“到哪一步、轮到谁”。
-自动证据读时算，手动打的勾存在 project_steps。
-大节点要 D 和 J 各勾一次：存成 key "open_escrow:D" / "open_escrow:J"，两个都在才算过。
-有自动证据的项只认证据，不能靠手工勾冒充完成；final 必须持续绑定最近一次 final 检查结果。
-"""
+"""六段证据与录入起点。五个节点用任务内的一人确认快照，旧双签历史保留。"""
+
+import json
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session, object_session
 
 from . import models
 from .procurement_orders import order_material_projection
-from .dictionaries import FILE_TYPES, GROUP_BY_KEY, GROUP_OF_STAGE, MONEY_FIELDS, STAGE_CHECKLIST, STAGE_GROUPS, STAGE_TO_LEGACY, SUB_OF_STAGE, SUBSTAGES, UTILITY_KINDS
+from .dictionaries import GATE_REQUIREMENTS, SINGLE_CONFIRM_KEYS, FILE_TYPES, GROUP_BY_KEY, GROUP_OF_STAGE, MONEY_FIELDS, STAGE_CHECKLIST, STAGE_GROUPS, STAGE_TO_LEGACY, SUB_OF_STAGE, SUBSTAGES, UTILITY_KINDS
 
 UTILITY_LABEL = {u["value"]: u["label"] for u in UTILITY_KINDS}
 
@@ -117,15 +115,54 @@ def _hint(it: dict, p: models.Project, hide_money: bool = False) -> str | None:
     return "，".join(parts) or None
 
 
+def gate_conditions(p: models.Project, key: str) -> tuple[list[str], dict]:
+    missing, facts = [], {}
+    for rule, label in GATE_REQUIREMENTS[key]:
+        if not _evidence(rule, p)[0]:
+            missing.append(label)
+        for alt in rule.split("|"):
+            kind, arg = alt.split(":", 1)
+            if kind == "field":
+                facts[alt] = getattr(p, arg, None)
+            elif kind == "file":
+                facts[alt] = sorted(f.id for f in p.files if f.doc_type == arg)
+            elif kind == "inspections":
+                last = max((i for i in p.inspections if i.is_final), key=lambda i: (i.date or "", i.id), default=None)
+                facts[alt] = {"id": last.id, "date": last.date, "result": last.result} if last else None
+    return missing, facts
+
+
 def compute_steps(db: Session, p: models.Project, hide_money: bool = False) -> dict:
     manual = {s.key: s for s in db.scalars(select(models.ProjectStep).where(models.ProjectStep.project_id == p.id)).all()}
+    tasks = {t.step_key: t for t in db.scalars(select(models.Task).where(models.Task.project_id == p.id))}
+    floor = next((i for i, st in enumerate(STAGE_CHECKLIST) if st["key"] == p.initial_stage_key), 0)
     stages = []
     for st in STAGE_CHECKLIST:
         items = []
         for it in st["items"]:
             ok, why = _evidence(it["evidence"], p, hide_money)
             confirm = it.get("confirm") or []
-            if confirm:
+            gate_extra = {}
+            if it["key"] in SINGLE_CONFIRM_KEYS:
+                missing, facts = gate_conditions(p, it["key"])
+                task = tasks.get(it["key"])
+                snapshot = json.loads(task.gate_confirmation_json) if task and task.gate_confirmation_json else None
+                legacy = [manual.get(f"{it['key']}:{c}") for c in confirm]
+                # Preserve old fully confirmed records; partial dual signatures are not retroactively completed.
+                legacy_done = bool(legacy) and all(x and x.done for x in legacy)
+                m = max((x for x in legacy if x and x.done), key=lambda x: x.done_at or "", default=None)
+                historical = bool(snapshot or legacy_done)
+                changed = bool(snapshot and snapshot["facts"] != facts)
+                done = historical and not missing and not changed
+                confirmed = [snapshot["role"]] if snapshot else [c for c, x in zip(confirm, legacy) if x and x.done]
+                how = "manual" if done else None
+                evidence = ("已确认；前置资料变化，待复核" if historical and not done else "条件已满足，待一人确认" if not done and not missing else None)
+                ready = not missing and len(stages) >= floor
+                gate_extra = {"confirmation_mode": "any", "ready": ready, "missing": missing,
+                              "needs_review": historical and not done, "confirmation": snapshot,
+                              "history_pending": len(stages) < floor,
+                              "legacy_passage": bool(legacy_done and not snapshot and (it["key"] != "final" or not missing))}
+            elif confirm:
                 recs = {c: manual.get(f"{it['key']}:{c}") for c in confirm}
                 confirmed = [c for c, r in recs.items() if r and r.done]
                 manual_done = len(confirmed) == len(confirm)
@@ -162,39 +199,39 @@ def compute_steps(db: Session, p: models.Project, hide_money: bool = False) -> d
             items.append({
                 "key": it["key"], "title": it["title"], "owners": it["owners"], "gate": bool(it.get("gate")),
                 "ws": it.get("ws"), "purpose": it.get("purpose"), "done_when": it.get("done_when"),
-                "deliverable": it.get("deliverable"), "evidence_hint": _hint(it, p, hide_money),
+                "deliverable": it.get("deliverable"), "evidence_hint": ("缺少：" + "、".join(gate_extra["missing"]) if gate_extra.get("missing") else it["done_when"]) if gate_extra else _hint(it, p, hide_money), **gate_extra,
                 "confirm": confirm, "confirmed": confirmed,
                 "done": done, "how": how,
                 "evidence": evidence, "can_auto": it["evidence"] != "manual",
-                "done_by": (m.done_by if m else None), "done_at": (m.done_at if m else None), "note": (m.note if m else None),
+                "done_by": (gate_extra.get("confirmation") or {}).get("name") or (m.done_by if m else None), "done_at": (gate_extra.get("confirmation") or {}).get("at") or (m.done_at if m else None), "note": (m.note if m else None),
             })
         undone = [i for i in items if not i["done"]]
         gates = [i for i in items if i["gate"]]
-        all_gates_done = all(g["done"] for g in gates) if gates else (not undone)
+        all_gates_done = all(g["done"] or g.get("legacy_passage") for g in gates) if gates else (not undone)
         # 步卡上显示的门：第一道没过的；都过了就是最后一道
         shown = next((g for g in gates if not g["done"]), gates[-1] if gates else None)
-        stages.append({"key": st["key"], "label": st["label"], "short": st.get("short", st["label"]), "desc": st.get("desc"), "items": items,
+        stages.append({"key": st["key"], "history_pending": len(stages) < floor, "label": st["label"], "short": st.get("short", st["label"]), "desc": st.get("desc"), "items": items,
                        "done_count": len(items) - len(undone), "total": len(items),
-                       "gates": [{"key": g["key"], "title": g["title"], "done": g["done"], "confirmed": g["confirmed"], "at": g["done_at"] if g["done"] else None} for g in gates],
+                       "gates": [{"confirmation_mode": g.get("confirmation_mode"), "ready": g.get("ready"), "missing": g.get("missing", []), "needs_review": g.get("needs_review", False), "key": g["key"], "title": g["title"], "done": g["done"], "confirmed": g["confirmed"], "at": g["done_at"] if g["done"] else None} for g in gates],
                        "gate_title": shown["title"] if shown else None, "gate_done": all_gates_done,
                        "gate_confirmed": (shown["confirmed"] if shown else []),
                        "gate_at": (shown["done_at"] if shown and shown["done"] else None)})
 
-    idx = next((i for i, s in enumerate(stages) if not s["gate_done"]), len(stages) - 1)
+    idx = next((i for i, s in enumerate(stages) if i >= floor and not s["gate_done"]), len(stages) - 1)
     cur = stages[idx]
     undone_here = [i for i in cur["items"] if not i["done"]]
     earlier = [{"key": i["key"], "title": i["title"], "owners": i["owners"], "stage": s["label"]}
-               for s in stages[:idx] for i in s["items"] if not i["done"]]
+               for s in stages[floor:idx] for i in s["items"] if not i["done"]]
     if not undone_here and idx == len(stages) - 1 and not earlier:
         current = {"key": "done", "label": "全部完成", "index": idx + 1}
         next_up: list[dict] = []
     else:
         current = {"key": cur["key"], "label": cur["label"], "index": idx + 1}
         next_up = [{"key": i["key"], "title": i["title"], "owners": i["owners"], "gate": i["gate"]} for i in undone_here[:3]]
-    progress = [{"key": s["key"], "label": s["label"], "short": s["short"], "done": s["done_count"], "total": s["total"],
+    progress = [{"history_pending": s["history_pending"], "key": s["key"], "label": s["label"], "short": s["short"], "done": s["done_count"], "total": s["total"],
                  "gate_title": s["gate_title"], "gate_done": s["gate_done"], "gate_confirmed": s["gate_confirmed"], "gate_at": s["gate_at"], "gates": s["gates"]} for s in stages]
     return {"stages": stages, "current_stage": current, "next_up": next_up, "earlier_undone": earlier, "stage_progress": progress,
-            "group_position": group_position(current["key"], p)}
+            "group_position": {**group_position(current["key"], p), "initial_stage_key": p.initial_stage_key or "s1", "history_pending": floor > 0}}
 
 
 _LEAD_SUB_LABEL = {s["value"]: s["label"] for s in SUBSTAGES["lead"]}
@@ -211,7 +248,7 @@ def group_position(current_key: str, p: models.Project) -> dict:
     gkey = GROUP_OF_STAGE.get(stage_key, STAGE_GROUPS[-1]["key"])
     g = GROUP_BY_KEY[gkey]
     sub = SUB_OF_STAGE.get(stage_key) if not complete else None
-    lead_sub = p.substage if (sub and sub["key"] == "pre") else None
+    lead_sub = p.substage if not p.initial_stage_key and (sub and sub["key"] == "pre") else None
     frozen = p.lead_substage_at_escrow if (sub and sub["key"] == "escrow") else None
     label = g["label"] + (f" · {sub['label']}" if sub else "")
     return {

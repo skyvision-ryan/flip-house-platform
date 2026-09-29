@@ -1,3 +1,4 @@
+import { useSearchParams } from 'react-router-dom';
 import { useState } from 'react';
 import Alert from '@cloudscape-design/components/alert';
 import Box from '@cloudscape-design/components/box';
@@ -19,7 +20,9 @@ import TaskTable from './TaskTable';
 export default function ProjectTasks({ project, data, error, reload, onChanged, onGotoGates }: { project: Project; data: TaskList | null; error: string | null; reload: () => Promise<any>; onChanged?: () => void; onGotoGates: () => void }) {
   const meta = useMeta();
   const { me } = useActor();
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [params, setParams] = useSearchParams();
+  const selectedId = Number(params.get('task')) || null;
+  const setSelectedId = (id: number | null) => setParams(prev => { const n = new URLSearchParams(prev); id ? n.set('task', String(id)) : n.delete('task'); return n; }, { replace: true });
   const [assigning, setAssigning] = useState<Task[] | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const err = error;

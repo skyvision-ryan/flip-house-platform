@@ -1,3 +1,4 @@
+import TaskWorkbench from './TaskWorkbench';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
 import DatePicker from '@cloudscape-design/components/date-picker';
@@ -56,7 +57,7 @@ export default function TaskSummaryPanel({ task, project, canAssign, onAssign, o
   return (
     <SpaceBetween size="l">
       <Container embedded cardId="task-summary" cardContext={task?.title} header={<Header variant="h2" help="点击左侧任务，查看安排与处理入口。">任务摘要</Header>}>
-        {task ? (
+        {task?.node_confirmation ? <TaskWorkbench task={task} meId={me?.id ?? null} onChanged={onChanged} onConflict={() => window.location.reload()} /> : task ? (
           <SpaceBetween size="m">
             <h3 className="ui-summary-title">{task.title}</h3>
             <div className="ui-muted">{stageKeyLabel(meta?.stage_groups, task.stage_key, task.stage_label)}</div>
@@ -96,13 +97,13 @@ export default function TaskSummaryPanel({ task, project, canAssign, onAssign, o
           <Box color="text-body-secondary">请选择一项任务。</Box>
         )}
       </Container>
-      <Container embedded cardId="task-gates" header={<Header variant="h2" help="关键节点按 D / J 规则确认，可在下方证据清单中处理。">关键节点状态</Header>}>
+      <Container embedded cardId="task-gates" header={<Header variant="h2" help="节点按对应条件与权限确认，可在任务或下方证据清单中处理。">关键节点状态</Header>}>
         {gates.length ? (
           <SpaceBetween size="xs">
             {gates.map((g) => (
               <div key={g.key} className="ui-row-wrap">
                 <Box fontWeight="bold">{g.title}</Box>
-                {g.done ? <StatusIndicator type="success">已过</StatusIndicator> : (
+                {g.done ? <StatusIndicator type="success">已过</StatusIndicator> : g.confirmation_mode === 'any' ? <Box color={g.ready ? 'text-status-info' : 'text-body-secondary'}>{g.needs_review ? '前置资料变化，待复核' : g.ready ? '待一人确认满足' : `缺少：${g.missing?.join('、')}`}</Box> : (
                   ['D', 'J'].map((c) => <span key={c}><RoleLabel code={c} />{g.confirmed.includes(c) ? <Box variant="span" color="text-status-success">已确认</Box> : <Box variant="span" color="text-body-secondary">待确认</Box>}</span>)
                 )}
               </div>

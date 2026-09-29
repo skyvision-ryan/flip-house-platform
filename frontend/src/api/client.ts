@@ -16,7 +16,7 @@ export interface Meta {
   permissions: Record<string, string[]>;
   owner_map: Record<string, string[]>;
   file_default_owner: Record<string, string>;
-  stage_checklist: { key: string; label: string; short: string; items: { key: string; title: string; owners: string[]; evidence: string; gate?: boolean; confirm?: string[]; deliverable?: Deliverable }[] }[];
+  stage_checklist: { key: string; label: string; short: string; items: { key: string; title: string; owners: string[]; evidence: string; gate?: boolean; confirm?: string[]; done_when?: string; deliverable?: Deliverable }[] }[];
   permit_rule: { need: string[]; no_need: string[] };
   utility_kinds: Option[];
   utility_statuses: Option[];
@@ -32,6 +32,7 @@ export interface Meta {
 }
 export interface StageGroup { key: string; label: string; stages: string[]; subs: { key: string; label: string; stage: string }[] }
 export interface GroupPosition {
+  initial_stage_key?: string; history_pending?: boolean;
   group_key: string; group_label: string; group_index: number; group_count: number;
   sub_key: string | null; sub_label: string | null;
   lead_substage: string | null; lead_substage_label: string | null;
@@ -41,6 +42,8 @@ export interface GroupPosition {
 
 export interface Deliverable { kind: 'file' | 'photo' | 'field' | 'record' | 'confirm' | 'tick'; label: string; doc_type?: string | null; field?: string | null; record?: string | null }
 export interface StepItem {
+  confirmation_mode?: "any"; ready?: boolean; missing?: string[]; needs_review?: boolean; history_pending?: boolean; can_confirm?: boolean;
+  confirmation?: { user_id: number; name: string; role: string; at: string } | null;
   key: string; title: string; owners: string[]; gate: boolean; confirm: string[]; confirmed: string[]; done: boolean; how: 'auto' | 'manual' | 'manual_override' | null;
   deliverable: Deliverable | null; evidence_hint: string | null;
   evidence: string | null; can_auto: boolean; done_by: string | null; done_at: string | null; note: string | null;
@@ -49,10 +52,10 @@ export interface StepItem {
 }
 export interface StageProgress {
   key: string; label: string; short: string; done: number; total: number; gate_title: string | null; gate_done: boolean; gate_confirmed: string[]; gate_at: string | null;
-  gates?: { key: string; title: string; done: boolean; confirmed: string[]; at: string | null }[];
+  gates?: { confirmation_mode?: "any"; ready?: boolean; missing?: string[]; needs_review?: boolean; key: string; title: string; done: boolean; confirmed: string[]; at: string | null }[];
 }
 export interface Steps {
-  stages: { key: string; label: string; short: string; desc?: string | null; items: StepItem[]; done_count: number; total: number; gate_title: string | null; gate_done: boolean; gate_confirmed: string[]; gate_at: string | null }[];
+  stages: { key: string; history_pending?: boolean; label: string; short: string; desc?: string | null; items: StepItem[]; done_count: number; total: number; gate_title: string | null; gate_done: boolean; gate_confirmed: string[]; gate_at: string | null }[];
   current_stage: { key: string; label: string; index?: number };
   next_up: { key: string; title: string; owners: string[]; gate: boolean }[];
   earlier_undone: { key: string; title: string; owners: string[]; stage: string }[];
@@ -213,6 +216,7 @@ export interface Submission {
   files: SubmissionFile[];
 }
 export interface Task {
+  node_confirmation?: StepItem | null;
   procurement_progress?: { excluded?: number; total: number; ready: number; complete: boolean; nodes: { wave: string; total: number; ready: number }[] } | null;
   id: number; project_id: number; project_name: string; project_address: string;
   step_key: string | null; source: string; stage_key: string; stage_label: string; stage_short: string; stage_index: number;
@@ -250,9 +254,13 @@ function actorHeader(): Record<string, string> {
 
 /** 会话过期或未登录时通知 App（App 决定跳登录页还是留在演示模式）。 */
 export const AUTH_EVENT = 'auth:401';
+export const SESSION_EVENT = 'auth:changed';
+let sessionUserId: number | null = null;
+export function setSessionIdentity(id: number | null) { sessionUserId = id; }
+export function broadcastSession() { localStorage.setItem('session-updated', String(Date.now())); }
 
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(path, { credentials: 'same-origin', headers: { ...(init?.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }), ...actorHeader() }, ...init });
+  const res = await fetch(path, { credentials: 'same-origin', headers: { ...(init?.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }), ...actorHeader(), ...(!path.startsWith("/api/auth/") && sessionUserId != null ? { "X-Session-User": String(sessionUserId) } : {}) }, ...init }).catch(() => { throw new Error('无法连接服务，请检查网络后重试。'); });
   if (res.status === 401 && !path.startsWith('/api/auth/')) window.dispatchEvent(new Event(AUTH_EVENT));
   if (!res.ok) {
     let msg = `${res.status} ${res.statusText}`;
@@ -260,7 +268,8 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
       const j = await res.json();
       if (j.detail) msg = typeof j.detail === 'string' ? j.detail : (typeof j.detail?.message === 'string' ? j.detail.message : JSON.stringify(j.detail));
     } catch { /* ignore */ }
-    throw new Error(msg);
+    if (msg.startsWith("SESSION_CHANGED:")) window.dispatchEvent(new Event(SESSION_EVENT));
+    throw Object.assign(new Error(msg), { status: res.status });
   }
   if (res.status === 204) return undefined as T;
   return res.json();
@@ -344,7 +353,7 @@ export const api = {
   procurement: (id: number) => req<ProcurementList>(`/api/projects/${id}/procurement`),
   initProcurement: (id: number) => req<ProcurementList>(`/api/projects/${id}/procurement/init`, { method: 'POST' }),
   patchProcurement: (itemId: number, body: ProcurementPatch) => req<ProcurementList>(`/api/procurement/${itemId}`, { method: 'PATCH', body: JSON.stringify(body) }),
-  procurementWorklist: (id: number, items: {id: number; updated_at: string; selected: boolean}[]) => req<ProcurementList>(`/api/projects/${id}/procurement/worklist`, { method: 'POST', body: JSON.stringify({items}) }),
+  procurementWorklist: (id: number, items: {id: number; updated_at: string; selected: boolean}[]) => req<ProcurementList>(`/api/projects/${id}/procurement/worklist`, {method: 'POST', body: JSON.stringify({items})}),
   procurementNotNeeded: (id: number, body: { reason: string; items: {id: number; updated_at: string}[] }) => req<ProcurementList>(`/api/projects/${id}/procurement/not-needed`, { method: 'POST', body: JSON.stringify(body) }),
   addProcurement: (id: number, body: Partial<ProcurementRequirements> & { name: string; wave: string; request_key?: string }) => req<ProcurementList>(`/api/projects/${id}/procurement`, { method: 'POST', body: JSON.stringify(body) }),
   uploadProcurementImage: (itemId: number, file: File) => { const data = new FormData(); data.append('file', file); return req<ProcurementImage>(`/api/procurement/${itemId}/images`, { method: 'POST', body: data }); },

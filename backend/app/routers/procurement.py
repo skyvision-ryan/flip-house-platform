@@ -66,12 +66,13 @@ def _summary(rows: list[models.ProcurementItem]) -> dict:
     }
 
 
-def _access(db: Session, project_id: int, user: Optional[models.User], actor: str):
-    require(actor, "procurement", what="操作项目采购")
+def _access(db: Session, project_id: int, user: Optional[models.User], actor: str, *, read_only=False):
+    permission = "procurement_read" if read_only else "procurement"
+    require(actor, permission, what="操作项目采购")
     project = _project(db, project_id)
     if user is not None:
         # A demo role selector cannot widen an actual account's access.
-        require(user.role_code, "procurement", what="操作项目采购")
+        require(user.role_code, permission, what="操作项目采购")
         if not user.is_admin and not allowed(user.role_code, "workbench_all_projects"):
             member = db.scalar(select(models.ProjectMember.id).where(
                 models.ProjectMember.project_id == project_id,
@@ -122,7 +123,7 @@ def _validated(data):
 
 @router.get("/me/procurement-tracking", response_model=schemas.ProcurementTrackingOut)
 def procurement_tracking(db: Session = Depends(get_db), me: models.User = Depends(require_user)):
-    require(me.role_code, "procurement", what="查看采购订单跟进")
+    require(me.role_code, "procurement_read", what="查看采购订单跟进")
     projects = select(models.Project)
     if not me.is_admin and not allowed(me.role_code, "workbench_all_projects"):
         projects = projects.where(models.Project.id.in_(select(models.ProjectMember.project_id).where(
@@ -145,7 +146,7 @@ def procurement_tracking(db: Session = Depends(get_db), me: models.User = Depend
 
 @router.get("/projects/{project_id}/procurement", response_model=schemas.ProcurementListOut)
 def list_procurement(project_id: int, request: Request, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
-    _access(db, project_id, current_user(request, db), actor)
+    _access(db, project_id, current_user(request, db), actor, read_only=True)
     return _payload(db, project_id)
 
 
@@ -363,7 +364,7 @@ def read_image(image_id: int, request: Request, db: Session = Depends(get_db), a
     row = db.get(models.ProcurementItem, rec.item_id) if rec else None
     if row is None:
         raise HTTPException(404, "图片不存在")
-    _access(db, row.project_id, current_user(request, db), actor)
+    _access(db, row.project_id, current_user(request, db), actor, read_only=True)
     if not Path(rec.stored_path).is_file():
         raise HTTPException(404, "图片文件不可用，请重新上传")
     return FileResponse(rec.stored_path, media_type=rec.mime, headers={"X-Content-Type-Options": "nosniff", "Cache-Control": "private, no-store"})

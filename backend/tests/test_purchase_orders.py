@@ -122,7 +122,7 @@ class PurchaseOrderTests(unittest.TestCase):
         order = self.create().json()
         for who in ('outsider', 'finance'):
             client = self.clients[who]
-            self.assertEqual(client.get(f"/api/purchase-orders/{order['id']}").status_code, 403)
+            self.assertEqual(client.get(f"/api/purchase-orders/{order['id']}").status_code, 200 if who == "finance" else 403)
             self.assertEqual(client.post(f'/api/projects/{self.pid}/purchase-orders/preview', json={'text': 'Amazon'}).status_code, 403)
         self.assertEqual(self.clients['outsider'].get('/api/purchase-orders').json(), [])
         with TestClient(self.app) as anonymous:
@@ -132,6 +132,34 @@ class PurchaseOrderTests(unittest.TestCase):
             member = db.scalar(select(models.ProjectMember).where(models.ProjectMember.user_id == self.users['second']))
             member.active = False; db.commit()
         self.assertEqual(self.clients['second'].get(f"/api/purchase-orders/{order['id']}").status_code, 403)
+
+    def test_finance_member_reads_same_facts_but_cannot_write(self):
+        order = self.create().json()
+        order = self.receive(order, 'first', '2').json()
+        finance = self.clients['finance']
+        for path in [f'/api/projects/{self.pid}/procurement', '/api/me/procurement-tracking', '/api/purchase-orders', f'/api/purchase-orders/{order["id"]}']:
+            self.assertEqual(finance.get(path).status_code, 200, path)
+        self.assertEqual(finance.get(f'/api/purchase-orders/{order["id"]}').json()['document'], order['document'])
+        self.assertEqual(finance.get(f'/api/projects/{self.other_pid}/procurement').status_code, 403)
+        self.assertEqual(finance.get(f'/api/purchase-orders?project_id={self.other_pid}').status_code, 403)
+        before = finance.get(f'/api/purchase-orders/{order["id"]}').json()
+        writes = [
+            ('post', f'/api/projects/{self.pid}/purchase-orders', {'request_key': str(uuid4()), 'document':self.doc}),
+            ('put', f'/api/purchase-orders/{order["id"]}', {'request_key': str(uuid4()), 'expected_version':order['version'], 'document':order['document']}),
+            ('post', f'/api/purchase-orders/{order["id"]}/receipts', {'request_key': str(uuid4()), 'expected_version':order['version'], 'receipt':order['document']['receipts'][0]}),
+            ('post', f'/api/purchase-orders/{order["id"]}/receipts/{order["document"]["receipts"][0]["id"]}/void', {'request_key': str(uuid4()), 'expected_version':order['version'], 'reason':'test'}),
+            ('patch', f'/api/procurement/{self.items[0]}', {'note':'forbidden'}),
+            ('post', f'/api/projects/{self.pid}/procurement', {'name':'forbidden','wave':'other'}),
+        ]
+        for method, path, body in writes:
+            self.assertEqual(getattr(finance,method)(path,json=body).status_code,403,path)
+        self.assertEqual(finance.get(f'/api/purchase-orders/{order["id"]}').json(),before)
+        with Session(self.engine) as db:
+            db.scalar(select(models.ProjectMember).where(models.ProjectMember.user_id==self.users['finance'])).active=False
+            db.commit()
+        self.assertEqual(finance.get(f'/api/purchase-orders/{order["id"]}').status_code,403)
+        self.assertEqual(finance.get('/api/purchase-orders').json(),[])
+        self.assertEqual(finance.get('/api/me/procurement-tracking').json()['items'],[])
 
     def test_repeated_requests_and_duplicate_order_and_stale_edit(self):
         body = {'request_key': str(uuid4()), 'document': self.doc}

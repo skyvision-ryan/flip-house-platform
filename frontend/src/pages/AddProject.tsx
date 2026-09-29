@@ -13,7 +13,7 @@ import Select from '@cloudscape-design/components/select';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import Textarea from '@cloudscape-design/components/textarea';
 import Tiles from '@cloudscape-design/components/tiles';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AddressCandidate, api, LookupResult, UserBrief } from '../api/client';
 import css from '../components/ui/CollaborationLayout.module.css';
@@ -71,10 +71,7 @@ export default function AddProject() {
   const [manualForm, setManualForm] = useState<ManualAddress>(EMPTY_MANUAL);
   const [fields, setFields] = useState<FieldState[]>([]);
   const [strategy, setStrategy] = useState('flip');
-  // 新建一律是线索（阶段由清单派生，后端会重置任何别的取值）。留成常量，提交时照发。
-  const stage = 'lead';
-  const [substage, setSubstage] = useState<string | null>('new_lead');
-  const [heat, setHeat] = useState('warm_lead');
+  const [initialStage, setInitialStage] = useState('s1');
   const [name, setName] = useState('');
   const [deal, setDeal] = useState({ purchase_price: '', target_arv: '', purchase_date: '', construction_start: '', construction_end: '', risks: '', notes: '' });
 
@@ -87,7 +84,7 @@ export default function AddProject() {
     api.creationMembers().then(setUsers).catch((e) => setUsersError(e.message)).finally(() => setLoadingUsers(false));
   };
   useEffect(() => { if (me && userCan(meta, me, 'assign_tasks')) loadUsers(); }, [me?.id, meta]);
-  const planSummary = summarizePlan(meta?.stage_checklist ?? [], plan);
+  const planSummary = summarizePlan(meta?.stage_checklist ?? [], plan, initialStage);
   const joining = planSummary.people.filter((id) => id !== me?.id);
   const updatePlan = (value: TaskPlan) => { setPlan(value); setJoinAssignees(false); };
 
@@ -128,9 +125,10 @@ export default function AddProject() {
     clearHouse();
     try {
       const r = await api.lookupProperty(label);
-      setLookup(r);
+      setLookup(r.fields.length ? r : null);
+      if (!r.fields.length) setManualAddr(r.address);
       setQuery(r.address.label);
-      setFields(r.fields.map((f) => ({ field: f.field, label: f.label, value: f.value ?? '', source: f.source, confidence: f.confidence ?? null, note: f.note ?? null })));
+      setFields((r.fields.length ? r.fields : (meta?.property_fields ?? []).map((f) => ({ field: f.key, label: f.label, value: '', source: 'manual', confidence: null, note: null }))).map((f) => ({ field: f.field, label: f.label, value: f.value ?? '', source: f.source, confidence: f.confidence ?? null, note: f.note ?? null })));
       setName(r.address.street);
       settleHouse(r.address.label);
       // KAN-71：不再把挂牌价/估值预填成买入价/目标售价。两个金额框默认空，参考值并排放在旁边，点「采用」才填。
@@ -155,8 +153,7 @@ export default function AddProject() {
     setFields((meta?.property_fields ?? []).map((f) => ({ field: f.key, label: f.label, value: '', source: 'manual', confidence: null, note: null })));
   };
 
-  const substageOptions = useMemo(() => meta?.substages[stage] ?? [], [meta, stage]);
-  const heatOptions = [{ label: '热线索', value: 'hot_lead' }, { label: '温线索', value: 'warm_lead' }];
+  const stageOptions = (meta?.stage_checklist ?? []).map((s) => ({ value: s.key, label: s.key === 's1' ? '买房 · 未购入' : s.key === 's2' ? '买房 · escrow 中' : s.key === 's6' ? '售出收尾' : s.key === 's5' ? '卖房上市' : s.short }));
   const summary = summarizeSources(fields);
   const labelOfSource = (s: string) => sourceLabel(s, meta?.sources);
   const byKey = Object.fromEntries(fields.map((f, i) => [f.field, { f, i }]));
@@ -173,18 +170,18 @@ export default function AddProject() {
         task_plan: planPayload(meta.stage_checklist, plan),
         join_assignees: joinAssignees,
         name: name || address.street,
-        strategy, stage, substage, lead_heat: heat,
+        strategy, initial_stage_key: initialStage,
         address,
         // 查到的 APN 跟查询结果走；手动路径的 APN 就是用户在房产资料中填的那格（来源人工），没填就空
-        apn: lookup ? lookup.apn : (byKey.apn?.f.value || null),
+        apn: byKey.apn?.f.source === 'manual' ? byKey.apn.f.value || null : null,
         // 空值不发：别往库里灌一堆 value 为空的来源行
-        fields: fields.filter((f) => f.value !== '').map((f) => ({ field: f.field, value: f.value, source: f.source, confidence: f.confidence, note: f.note })),
-        owner: lookup?.owner ?? null, mortgages: lookup?.mortgages ?? [], sales_history: lookup?.sales_history ?? [], valuation: lookup?.valuation ?? null,
+        fields: fields.filter((f) => f.value !== '' && f.source === 'manual').map((f) => ({ field: f.field, value: f.value, source: f.source, confidence: f.confidence, note: f.note })),
+        owner: null, mortgages: [], sales_history: [], valuation: null,
         purchase_price: numOrNull(deal.purchase_price), target_arv: numOrNull(deal.target_arv),
         purchase_date: deal.purchase_date || null, construction_start: deal.construction_start || null, construction_end: deal.construction_end || null,
         risks: deal.risks || null, notes: deal.notes || null,
         // 手动建的房没有任何已知数据，不自动生成带假设金额的分析
-        create_analysis: !!lookup,
+        create_analysis: false,
       });
       flash({ type: 'success', content: `已创建“${p.name}”及 ${planSummary.total} 项任务，已分派 ${planSummary.assigned} 项。邮件通道未接通，本次未发送邮件。` });
       navigate(`/projects/${p.id}?tab=overview`);
@@ -241,6 +238,7 @@ export default function AddProject() {
         { label: '室内面积', value: byKey.sqft?.f.value ? `${byKey.sqft.f.value} sqft` : '未填' },
         { label: '地块面积', value: byKey.lot_sqft?.f.value ? `${byKey.lot_sqft.f.value} sqft` : '未填' },
         { label: 'APN / AIN', value: byKey.apn?.f.value || lookup?.apn || '待核实' },
+        { label: '录入阶段', value: stageOptions.find((s) => s.value === initialStage)?.label ?? '买房 · 未购入' },
         { label: '来源', value: lookup ? summaryText(summary, labelOfSource) : '人工填写 · 待核实' },
       ].map((item) => <div key={item.label} className={item.label === '来源' || item.label === 'APN / AIN' ? css.fullSpan : undefined}><dt><Box variant="small" color="text-body-secondary">{item.label}</Box></dt><dd>{item.value}</dd></div>)}</dl>
       {provisional && <Box variant="small" color="text-body-secondary">含演示 / 待核实数据，请在买入前核对。</Box>}
@@ -292,7 +290,7 @@ export default function AddProject() {
                     <KeyValuePairs
                       columns={4}
                       items={[
-                        { label: lookup ? '标准地址' : '地址（手动填写）', value: address.label },
+                        { label: lookup ? '演示地址' : '地址（手动填写）', value: address.label },
                         { label: '地块号（APN）', value: lookup ? text(lookup.apn) : '待核实' },
                         { label: '自动估值', value: money(lookup?.valuation?.avm_value) },
                         { label: '挂牌价', value: money(lookup?.valuation?.list_price) },
@@ -308,7 +306,7 @@ export default function AddProject() {
                   <Alert type={summary.lowConf.length ? 'warning' : provisional ? 'info' : 'success'} header={<>补全情况</>}>
                     {summaryText(summary, labelOfSource)}
                     {provisional && ' 演示数据是模拟值，不是这套房子的真实资料。'}
-                    改动任何字段后，该字段来源变为“人工”，原值仍保留在来源记录里。
+                    改动任何字段后，该字段来源变为“人工”，人工填写的数据会随项目保存。
                   </Alert>
                 ) : (
                   <Alert type="info" header={<>手动填写</>}>
@@ -323,7 +321,7 @@ export default function AddProject() {
                   </Container>
                 ))}
                 {lookup && (
-                  <ExpandableSection cardId="intake-history" variant="container" header={<Header variant="h3">业主、按揭与成交史（自动带入，仅供参考）</Header>}>
+                  <ExpandableSection cardId="intake-history" variant="container" header={<Header variant="h3">业主、按揭与成交史（演示预览，不保存）</Header>}>
                     <SpaceBetween size="l">
                       {lookup.owner ? (
                         <KeyValuePairs columns={3} items={[
@@ -368,19 +366,10 @@ export default function AddProject() {
                         ]}
                       />
                     </FormField>
-                    {/* KAN-50：原来这里有一个「阶段」下拉，但它是死的——实测选「在建」建出来仍然是
-                        线索，连子阶段也被重置成「新线索」。原因是阶段由六阶段清单派生
-                        （`steps.py:206-212` 的 sync_legacy_stage 每次读项目都会重算），
-                        新项目没有任何 gate 确认，必然停在 ① 预买房。摆一个选了不算数的控件是骗人。
-                        新建一律落成线索，要推进得去项目里确认 Open escrow。 */}
-                    <ColumnLayout columns={2}>
-                      <FormField label="跟进档位" description="新房子从「买房 · 未购入」开始，关键节点确认后推进。">
-                        <Select selectedOption={substageOptions.find((s) => s.value === substage) ?? null} options={substageOptions} onChange={({ detail }) => setSubstage(detail.selectedOption.value ?? null)} />
-                      </FormField>
-                      <FormField label="线索热度">
-                        <Select selectedOption={heatOptions.find((h) => h.value === heat) ?? null} options={heatOptions} onChange={({ detail }) => setHeat(detail.selectedOption.value!)} />
-                      </FormField>
-                    </ColumnLayout>
+                    <FormField label="房屋当前阶段" description="任务准备将从这里开始；后续阶段可以提前安排。">
+                      <Select selectedOption={stageOptions.find((s) => s.value === initialStage) ?? null} options={stageOptions} onChange={({ detail }) => setInitialStage(detail.selectedOption.value!)} />
+                    </FormField>
+                    {initialStage !== 's1' && <Alert type="info">这是房屋录入时的阶段。此前任务与节点不会自动完成，历史资料待补、待核验。</Alert>}
                   </SpaceBetween>
                 </Container>
 
@@ -423,20 +412,20 @@ export default function AddProject() {
     <div className={css.scope}>
       <ol className={css.steps} aria-label="新建项目步骤">{['确认房屋', '准备任务', '确认创建'].map((label, index) => <li key={label} aria-current={index === step ? 'step' : undefined} data-step-state={index < step ? 'done' : index === step ? 'current' : 'future'}><span className={css.stepNumber}>{index < step ? <Icon name="check" size="small" /> : index + 1}</span><span className={css.stepLabel}>{label}</span></li>)}</ol>
       {error && <Box margin={{ bottom: 'l' }}><Alert type="error">{error}</Alert></Box>}
-      {step === 0 && <div className={css.intakeSplit}><SpaceBetween size="l">{addressSection}{address && <>{settingsSection}<ExpandableSection cardId="intake-sources" variant="container" headerText="房产资料与来源 · 可选核对">{detailsSection}</ExpandableSection></>}</SpaceBetween><aside className={css.aside}>{houseCard}</aside></div>}
+      {step === 0 && <div className={css.intakeSplit}><SpaceBetween size="l">{addressSection}{address && <>{settingsSection}<ExpandableSection cardId="intake-sources" variant="container" headerText="房产资料与来源 · 演示与人工核对"><Alert type="info">演示数据，真实数据接口后续接入。演示值仅供预览，不随项目保存；人工填写的资料会保存，缺失资料不影响创建。</Alert>{detailsSection}</ExpandableSection></>}</SpaceBetween><aside className={css.aside}>{houseCard}</aside></div>}
       {step === 1 && <div className={css.intakeSplit}><SpaceBetween size="l">
         <HelpText>全部 {planSummary.total} 项普通任务都会创建。后续任务可提前分派，任务与关键节点分别管理。</HelpText>
         {usersError && <Alert type="error" action={<Button onClick={loadUsers}>重试</Button>}>未能读取员工账号：{usersError}。可暂不分派，创建后再安排。</Alert>}
-        <ProjectPreplan meta={meta} plan={plan} onChange={updatePlan} users={users} loading={loadingUsers} creatorId={me.id} />
-      </SpaceBetween><aside className={css.aside}><SpaceBetween size="l">{houseCard}<PlanSummary meta={meta} plan={plan} users={users} /></SpaceBetween></aside></div>}
+        <ProjectPreplan meta={meta} plan={plan} onChange={updatePlan} users={users} loading={loadingUsers} creatorId={me.id} initialStage={initialStage} />
+      </SpaceBetween><aside className={css.aside}><SpaceBetween size="l">{houseCard}<PlanSummary meta={meta} plan={plan} users={users} initialStage={initialStage} /></SpaceBetween></aside></div>}
       {step === 2 && <div className={css.intakeSplit}><SpaceBetween size="l">
         {houseCard}<PlanReview meta={meta} plan={plan} />
         <Container cardId="intake-start" header={<Header variant="h2">创建后如何开始</Header>}><SpaceBetween size="m">
-          <KeyValuePairs columns={2} items={[{ label: '起始位置', value: '买房 · 未购入' }, { label: '任务状态', value: '全部未开始' }, { label: '本次分派审核人', value: planSummary.assigned ? me.display_name : '分派时确定' }, { label: '关键节点', value: '按既有规则单独确认' }]} />
+          <KeyValuePairs columns={2} items={[{ label: '起始位置', value: stageOptions.find((s) => s.value === initialStage)?.label }, { label: '任务状态', value: '普通任务待处理；采购分派后即可录单' }, { label: '本次分派审核人', value: planSummary.assigned ? me.display_name : '分派时确定' }, { label: '关键节点', value: '必要条件齐备后，由有权限的账号确认满足' }]} />
           {joining.length > 0 && <Checkbox checked={joinAssignees} onChange={({ detail }) => setJoinAssignees(detail.checked)}>将 {joining.map((id) => users.find((u) => u.id === id)?.display_name ?? `账号 ${id}`).join('、')} 加入项目并分派任务</Checkbox>}
           <Box color="text-body-secondary">未安排的 {planSummary.unassigned} 项任务保留为待分派，可稍后补充。</Box>
         </SpaceBetween></Container>
-      </SpaceBetween><aside className={css.aside}><PlanSummary meta={meta} plan={plan} users={users} review /></aside></div>}
+      </SpaceBetween><aside className={css.aside}><PlanSummary meta={meta} plan={plan} users={users} initialStage={initialStage} review /></aside></div>}
       <div className={css.footer}><Button variant="link" disabled={submitting} onClick={() => navigate('/projects')}>取消</Button><SpaceBetween direction="horizontal" size="xs">{step > 0 && <Button disabled={submitting} onClick={() => { setError(null); setStep(step - 1); }}>上一步</Button>}{step < 2 ? <Button variant="primary" loading={lookingUp} disabled={!address} onClick={advance}>下一步：{step === 0 ? '准备任务' : '确认创建'}</Button> : <Button variant="primary" loading={submitting} onClick={submit} disabled={joining.length > 0 && !joinAssignees}>创建项目</Button>}</SpaceBetween></div>
     </div>
   </ContentLayout>;

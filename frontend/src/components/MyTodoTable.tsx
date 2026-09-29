@@ -203,7 +203,7 @@ export default function MyTodoTable({ rows, onReload, compact = false }: { rows:
             <Box>{modal.row.item.evidence_hint ?? '请确认该节点的证据与条件已满足。'}</Box>
             <Box variant="small" color="text-body-secondary">{modal.row.project.project_name} · {modal.row.stage}</Box>
             <SpaceBetween direction="horizontal" size="s">
-              {confirmCodes.map((c) => (
+              {modal.row.item.confirmation_mode === "any" ? <Button variant="primary" loading={busy} disabled={!modal.row.item.ready || !confirmCodes.length} onClick={() => doConfirm(role.actor)}>确认满足</Button> : confirmCodes.map((c) => (
                 <Checkbox key={c} checked={false} disabled={busy} onChange={() => doConfirm(c)}>
                   <span className="ui-inline-tight">以 {c} 确认</span>
                 </Checkbox>

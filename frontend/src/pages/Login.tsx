@@ -17,6 +17,7 @@ export default function Login({ onLogin, demoMode, onSkip }: { onLogin: (me: Me)
   const [err, setErr] = useState<string | null>(null);
 
   const submit = async () => {
+    if (busy) return;
     if (!username.trim() || !password) { setErr('账号和密码都要填'); return; }
     setBusy(true); setErr(null);
     try { onLogin(await api.login(username.trim(), password)); } catch (e: any) { setErr(e.message?.includes('401') || e.message?.includes('不对') ? '账号或密码不对' : e.message); } finally { setBusy(false); }
@@ -27,7 +28,7 @@ export default function Login({ onLogin, demoMode, onSkip }: { onLogin: (me: Me)
       <div className="ui-login-card">
         <form onSubmit={(e) => { e.preventDefault(); submit(); }}>
           <Form
-            header={<Header variant="h1" help="用公司给你的账号登录。忘了密码找负责人重置。">翻新项目平台</Header>}
+            header={<Header variant="h1" description="登录后查看房屋进展，处理分派给你的工作。">翻新项目平台</Header>}
             actions={
               <SpaceBetween direction="horizontal" size="xs">
                 {demoMode && onSkip && <Button variant="link" onClick={onSkip}>先不登录，用演示身份</Button>}
@@ -42,12 +43,13 @@ export default function Login({ onLogin, demoMode, onSkip }: { onLogin: (me: Me)
                   <Input value={username} onChange={({ detail }) => setUsername(detail.value)} autoFocus autoComplete="username" placeholder="name@example.com" />
                 </FormField>
                 <FormField label="密码">
-                  <Input type="password" value={password} onChange={({ detail }) => setPassword(detail.value)} autoComplete="current-password" onKeyDown={({ detail }) => { if (detail.key === 'Enter') submit(); }} />
+                  <Input type="password" value={password} onChange={({ detail }) => setPassword(detail.value)} autoComplete="current-password" />
                 </FormField>
               </SpaceBetween>
             </Container>
           </Form>
         </form>
+        <p className="ui-muted">忘记密码或无法登录？请联系项目负责人。</p>
         {demoMode && <Box margin={{ top: 'm' }} variant="small" color="text-body-secondary" textAlign="center">现在是演示模式：没登录也能用顶栏“我是”自报身份。正式上线后必须登录。</Box>}
       </div>
     </div>

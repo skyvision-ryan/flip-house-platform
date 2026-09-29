@@ -7,15 +7,21 @@ SECRET_KEY (stable, at least 32 characters), INITIAL_PASSWORD, ADMIN_USER, and
 exactly one of TEAM_DEMO_USERS_JSON / TEAM_DEMO_USERS_FILE. ADMIN_PASSWORD is
 required only to create the first administrator in an empty user table.
 TEAM_DEMO_AS_OF optionally pins YYYY-MM-DD; otherwise uses Los Angeles today.
+TEAM_DEMO_HOUSES selects the house set: "3" (default, three houses) or "1" (only
+the renovation-stage house, materials as requirements only, for procurement demos).
+TEAM_DEMO_RESET_ID explicitly resets business data once per ID in single-house
+mode, with a verified backup. All users stay; INITIAL_PASSWORD becomes their
+shared demo password. Omit it for normal startup, which never resets data.
 This profile uses DATA_DIR/app.db and local uploads. Free-instance data can be
 lost on restart; an empty database is rebuilt. Existing team-demo work is kept.
-Old or partial project sets require the separate explicit migration tool.
+Old or partial project sets require explicit migration or the opt-in reset above.
 """
 
 from datetime import date, datetime
 import json
 import os
 from pathlib import Path
+import re
 import sys
 from zoneinfo import ZoneInfo
 
@@ -42,6 +48,12 @@ def configuration(environ):
         raise ValueError("团队演示启动仅支持 DATA_DIR/app.db，不接受其他 DB_URL")
     if environ.get("STORAGE", "local") != "local":
         raise ValueError("团队演示启动仅支持本地附件存储")
+    houses = environ.get("TEAM_DEMO_HOUSES", "3")
+    if houses not in ("1", "3"):
+        raise ValueError("TEAM_DEMO_HOUSES 只能是 1 或 3")
+    reset_id = environ.get("TEAM_DEMO_RESET_ID", "")
+    if reset_id and (houses != "1" or not re.fullmatch(r"[A-Za-z0-9._-]{1,80}", reset_id)):
+        raise ValueError("显式重置需要单房模式与合法 TEAM_DEMO_RESET_ID")
     raw_json, roster_file = environ.get("TEAM_DEMO_USERS_JSON", ""), environ.get("TEAM_DEMO_USERS_FILE", "")
     if bool(raw_json) == bool(roster_file):
         raise ValueError("须且只能提供 TEAM_DEMO_USERS_JSON 或 TEAM_DEMO_USERS_FILE")
@@ -56,10 +68,19 @@ def configuration(environ):
             raise ValueError
     except ValueError:
         raise ValueError("TEAM_DEMO_AS_OF 或 PORT 格式错误") from None
-    return {"data_dir": data_dir, "database": database, "roster": roster, "as_of": as_of, "port": port}
+    return {"data_dir": data_dir, "database": database, "roster": roster, "as_of": as_of, "port": port, "houses": houses, "reset_id": reset_id}
 
 
 def bootstrap(config):
+    sys.path.insert(0, str(ROOT / "backend"))
+    sys.path.insert(0, str(ROOT / "scripts"))
+    if config["reset_id"]:
+        from reset_team_demo import reset_once
+        return reset_once(config, lambda: _bootstrap(config), os.environ["INITIAL_PASSWORD"])
+    return _bootstrap(config)
+
+
+def _bootstrap(config):
     # All application imports follow the fail-closed environment check.
     sys.path.insert(0, str(ROOT / "backend"))
     sys.path.insert(0, str(ROOT / "scripts"))
@@ -68,7 +89,8 @@ def bootstrap(config):
     from app.auth import email_users, hash_password
     from app.db import SessionLocal, init_db
     from provision_users import provision_users, validate_records
-    from prepare_team_demo import SLOTS, prepare_demo, resolve_team
+    from prepare_team_demo import HOUSE_SETS, SLOTS, prepare_demo, resolve_team
+    houses = HOUSE_SETS[config["houses"]]
 
     roster = validate_records(config["roster"])
     slots = [row["name"].casefold() for row in roster]
@@ -79,8 +101,8 @@ def bootstrap(config):
         db.execute(text("BEGIN IMMEDIATE"))
         # Never automatically migrate, delete, or combine old business projects.
         projects = list(db.execute(select(models.Project.id, models.Property.apn).join(models.Property)))
-        expected = {f"TEAM-DEMO:{SCOPE}:{index}" for index in range(3)}
-        if projects and (len(projects) != 3 or {apn for _, apn in projects} != expected):
+        expected = {f"TEAM-DEMO:{SCOPE}:{index}" for index in houses}
+        if projects and (len(projects) != len(houses) or {apn for _, apn in projects} != expected):
             raise ValueError("存在旧项目或不完整演示，请先完成显式迁移；启动未修改账号")
         users = list(db.scalars(select(models.User)))
         if not users:
@@ -113,19 +135,19 @@ def bootstrap(config):
     # Generator owns its backup and SQLite write transaction. If it fails, do not
     # serve a partial demo; committed accounts are safely reused on the next run.
     result = prepare_demo(config["database"], config["data_dir"] / "uploads", roster, admin_id, config["as_of"],
-                          apply=True, backup_dir=config["data_dir"] / "team-demo-backups", scope=SCOPE)
+                          apply=True, backup_dir=config["data_dir"] / "team-demo-backups", scope=SCOPE, houses=houses)
     return result["mode"]
 
 
 def main():
     try:
         config = configuration(os.environ)
-        bootstrap(config)
+        mode = bootstrap(config)
     except Exception:
         # SQL errors can contain private emails and hashes. Never print exceptions.
         print("团队演示启动未完成：请核对私有环境配置、管理员及员工角色、旧项目迁移和备份条件。服务未启动；未输出名单或数据库参数。", file=sys.stderr)
         return 1
-    print("团队演示已就绪；已有账号及演示操作保持不变。", flush=True)
+    print("单房演示重置完成；全部账号保留并采用私有配置的统一密码。" if mode == "reset" else "团队演示已就绪；已有账号及演示操作保持不变。", flush=True)
     os.execv(sys.executable, [sys.executable, "-m", "uvicorn", "app.main:app", "--app-dir", str(ROOT / "backend"),
                              "--host", "0.0.0.0", "--port", str(config["port"])])
     return 0

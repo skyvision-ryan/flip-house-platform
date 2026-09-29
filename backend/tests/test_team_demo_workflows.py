@@ -151,17 +151,20 @@ class TeamDemoWorkflowTests(unittest.TestCase):
         for pid in self.pids:
             self.assertEqual(sum(len(s["items"]) for s in current(pid)["stages"]), 31)
         confirm(cedar, "open_escrow", "david")
-        self.assertEqual(current(cedar)["current_stage"]["key"], "s1")
+        self.assertEqual(current(cedar)["current_stage"]["key"], "s2")
         confirm(cedar, "open_escrow", "jessie")
         self.assertEqual(current(cedar)["current_stage"]["key"], "s2")
+        self.request("jessie", "patch", f"/api/projects/{cedar}", {"purchase_date": "2026-09-25"})
         for slot in ("david", "jessie"): confirm(cedar, "close_escrow", slot)
         self.assertEqual(current(cedar)["current_stage"]["key"], "s3")
         for slot in ("david", "jessie"):
-            self.request(slot, "post", f"/api/projects/{oak}/steps/final", {"done": True}, expected=400)
+            self.request(slot, "post", f"/api/projects/{oak}/steps/final", {"done": True}, expected=409)
         self.request("zoey", "post", f"/api/projects/{oak}/inspections", {"name": "Synthetic Final reinspection", "date": "2026-09-25", "result": "passed", "is_final": True}, expected=201)
-        # Existing D/J historical confirmations remain the existing business rule.
+        # Historical confirmation records are retained; latest Final evidence still governs.
         self.assertEqual(current(oak)["current_stage"]["key"], "s4")
         self.request("jessie", "patch", f"/api/projects/{oak}", {"list_date": "2026-09-25"})
+        self.assertEqual(current(oak)["current_stage"]["key"], "s4")
+        confirm(oak, "listing", "jessie")
         self.assertEqual(current(oak)["current_stage"]["key"], "s5")
         self.request("zoey", "post", f"/api/projects/{pine}/steps/closed", {"done": True, "confirm_as": "D"}, expected=403)
         for slot in ("david", "jessie"): confirm(pine, "closed", slot)

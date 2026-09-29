@@ -18,7 +18,7 @@ export default function TaskTimeline({ projectId, taskId, refreshKey = 0, limit 
     return () => { alive = false; };
   }, [projectId, taskId, refreshKey]);
   if (events === null) return <Box padding="s"><Spinner size="normal" /></Box>;
-  if (!events.length) return <Box color="text-body-secondary" fontSize="body-s">还没有记录：这项任务还没分派、也没人动过。</Box>;
+  if (!events.length) return <Box color="text-body-secondary" fontSize="body-s">暂无操作记录。</Box>;
   const rows = limit ? events.slice(0, limit) : events;
   return (
     <SpaceBetween size="xs">

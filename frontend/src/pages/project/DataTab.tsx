@@ -1,3 +1,5 @@
+import Alert from '@cloudscape-design/components/alert';
+import Button from '@cloudscape-design/components/button';
 import Box from '@cloudscape-design/components/box';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import Spinner from '@cloudscape-design/components/spinner';
@@ -15,15 +17,17 @@ import { dateStr, money, pct, text } from '../../lib/format';
 
 export default function DataTab({ projectId, reload, section }: { projectId: number; reload: () => Promise<any>; section?: string | null }) {
   const flash = useFlash();
+  const [error, setError] = useState('');
   const [data, setData] = useState<PropertyData | null>(null);
   const [activeTab, setActiveTab] = useState(section === 'utilities' ? 'utilities' : 'specs');
 
-  const load = useCallback(() => api.propertyData(projectId).then(setData), [projectId]);
+  const load = useCallback(() => api.propertyData(projectId).then(d => { setData(d); setError(''); }).catch(e => setError(e.message)), [projectId]);
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
     if (section === 'utilities') setActiveTab('utilities');
   }, [section]);
 
+  if (error) return <Alert type="error" action={<Button onClick={load}>重试</Button>}>{error}</Alert>;
   if (!data) return <Box padding="l" textAlign="center"><Spinner /></Box>;
 
   const conflicts = data.fields.filter((f) => f.has_conflict).length;

@@ -8,6 +8,7 @@ import StatusIndicator from '@cloudscape-design/components/status-indicator';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, Workbench, WorkbenchProject } from '../api/client';
+import { useActor } from '../lib/actor';
 import { useRole } from '../lib/role';
 import { dateTime } from '../lib/format';
 import { moneyValue } from '../lib/purchaseOrders';
@@ -27,6 +28,7 @@ import Table from './ui/Table';
 export default function WorkbenchFocus({ refreshKey = 0 }: { refreshKey?: number }) {
   const navigate = useNavigate();
   const role = useRole();
+  const { me } = useActor();
   const [data, setData] = useState<Workbench | null>(null);
   const [err, setErr] = useState<string | null>(null);
   useEffect(() => { api.workbench().then(setData).catch((e) => setErr(e.message)); }, [refreshKey]);
@@ -36,7 +38,7 @@ export default function WorkbenchFocus({ refreshKey = 0 }: { refreshKey?: number
     const n = p.next_action;
     if (!n) return <Box color="text-body-secondary">本段任务都已安排</Box>;
     const label = n.kind === 'review' ? `审核 ${n.title}` : n.kind === 'assign' ? `安排 ${n.title}` : n.title;
-    const href = n.kind === 'review' ? `/todo?task=${n.task_id}` : `/projects/${p.project_id}?tab=overview`;
+    const href = n.kind === 'review' && n.actor?.id === me?.id ? `/todo?task=${n.task_id}` : `/projects/${p.project_id}?tab=overview&task=${n.task_id}`;
     return <Link href={href} onFollow={(e) => { e.preventDefault(); navigate(href); }}>{label}</Link>;
   };
   return (
@@ -49,23 +51,22 @@ export default function WorkbenchFocus({ refreshKey = 0 }: { refreshKey?: number
           { label: '等待回复', icon: 'status-pending', value: c?.waiting, help: '正在等待反馈的任务。' },
         ].map((m) => <CardFrame key={m.label} cardId="workbench-metrics" cardContext={m.label}><div className="ui-metric"><div className="ui-metric-label"><span className="ui-metric-icon" aria-hidden="true"><Icon name={m.icon as IconProps.Name} /></span>{m.label}</div><div className="ui-metric-value">{m.value ?? '—'}</div><HelpText inline>{m.help}</HelpText></div></CardFrame>)}
       </div>
-      <CollaborationWorkspace main={
+      <CollaborationWorkspace wide main={
         <Table cardId="workbench-projects"
           variant="embedded"
           loading={!data}
           loadingText="正在看每套房走到哪"
           items={data?.projects ?? []}
           trackBy="project_id"
-          onRowClick={({ detail }) => navigate(`/projects/${detail.item.project_id}?tab=overview`)}
-          header={<Header variant="h2" counter={data ? `(${data.projects.length})` : undefined} help="阶段条：浅蓝已完成，深蓝当前位置，灰色未到达。点击房名进入项目，点击审核事项前往我的事项。" actions={role.canReadMoney ? <Button iconName="folder" onClick={() => navigate('/projects')}>查看全部项目</Button> : undefined}>项目关注</Header>}
+          header={<Header variant="h2" description={data?.projects.some(p => p.procurement) ? '采购金额仅计已登记订单实付减退款，不含材料旧记录；非财务核款结果。' : undefined} counter={data ? `(${data.projects.length})` : undefined} help="阶段条：浅蓝已完成，深蓝当前位置，灰色未到达。点击房名进入项目，点击审核事项前往我的事项。" actions={role.canReadMoney ? <Button iconName="folder" onClick={() => navigate('/projects')}>查看全部项目</Button> : undefined}>项目关注</Header>}
           empty={<Box textAlign="center" padding="l" color="text-body-secondary">还没有项目。</Box>}
           columnDefinitions={[
             { id: 'p', header: '项目', minWidth: 160, cell: (p) => <div title={p.address} className="ui-wrap-anywhere"><Link href={`/projects/${p.project_id}`} onFollow={(e) => { e.preventDefault(); navigate(`/projects/${p.project_id}?tab=overview`); }}>{p.project_name}</Link></div> },
-            { id: 'pos', header: '当前位置', width: 150, cell: (p) => <div onClick={(e) => e.stopPropagation()}><StagePositionBar position={p.group_position} compact /></div> },
+            { id: 'pos', header: '当前位置', minWidth: 110, cell: (p) => <div onClick={(e) => e.stopPropagation()}><StagePositionBar position={p.group_position} compact /></div> },
             { id: 'next', header: '下一动作', minWidth: 150, cell: (p) => <div onClick={(e) => e.stopPropagation()}><div>{actionText(p)}</div>{p.next_action && <StatusIndicator type={statusIndicator(p.next_action.exec_status)}>{p.next_action.exec_status_label}</StatusIndicator>}</div> },
-            { id: 'who', header: '行动者', width: 130, cell: (p) => (p.next_action ? <PersonAvatar user={p.next_action.actor} size="small" showRole={false} /> : '—') },
-            ...(data?.projects.some(p => p.procurement) ? [{ id: 'procurement', header: '采购', minWidth: 200, cell: (p: WorkbenchProject) => p.procurement ? <div onClick={e=>e.stopPropagation()}><Button variant="inline-link" onClick={()=>navigate(`/projects/${p.project_id}?tab=procurement`)}>{p.procurement.owner || '待分派'} · {p.procurement.ready}/{p.procurement.total} 项已齐</Button><Box>已登记订单净额 {p.procurement.order_count ? moneyValue(p.procurement.order_count === p.procurement.missing_totals ? null : p.procurement.spent) : '暂无订单'}{p.procurement.missing_totals ? ` · ${p.procurement.missing_totals} 笔实付未填，汇总不完整` : ''}</Box><Box variant="small" color="text-body-secondary">仅订单实付减退款，不含材料旧记录；非财务核款结果。</Box><Box>{p.procurement.problems.length ? `${p.procurement.problems.length} 项需处理 · ${p.procurement.problems[0].name}：${p.procurement.problems[0].note}` : '无待处理事项'}</Box></div> : '—' }] : []),
-            { id: 'due', header: '截止', width: 96, cell: (p) => <span className="ui-nowrap">{p.next_action?.due_at ? dueText(p.next_action.due_at) : <Box variant="span" color="text-body-secondary">未设定</Box>}</span> },
+            { id: 'who', header: '行动者', minWidth: 115, cell: (p) => (p.next_action ? <PersonAvatar user={p.next_action.actor} size="small" showRole={false} /> : '—') },
+            ...(data?.projects.some(p => p.procurement) ? [{ id: 'procurement', header: '采购', minWidth: 200, cell: (p: WorkbenchProject) => p.procurement ? <div onClick={e=>e.stopPropagation()}><Button variant="inline-link" onClick={()=>navigate(`/projects/${p.project_id}?tab=procurement`)}>{p.procurement.owner || '待分派'} · {p.procurement.ready}/{p.procurement.total} 项已齐</Button><Box>已登记订单净额 {p.procurement.order_count ? moneyValue(p.procurement.order_count === p.procurement.missing_totals ? null : p.procurement.spent) : '暂无订单'}{p.procurement.missing_totals ? ` · ${p.procurement.missing_totals} 笔实付未填，汇总不完整` : ''}</Box><Box>{p.procurement.problems.length ? `${p.procurement.problems.length} 项需处理 · ${p.procurement.problems[0].name}：${p.procurement.problems[0].note}` : '无待处理事项'}</Box></div> : '—' }] : []),
+            { id: 'due', header: '截止', minWidth: 85, cell: (p) => <span className="ui-nowrap">{p.next_action?.due_at ? dueText(p.next_action.due_at) : <Box variant="span" color="text-body-secondary">未设定</Box>}</span> },
           ]}
         />
         } detail={<SpaceBetween size="l">

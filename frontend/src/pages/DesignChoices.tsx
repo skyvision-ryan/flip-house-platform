@@ -15,7 +15,7 @@ const directions = [
 const sample = [
   { id: 1, title: '开通水电与燃气', status: '进行中', evidence: '未满足', due: '09/25', person: 'Alex', role: '项目助理', note: '水、电已开通；等待燃气公司确认到场时间。', event: '今天 10:20 · Alex 更新了办理进展', color: 1 },
   { id: 2, title: '补齐房屋保险单', status: '等待中', evidence: '未满足', due: '09/25', person: 'Morgan', role: '项目助理', note: '等待保险经纪人补发带到期日的保险单。', event: '今天 09:45 · Morgan 记录等待回复', color: 2 },
-  { id: 3, title: '确认厨房材料到货', status: '待确认', evidence: '已满足', due: '09/26', person: 'Taylor', role: '采购', note: '到货照片已提交，等待审核人确认本次交付。', event: '昨天 16:30 · Taylor 提交了到货记录', color: 3 },
+  { id: 3, title: '核对 Permit 资料', status: '待确认', evidence: '已满足', due: '09/26', person: 'Taylor', role: 'Permit/设计', note: 'Permit 资料已提交，等待审核人确认本次交付。', event: '昨天 16:30 · Taylor 提交了 Permit 资料', color: 3 },
   { id: 4, title: '整理 Permit 申请资料', status: '进行中', evidence: '未满足', due: '09/27', person: 'Jordan', role: 'Permit/设计', note: '设计定稿已备齐，正在整理申请文件。', event: '昨天 15:10 · Jordan 开始处理', color: 4 },
 ];
 export default function DesignChoices() {
@@ -23,7 +23,8 @@ export default function DesignChoices() {
   const [picked, setPicked] = useState(1);
   const [filter, setFilter] = useState('全部');
   const [query, setQuery] = useState('');
-  const [choice, setChoice] = useState(() => localStorage.getItem('fh-design-preference') ?? '');
+  const [choice, setChoice] = useState(() => { try { return localStorage.getItem('fh-design-preference') ?? ''; } catch { return ''; } });
+  const [preferenceError, setPreferenceError] = useState('');
   const [detailTab, setDetailTab] = useState('详情');
   const [mobileDetail, setMobileDetail] = useState(false);
   const current = directions.find((d) => d.id === direction)!;
@@ -53,6 +54,6 @@ export default function DesignChoices() {
         </aside>
       </div>
     </section>
-    <div className="ui-design-decision"><div><strong>{choice ? `已记录偏好：${directions.find((d) => d.id === choice)?.name ?? choice}` : '先试着筛选、点任务，再选偏好'}</strong><p>参考方向的适配草图，沿用项目字体和头像；未切换组件库。偏好仅保存在本机。</p></div><Button onClick={() => { setChoice(direction); localStorage.setItem('fh-design-preference', direction); }}>我倾向于 {current.name}</Button></div>
+    {preferenceError && <p role="alert">{preferenceError}</p>}<div className="ui-design-decision"><div><strong>{choice ? `已记录偏好：${directions.find((d) => d.id === choice)?.name ?? choice}` : '先试着筛选、点任务，再选偏好'}</strong><p>参考方向的适配草图，沿用项目字体和头像；未切换组件库。偏好仅保存在本机。</p></div><Button onClick={() => { try { localStorage.setItem('fh-design-preference', direction); setChoice(direction); setPreferenceError(''); } catch { setPreferenceError('浏览器未允许保存偏好，请直接记录选择并反馈。'); } }}>保存本机偏好 · {current.name}</Button></div>
   </ContentLayout>;
 }

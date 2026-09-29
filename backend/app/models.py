@@ -131,6 +131,7 @@ class Project(Base):
     strategy: Mapped[str] = mapped_column(String, default="flip")
     stage: Mapped[str] = mapped_column(String, default="lead")
     substage: Mapped[Optional[str]] = mapped_column(String)
+    initial_stage_key: Mapped[Optional[str]] = mapped_column(String)  # 录入起点，之前的历史不视为完成
     lead_heat: Mapped[Optional[str]] = mapped_column(String)  # hot_lead / warm_lead
     # KAN-75 块 2：open_escrow 双确认成立那一刻的跟进档位快照。substage 列过门后会被 sync_legacy_stage
     # 覆盖成 construction（status.py / dashboard.py 还依赖它），所以历史档位另存一列，不改旧逻辑。
@@ -417,7 +418,7 @@ class Task(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), index=True)
     step_key: Mapped[Optional[str]] = mapped_column(String, index=True)  # 模板项的稳定 key；临时事项为空
-    source: Mapped[str] = mapped_column(String, default="template")  # template / adhoc / change
+    source: Mapped[str] = mapped_column(String, default="template")  # template / node_confirmation / adhoc / change
     stage_key: Mapped[str] = mapped_column(String)  # s1…s6，展示分组由前端按 meta 映射
     title: Mapped[str] = mapped_column(String)
     description: Mapped[Optional[str]] = mapped_column(Text)
@@ -432,6 +433,7 @@ class Task(Base):
     version: Mapped[int] = mapped_column(Integer, default=1)  # 每次写递增；客户端带旧值就 409
     # UPDATE includes the version read by this transaction; a competing write must not be overwritten.
     __mapper_args__ = {"version_id_col": version}
+    gate_confirmation_json: Mapped[Optional[str]] = mapped_column(Text)  # 实际确认人、时间及前置事实快照
     requirement_version: Mapped[int] = mapped_column(Integer, default=1)
     linked_task_id: Mapped[Optional[int]] = mapped_column(ForeignKey("tasks.id"))
     created_by_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"))

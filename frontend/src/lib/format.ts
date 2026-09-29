@@ -33,3 +33,9 @@ export function daysBetween(a: string | null | undefined, b: string | null | und
   if (!a || !b) return null;
   return Math.round((new Date(b + 'T00:00:00').getTime() - new Date(a + 'T00:00:00').getTime()) / 86400000);
 }
+
+/** Required amount input: blank is unknown; zero remains an explicit amount. */
+export function requiredNumberError(value: string): string | undefined {
+  if (!value.trim()) return '请填写金额；真实零金额请填 0。';
+  if (!Number.isFinite(Number(value))) return '请填写有效数字。';
+}
