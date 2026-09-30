@@ -715,7 +715,7 @@ class PurchaseOrderTests(unittest.TestCase):
         response = collaborator.put(f'/api/purchase-orders/{order["id"]}', json={'request_key':str(uuid4()),'expected_version':order['version'],'document':document})
         self.assertEqual(response.status_code,200,response.text); order=response.json()
         body = {'request_key':str(uuid4()),'expected_version':order['version'],
-                'receipt':{'id':str(uuid4()),'received_on':date.today().isoformat(),'location':'Synthetic site','lines':[{'line_id':'lamp','quantity':'1','damaged_quantity':'0'}]}}
+                'receipt':{'id':str(uuid4()),'received_on':datetime.now(ZoneInfo('America/Los_Angeles')).date().isoformat(),'location':'Synthetic site','lines':[{'line_id':'lamp','quantity':'1','damaged_quantity':'0'}]}}
         for name in ('outsider','finance'):
             denied=self.clients[name].post(f'/api/purchase-orders/{order["id"]}/receipts',json=body)
             self.assertEqual(denied.status_code,403,denied.text)
