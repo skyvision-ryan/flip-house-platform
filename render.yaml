@@ -1,5 +1,5 @@
-# Render Blueprint：在 render.com 选 New → Blueprint → 选这个仓库 → Apply 即可。
-# 之后每次推送到 main 自动重新部署。
+# 主业务持久化迁移目标配置：必须先完整导出并验证原数据库与 uploads，再 Apply。
+# 空磁盘会被启动守卫拒绝；本文件不代表线上已经迁移。主业务保持手动部署。
 #
 # 这里有两个互相独立的服务：
 #   1. flip-house-platform-ryan  —— 主业务（后端 + 前端）
@@ -18,23 +18,39 @@ services:
     repo: https://github.com/skyvision-ryan/flip-house-platform
     branch: main
     region: oregon
-    plan: free
+    plan: starter
     healthCheckPath: /api/health
-    autoDeployTrigger: commit
+    autoDeployTrigger: off
     buildCommand: pip install -r backend/requirements.txt && npm --prefix frontend ci --include=dev --no-audit --no-fund && npm --prefix frontend run build
-    startCommand: uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port $PORT
+    startCommand: python scripts/start_persistent.py
+    disk:
+      name: flip-house-business-data
+      mountPath: /tmp/flip-house-platform-data
+      sizeGB: 5
     buildFilter:
       paths:
         - backend/**
         - frontend/**
+        - scripts/start_persistent.py
+        - scripts/storage_backup.py
         - render.yaml
     envVars:
       - key: PROVIDER
         value: mock
       - key: DATA_DIR
         value: /tmp/flip-house-platform-data
-      - key: DEMO_MODE   # 演示站：不用登录，顶栏自报身份。公司内部部署设 0 并配 ADMIN_USER / ADMIN_PASSWORD / SECRET_KEY
+      - key: PERSISTENT_DISK_PATH
+        value: /tmp/flip-house-platform-data
+      - key: DEMO_MODE
+        value: "0"
+      - key: SEED_DEMO
+        value: "0"
+      - key: COOKIE_SECURE
         value: "1"
+      - key: STORAGE
+        value: local
+      - key: SECRET_KEY
+        sync: false # 保留线上原值；不得生成新值替换。现存 TEAM_DEMO_RESET_ID 必须移除。
 
   # ---------------- KAN-40 管理层进度报告 ----------------
   # 固定链接给微信群用；未来主业务迁到 AWS 时，这个地址只需改 DNS。

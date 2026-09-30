@@ -60,6 +60,24 @@ npm --prefix frontend run dev
 
 ## 验证
 
+### Render 现有业务数据持久化迁移
+
+`render.yaml` 的主业务配置是迁移目标，不代表线上已生效。使用最低付费 Compute、5 GB 磁盘、单实例、手动部署及 `/api/health`；VP 服务保持独立。不要直接 Apply：Free 实例升级和挂盘可能替换实例，必须先取得当前数据库和全部附件的完整备份。
+
+1. 暂停业务写入，使用 SQLite backup API 导出数据库（包含已提交 WAL），连同全部 `uploads` 保存至服务之外。保留原 `SECRET_KEY` 和账号密码哈希，不截图重建账号，不运行演示重置。Free 无 Shell 时先由 Render 支持确认能否安全导出；不得先部署导出工具。
+2. 校验数据库完整性、各表记录和附件 SHA-256，在隔离环境恢复演练。完整备份未验证前保持旧实例与配置不动。
+3. 协调一次维护窗口升级 Compute、挂盘并恢复数据。磁盘挂到现有 `/tmp/flip-house-platform-data`，保持已存附件绝对路径；这是显式磁盘挂载点，不能仅设置同名环境变量。先通过付费实例的 Shell/SSH 完成恢复，再启动业务；空盘启动失败是预期保护，不可用演示初始化绕过。
+4. 设置 `DATA_DIR` 和 `PERSISTENT_DISK_PATH` 为上述挂载点，`DEMO_MODE=0`、`SEED_DEMO=0`、`COOKIE_SECURE=1`、`STORAGE=local`，保留原 `SECRET_KEY`；移除 `TEAM_DEMO_RESET_ID`。将启动命令替换为 `python scripts/start_persistent.py`，不再使用 `start_team_demo.py`。Blueprint 未声明的旧环境变量仍须在控制台核查，不能假定自动删除。
+5. 验证原账号、权限、全部房屋、任务状态、采购事实和附件，再进行受控重启及重新部署核对。自动部署保持关闭，防止备份前误发布。
+
+启动守卫在导入业务应用前核验真实挂载、原数据库与附件，拒绝空库或错误配置；每次启动先保存 SQLite 一致性副本。`startup-backups` 在同一磁盘，**不是异地备份**，不自动删除历史；需监控容量，确认外部副本后人工清理。正式迁移完成后，每次发布前以及有业务变动的工作日应暂停写入执行并下载备份，定期做恢复演练：
+
+```bash
+python scripts/storage_backup.py --data-dir /tmp/flip-house-platform-data --destination /tmp/flip-house-platform-data/manual-backups --writes-paused
+```
+
+`--writes-paused` 是操作员确认，不会自行冻结业务。备份包含敏感数据库，仅通过私有渠道下载至受限目录，不能进 Git。验证 `manifest.json` 的数据库与附件哈希，存在 `INCOMPLETE` 时不能使用；清单不会把“生成成功”冒充“恢复演练通过”。Render 磁盘快照不能代替 SQLite 一致性备份。当前工具不包含自动异地备份服务。
+
 ### Demo 员工账号导入
 
 员工使用邮箱和密码登录；邮箱忽略首尾空格与大小写，内部 `User.id` 保持不变。原账号名登录保留，便于已有管理员 / 演示账号继续使用。
@@ -75,7 +93,7 @@ python scripts/provision_users.py /path/to/users.local.json
 unset INITIAL_PASSWORD
 ```
 
-以上为 Bash 命令，也可在运行本次代码的 Render 服务 Shell 使用。必须沿用该服务的 `DB_URL` / `DATA_DIR`，不能在另一个临时 Shell 的空 SQLite 库里导入。将本机名单通过私有方式放到上述路径，不通过公开仓库传递。当前 `render.yaml` 声明的数据路径是 `/tmp/flip-house-platform-data`，不能据此承诺重部署后的持久化。
+以上为 Bash 命令，也可在运行本次代码的 Render 服务 Shell 使用。必须沿用该服务的 `DB_URL` / `DATA_DIR`，不能在另一个临时 Shell 的空 SQLite 库里导入。将本机名单通过私有方式放到上述路径，不通过公开仓库传递。只有实际挂载磁盘并完成上述迁移验收，才能确认数据持久化；路径名称本身不提供保障。
 
 重复导入只更新已有账号的姓名和角色，保留 ID、密码、启用状态、管理员状态和成员关系；只有显式加 `--reset-password` 才重置名单内的已有密码。整批输入无效时不写入。脚本不建项目成员、不改其他账号、不发邮件、不改 demo/seed 逻辑；负责人可用现有「加入项目并分派」把员工加入演示房。
 
@@ -89,7 +107,7 @@ unset INITIAL_PASSWORD
 python scripts/start_team_demo.py
 ```
 
-此命令不会改写默认启动方式或 `DEMO_MODE` / `SEED_DEMO` 的默认逻辑；`render.yaml` 仍保留原来的 uvicorn 命令。切换仅针对主业务服务，不修改 VP 报告服务。
+此命令仅用于可丢弃的合成演示，不能用于已有人工业务数据。正式迁移目标使用上面的持久化启动守卫；不修改 VP 报告服务。
 
 先在服务的私有环境变量中配置完整参数，真实名单、密码及密钥不写入 Git、启动命令或日志：
 
@@ -114,7 +132,7 @@ python scripts/start_team_demo.py
 
 Free 环境的临时数据库和附件可能在重启或重新部署后丢失；此方案接受丢失后按私有环境重建演示初始数据，**不能恢复丢失前的操作**。同一临时磁盘内的备份也不构成持久化保障。这里的房屋、金额、文件与历史均为合成，账号按私有名单创建；不改变邮件发送配置。
 
-发布后应核对 `/api/health` 的提交号，使用管理员和员工账号分别登录，确认可见项目、本人任务及职责权限。仓库当前 `buildFilter` 未包含 `scripts/**`；如果后续只改启动器或生成器，需要显式触发主业务服务部署。以上是可选启动说明，不代表该配置已在线部署或完成团队验收。
+发布后应核对 `/api/health` 的提交号，使用管理员和员工账号分别登录，确认可见项目、本人任务及职责权限。主业务保持手动部署。以上是可选演示说明，不代表该配置已在线部署或完成团队验收。
 
 ### 本地自动检查
 
