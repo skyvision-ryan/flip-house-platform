@@ -146,8 +146,9 @@ export default function Users() {
               <Checkbox checked={draft.is_admin} onChange={({ detail }) => setDraft({ ...draft, is_admin: detail.checked })} description={uiText("users.can.create.accounts.change.roles.and.reset.passwords")}>{uiText("users.administrator")}</Checkbox>
             </>
           )}
+          {modal === 'password' && <Box>{uiText("password.adminHint")}</Box>}
           {modal !== 'edit' && (
-            <FormField label={modal === 'create' ? uiText("users.initial.password") : uiText("users.new.password")} constraintText={uiText("users.at.least.6.characters")} description={modal === 'password' ? uiText("password.adminHint") : undefined}>
+            <FormField label={modal === 'create' ? uiText("users.initial.password") : uiText("users.new.password")} constraintText={uiText("users.at.least.6.characters")}>
               <Input type="password" value={draft.password} onChange={({ detail }) => setDraft({ ...draft, password: detail.value })} autoFocus={modal === 'password'} />
             </FormField>
           )}
