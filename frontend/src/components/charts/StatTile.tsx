@@ -1,3 +1,4 @@
+import { useLanguage } from '../../i18n/LanguageProvider';
 import { ReactNode } from 'react';
 import { DISPLAY_STACK } from '../../theme';
 import HelpText from '../HelpText';
@@ -26,6 +27,7 @@ interface Props {
  * 这样一屏里字体的切换只发生在真正需要撑层次的地方。
  */
 export default function StatTile({ label, value, sub, help, delta, size = 'l', tone, extra }: Props) {
+  useLanguage();
   const color = tone === 'good' ? TEXT_GOOD : tone === 'bad' ? TEXT_BAD : TEXT;
   return (
     <div style={{ fontFamily: FONT, minWidth: 0 }}>

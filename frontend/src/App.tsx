@@ -1,3 +1,7 @@
+import { systemText } from './i18n/core.ts';
+import { deviceStorage } from './i18n/preferences.ts';
+import { useLanguage } from './i18n/LanguageProvider';
+import { m as uiText } from './i18n/core.ts';
 import Alert from '@cloudscape-design/components/alert';
 import ContentLayout from '@cloudscape-design/components/content-layout';
 import Header from './components/ui/Header';
@@ -36,6 +40,7 @@ import TaskHistoryPage from './pages/project/TaskHistoryPage';
 import Users from './pages/Users';
 
 export default function App() {
+  useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const [navOpen, setNavOpen] = useState(true);
@@ -85,11 +90,11 @@ export default function App() {
   const resetActor = () => { clearActor(); setOverride(null); };
   const onLogin = useCallback((m: Me) => { clearActor(); setOverride(null); setSessionIdentity(m.id); setMe(m); broadcastSession(); navigate(location.pathname === '/login' ? '/' : location.pathname + location.search + location.hash, { replace: true }); }, [navigate, location.pathname, location.search, location.hash]);
   const logout = async () => { try { await api.logout(); } catch { /* ignore */ } clearActor(); setOverride(null); setSessionIdentity(null); setMe(null); broadcastSession(); navigate('/'); };
-  const [reviewOn, setReviewOn] = useState<boolean>(() => readReviewPref(localStorage));
-  const toggleReview = (v: boolean) => { setReviewOn(v); writeReviewPref(localStorage, v); };
-  const [helpOn, setHelpOn] = useState(() => readHelpPref(localStorage));
+  const [reviewOn, setReviewOn] = useState<boolean>(() => readReviewPref(deviceStorage()));
+  const toggleReview = (v: boolean) => { setReviewOn(v); writeReviewPref(deviceStorage(), v); };
+  const [helpOn, setHelpOn] = useState(() => readHelpPref(deviceStorage()));
   const [displayOpen, setDisplayOpen] = useState(false);
-  const toggleHelp = (v: boolean) => { setHelpOn(v); writeHelpPref(localStorage, v); };
+  const toggleHelp = (v: boolean) => { setHelpOn(v); writeHelpPref(deviceStorage(), v); };
 
   const pushFlash = (msg: Omit<FlashbarProps.MessageDefinition, 'id' | 'onDismiss' | 'dismissible'>) => {
     const id = String(Date.now());
@@ -109,11 +114,11 @@ export default function App() {
   const activeHref = location.pathname.startsWith('/procurement') ? (me?.role_code === '采购' ? '/' : '/procurement') : location.pathname.startsWith('/todo') ? '/todo' : location.pathname === '/projects/new' ? '/projects/new' : location.pathname.startsWith('/projects') ? '/projects' : location.pathname.startsWith('/users') ? '/users' : location.pathname.startsWith('/design-') ? DESIGN_DIRECTIONS_PATH : '/';
 
   if (demoMode === null || !sessionReady) {
-    return <div className="ui-loading" role="status"><Spinner size="large" /> 正在加载账号与权限…</div>;
+    return <div className="ui-loading" role="status"><Spinner size="large" /> {uiText("app.loading.account.and.permissions")}</div>;
   }
   if (!me && (!demoMode || location.pathname === '/login' || location.pathname.startsWith('/design-'))) {
     return <ReviewContext.Provider value={reviewOn}><HelpContext.Provider value={helpOn}>
-      <div className="ui-login-settings"><Button iconName="settings" onClick={() => setDisplayOpen(true)}>显示设置</Button></div>
+      <div className="ui-login-settings"><Button iconName="settings" onClick={() => setDisplayOpen(true)}>{uiText("app.display.settings")}</Button></div>
       <Login demoMode={demoMode} onLogin={onLogin} onSkip={demoMode ? () => navigate('/') : undefined} />
       <DisplaySettings visible={displayOpen} helpOn={helpOn} reviewOn={reviewOn} onHelp={toggleHelp} onReview={toggleReview} onDismiss={() => setDisplayOpen(false)} />
     </HelpContext.Provider></ReviewContext.Provider>;
@@ -122,13 +127,13 @@ export default function App() {
   const identityMenu = me
     ? {
         type: 'menu-dropdown' as const,
-        text: `${me.display_name} · ${actor}`,
+        text: `${me.display_name} · ${systemText(actor)}`,
         iconName: 'user-profile' as const,
-        title: canSwitch ? '演示模式：管理员可以临时切换身份看别人看到的' : `你的角色：${actor}（${tierInfo.label}）`,
+        title: canSwitch ? uiText("app.demo.mode.administrators.can.preview.another.role") : uiText("sentences.your.role", { value1: (systemText(actor)), value2: (tierInfo.label) }),
         items: [
-          ...(canSwitch ? [...roleGroups, ...(override ? [{ id: '__reset', text: `回到自己（${me.role_code}）` }] : [])] : []),
-          ...(me.is_admin ? [{ id: '__users', text: '用户管理', iconName: 'group' as const }] : []),
-          { id: '__logout', text: '退出登录', iconName: 'unlocked' as const },
+          ...(canSwitch ? [...roleGroups, ...(override ? [{ id: '__reset', text: uiText("sentences.return.to.my.role", { value1: (me.role_code) }) }] : [])] : []),
+          ...(me.is_admin ? [{ id: '__users', text: uiText("app.user.management"), iconName: 'group' as const }] : []),
+          { id: '__logout', text: uiText("app.sign.out"), iconName: 'unlocked' as const },
         ],
         onItemClick: ({ detail }: { detail: { id: string } }) => {
           if (detail.id === '__logout') logout();
@@ -139,12 +144,12 @@ export default function App() {
       }
     : {
         type: 'menu-dropdown' as const,
-        text: `我是：${actor} · ${tierInfo.label}`,
+        text: uiText("sentences.demo.role", { value1: (systemText(actor)), value2: (tierInfo.label) }),
         iconName: 'user-profile' as const,
-        title: `演示模式：谁在填，就选谁。当前级别：${tierInfo.label}`,
+        title: uiText("sentences.demo.mode.select.the.role.entering.data.current.tier", { value1: (tierInfo.label) }),
         items: [
-          ...(roleGroups.length ? roleGroups : [{ id: '负责人', text: '负责人' }]),
-          { id: '__login', text: '用账号登录', iconName: 'lock-private' as const },
+          ...(roleGroups.length ? roleGroups : [{ id: '负责人', text: uiText("app.project.lead") }]),
+          { id: '__login', text: uiText("app.sign.in.with.an.account"), iconName: 'lock-private' as const },
         ],
         onItemClick: ({ detail }: { detail: { id: string } }) => {
           if (detail.id === '__login') navigate('/login');
@@ -152,7 +157,7 @@ export default function App() {
         },
       };
 
-  const unavailable = (title: string, message: string) => <ContentLayout header={<Header variant="h1">{title}</Header>}><Alert type="info" action={<Button onClick={() => navigate('/')}>返回工作台</Button>}>{message}</Alert></ContentLayout>;
+  const unavailable = (title: string, message: string) => <ContentLayout header={<Header variant="h1">{systemText(title)}</Header>}><Alert type="info" action={<Button onClick={() => navigate('/')}>{uiText("app.back.to.workspace")}</Button>}>{systemText(message)}</Alert></ContentLayout>;
   return (
     <FlashContext.Provider value={pushFlash}>
     <ReviewContext.Provider value={reviewOn}>
@@ -164,19 +169,19 @@ export default function App() {
           search={canDo('create_project') ?
             <Autosuggest
               value={q}
-              placeholder="输入地址新建项目"
-              ariaLabel="按地址新建项目"
+              placeholder={uiText("app.enter.an.address.to.create.a.project")}
+              ariaLabel={uiText("app.create.a.project.by.address")}
               options={cands.map((c) => ({ value: c.label, label: c.label, description: `${c.city}, ${c.state} ${c.zip}` }))}
               filteringType="manual"
               statusType={searching ? 'loading' : 'finished'}
-              loadingText="查找中"
-              empty="没有找到地址"
-              enteredTextLabel={(v) => `用“${v}”新建`}
+              loadingText={uiText("app.searching")}
+              empty={uiText("app.no.address.found")}
+              enteredTextLabel={(v) => uiText("sentences.create.from", { value1: (v) })}
               onChange={({ detail }) => setQ(detail.value)}
               onLoadItems={async ({ detail }) => {
                 if (detail.filteringText.length < 2) { setCands([]); return; }
                 setSearching(true);
-                try { setCands(await api.lookupAddress(detail.filteringText)); } catch { setCands([]); pushFlash({ type: 'error', content: '地址查找失败。可以在新建项目中手动填写地址。' }); } finally { setSearching(false); }
+                try { setCands(await api.lookupAddress(detail.filteringText)); } catch { setCands([]); pushFlash({ type: 'error', content: uiText("app.address.search.failed.you.can.enter.the.address.manually") }); } finally { setSearching(false); }
               }}
               onSelect={({ detail }) => {
                 const v = detail.selectedOption?.value ?? detail.value;
@@ -191,13 +196,13 @@ export default function App() {
         headerSelector="#top-nav"
         navigationOpen={navOpen}
         onNavigationChange={({ detail }) => setNavOpen(detail.open)}
-        notifications={<Flashbar items={flashes} />}
+        notifications={<Flashbar items={flashes.map(item => ({ ...item, content: systemText(item.content), header: systemText(item.header) }))} />}
         toolsHide
         drawers={[
           {
             id: 'assistant',
             trigger: { iconName: 'gen-ai' },
-            ariaLabels: { drawerName: '助手', closeButton: '关闭助手', triggerButton: '打开助手' },
+            ariaLabels: { drawerName: systemText('助手'), closeButton: systemText('关闭助手'), triggerButton: systemText('打开助手') },
             resizable: true,
             defaultSize: 400,
             content: <AssistantPanel />,
@@ -211,18 +216,18 @@ export default function App() {
             activeHref={activeHref}
             onFollow={(e) => { if (!e.detail.external) { e.preventDefault(); navigate(e.detail.href); if (window.matchMedia('(max-width: 688px)').matches) setNavOpen(false); } }}
             items={[
-              { type: 'link', text: '工作台', href: '/', icon: <Icon name="grid-view" /> },
-              { type: 'link', text: '项目', href: '/projects', icon: <Icon name="folder" /> },
-              ...(me && me.role_code !== '采购' && canDo('procurement_read') ? [{ type: 'link' as const, text: '采购工作台', href: '/procurement', icon: <Icon name="grid-view" /> }] : []),
-              { type: 'link', text: '我的事项', href: '/todo', icon: <Icon name="check" /> },
-              ...(hasDesignDirections(me) ? [{ type: 'link' as const, text: '设计方向', href: DESIGN_DIRECTIONS_PATH, icon: <Icon name="view-full" /> }] : []),
-              ...(canDo('create_project') ? [{ type: 'link' as const, text: '新建项目', href: '/projects/new', icon: <Icon name="add-plus" /> }] : []),
-              ...(me?.is_admin ? [{ type: 'divider' as const }, { type: 'link' as const, text: '用户', href: '/users', icon: <Icon name="group" /> }] : []),
+              { type: 'link', text: uiText("app.workspace"), href: '/', icon: <Icon name="grid-view" /> },
+              { type: 'link', text: uiText("app.projects"), href: '/projects', icon: <Icon name="folder" /> },
+              ...(me && me.role_code !== '采购' && canDo('procurement_read') ? [{ type: 'link' as const, text: uiText("app.procurement.workspace"), href: '/procurement', icon: <Icon name="grid-view" /> }] : []),
+              { type: 'link', text: uiText("app.my.tasks"), href: '/todo', icon: <Icon name="check" /> },
+              ...(hasDesignDirections(me) ? [{ type: 'link' as const, text: uiText("app.design.directions"), href: DESIGN_DIRECTIONS_PATH, icon: <Icon name="view-full" /> }] : []),
+              ...(canDo('create_project') ? [{ type: 'link' as const, text: uiText("app.new.project"), href: '/projects/new', icon: <Icon name="add-plus" /> }] : []),
+              ...(me?.is_admin ? [{ type: 'divider' as const }, { type: 'link' as const, text: uiText("app.users"), href: '/users', icon: <Icon name="group" /> }] : []),
             ]}
           />
         }
         content={<>
-          {(helpOn || reviewOn) && <div className="ui-mode-bar"><span><strong>{helpOn ? '辅助说明已开启' : ''}{helpOn && reviewOn ? ' · ' : ''}{reviewOn ? '卡片编号已开启' : ''}</strong>{reviewOn && ' · 点击编号复制反馈位置'}</span><Button variant="inline-link" onClick={() => setDisplayOpen(true)}>显示设置</Button></div>}
+          {(helpOn || reviewOn) && <div className="ui-mode-bar"><span><strong>{helpOn ? uiText("app.help.text.is.on") : ''}{helpOn && reviewOn ? ' · ' : ''}{reviewOn ? uiText("app.card.numbers.are.on") : ''}</strong>{reviewOn && uiText("app.click.a.number.to.copy.the.feedback.location")}</span><Button variant="inline-link" onClick={() => setDisplayOpen(true)}>{uiText("app.display.settings")}</Button></div>}
           <Routes key={me?.id ?? "guest"}>
             <Route path="/" element={me?.role_code === '采购' ? <ProcurementWorkspace /> : <Dashboard />} />
             <Route path="/procurement" element={me && canDo('procurement_read') ? <ProcurementWorkspace /> : <Navigate to="/" replace />} />
@@ -237,12 +242,12 @@ export default function App() {
             {/* KAN-75 块 2：独立线索入口并入买房管理。旧链接 /leads 跳到项目列表的「买房 · 未购入」筛选；s1 段、档位、热度都还在。 */}
             <Route path="/leads" element={<Navigate to="/projects?group=buying&sub=pre" replace />} />
             <Route path="/projects" element={<Dashboard listOnly />} />
-            <Route path="/projects/new" element={canDo('create_project') ? <AddProject /> : unavailable("无法新建项目", "当前账号没有新建项目权限，请联系项目负责人。")} />
+            <Route path="/projects/new" element={canDo('create_project') ? <AddProject /> : unavailable(uiText("app.cannot.create.project"), uiText("app.your.account.cannot.create.projects.contact.the.project.lead"))} />
             <Route path="/projects/:id" element={<ProjectPage />} />
             <Route path="/projects/:id/tasks/:taskId" element={<TaskHistoryPage />} />
-            <Route path="/users" element={me?.is_admin ? <Users /> : unavailable("无法访问用户管理", "此页面仅供管理员使用。当前账号的项目权限没有变化。")} />
+            <Route path="/users" element={me?.is_admin ? <Users /> : unavailable(uiText("app.cannot.access.user.management"), uiText("app.this.page.is.for.administrators.only.your.project.permissions"))} />
             <Route path="/login" element={<Dashboard />} />
-            <Route path="*" element={unavailable("找不到这个页面", "链接可能已失效，请从工作台重新进入房屋或事项。")} />
+            <Route path="*" element={unavailable(uiText("app.page.not.found"), uiText("app.this.link.may.have.expired.open.the.property.or"))} />
           </Routes>
         </>}
       />

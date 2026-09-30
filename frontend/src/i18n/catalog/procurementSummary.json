@@ -1,0 +1,42 @@
+{
+  "procurementSummary.order.canceled": [
+    "订单已取消",
+    "Order canceled"
+  ],
+  "procurementSummary.partially.received": [
+    "部分到货",
+    "Partially received"
+  ],
+  "procurementSummary.legacy.record.needs.follow.up": [
+    "旧记录待跟进",
+    "Legacy record needs follow-up"
+  ],
+  "procurementSummary.no.linked.order": [
+    "未关联订单",
+    "No linked order"
+  ],
+  "procurementSummary.see.details.for.legacy.records": [
+    "旧记录见详情",
+    "See details for legacy records"
+  ],
+  "procurementSummary.multiple.orders": [
+    "多笔订单",
+    "Multiple orders"
+  ],
+  "procurementSummary.damaged.items.need.replacement": [
+    "破损待补齐",
+    "Damaged items need replacement"
+  ],
+  "procurementSummary.follow.up.needed": [
+    "需跟进",
+    "Follow-up needed"
+  ],
+  "procurementSummary.legacy.purchase.records.exist.verify.quantities.first": [
+    "有旧购买记录，请先核对数量",
+    "Legacy purchase records exist; verify quantities first"
+  ],
+  "procurementSummary.order.units.or.quantities.need.verification.no.automatic.total": [
+    "订单单位或数量待核对，不自动合计",
+    "Order units or quantities need verification; no automatic total"
+  ]
+}

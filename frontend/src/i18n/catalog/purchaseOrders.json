@@ -1,0 +1,374 @@
+{
+  "purchaseOrders.amount.needs.verification": [
+    "金额待核对",
+    "Amount needs verification"
+  ],
+  "purchaseOrders.damaged.items.need.action": [
+    "破损待处理",
+    "Damaged items need action"
+  ],
+  "purchaseOrders.ready.for.pickup": [
+    "可取货",
+    "Ready for pickup"
+  ],
+  "purchaseOrders.carrier.shows.delivered": [
+    "显示送达",
+    "Carrier shows delivered"
+  ],
+  "purchaseOrders.save.or.discard.this.draft.before.opening.another.order": [
+    "请先保存或放弃当前草稿，再打开其他订单。",
+    "Save or discard this draft before opening another order."
+  ],
+  "purchaseOrders.select.the.property.s.order.destination.first.each.order": [
+    "先选择这笔订单所属房屋。每个订单只能归属一套房。",
+    "Select the property's order destination first. Each order belongs to one property only."
+  ],
+  "purchaseOrders.select.a.property.first": [
+    "请先选择房屋",
+    "Select a property first"
+  ],
+  "purchaseOrders.order.saved.linked.procurement.items.show.purchase.and.receipt": [
+    "订单已保存，关联采购项可查看商品与收货进展。",
+    "Order saved. Linked procurement items show purchase and receipt progress."
+  ],
+  "purchaseOrders.actual.receipt.recorded": [
+    "本次实际收货已记录。",
+    "Actual receipt recorded."
+  ],
+  "purchaseOrders.back.to.procurement.workspace": [
+    "返回采购工作台",
+    "Back to procurement workspace"
+  ],
+  "purchaseOrders.save.or.discard.the.current.content.first": [
+    "请先保存或放弃当前内容。",
+    "Save or discard the current content first."
+  ],
+  "purchaseOrders.back.to.property.procurement": [
+    "返回本房采购",
+    "Back to property procurement"
+  ],
+  "purchaseOrders.total.refunds": [
+    "累计退款",
+    "Total refunds"
+  ],
+  "purchaseOrders.save.or.cancel.order.changes.first": [
+    "先保存或取消订单修改。",
+    "Save or cancel order changes first."
+  ],
+  "purchaseOrders.collapse.order.editor": [
+    "收起订单修改",
+    "Collapse order editor"
+  ],
+  "purchaseOrders.edit.order": [
+    "修改订单",
+    "Edit order"
+  ],
+  "purchaseOrders.view.missing.information": [
+    "查看待补资料",
+    "View missing information"
+  ],
+  "purchaseOrders.follow.up.and.notes": [
+    "跟进与说明",
+    "Follow-up and notes"
+  ],
+  "purchaseOrders.pending": [
+    "待处理：",
+    "Pending:"
+  ],
+  "purchaseOrders.last.manual.verification": [
+    "最近人工核对",
+    "Last manual verification"
+  ],
+  "purchaseOrders.items.and.receiving.gaps": [
+    "商品与收货缺口",
+    "Items and receiving gaps"
+  ],
+  "purchaseOrders.carrier.status": [
+    "网站物流：",
+    "Carrier status:"
+  ],
+  "purchaseOrders.not.proof.of.receipt": [
+    "（不代表实收）",
+    "(not proof of receipt)"
+  ],
+  "purchaseOrders.product.image": [
+    "商品图片",
+    "Product image"
+  ],
+  "purchaseOrders.ordered": [
+    "订购",
+    "Ordered"
+  ],
+  "purchaseOrders.received.in.good.condition": [
+    "完好实收",
+    "Received in good condition"
+  ],
+  "purchaseOrders.total.received": [
+    "累计实收",
+    "Total received"
+  ],
+  "purchaseOrders.including.damaged": [
+    "，其中破损",
+    ", including damaged"
+  ],
+  "purchaseOrders.confirming.actual.receipt.updates.linked.procurement.items.for.partial": [
+    "采购确认实际收货后，相关采购项自动更新。分次到货只填本次实收。",
+    "Confirming actual receipt updates linked procurement items. For partial deliveries, enter only this receipt's quantities."
+  ],
+  "purchaseOrders.record.receipt": [
+    "登记到货",
+    "Record receipt"
+  ],
+  "purchaseOrders.returns.refunds.when.applicable": [
+    "退货 / 退款（发生时填写）",
+    "Returns / refunds (when applicable)"
+  ],
+  "purchaseOrders.total.refunded.usd": [
+    "累计已退款（USD）",
+    "Total refunded (USD)"
+  ],
+  "purchaseOrders.record.returned.items": [
+    "登记已退回商品",
+    "Record returned items"
+  ],
+  "purchaseOrders.save.order.changes.before.recording.receipts.or.returns": [
+    "请先保存订单修改，再登记收货或退货。",
+    "Save order changes before recording receipts or returns."
+  ],
+  "purchaseOrders.this.receipt": [
+    "本次收货",
+    "This receipt"
+  ],
+  "purchaseOrders.actual.receipt.date": [
+    "实际收货日期",
+    "Actual receipt date"
+  ],
+  "purchaseOrders.actual.receiving.location": [
+    "实际收货地点",
+    "Actual receiving location"
+  ],
+  "purchaseOrders.previously.received.in.good.condition": [
+    "此前完好实收",
+    "Previously received in good condition"
+  ],
+  "purchaseOrders.still.needed": [
+    "· 仍需",
+    "· Still needed"
+  ],
+  "purchaseOrders.verify": [
+    "核对",
+    "Verify"
+  ],
+  "purchaseOrders.receipt.notes.missing.or.damaged.items": [
+    "收货说明 / 缺件破损情况",
+    "Receipt notes / missing or damaged items"
+  ],
+  "purchaseOrders.confirm.actual.receipt": [
+    "确认本次实际收货",
+    "Confirm actual receipt"
+  ],
+  "purchaseOrders.cancel.entry": [
+    "取消登记",
+    "Cancel entry"
+  ],
+  "purchaseOrders.record.returned.items.then.save.the.order.enter.refund": [
+    "先记录退回商品，再保存订单；退款金额在累计已退款中登记。",
+    "Record returned items, then save the order. Enter refund amounts in Total refunded."
+  ],
+  "purchaseOrders.record.returned.items.2": [
+    "登记退回商品",
+    "Record returned items"
+  ],
+  "purchaseOrders.item.for.return.refund": [
+    "退货退款对应商品",
+    "Item for return / refund"
+  ],
+  "purchaseOrders.actual.return.quantity": [
+    "实际退货数量",
+    "Actual return quantity"
+  ],
+  "purchaseOrders.quantity.previously.in.good.condition": [
+    "其中原本完好的数量",
+    "Quantity previously in good condition"
+  ],
+  "purchaseOrders.actual.event.date": [
+    "实际发生日期",
+    "Actual event date"
+  ],
+  "purchaseOrders.return.refund.reason.and.receipt.notes": [
+    "退货退款原因 / 凭据说明",
+    "Return / refund reason and receipt notes"
+  ],
+  "purchaseOrders.add.to.order.draft": [
+    "加入订单待保存",
+    "Add to order draft"
+  ],
+  "purchaseOrders.no.actual.receipts.recorded.yet": [
+    "尚未登记实际收货。",
+    "No actual receipts recorded yet."
+  ],
+  "purchaseOrders.procurement.entry": [
+    "采购登记",
+    "Procurement entry"
+  ],
+  "purchaseOrders.receiving.location.not.entered": [
+    "收货地点未填写",
+    "Receiving location not entered"
+  ],
+  "purchaseOrders.damaged": [
+    "· 破损",
+    "· Damaged"
+  ],
+  "purchaseOrders.reversed": [
+    "已撤销：",
+    "Reversed:"
+  ],
+  "purchaseOrders.correct.an.erroneous.receipt": [
+    "更正错误收货登记",
+    "Correct an erroneous receipt"
+  ],
+  "purchaseOrders.reversal.reason.original.record.retained.a.new.receipt.can": [
+    "撤销原因（保留原记录，可重新登记）",
+    "Reversal reason (original record retained; a new receipt can be recorded)"
+  ],
+  "purchaseOrders.reverse.this.receipt": [
+    "撤销本次收货登记",
+    "Reverse this receipt"
+  ],
+  "purchaseOrders.cancel.correction": [
+    "取消更正",
+    "Cancel correction"
+  ],
+  "purchaseOrders.no.additional.notes": [
+    "无补充说明",
+    "No additional notes"
+  ],
+  "purchaseOrders.order.total.at.the.time": [
+    "当时订单总额",
+    "Order total at the time"
+  ],
+  "purchaseOrders.items": [
+    "· 商品",
+    "· Items"
+  ],
+  "purchaseOrders.follow.up": [
+    "项 · 跟进：",
+    "· Follow-up:"
+  ],
+  "purchaseOrders.open.merchant.order": [
+    "打开商家订单",
+    "Open merchant order"
+  ],
+  "purchaseOrders.view.proof.of.purchase": [
+    "查看购买凭据",
+    "View proof of purchase"
+  ],
+  "purchaseOrders.paste.a.follow.up.order.email.preserve.original.text": [
+    "粘贴后续订单邮件 / 保留跟进原文",
+    "Paste a follow-up order email / preserve original text"
+  ],
+  "purchaseOrders.import.pasted.order": [
+    "粘贴订单导入",
+    "Import pasted order"
+  ],
+  "purchaseOrders.original.order.text": [
+    "订单原文",
+    "Original order text"
+  ],
+  "purchaseOrders.copy.items.quantities.and.amounts.from.the.order.page": [
+    "从订单页面或确认邮件复制商品、数量、金额等内容…",
+    "Copy items, quantities, and amounts from the order page or confirmation email…"
+  ],
+  "purchaseOrders.recognize.order": [
+    "识别订单",
+    "Recognize order"
+  ],
+  "purchaseOrders.open.existing.order.and.retain.original.text": [
+    "打开已有订单并保留原文",
+    "Open existing order and retain original text"
+  ],
+  "purchaseOrders.this.order.is.already.recorded.check.the.existing.record": [
+    "这个订单已登记，请核对已有记录。",
+    "This order is already recorded. Check the existing record."
+  ],
+  "purchaseOrders.detected.merchant": [
+    "识别商家：",
+    "Detected merchant:"
+  ],
+  "purchaseOrders.not.detected": [
+    "未识别",
+    "Not detected"
+  ],
+  "purchaseOrders.order.number": [
+    "· 订单号：",
+    "· Order number:"
+  ],
+  "purchaseOrders.candidate.items": [
+    "· 商品候选",
+    "· Candidate items"
+  ],
+  "purchaseOrders.records": [
+    "条",
+    "records"
+  ],
+  "purchaseOrders.detected.items.verify.before.use": [
+    "识别商品（待核对）",
+    "Detected items (verify before use)"
+  ],
+  "purchaseOrders.view.extraction.evidence": [
+    "查看提取依据",
+    "View extraction evidence"
+  ],
+  "purchaseOrders.fill.order": [
+    "填入订单",
+    "Fill order"
+  ],
+  "purchaseOrders.select.only.the.order.information.to.update.items.deliveries": [
+    "仅勾选需要更新的订单信息；商品、配送和实际收货保留。原文随本次保存进入历史。",
+    "Select only the order information to update. Items, deliveries, and actual receipts are retained. Original text enters the history when saved."
+  ],
+  "purchaseOrders.tax": [
+    "税费",
+    "Tax"
+  ],
+  "purchaseOrders.shipping": [
+    "运费",
+    "Shipping"
+  ],
+  "purchaseOrders.discount": [
+    "折扣",
+    "Discount"
+  ],
+  "purchaseOrders.order.total": [
+    "订单总额",
+    "Order total"
+  ],
+  "purchaseOrders.apply.selected.changes": [
+    "采用勾选变更",
+    "Apply selected changes"
+  ],
+  "purchaseOrders.add.action.notes": [
+    "补充本次操作说明",
+    "Add action notes"
+  ],
+  "purchaseOrders.follow.up.record.retained.in.history": [
+    "本次跟进记录（保留到历史）",
+    "Follow-up record (retained in history)"
+  ],
+  "purchaseOrders.for.example.contacted.the.merchant.the.remaining.two.items": [
+    "例如已联系商家，剩余两件预计周四到货…",
+    "For example: contacted the merchant; the remaining two items are expected Thursday…"
+  ],
+  "purchaseOrders.save.order": [
+    "保存订单",
+    "Save order"
+  ],
+  "purchaseOrders.cancel.changes": [
+    "取消修改",
+    "Cancel changes"
+  ],
+  "purchaseOrders.cancel.creation": [
+    "取消创建",
+    "Cancel creation"
+  ]
+}

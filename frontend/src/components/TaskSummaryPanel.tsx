@@ -1,3 +1,8 @@
+import { eventText } from '../i18n/taskDisplay.ts';
+import { taskTitle } from '../i18n/templateNames.ts';
+import { systemText } from '../i18n/core.ts';
+import { useLanguage } from '../i18n/LanguageProvider';
+import { m as uiText } from '../i18n/core.ts';
 import TaskWorkbench from './TaskWorkbench';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
@@ -32,6 +37,7 @@ import Container from './ui/Surface';
 export default function TaskSummaryPanel({ task, project, canAssign, onAssign, onChanged, onGotoGates, refreshKey }: {
   task: Task | null; project: Project; canAssign: boolean; onAssign: (t: Task) => void; onChanged: (t: Task) => void; onGotoGates: () => void; refreshKey: number;
 }) {
+  useLanguage();
   const flash = useFlash();
   const meta = useMeta();
   const navigate = useNavigate();
@@ -46,7 +52,7 @@ export default function TaskSummaryPanel({ task, project, canAssign, onAssign, o
     setSaving(true);
     try {
       onChanged(await api.assignTask(task.project_id, task.id, { version: task.version, due_at: due || null }));
-      flash({ type: 'success', content: `「${task.title}」截止日期：${due ? dueText(due) : '未设定'}` });
+      flash({ type: 'success', content: uiText("sentences.due.date", { value1: (taskTitle(task)), value2: (due ? dueText(due) : uiText("projectPreplan.not.set")) }) });
       setEditDue(false);
     } catch (e: any) { flash({ type: 'error', content: e.message }); } finally { setSaving(false); }
   };
@@ -56,61 +62,61 @@ export default function TaskSummaryPanel({ task, project, canAssign, onAssign, o
 
   return (
     <SpaceBetween size="l">
-      <Container embedded cardId="task-summary" cardContext={task?.title} header={<Header variant="h2" help="点击左侧任务，查看安排与处理入口。">任务摘要</Header>}>
+      <Container embedded cardId="task-summary" cardContext={task?.title} header={<Header variant="h2" help={uiText("taskSummaryPanel.select.a.task.on.the.left.to.view.its")}>{uiText("taskSummaryPanel.task.summary")}</Header>}>
         {task?.node_confirmation ? <TaskWorkbench task={task} meId={me?.id ?? null} onChanged={onChanged} onConflict={() => window.location.reload()} /> : task ? (
           <SpaceBetween size="m">
-            <h3 className="ui-summary-title">{task.title}</h3>
+            <h3 className="ui-summary-title">{taskTitle(task)}</h3>
             <div className="ui-muted">{stageKeyLabel(meta?.stage_groups, task.stage_key, task.stage_label)}</div>
-            {task.ws && <HelpText inline>{task.ws}</HelpText>}
+            {task.ws && <HelpText inline>{systemText(task.ws)}</HelpText>}
             <KeyValuePairs
               layout="rows" columns={1}
               items={[
-                { label: '状态', value: <div><StatusIndicator type={statusIndicator(task.exec_status)}>{task.exec_status_label}</StatusIndicator>{task.exec_status === 'waiting' && <Box variant="small" color="text-body-secondary">等 {task.wait_for || '—'}：{task.wait_reason}{task.wait_until ? `（预计 ${dueText(task.wait_until)}）` : ''}</Box>}</div> },
-                { label: '主要负责人', value: canAssign ? <AssigneeButton user={task.assignee} label={`调整负责人：${task.title}`} onClick={() => onAssign(task)} /> : <PersonAvatar user={task.assignee} showRole={false} /> },
-                { label: '审核人', value: task.reviewer ? <PersonAvatar user={task.reviewer} showRole={false} /> : <Box color="text-body-secondary">未指定</Box> },
+                { label: uiText("taskSummaryPanel.status"), value: <div><StatusIndicator type={statusIndicator(task.exec_status)}>{systemText(task.exec_status_label)}</StatusIndicator>{task.exec_status === 'waiting' && <Box variant="small" color="text-body-secondary">{uiText("taskSummaryPanel.waiting.for")} {task.wait_for || '—'}：{task.wait_reason}{task.wait_until ? uiText("sentences.expected", { value1: (dueText(task.wait_until)) }) : ''}</Box>}</div> },
+                { label: uiText("projectPreplan.primary.assignee"), value: canAssign ? <AssigneeButton user={task.assignee} label={uiText("sentences.change.assignee", { value1: (taskTitle(task)) })} onClick={() => onAssign(task)} /> : <PersonAvatar user={task.assignee} showRole={false} /> },
+                { label: uiText("taskSummaryPanel.reviewer"), value: task.reviewer ? <PersonAvatar user={task.reviewer} showRole={false} /> : <Box color="text-body-secondary">{uiText("taskSummaryPanel.not.specified")}</Box> },
                 {
-                  label: '截止日期',
+                  label: uiText("projectPreplan.due.date"),
                   value: editDue ? (
                     <SpaceBetween size="xs">
                       <DatePicker value={due} onChange={({ detail }) => setDue(detail.value)} placeholder="YYYY/MM/DD" />
-                      <Button variant="primary" loading={saving} onClick={saveDue}>保存</Button>
-                      <Button variant="link" onClick={() => { setEditDue(false); setDue(task.due_at ?? ''); }}>取消</Button>
+                      <Button variant="primary" loading={saving} onClick={saveDue}>{uiText("fieldWithSource.save")}</Button>
+                      <Button variant="link" onClick={() => { setEditDue(false); setDue(task.due_at ?? ''); }}>{uiText("fieldWithSource.cancel")}</Button>
                     </SpaceBetween>
                   ) : (
-                    <span className="ui-inline-edit">{task.due_at ? dueText(task.due_at) : <Box variant="span" color="text-body-secondary">未设定</Box>}{canAssign && <Button variant="inline-icon" iconName="edit" onClick={() => setEditDue(true)} ariaLabel="改截止日期" />}</span>
+                    <span className="ui-inline-edit">{task.due_at ? dueText(task.due_at) : <Box variant="span" color="text-body-secondary">{uiText("projectPreplan.not.set")}</Box>}{canAssign && <Button variant="inline-icon" iconName="edit" onClick={() => setEditDue(true)} ariaLabel={uiText("taskSummaryPanel.change.due.date")} />}</span>
                   ),
                 },
-                { label: '证据判定', value: task.satisfied ? <div><StatusIndicator type="success">已满足</StatusIndicator>{task.satisfied_evidence && <Box variant="small" color="text-body-secondary">依据：{task.satisfied_evidence}</Box>}</div> : <Box color="text-body-secondary">未满足{task.deliverable ? `：要交 ${task.deliverable.label}` : ''}</Box> },
-                { label: '最新动态', value: task.last_event ? <div><div>{task.last_event.text}</div><Box variant="small" color="text-body-secondary">{task.last_event.actor?.display_name ?? '系统'} · {dateTime(task.last_event.created_at)}</Box></div> : <Box color="text-body-secondary">还没有记录</Box> },
+                { label: uiText("taskSummaryPanel.evidence.assessment"), value: task.satisfied ? <div><StatusIndicator type="success">{uiText("taskSummaryPanel.requirements.met")}</StatusIndicator>{task.satisfied_evidence && <Box variant="small" color="text-body-secondary">{uiText("stepsPanel.evidence")}{systemText(task.satisfied_evidence)}</Box>}</div> : <Box color="text-body-secondary">{uiText("taskSummaryPanel.requirements.not.met")}{task.deliverable ? uiText("sentences.provide", { value1: (task.deliverable.label) }) : ''}</Box> },
+                { label: uiText("taskSummaryPanel.latest.activity"), value: task.last_event ? <div><div>{eventText(task.last_event)}</div><Box variant="small" color="text-body-secondary">{task.last_event.actor?.display_name ?? uiText("taskSummaryPanel.system")} · {dateTime(task.last_event.created_at)}</Box></div> : <Box color="text-body-secondary">{uiText("taskSummaryPanel.no.records.yet")}</Box> },
               ]}
             />
-            {task.exec_status !== 'done' && task.satisfied && <Box fontSize="body-s" color="text-status-info">证据已满足，任务仍待确认。</Box>}
+            {task.exec_status !== 'done' && task.satisfied && <Box fontSize="body-s" color="text-status-info">{uiText("taskSummaryPanel.evidence.requirements.are.met.the.task.still.awaits.confirmation")}</Box>}
             <div className="ui-actions ui-actions-start">
-              {me && (task.assignee?.id === me.id || task.reviewer?.id === me.id) && <Button onClick={() => navigate(`/todo?task=${task.id}`)}>{task.exec_status === 'pending_review' && task.reviewer?.id === me.id ? '去我的事项审核' : '去我的事项处理'}</Button>}
-              <Button variant="link" onClick={() => navigate(`/projects/${task.project_id}/tasks/${task.id}`)}>完整活动记录</Button>
+              {me && (task.assignee?.id === me.id || task.reviewer?.id === me.id) && <Button onClick={() => navigate(`/todo?task=${task.id}`)}>{task.exec_status === 'pending_review' && task.reviewer?.id === me.id ? uiText("taskSummaryPanel.review.in.my.tasks") : uiText("taskSummaryPanel.handle.in.my.tasks")}</Button>}
+              <Button variant="link" onClick={() => navigate(`/projects/${task.project_id}/tasks/${task.id}`)}>{uiText("taskSummaryPanel.full.activity.history")}</Button>
             </div>
-            <ExpandableSection headerText="活动记录" variant="footer">
+            <ExpandableSection headerText={uiText("taskSummaryPanel.activity.history")} variant="footer">
               <TaskTimeline projectId={task.project_id} taskId={task.id} refreshKey={refreshKey} limit={6} />
             </ExpandableSection>
           </SpaceBetween>
         ) : (
-          <Box color="text-body-secondary">请选择一项任务。</Box>
+          <Box color="text-body-secondary">{uiText("taskSummaryPanel.select.a.task")}</Box>
         )}
       </Container>
-      <Container embedded cardId="task-gates" header={<Header variant="h2" help="节点按对应条件与权限确认，可在任务或下方证据清单中处理。">关键节点状态</Header>}>
+      <Container embedded cardId="task-gates" header={<Header variant="h2" help={uiText("taskSummaryPanel.confirm.milestones.according.to.their.conditions.and.permissions.from")}>{uiText("taskSummaryPanel.milestone.status")}</Header>}>
         {gates.length ? (
           <SpaceBetween size="xs">
             {gates.map((g) => (
               <div key={g.key} className="ui-row-wrap">
-                <Box fontWeight="bold">{g.title}</Box>
-                {g.done ? <StatusIndicator type="success">已过</StatusIndicator> : g.confirmation_mode === 'any' ? <Box color={g.ready ? 'text-status-info' : 'text-body-secondary'}>{g.needs_review ? '前置资料变化，待复核' : g.ready ? '待一人确认满足' : `缺少：${g.missing?.join('、')}`}</Box> : (
-                  ['D', 'J'].map((c) => <span key={c}><RoleLabel code={c} />{g.confirmed.includes(c) ? <Box variant="span" color="text-status-success">已确认</Box> : <Box variant="span" color="text-body-secondary">待确认</Box>}</span>)
+                <Box fontWeight="bold">{systemText(g.title)}</Box>
+                {g.done ? <StatusIndicator type="success">{uiText("stepsPanel.passed")}</StatusIndicator> : g.confirmation_mode === 'any' ? <Box color={g.ready ? 'text-status-info' : 'text-body-secondary'}>{g.needs_review ? uiText("taskSummaryPanel.prerequisites.changed.review.required") : g.ready ? uiText("taskSummaryPanel.awaiting.one.authorized.confirmation") : uiText("sentences.missing", { value1: (g.missing?.map(value => systemText(value)).join(' / ')) })}</Box> : (
+                  ['D', 'J'].map((c) => <span key={c}><RoleLabel code={c} />{g.confirmed.includes(c) ? <Box variant="span" color="text-status-success">{uiText("stepsPanel.confirmed")}</Box> : <Box variant="span" color="text-body-secondary">{uiText("taskSummaryPanel.awaiting.confirmation")}</Box>}</span>)
                 )}
               </div>
             ))}
-            <Link onFollow={(e) => { e.preventDefault(); onGotoGates(); }} href="#gates">去确认 / 看证据清单</Link>
+            <Link onFollow={(e) => { e.preventDefault(); onGotoGates(); }} href="#gates">{uiText("taskSummaryPanel.confirm.view.evidence.checklist")}</Link>
           </SpaceBetween>
-        ) : <Box color="text-body-secondary">本段没有关键节点。</Box>}
+        ) : <Box color="text-body-secondary">{uiText("taskSummaryPanel.no.milestones.in.this.stage")}</Box>}
       </Container>
     </SpaceBetween>
   );

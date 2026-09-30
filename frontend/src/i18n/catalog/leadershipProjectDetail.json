@@ -1,0 +1,234 @@
+{
+  "leadershipProjectDetail.not.started": [
+    "未开始",
+    "Not started"
+  ],
+  "leadershipProjectDetail.waiting": [
+    "等待中",
+    "Waiting"
+  ],
+  "leadershipProjectDetail.awaiting.review": [
+    "待审核",
+    "Awaiting review"
+  ],
+  "leadershipProjectDetail.not.applicable": [
+    "不适用",
+    "Not applicable"
+  ],
+  "leadershipProjectDetail.coordinator": [
+    "· 协调人",
+    "· Coordinator"
+  ],
+  "leadershipProjectDetail.current.focus": [
+    "当前关注",
+    "Current focus"
+  ],
+  "leadershipProjectDetail.next.check": [
+    "下一步核对",
+    "Next check"
+  ],
+  "leadershipProjectDetail.property.evidence.tabs": [
+    "项目依据页签",
+    "Property evidence tabs"
+  ],
+  "leadershipProjectDetail.budget.less.recorded.expenses": [
+    "预算减登记支出",
+    "Budget less recorded expenses"
+  ],
+  "leadershipProjectDetail.purchase.price.recorded.expenses": [
+    "买价＋登记支出",
+    "Purchase price + recorded expenses"
+  ],
+  "leadershipProjectDetail.not.purchased.excluded": [
+    "未购入，不计入",
+    "Not purchased; excluded"
+  ],
+  "leadershipProjectDetail.amount.recorded.at": [
+    "金额记录日期",
+    "Amount recorded at"
+  ],
+  "leadershipProjectDetail.source.project.purchase.price.budget.lines.and.expense.records": [
+    "来源：项目买入价、预算行、支出登记。买价加登记支出表示融资前项目规模，未扣贷款及回款；不是现金余额或股东实际投入。",
+    "Source: project purchase price, budget lines, and expense records. Purchase price plus expenses shows project scale before financing, without deducting loans or proceeds; it is not a cash balance or shareholder cash invested."
+  ],
+  "leadershipProjectDetail.closing.reconciliation.pending": [
+    "结算尚待核对",
+    "Closing reconciliation pending"
+  ],
+  "leadershipProjectDetail.recorded.sale.price": [
+    "记录成交价",
+    "Recorded sale price"
+  ],
+  "leadershipProjectDetail.actual.net.profit.net.proceeds": [
+    "实际净利润 / 净回款",
+    "Actual net profit / net proceeds"
+  ],
+  "leadershipProjectDetail.complete.closing.and.payment.evidence.required": [
+    "待补完整结算及到账依据",
+    "Complete closing and payment evidence required"
+  ],
+  "leadershipProjectDetail.sale.price.is.not.cash.received.historical.estimates.do": [
+    "成交价不等于到账；历史估算不转为已实现利润。",
+    "Sale price is not cash received; historical estimates do not become realized profit."
+  ],
+  "leadershipProjectDetail.lead.analysis.assumptions": [
+    "线索分析假设",
+    "Lead analysis assumptions"
+  ],
+  "leadershipProjectDetail.current.modeled.profit": [
+    "当前模型预计利润",
+    "Current modeled profit"
+  ],
+  "leadershipProjectDetail.incomplete.inputs.not.calculated": [
+    "资料未齐，不计算",
+    "Incomplete inputs; not calculated"
+  ],
+  "leadershipProjectDetail.missing": [
+    "待补：",
+    "Missing:"
+  ],
+  "leadershipProjectDetail.estimated.sale.price": [
+    "预计售价",
+    "Estimated sale price"
+  ],
+  "leadershipProjectDetail.acquisition.including.charges": [
+    "购入含附加费",
+    "Acquisition including charges"
+  ],
+  "leadershipProjectDetail.renovation.assumption": [
+    "装修假设",
+    "Renovation assumption"
+  ],
+  "leadershipProjectDetail.holding.including.modeled.interest": [
+    "持有含模型利息",
+    "Holding including modeled interest"
+  ],
+  "leadershipProjectDetail.selling.cost.assumption": [
+    "销售成本假设",
+    "Selling cost assumption"
+  ],
+  "leadershipProjectDetail.formula.estimated.sale.price.acquisition.renovation.holding.and.interest": [
+    "公式：预计售价 − 购入费用 − 装修 − 持有及利息 − 销售费用。仅为此版本完整输入下的模型估算；不与登记支出再加一次。",
+    "Formula: estimated sale price − acquisition − renovation − holding and interest − selling costs. This is an estimate from this version's complete inputs; recorded expenses are not added again."
+  ],
+  "leadershipProjectDetail.expand.input.assumptions.and.sources": [
+    "展开输入假设与来源",
+    "Expand input assumptions and sources"
+  ],
+  "leadershipProjectDetail.purchase.to.sale.interval": [
+    "买入至出售间隔",
+    "Purchase-to-sale interval"
+  ],
+  "leadershipProjectDetail.days.since.purchase": [
+    "自买入已过",
+    "Days since purchase"
+  ],
+  "leadershipProjectDetail.actual.dates.incomplete": [
+    "业务日期不完整",
+    "Actual dates incomplete"
+  ],
+  "leadershipProjectDetail.purchase.date": [
+    "买入日期",
+    "Purchase date"
+  ],
+  "leadershipProjectDetail.planned.finish.date": [
+    "计划完工日期",
+    "Planned finish date"
+  ],
+  "leadershipProjectDetail.overdue.unfinished.tasks": [
+    "逾期未完事项",
+    "Overdue unfinished tasks"
+  ],
+  "leadershipProjectDetail.as.of": [
+    "项 · 截至",
+    "· As of"
+  ],
+  "leadershipProjectDetail.a.planned.date.is.not.actual.completion.holding.days": [
+    "计划日期不是实际完工日期；持有天数反映时间，不代表任务完成比例。",
+    "A planned date is not actual completion. Holding days measure time, not task completion percentage."
+  ],
+  "leadershipProjectDetail.prerequisite.facts": [
+    "前提事实",
+    "Prerequisite facts"
+  ],
+  "leadershipProjectDetail.d.confirmation": [
+    "D 确认",
+    "D confirmation"
+  ],
+  "leadershipProjectDetail.recorded": [
+    "已记录",
+    "Recorded"
+  ],
+  "leadershipProjectDetail.j.confirmation": [
+    "J 确认",
+    "J confirmation"
+  ],
+  "leadershipProjectDetail.task.and.waiting.evidence": [
+    "事项与等待依据",
+    "Task and waiting evidence"
+  ],
+  "leadershipProjectDetail.due": [
+    "截止：",
+    "Due:"
+  ],
+  "leadershipProjectDetail.not.set": [
+    "未设置",
+    "Not set"
+  ],
+  "leadershipProjectDetail.waiting.2": [
+    "等待：",
+    "Waiting:"
+  ],
+  "leadershipProjectDetail.task.counts.and.current.review.age.identify.backlogs.not": [
+    "任务数与当前批次待审日数用于查积压，不评价个人表现，也不是实际工时。设计预览不执行关键节点确认。",
+    "Task counts and current review age identify backlogs, not individual performance or labor hours. This design preview cannot confirm milestones."
+  ],
+  "leadershipProjectDetail.related.documents": [
+    "相关资料",
+    "Related documents"
+  ],
+  "leadershipProjectDetail.view.evidence": [
+    "查看依据",
+    "View evidence"
+  ],
+  "leadershipProjectDetail.source": [
+    "来源：",
+    "Source:"
+  ],
+  "leadershipProjectDetail.close.document": [
+    "关闭资料",
+    "Close document"
+  ],
+  "leadershipProjectDetail.project.updates": [
+    "项目更新",
+    "Project updates"
+  ],
+  "leadershipProjectDetail.focus.for.this.review": [
+    "本次阅读关注点",
+    "Focus for this review"
+  ],
+  "leadershipProjectDetail.not.entered": [
+    "尚未填写。",
+    "Not entered."
+  ],
+  "leadershipProjectDetail.cancel.editing": [
+    "取消编辑",
+    "Cancel editing"
+  ],
+  "leadershipProjectDetail.record.preview.focus": [
+    "记录预览关注点",
+    "Record preview focus"
+  ],
+  "leadershipProjectDetail.review.focus": [
+    "的关注点",
+    "review focus"
+  ],
+  "leadershipProjectDetail.is.retained.in.this.preview.only.no.messages.or": [
+    "已保留在本次预览；不会发消息或写入项目决策记录。",
+    "is retained in this preview only. No messages or project decision records are created."
+  ],
+  "leadershipProjectDetail.save.to.this.preview": [
+    "保存到本次预览",
+    "Save to this preview"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "procurementTab.open.procurement.workspace": [
+    "去采购工作台",
+    "Open procurement workspace"
+  ],
+  "procurementTab.property.procurement": [
+    "房屋采购",
+    "Property procurement"
+  ],
+  "procurementTab.procurement.actions.needed": [
+    "采购需处理",
+    "Procurement actions needed"
+  ],
+  "procurementTab.action.needed": [
+    "需处理 ·",
+    "Action needed ·"
+  ],
+  "procurementTab.no.procurement.records.yet.create.the.material.list.in": [
+    "还没有采购记录，请在工作台建立材料清单。",
+    "No procurement records yet. Create the material list in the workspace."
+  ],
+  "procurementTab.selection.ordering.needed": [
+    "待选型 / 下单",
+    "Selection / ordering needed"
+  ],
+  "procurementTab.action.needed.2": [
+    "需处理",
+    "Action needed"
+  ]
+}

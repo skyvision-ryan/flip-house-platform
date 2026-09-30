@@ -1,3 +1,5 @@
+import { systemText } from '../i18n/core.ts';
+import { m as uiText } from '../i18n/core.ts';
 import type { FileRow, StepItem, Steps } from '../api/client';
 
 /**
@@ -37,20 +39,20 @@ export function factOf(item: StepItem): Fact {
   const hint = item.evidence_hint || undefined;
   const ev = item.evidence;
   const out = (kind: FactKind, label: string, basis: string[], indicator: Fact['indicator']): Fact =>
-    hint ? { kind, label, basis, indicator, hint } : { kind, label, basis, indicator };
+    hint ? { kind, label: systemText(label), basis, indicator, hint: systemText(hint) } : { kind, label: systemText(label), basis, indicator };
 
   // 一、先看大节点：要具名的人各确认一次。listing 这类 gate=true 但没有确认名单的，不走这里。
   if (item.confirm.length > 0) {
     const missing = item.confirm.filter((c) => !item.confirmed.includes(c));
     if (missing.length === 0) {
-      if (item.done) return out('gate-confirmed', `${item.confirm.join('、')} 都已确认`, list(whoAt(item), ev), 'success');
+      if (item.done) return out('gate-confirmed', uiText("sentences.have.all.confirmed", { value1: (item.confirm.join('、')) }), list(whoAt(item), ev), 'success');
       // 人都确认了但后端仍不算过（例如 final 复检没过）
       return out('gate-void', '确认不成立', list(ev), 'error');
     }
     if (item.confirmed.length > 0) {
-      return out('gate-partial', `${item.confirmed.join('、')} 已确认；${missing.join('、')} 还没确认`, [], 'pending');
+      return out('gate-partial', uiText("sentences.confirmed.have.not", { value1: (item.confirmed.join('、')), value2: (missing.join('、')) }), [], 'pending');
     }
-    return out('gate-none', '还没有人确认', [`要 ${item.confirm.join('、')} 各确认一次`], 'pending');
+    return out('gate-none', '还没有人确认', [uiText("sentences.each.of.must.confirm", { value1: (item.confirm.join('、')) })], 'pending');
   }
 
   // 二、再看后端怎么判定的
@@ -63,8 +65,8 @@ export function factOf(item: StepItem): Fact {
   if (item.how === 'auto') {
     const kind = item.deliverable?.kind;
     if (kind === 'photo') {
-      const n = ev?.match(/已传\s*(\d+)\s*张照片/)?.[1];
-      return out('site-record', n ? `已有现场记录 · ${n} 张照片` : '已有现场记录', list(ev), 'success');
+      const n = item.photo_count;
+      return out('site-record', n ? uiText("sentences.site.records.available.photos", { value1: (n) }) : '已有现场记录', list(ev), 'success');
     }
     if (kind === 'file') {
       return out('doc-present', '资料已在项目里', [...list(ev), '按资料类型匹配，不是绑定到这一项'], 'success');
@@ -76,7 +78,7 @@ export function factOf(item: StepItem): Fact {
 
   // 三、后端没判定满足
   const dv = item.deliverable;
-  return out('nothing-yet', dv ? `还没有「${dv.label}」` : '还没有记录', [], 'pending');
+  return out('nothing-yet', dv ? uiText("sentences.not.yet.available", { value1: (systemText(dv.label)) }) : '还没有记录', [], 'pending');
 }
 
 /**
@@ -87,14 +89,14 @@ export function limitsOf(item: StepItem, actor: string, canTickAny: boolean, isO
   const out: string[] = [];
   if (item.key === 'final' && !item.done) {
     // 后端要求最近一次标 final 的检查是 passed，否则 400
-    const passed = [item.evidence, item.evidence_hint].some((s) => (s ?? '').startsWith('final 检查通过'));
+    const passed = item.final_inspection_passed === true;
     if (!passed) out.push('final 检查通过后才能确认');
   }
   if (item.confirm.length === 0) {
     if (item.can_auto && !canTickAny) out.push('这一项要交东西才算满足，不能手工勾');
-    else if (!item.can_auto && !isOwner && !canTickAny) out.push(`这一项由 ${item.owners.join('、')} 负责`);
+    else if (!item.can_auto && !isOwner && !canTickAny) out.push(uiText("sentences.responsible.roles.3", { value1: (item.owners.join('、')) }));
   }
-  return out;
+  return out.map(value => systemText(value));
 }
 
 /** 附件两分：挂到这一项的，和项目里同类型的别的资料。都按上传时间倒序。 */
@@ -114,11 +116,11 @@ export function contextNotes(steps: Steps, stageKey: string): string[] {
     if (!it.gate || it.done || it.confirm.length === 0) continue;
     const missing = it.confirm.filter((c) => !it.confirmed.includes(c));
     out.push(it.confirmed.length
-      ? `本段关键节点「${it.title}」还差 ${missing.join('、')} 确认`
-      : `本段关键节点「${it.title}」还没有人确认`);
+      ? uiText("sentences.milestone.still.needs.confirmation", { value1: (systemText(it.title)), value2: (missing.join('、')) })
+      : uiText("sentences.milestone.has.no.confirmations.yet", { value1: (systemText(it.title)) }));
   }
-  if (steps.earlier_undone.length > 0) out.push(`前面段落还有 ${steps.earlier_undone.length} 项系统未判定满足`);
-  return out;
+  if (steps.earlier_undone.length > 0) out.push(uiText("sentences.earlier.items.have.not.met.system.requirements", { value1: (steps.earlier_undone.length) }));
+  return out.map(value => systemText(value));
 }
 
 /**
@@ -157,9 +159,9 @@ export function stageText(
   // 底层 s1…s6 仍在 current_stage 里，只是不再直接当标题。
   if (p.group_position) {
     const gp = p.group_position;
-    if (gp.complete) return `${gp.group_label} · 已走完`;
-    if (gp.sub_key === 'pre') return gp.lead_substage_label ? `${gp.label} · ${gp.lead_substage_label}` : gp.label;
-    return gp.label;
+    if (gp.complete) return uiText("sentences.process.complete", { value1: (systemText(gp.group_label)) });
+    const label = gp.label.split(' · ').map(part => systemText(part)).join(' · ');
+    return gp.sub_key === 'pre' && gp.lead_substage_label ? `${label} · ${systemText(gp.lead_substage_label)}` : label;
   }
 
   if (!p.current_stage) {
@@ -172,7 +174,7 @@ export function stageText(
   // 线索段的子阶段是人工维护的，接着显示；其余段的 substage 是派生值，不显示。
   if (p.stage === 'lead' && p.substage) {
     const s = sub(p.substage);
-    if (s) return `${p.current_stage.label} · ${s}`;
+    if (s) return `${systemText(p.current_stage.label)} · ${s}`;
   }
-  return p.current_stage.label;
+  return systemText(p.current_stage.label);
 }

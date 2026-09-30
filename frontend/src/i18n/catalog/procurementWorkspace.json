@@ -1,0 +1,238 @@
+{
+  "procurementWorkspace.stage.needs.verification": [
+    "阶段待核对",
+    "Stage needs verification"
+  ],
+  "procurementWorkspace.refresh": [
+    "刷新",
+    "Refresh"
+  ],
+  "procurementWorkspace.current.property": [
+    "当前房屋",
+    "Current property"
+  ],
+  "procurementWorkspace.save.or.cancel.the.current.action.first": [
+    "请先保存或取消当前操作。",
+    "Save or cancel the current action first."
+  ],
+  "procurementWorkspace.select.procurement.property": [
+    "选择采购房屋",
+    "Select procurement property"
+  ],
+  "procurementWorkspace.select.a.property.to.view.requirements.and.orders": [
+    "选择一套房屋，查看需求与订单",
+    "Select a property to view requirements and orders"
+  ],
+  "procurementWorkspace.project.stage": [
+    "项目阶段",
+    "Project stage"
+  ],
+  "procurementWorkspace.earliest.required.on.site.date": [
+    "最早需要到场",
+    "Earliest required on-site date"
+  ],
+  "procurementWorkspace.switch.property": [
+    "切换房屋",
+    "Switch property"
+  ],
+  "procurementWorkspace.save.or.cancel.the.current.action.before.switching.properties": [
+    "请先保存或取消当前操作，再切换房屋。",
+    "Save or cancel the current action before switching properties."
+  ],
+  "procurementWorkspace.current.property.procurement.status": [
+    "当前房屋采购状态",
+    "Current property procurement status"
+  ],
+  "procurementWorkspace.procurement.progress": [
+    "采购进度",
+    "Procurement progress"
+  ],
+  "procurementWorkspace.restore.procurement.list": [
+    "恢复采购清单",
+    "Restore procurement list"
+  ],
+  "procurementWorkspace.follow.up.needed.only": [
+    "只看需跟进",
+    "Follow-up needed only"
+  ],
+  "procurementWorkspace.filter.active": [
+    "· 筛选中",
+    "· Filter active"
+  ],
+  "procurementWorkspace.none": [
+    "无",
+    "None"
+  ],
+  "procurementWorkspace.procurement.due.date": [
+    "采购截止",
+    "Procurement due date"
+  ],
+  "procurementWorkspace.orders": [
+    "订单",
+    "Orders"
+  ],
+  "procurementWorkspace.orders.without.payment.amounts": [
+    "笔实付未填",
+    "orders without payment amounts"
+  ],
+  "procurementWorkspace.manage.procurement": [
+    "管理采购",
+    "Manage procurement"
+  ],
+  "procurementWorkspace.project.procurement.history": [
+    "项目采购记录",
+    "Project procurement history"
+  ],
+  "procurementWorkspace.switch.procurement.property": [
+    "切换采购房屋",
+    "Switch procurement property"
+  ],
+  "procurementWorkspace.search.property.name.or.address": [
+    "搜索房屋名称或地址",
+    "Search property name or address"
+  ],
+  "procurementWorkspace.search.procurement.properties": [
+    "搜索采购房屋",
+    "Search procurement properties"
+  ],
+  "procurementWorkspace.lead": [
+    "· 负责人",
+    "· Lead"
+  ],
+  "procurementWorkspace.progress.needs.verification": [
+    "进度待核对",
+    "Progress needs verification"
+  ],
+  "procurementWorkspace.current.property.2": [
+    "· 当前房屋",
+    "· Current property"
+  ],
+  "procurementWorkspace.no.matching.properties": [
+    "没有匹配的房屋。",
+    "No matching properties."
+  ],
+  "procurementWorkspace.no.procurement.properties.available.ask.jessie.to.assign.the": [
+    "暂无可查看的采购房屋。请由 Jessie 分派本房负责人或授权加入本房协作。",
+    "No procurement properties available. Ask Jessie to assign the property's lead or authorize you as a collaborator."
+  ],
+  "procurementWorkspace.this.property.no.longer.exists.or.is.no.longer": [
+    "当前房屋不存在或你已无权查看，请选择其他房屋。",
+    "This property no longer exists or is no longer accessible. Select another property."
+  ],
+  "procurementWorkspace.procurement.display.scope": [
+    "采购显示范围",
+    "Procurement display scope"
+  ],
+  "procurementWorkspace.procurement.list": [
+    "采购清单",
+    "Procurement list"
+  ],
+  "procurementWorkspace.pending.requirements": [
+    "待处理需求（",
+    "Pending requirements ("
+  ],
+  "procurementWorkspace.not.needed.here": [
+    "本房不需要（",
+    "Not needed here ("
+  ],
+  "procurementWorkspace.search.merchant.or.order.number": [
+    "搜索商家或订单号",
+    "Search merchant or order number"
+  ],
+  "procurementWorkspace.search.materials.specifications.or.notes": [
+    "搜索材料、规格或备注",
+    "Search materials, specifications, or notes"
+  ],
+  "procurementWorkspace.search.project.procurement": [
+    "搜索项目采购",
+    "Search project procurement"
+  ],
+  "procurementWorkspace.create.order": [
+    "创建订单",
+    "Create order"
+  ],
+  "procurementWorkspace.property.orders": [
+    "本房订单",
+    "Property orders"
+  ],
+  "procurementWorkspace.pending.requirements.2": [
+    "待处理需求",
+    "Pending requirements"
+  ],
+  "procurementWorkspace.not.needed.for.this.property": [
+    "本房不需要",
+    "Not needed for this property"
+  ],
+  "procurementWorkspace.property.procurement.requirements": [
+    "本房采购需求",
+    "Property procurement requirements"
+  ],
+  "procurementWorkspace.requirements.needing.selection.ordering.or.follow.up.sorted.within": [
+    "待选型、待下单及需跟进的需求；各组按最近维护排序。点击“查看详情”定位处理。",
+    "Requirements needing selection, ordering, or follow-up, sorted within each group by last update. Select View details to handle an item."
+  ],
+  "procurementWorkspace.excluded.from.procurement.progress.view.details.to.check.the": [
+    "不计入采购进度。查看详情可核对原因，通过“恢复需求”重新纳入处理。",
+    "Excluded from procurement progress. View details to check the reason; restore the requirement to include it again."
+  ],
+  "procurementWorkspace.ask.jessie.to.assign.a.lead.in.manage.procurement": [
+    "请先由 Jessie 在管理采购中分派负责人，再创建订单。",
+    "Ask Jessie to assign a lead in Manage procurement before creating orders."
+  ],
+  "procurementWorkspace.read.only.procurement.records.amounts.are.procurement.entries.not": [
+    "只读采购记录 · 金额为采购登记，未经财务核款。",
+    "Read-only procurement records · Amounts are procurement entries, not financially verified."
+  ],
+  "procurementWorkspace.search.results": [
+    "搜索结果",
+    "Search results"
+  ],
+  "procurementWorkspace.orders.property.total": [
+    "笔 · 本房共",
+    "orders · Property total"
+  ],
+  "procurementWorkspace.no.matching.orders": [
+    "没有符合搜索的订单。",
+    "No matching orders."
+  ],
+  "procurementWorkspace.no.orders.recorded.for.this.property.yet": [
+    "本房还没有登记订单。",
+    "No orders recorded for this property yet."
+  ],
+  "procurementWorkspace.recorded.payment.usd": [
+    "登记实付（USD）",
+    "Recorded payment (USD)"
+  ],
+  "procurementWorkspace.pending.action.receiving": [
+    "待处理 / 收货",
+    "Pending action / receiving"
+  ],
+  "procurementWorkspace.fully.received": [
+    "已收齐",
+    "Fully received"
+  ],
+  "procurementWorkspace.not.fully.received": [
+    "待收齐",
+    "Not fully received"
+  ],
+  "procurementWorkspace.save.or.discard.changes.first": [
+    "请先保存或放弃修改。",
+    "Save or discard changes first."
+  ],
+  "procurementWorkspace.no.pending.requirements": [
+    "暂无待处理需求。",
+    "No pending requirements."
+  ],
+  "procurementWorkspace.no.materials.are.marked.not.needed.for.this.property": [
+    "本房没有标记不需要的材料。",
+    "No materials are marked not needed for this property."
+  ],
+  "procurementWorkspace.no.requirements.in.this.property.s.list.for.an": [
+    "本房清单暂无需求。已有房屋可在管理采购中恢复显示范围，或补充采购需求。",
+    "No requirements in this property's list. For an existing property, restore the display scope in Manage procurement or add requirements."
+  ],
+  "procurementWorkspace.no.materials.match.the.filters": [
+    "没有符合筛选的材料。",
+    "No materials match the filters."
+  ]
+}

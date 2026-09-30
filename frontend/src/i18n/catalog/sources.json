@@ -1,0 +1,18 @@
+{
+  "sources.manual": [
+    "人工",
+    "Manual"
+  ],
+  "sources.public.records": [
+    "公共记录",
+    "Public records"
+  ],
+  "sources.estimate": [
+    "估算",
+    "Estimate"
+  ],
+  "sources.demo.data": [
+    "演示数据",
+    "Demo data"
+  ]
+}

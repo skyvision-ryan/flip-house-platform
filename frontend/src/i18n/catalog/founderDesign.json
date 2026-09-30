@@ -1,0 +1,374 @@
+{
+  "founderDesign.return.estimate.data.gaps": [
+    "收益资料缺口",
+    "Return estimate data gaps"
+  ],
+  "founderDesign.progress.issues": [
+    "推进卡点",
+    "Progress issues"
+  ],
+  "founderDesign.lead": [
+    "线索",
+    "Lead"
+  ],
+  "founderDesign.leads.excluded": [
+    "线索未计入",
+    "Leads excluded"
+  ],
+  "founderDesign.sold.reconciliation.pending": [
+    "已售待核算",
+    "Sold; reconciliation pending"
+  ],
+  "founderDesign.incomplete.records": [
+    "资料未齐",
+    "Incomplete records"
+  ],
+  "founderDesign.not.purchased": [
+    "未买入",
+    "Not purchased"
+  ],
+  "founderDesign.incomplete.dates": [
+    "日期未齐",
+    "Incomplete dates"
+  ],
+  "founderDesign.through.sale.date": [
+    "（截至售出）",
+    "(through sale date)"
+  ],
+  "founderDesign.find.property": [
+    "查找房屋",
+    "Find property"
+  ],
+  "founderDesign.t.find.project": [
+    "T 查找项目",
+    "T: find project"
+  ],
+  "founderDesign.property.lead.or.issue": [
+    "房屋、负责人或卡点",
+    "Property, lead, or issue"
+  ],
+  "founderDesign.project.scope": [
+    "项目范围",
+    "Project scope"
+  ],
+  "founderDesign.t.project.scope": [
+    "T 项目范围",
+    "T: project scope"
+  ],
+  "founderDesign.all.projects": [
+    "全部项目",
+    "All projects"
+  ],
+  "founderDesign.issue.scope": [
+    "问题范围",
+    "Issue scope"
+  ],
+  "founderDesign.t.issue.filter": [
+    "T 问题筛选",
+    "T: issue filter"
+  ],
+  "founderDesign.all.issues.and.on.track.projects": [
+    "全部问题与正常项目",
+    "All issues and on-track projects"
+  ],
+  "founderDesign.sort": [
+    "排序",
+    "Sort"
+  ],
+  "founderDesign.t.project.sort": [
+    "T 项目排序",
+    "T: project sort"
+  ],
+  "founderDesign.default.order": [
+    "默认顺序",
+    "Default order"
+  ],
+  "founderDesign.recorded.investment.high.to.low": [
+    "登记投入从高到低",
+    "Recorded investment: high to low"
+  ],
+  "founderDesign.holding.days.longest.first": [
+    "持有天数从长到短",
+    "Holding days: longest first"
+  ],
+  "founderDesign.operating.metric.breakdown": [
+    "经营指标构成",
+    "Operating metric breakdown"
+  ],
+  "founderDesign.recorded.investment.breakdown": [
+    "登记投入构成",
+    "Recorded investment breakdown"
+  ],
+  "founderDesign.estimate.coverage.and.missing.data": [
+    "估算覆盖与缺项",
+    "Estimate coverage and missing data"
+  ],
+  "founderDesign.overdue.tasks.and.pending.submissions": [
+    "逾期与待审批次",
+    "Overdue tasks and pending submissions"
+  ],
+  "founderDesign.collapse.metric.details": [
+    "收起指标明细",
+    "Collapse metric details"
+  ],
+  "founderDesign.scope.remains.the.selected": [
+    "范围仍是当前所选",
+    "Scope remains the selected"
+  ],
+  "founderDesign.of": [
+    "套中的",
+    "of"
+  ],
+  "founderDesign.active.projects.expanding.explains.the.metric.without.changing.filters": [
+    "套进行中项目。展开只解释指标，不改变筛选或覆盖分母。",
+    "active projects. Expanding explains the metric without changing filters or the coverage denominator."
+  ],
+  "founderDesign.purchase.price": [
+    "买入价",
+    "Purchase price"
+  ],
+  "founderDesign.recorded.expenses": [
+    "＋ 已登记支出",
+    "+ recorded expenses"
+  ],
+  "founderDesign.recorded.expenses.2": [
+    "已登记支出",
+    "Recorded expenses"
+  ],
+  "founderDesign.included.select.to.view.the.original.value.and.record": [
+    "已计入；点击查看原值与记录日期",
+    "Included; select to view the original value and record date"
+  ],
+  "founderDesign.no.unique.current.analysis.version.found": [
+    "未找到唯一的当前测算版本",
+    "No unique current analysis version found"
+  ],
+  "founderDesign.complete.current.version.included.select.to.view.formulas.assumptions": [
+    "完整当前版本已计入；点击查看公式、假设与来源",
+    "Complete current version included; select to view formulas, assumptions, and sources"
+  ],
+  "founderDesign.complete.current.outputs.are.missing.excluded.from.estimate.totals": [
+    "缺少当前完整输出，未计入估算汇总",
+    "Complete current outputs are missing; excluded from estimate totals"
+  ],
+  "founderDesign.overdue.and.unfinished": [
+    "逾期未完成",
+    "Overdue and unfinished"
+  ],
+  "founderDesign.current.pending.submissions": [
+    "项 · 当前待审",
+    "· Current pending submissions"
+  ],
+  "founderDesign.no.overdue.unfinished.tasks": [
+    "没有逾期未完成事项",
+    "No overdue unfinished tasks"
+  ],
+  "founderDesign.submission.date.missing": [
+    "提交日期未齐",
+    "Submission date missing"
+  ],
+  "founderDesign.no.current.submissions.awaiting.review": [
+    "没有当前待审批次",
+    "No current submissions awaiting review"
+  ],
+  "founderDesign.view.progress.evidence": [
+    "查看推进依据",
+    "View progress evidence"
+  ],
+  "founderDesign.no.overdue.unfinished.tasks.or.pending.submissions.in.this": [
+    "当前范围没有逾期未完成或待审事项。",
+    "No overdue unfinished tasks or pending submissions in this scope."
+  ],
+  "founderDesign.no.active.projects.in.this.scope.no.amount.breakdown": [
+    "当前范围没有进行中项目，暂无可展开的金额构成。",
+    "No active projects in this scope; no amount breakdown is available."
+  ],
+  "founderDesign.selected": [
+    "所选",
+    "Selected"
+  ],
+  "founderDesign.properties": [
+    "套房",
+    "properties"
+  ],
+  "founderDesign.including.active": [
+    "其中进行中",
+    "Including active"
+  ],
+  "founderDesign.properties.sold.closeout": [
+    "套，已售收尾",
+    "properties; sold / closeout"
+  ],
+  "founderDesign.active.recorded.project.investment": [
+    "进行中 · 登记投入规模",
+    "Active · Recorded project investment"
+  ],
+  "founderDesign.no.amounts.to.aggregate": [
+    "无可汇总金额",
+    "No amounts to aggregate"
+  ],
+  "founderDesign.coverage": [
+    "覆盖",
+    "Coverage"
+  ],
+  "founderDesign.properties.purchase.price.recorded.expenses": [
+    "套 · 买入价＋登记支出",
+    "properties · Purchase price + recorded expenses"
+  ],
+  "founderDesign.view.investment.breakdown": [
+    "查看投入构成",
+    "View investment breakdown"
+  ],
+  "founderDesign.active.current.modeled.returns": [
+    "进行中 · 当前模型收益估算",
+    "Active · Current modeled returns"
+  ],
+  "founderDesign.no.complete.estimates": [
+    "无完整估算",
+    "No complete estimates"
+  ],
+  "founderDesign.properties.incomplete.projects.excluded": [
+    "套 · 缺资料项目未计入",
+    "properties · Incomplete projects excluded"
+  ],
+  "founderDesign.view.estimate.coverage": [
+    "查看估算覆盖",
+    "View estimate coverage"
+  ],
+  "founderDesign.active.items.needing.review": [
+    "进行中 · 需要查看的事项",
+    "Active · Items needing review"
+  ],
+  "founderDesign.overdue.and.unfinished.2": [
+    "过期未完成",
+    "Overdue and unfinished"
+  ],
+  "founderDesign.awaiting.review": [
+    "项 · 待审",
+    "· Awaiting review"
+  ],
+  "founderDesign.a.task.may.be.both.overdue.and.awaiting.review": [
+    "同一事项可能同时待审及超期，不相加为总数",
+    "A task may be both overdue and awaiting review; counts are not additive"
+  ],
+  "founderDesign.view.overdue.and.pending.reviews": [
+    "查看逾期与待审",
+    "View overdue and pending reviews"
+  ],
+  "founderDesign.estimates.are.not.realized.profit.recorded.investment.is.not": [
+    "估算不是已实现利润。登记投入不是股东现金占用；已售项目不计入进行中金额，结算与净回款仍需完整实际记录。",
+    "Estimates are not realized profit. Recorded investment is not shareholder cash tied up. Sold properties are excluded from active totals; closing and net proceeds require complete actual records."
+  ],
+  "founderDesign.unfinished.and.due": [
+    "未完成且已到期",
+    "Unfinished and due"
+  ],
+  "founderDesign.actual.holding.days": [
+    "业务持有天数",
+    "Actual holding days"
+  ],
+  "founderDesign.current.modeled.return.estimate": [
+    "当前模型收益估算",
+    "Current modeled return estimate"
+  ],
+  "founderDesign.t.project.operating.ledger": [
+    "T 项目经营账簿",
+    "T: project operating ledger"
+  ],
+  "founderDesign.recorded.project.investment": [
+    "登记投入规模",
+    "Recorded project investment"
+  ],
+  "founderDesign.actual.holding.period": [
+    "业务持有时间",
+    "Actual holding period"
+  ],
+  "founderDesign.current.issue": [
+    "当前问题",
+    "Current issue"
+  ],
+  "founderDesign.excluded.from.active.totals": [
+    "不计入进行中汇总",
+    "Excluded from active totals"
+  ],
+  "founderDesign.no.issue.recorded": [
+    "未记录问题",
+    "No issue recorded"
+  ],
+  "founderDesign.a.property.may.have.several.issues.amounts.and.property": [
+    "同一房屋可涉及多个问题，顶部金额与套数按房去重。分组源于样例记录，不是自动风险评分。",
+    "A property may have several issues. Amounts and property counts are deduplicated. Groups come from sample records, not automatic risk scores."
+  ],
+  "founderDesign.stage.distribution": [
+    "阶段分布",
+    "Stage distribution"
+  ],
+  "founderDesign.stage.distribution.metric": [
+    "阶段分布指标",
+    "Stage distribution metric"
+  ],
+  "founderDesign.property.count": [
+    "房屋数",
+    "Property count"
+  ],
+  "founderDesign.recorded.investment.in.active.projects": [
+    "进行中登记投入",
+    "Recorded investment in active projects"
+  ],
+  "founderDesign.distribution.scope.current.search.and.project.issue.filters": [
+    "分布范围：当前搜索与项目／问题筛选内",
+    "Distribution scope: current search and project / issue filters,"
+  ],
+  "founderDesign.properties.2": [
+    "套。",
+    "properties."
+  ],
+  "founderDesign.select.a.stage.to.filter.the.totals.and.properties": [
+    "点击阶段，筛选下方汇总与房屋；非历史趋势。",
+    "Select a stage to filter the totals and properties below. This is not a historical trend."
+  ],
+  "founderDesign.select.stage.to.view.projects": [
+    "点击阶段查看项目",
+    "Select stage to view projects"
+  ],
+  "founderDesign.current.submission.awaiting.review": [
+    "当前批次待审",
+    "Current submission awaiting review"
+  ],
+  "founderDesign.holding.time.starts.on.the.actual.purchase.date.and": [
+    "持有时间从业务买入日期计算，已售截至售出日；待审时间来自当前提交批次。计划完工日期不当作实际完工，也不按这些数字给员工排名。",
+    "Holding time starts on the actual purchase date and ends at sale for sold properties. Review age starts with the current submission. Planned finish dates are not actual completion, and these figures do not rank employees."
+  ],
+  "founderDesign.review.operating.facts.across.all.projects.then.open.a": [
+    "从全部项目看经营事实，再进入具体房屋与依据。",
+    "Review operating facts across all projects, then open a property and its evidence."
+  ],
+  "founderDesign.synthetic.data.snapshot.as.of": [
+    "合成数据切面 · 截至",
+    "Synthetic data snapshot · As of"
+  ],
+  "founderDesign.this.compares.management.views.only.it.does.not.change": [
+    "。这里只比较管理视角，不操作项目或审批。",
+    ". This compares management views only; it does not change projects or confirm milestones."
+  ],
+  "founderDesign.stage": [
+    "阶段：",
+    "Stage:"
+  ],
+  "founderDesign.all": [
+    "全部",
+    "All"
+  ],
+  "founderDesign.clear.all.filters": [
+    "清除全部筛选",
+    "Clear all filters"
+  ],
+  "founderDesign.no.properties.match.clear.filters.to.return.to.all": [
+    "没有符合这些条件的房屋。清除筛选可返回全部项目。",
+    "No properties match. Clear filters to return to all projects."
+  ],
+  "founderDesign.select.a.property.to.review.estimates.dates.tasks.and": [
+    "选择一套房，查看估算构成、日期、任务与原始资料。",
+    "Select a property to review estimates, dates, tasks, and original records."
+  ]
+}

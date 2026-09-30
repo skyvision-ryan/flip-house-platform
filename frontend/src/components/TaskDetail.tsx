@@ -1,3 +1,6 @@
+import { systemText } from '../i18n/core.ts';
+import { useLanguage } from '../i18n/LanguageProvider';
+import { m as uiText } from '../i18n/core.ts';
 import Alert from '@cloudscape-design/components/alert';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
@@ -17,6 +20,7 @@ import KeyValuePairs from './ui/Facts';
 const shortDate = (iso?: string | null) => (iso ? iso.slice(5, 10).replace('-', '/') : '');
 
 function FileLines({ rows, empty }: { rows: FileRow[]; empty: string }) {
+  useLanguage();
   if (!rows.length) return <Box color="text-body-secondary" fontSize="body-s">{empty}</Box>;
   return (
     <SpaceBetween size="xxs">
@@ -50,6 +54,7 @@ export default function TaskDetail({
   onPrimary: (it: StepItem) => void;
   onDismiss: () => void;
 }) {
+  useLanguage();
   const meta = useMeta();
   const role = useRole();
 
@@ -71,7 +76,7 @@ export default function TaskDetail({
 
   const kv = [
     {
-      label: '负责角色',
+      label: uiText("taskDetail.responsible.role"),
       value: (
         <SpaceBetween size="xxs">
           <Box>
@@ -83,16 +88,16 @@ export default function TaskDetail({
         </SpaceBetween>
       ),
     },
-    ...(item.purpose ? [{ label: '这件事是', value: <Box>{item.purpose}</Box> }] : []),
-    ...(dv ? [{ label: '要交', value: <Box>{dv.label}</Box> }] : []),
-    ...(item.done_when ? [{ label: '怎么算完成', value: <Box>{item.done_when}</Box> }] : []),
+    ...(item.purpose ? [{ label: uiText("taskDetail.task.purpose"), value: <Box>{systemText(item.purpose)}</Box> }] : []),
+    ...(dv ? [{ label: uiText("taskDetail.required.deliverable"), value: <Box>{systemText(dv.label)}</Box> }] : []),
+    ...(item.done_when ? [{ label: uiText("taskDetail.completion.criteria"), value: <Box>{systemText(item.done_when)}</Box> }] : []),
     {
-      label: '现在',
+      label: uiText("taskDetail.current.state"),
       value: (
         <SpaceBetween size="xxs">
-          <StatusIndicator type={fact.indicator}>{fact.label}</StatusIndicator>
+          <StatusIndicator type={fact.indicator}>{systemText(fact.label)}</StatusIndicator>
           {fact.basis.map((b) => (
-            <Box key={b} color="text-body-secondary" fontSize="body-s">依据：{b}</Box>
+            <Box key={b} color="text-body-secondary" fontSize="body-s">{uiText("stepsPanel.evidence")}{systemText(b)}</Box>
           ))}
           {fact.hint && (
             <Box color="text-body-secondary" fontSize="body-s">{fact.hint}</Box>
@@ -118,7 +123,7 @@ export default function TaskDetail({
       footer={
         <Box float="right">
           <SpaceBetween direction="horizontal" size="xs">
-            <Button variant="link" onClick={onDismiss}>关闭</Button>
+            <Button variant="link" onClick={onDismiss}>{uiText("myTodoTable.close")}</Button>
             {showPrimary && (
               <Button variant="primary" onClick={() => onPrimary(item)}>
                 {actionLabel(item, { actor: role.actor, canDo: true })}
@@ -132,7 +137,7 @@ export default function TaskDetail({
         <KeyValuePairs columns={1} items={kv} />
 
         {limits.length > 0 && (
-          <Alert type="info" header="操作限制">
+          <Alert type="info" header={uiText("taskDetail.action.restrictions")}>
             <SpaceBetween size="xxs">
               {limits.map((l) => <Box key={l}>{l}</Box>)}
             </SpaceBetween>
@@ -142,17 +147,16 @@ export default function TaskDetail({
         <ExpandableSection
           variant="footer"
           defaultExpanded
-          headerText={`这一项的照片 / 文件（${bound.length}）`}
+          headerText={uiText("sentences.photos.files.linked.to.this.item", { value1: (bound.length) })}
         >
-          <FileLines rows={bound} empty="还没有挂到这一项的照片或文件。" />
+          <FileLines rows={bound} empty={uiText("taskDetail.no.photos.or.files.are.linked.to.this.task")} />
         </ExpandableSection>
 
         {byType.length > 0 && (
-          <ExpandableSection variant="footer" headerText={`项目里的同类资料（${byType.length}）`}>
+          <ExpandableSection variant="footer" headerText={uiText("sentences.other.project.documents.of.this.type", { value1: (byType.length) })}>
             <SpaceBetween size="xs">
               <Box color="text-body-secondary" fontSize="body-s">
-                按资料类型匹配，不是这一项的提交记录。
-              </Box>
+                {uiText("taskDetail.matched.by.file.type.not.a.submission.for.this")} </Box>
               <FileLines rows={byType} empty="" />
             </SpaceBetween>
           </ExpandableSection>

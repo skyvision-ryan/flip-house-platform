@@ -1,0 +1,34 @@
+{
+  "imageCanvas.zoom.in.and.drag.to.inspect.details.with.the": [
+    "放大核对细节，拖动查看其他位置。聚焦图片后可用方向键移动、+ / − 缩放；手机可双指缩放。",
+    "Zoom in and drag to inspect details. With the image focused, use arrow keys to pan and + / − to zoom. On mobile, pinch to zoom."
+  ],
+  "imageCanvas.image.could.not.be.displayed": [
+    "图片未能显示",
+    "Image could not be displayed"
+  ],
+  "imageCanvas.reload.image": [
+    "重新加载图片",
+    "Reload image"
+  ],
+  "imageCanvas.check.your.connection.or.access.permissions.the.original.file": [
+    "请检查连接或访问权限。原文件与业务记录没有改变。",
+    "Check your connection or access permissions. The original file and business records are unchanged."
+  ],
+  "imageCanvas.zoom.in": [
+    "放大",
+    "Zoom in"
+  ],
+  "imageCanvas.zoom.out": [
+    "缩小",
+    "Zoom out"
+  ],
+  "imageCanvas.fit.to.window": [
+    "适合窗口",
+    "Fit to window"
+  ],
+  "imageCanvas.loading.image": [
+    "正在读取图片…",
+    "Loading image…"
+  ]
+}

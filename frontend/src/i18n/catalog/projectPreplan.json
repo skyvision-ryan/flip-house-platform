@@ -1,0 +1,178 @@
+{
+  "projectPreplan.acquisition.not.purchased": [
+    "买房 · 未购入",
+    "Acquisition · Not purchased"
+  ],
+  "projectPreplan.acquisition.in.escrow": [
+    "买房 · escrow 中",
+    "Acquisition · In escrow"
+  ],
+  "projectPreplan.start.here.you.can.assign.a.person.and.due": [
+    "从这里开始；可先安排负责人和截止日期。",
+    "Start here; you can assign a person and due date now."
+  ],
+  "projectPreplan.plan.ahead.tasks.start.as.not.started.after.creation": [
+    "提前安排；创建后仍是未开始，关键节点按原规则推进。",
+    "Plan ahead. Tasks start as Not started after creation; milestone rules still apply."
+  ],
+  "projectPreplan.task": [
+    "普通任务",
+    "Task"
+  ],
+  "projectPreplan.primary.assignee": [
+    "主要负责人",
+    "Primary assignee"
+  ],
+  "projectPreplan.due.date": [
+    "截止日期",
+    "Due date"
+  ],
+  "projectPreplan.earlier.history.needs.verification": [
+    "· 录入前历史待核验",
+    "· Earlier history needs verification"
+  ],
+  "projectPreplan.prepare.ahead": [
+    "· 提前准备",
+    "· Prepare ahead"
+  ],
+  "projectPreplan.not.set": [
+    "未设定",
+    "Not set"
+  ],
+  "projectPreplan.milestone.confirmation.requirements": [
+    "节点确认要求",
+    "Milestone confirmation requirements"
+  ],
+  "projectPreplan.when.prerequisites.are.met.authorized.accounts.can.confirm.no": [
+    "符合条件后自动进入有权限人员的待确认，不需要预先分派。",
+    "When prerequisites are met, authorized accounts can confirm. No prior assignment is required."
+  ],
+  "projectPreplan.save.assignment": [
+    "保存到安排",
+    "Save assignment"
+  ],
+  "projectPreplan.on.creation.the.selected.procurement.assignee.joins.this.property": [
+    "创建时自动加入本房并分派采购，无需再次确认。",
+    "On creation, the selected procurement assignee joins this property automatically; no extra confirmation is needed."
+  ],
+  "projectPreplan.this.new.project.has.no.members.yet.select.real": [
+    "新项目尚无成员，选择真实账号；创建前统一确认加入项目。",
+    "This new project has no members yet. Select real accounts and confirm membership before creating it."
+  ],
+  "projectPreplan.selected.assignees.join.the.project.on.creation.assignment.history": [
+    "创建时将所选负责人加入项目，保留分派记录。",
+    "Selected assignees join the project on creation. Assignment history is retained."
+  ],
+  "projectPreplan.due.date.optional": [
+    "截止日期（可选）",
+    "Due date (optional)"
+  ],
+  "projectPreplan.enter.a.valid.date.such.as.2026.09.25": [
+    "请填写有效日期，例如 2026/09/25",
+    "Enter a valid date, such as 2026/09/25"
+  ],
+  "projectPreplan.this.saves.a.draft.only.after.creation.tasks.start": [
+    "这里只保存草稿。创建后任务为“未开始”，审核人沿用现有规则，默认为创建者。",
+    "This saves a draft only. After creation, tasks start as Not started; the reviewer follows existing rules and defaults to the creator."
+  ],
+  "projectPreplan.assignment.summary": [
+    "安排摘要",
+    "Assignment summary"
+  ],
+  "projectPreplan.tasks.with.assignees": [
+    "已安排负责人",
+    "Tasks with assignees"
+  ],
+  "projectPreplan.current.tasks.assigned": [
+    "当前已分派",
+    "Current tasks assigned"
+  ],
+  "projectPreplan.future.tasks.assigned": [
+    "项 · 后续已分派",
+    "· Future tasks assigned"
+  ],
+  "projectPreplan.items": [
+    "项",
+    "items"
+  ],
+  "projectPreplan.milestones": [
+    "关键节点",
+    "Milestones"
+  ],
+  "projectPreplan.confirm.according.to.each.milestone.s.requirements": [
+    "个 · 按各节点要求确认",
+    "· Confirm according to each milestone's requirements"
+  ],
+  "projectPreplan.unassigned.tasks.are.also.created.assign.them.later.in": [
+    "未分派任务也会创建，可在项目总览继续安排。",
+    "Unassigned tasks are also created. Assign them later in the project overview."
+  ],
+  "projectPreplan.email.reminders": [
+    "邮件提醒",
+    "Email reminders"
+  ],
+  "projectPreplan.email.is.not.connected": [
+    "邮件通道未接通",
+    "Email is not connected"
+  ],
+  "projectPreplan.send.assignment.instructions.after.creation": [
+    "创建后发送分派说明",
+    "Send assignment instructions after creation"
+  ],
+  "projectPreplan.no.email.will.be.sent": [
+    "本次不会发送邮件 ·",
+    "No email will be sent ·"
+  ],
+  "projectPreplan.assignees": [
+    "位负责人。",
+    "assignees."
+  ],
+  "projectPreplan.tasks.for.the.same.assignee.are.combined.into.one": [
+    "同一位负责人的任务合并为一份安排预览。",
+    "Tasks for the same assignee are combined into one assignment preview."
+  ],
+  "projectPreplan.preview.assignment.instructions": [
+    "预览安排说明",
+    "Preview assignment instructions"
+  ],
+  "projectPreplan.assignment.preview.not.sent": [
+    "安排说明预览 · 尚未发送",
+    "Assignment preview · Not sent"
+  ],
+  "projectPreplan.this.preview.groups.tasks.by.assignee.recipient.addresses.sending": [
+    "这是按负责账号合并的内容预览。邮件接通后再提供实际收件地址、发送与回执。",
+    "This preview groups tasks by assignee. Recipient addresses, sending, and receipts require a future email integration."
+  ],
+  "projectPreplan.prepare.ahead.2": [
+    "提前准备",
+    "Prepare ahead"
+  ],
+  "projectPreplan.current.stage": [
+    "当前阶段",
+    "Current stage"
+  ],
+  "projectPreplan.due": [
+    "· 截止",
+    "· Due"
+  ],
+  "projectPreplan.you.can.go.back.and.edit.before.creation.all": [
+    "创建前可返回修改，全部安排会保留。",
+    "You can go back and edit before creation. All assignments will be retained."
+  ],
+  "projectPreplan.all.template.tasks.will.be.created.including.assigned.and": [
+    "全部模板任务都会创建；已分派和待分派都保留。",
+    "All template tasks will be created, including assigned and unassigned tasks."
+  ],
+  "projectPreplan.full.process.assignments": [
+    "全流程安排",
+    "Full-process assignments"
+  ],
+  "projectPreplan.position": [
+    "位置",
+    "Position"
+  ],
+  "projectPreplan.assigned.tasks": [
+    "普通任务已分派",
+    "Assigned tasks"
+  ]
+}

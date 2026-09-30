@@ -1,3 +1,5 @@
+import { systemText } from '../i18n/core.ts';
+import { m as uiText } from '../i18n/core.ts';
 export type Numeric = string | number | null;
 export interface OrderLine {
   id: string; material_id: number; name: string; specification: string; brand: string; vendor: string; model: string;
@@ -51,7 +53,7 @@ export const newOrder = (): OrderDocument => ({ vendor: '', order_number: '', se
   ordered_on: null, order_url: null, voucher_url: null, currency: 'USD', tax: null, shipping: null, discount: null, total: null,
   reconciliation_note: '', delivery_address: '', refunded: null, follow_up: '', follow_up_on: null, checked_on: null, note: '', lines: [], deliveries: [], receipts: [], adjustments: [] });
 export function moneyValue(value: Numeric): string {
-  return value === null || value === '' ? '未填' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(value));
+  return value === null || value === '' ? uiText("procurementItemRow.not.entered.2") : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(value));
 }
 export function lineAmount(line: OrderLine): number | null {
   if (line.amount !== null && line.amount !== '') return Number(line.amount);
@@ -68,33 +70,33 @@ export function reconcile(doc: OrderDocument) {
 }
 export function orderAttention(order: PurchaseOrder, today: string): string[] {
   const d = order.document; const reasons = [];
-  if (d.follow_up) reasons.push(d.follow_up_on && d.follow_up_on <= today ? `到期跟进：${d.follow_up}` : d.follow_up);
+  if (d.follow_up) reasons.push(d.follow_up_on && d.follow_up_on <= today ? uiText("sentences.follow.up.due", { value1: (d.follow_up) }) : d.follow_up);
 
   if (Number(order.summary.difference)) reasons.push('金额待核对');
   for (const line of d.lines) {
     const remaining = order.summary.lines.find(l => l.id === line.id)?.remaining;
     if (line.issue_note) reasons.push(`${line.name}：${line.issue_note}`);
     if (remaining == null || Number(remaining) > 0) {
-      if (line.website_status === 'delivered') reasons.push(`${line.name}：网站送达待确认`);
-      else if (line.website_status === 'exception') reasons.push(`${line.name}：物流异常`);
-      else if (line.website_status === 'ready_pickup') reasons.push(`${line.name}：待取货`);
-      else if (line.expected_on && line.expected_on < today) reasons.push(`${line.name}：已过预计日期`);
+      if (line.website_status === 'delivered') reasons.push(uiText("sentences.carrier.shows.delivered.verify.receipt", { value1: (line.name) }));
+      else if (line.website_status === 'exception') reasons.push(uiText("sentences.shipment.exception", { value1: (line.name) }));
+      else if (line.website_status === 'ready_pickup') reasons.push(uiText("sentences.awaiting.pickup", { value1: (line.name) }));
+      else if (line.expected_on && line.expected_on < today) reasons.push(uiText("sentences.past.estimated.arrival", { value1: (line.name) }));
     }
   }
   for (const delivery of d.deliveries) {
     const done = delivery.allocations.length > 0 && delivery.allocations.every(a => Number(order.summary.lines.find(l => l.id === a.line_id)?.remaining) === 0 || d.receipts.filter(r => r.delivery_id === delivery.id && !r.void_reason)
       .flatMap(r => r.lines).filter(r => r.line_id === a.line_id).reduce((n, r) => n + Number(r.quantity), 0) >= Number(a.quantity));
-    if (delivery.website_status === 'exception') reasons.push(`${delivery.label}：物流异常`);
-    else if (!done && delivery.website_status === 'delivered') reasons.push(`${delivery.label}：网站送达待确认`);
-    else if (!done && delivery.website_status === 'ready_pickup') reasons.push(`${delivery.label}：待取货`);
-    else if (!done && delivery.expected_on && delivery.expected_on < today) reasons.push(`${delivery.label}：已过预计日期`);
+    if (delivery.website_status === 'exception') reasons.push(uiText("sentences.shipment.exception", { value1: (delivery.label) }));
+    else if (!done && delivery.website_status === 'delivered') reasons.push(uiText("sentences.carrier.shows.delivered.verify.receipt", { value1: (delivery.label) }));
+    else if (!done && delivery.website_status === 'ready_pickup') reasons.push(uiText("sentences.awaiting.pickup", { value1: (delivery.label) }));
+    else if (!done && delivery.expected_on && delivery.expected_on < today) reasons.push(uiText("sentences.past.estimated.arrival", { value1: (delivery.label) }));
   }
   if (order.summary.lines.some(l => Number(l.damaged) > 0 && Number(l.remaining) > 0)) reasons.push('破损待处理');
   return [...new Set(reasons)];
 }
 /** Merchant-site shipping wording; never a statement of actual receipt. */
 export const websiteStatusLabel = (status?: Delivery['website_status'] | null) => status && status !== 'unknown'
-  ? ({ not_shipped: '未发货', in_transit: '运输中', ready_pickup: '可取货', delivered: '显示送达', exception: '异常' })[status] : null;
+  ? systemText(({ not_shipped: '未发货', in_transit: '运输中', ready_pickup: '可取货', delivered: '显示送达', exception: '异常' })[status]) : null;
 export function importDocument(preview: ImportPreview): OrderDocument {
   return { ...newOrder(), ...preview.draft, lines: preview.draft.lines.map(l => ({ ...newLine(), ...l })) };
 }

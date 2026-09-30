@@ -1,0 +1,54 @@
+{
+  "myTodo.no.tasks": [
+    "暂无事项",
+    "No tasks"
+  ],
+  "myTodo.select.a.task.to.review.its.requirements.and.take": [
+    "选择一项任务，查看要求并处理。",
+    "Select a task to review its requirements and take action."
+  ],
+  "myTodo.handle.your.assignments.and.review.submitted.deliverables": [
+    "处理分派给你的任务，以及等你审核的交付。",
+    "Handle your assignments and review submitted deliverables."
+  ],
+  "myTodo.sign.in.to.view.your.tasks": [
+    "登录后查看你的任务。",
+    "Sign in to view your tasks."
+  ],
+  "myTodo.tasks.are.assigned.to.accounts.you.are.not.signed": [
+    "任务按账号分派。现在没有登录，这里没有内容；演示访客可以到工作台看「按角色」的参考待办小组件。",
+    "Tasks are assigned to accounts. You are not signed in; demo visitors can view role-based task suggestions on the workspace."
+  ],
+  "myTodo.this.task.is.outside.your.assignment.or.review.scope": [
+    "这项任务不在你的负责或审核范围内。请选择列表中的事项。",
+    "This task is outside your assignment or review scope. Select a task from the list."
+  ],
+  "myTodo.search.project.or.task": [
+    "搜索项目或任务",
+    "Search project or task"
+  ],
+  "myTodo.search.my.tasks": [
+    "搜索我的事项",
+    "Search my tasks"
+  ],
+  "myTodo.filter.by.project": [
+    "筛选项目",
+    "Filter by project"
+  ],
+  "myTodo.this.stage.has.not.been.reached.review.requirements.ahead": [
+    "项目还没走到这一段，先看要求",
+    "This stage has not been reached; review requirements ahead"
+  ],
+  "myTodo.awaiting.my.confirmation": [
+    "等我确认",
+    "Awaiting my confirmation"
+  ],
+  "myTodo.the.assignee.submitted.return.or.accept": [
+    "负责人已提交，退回或确认",
+    "The assignee submitted; return or accept"
+  ],
+  "myTodo.other.tasks.i.review": [
+    "我审核的其他任务",
+    "Other tasks I review"
+  ]
+}

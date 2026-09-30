@@ -1,0 +1,158 @@
+{
+  "zoeyDesign.drawing.documents": [
+    "图纸资料",
+    "Drawing documents"
+  ],
+  "zoeyDesign.permit.documents": [
+    "Permit 资料",
+    "Permit documents"
+  ],
+  "zoeyDesign.inspection.records": [
+    "检查记录",
+    "Inspection records"
+  ],
+  "zoeyDesign.documents.missing": [
+    "待补资料",
+    "Documents missing"
+  ],
+  "zoeyDesign.failed": [
+    "未通过",
+    "Failed"
+  ],
+  "zoeyDesign.scheduled": [
+    "已预约",
+    "Scheduled"
+  ],
+  "zoeyDesign.uploaded": [
+    "已上传",
+    "Uploaded"
+  ],
+  "zoeyDesign.no.attachment": [
+    "无附件",
+    "No attachment"
+  ],
+  "zoeyDesign.search.property.task.or.file": [
+    "搜索房屋、事项或文件",
+    "Search property, task, or file"
+  ],
+  "zoeyDesign.for.example.oak.final.or.application.receipt": [
+    "例如 Oak、Final、申请回执",
+    "For example: Oak, Final, or application receipt"
+  ],
+  "zoeyDesign.filter.zoey.record.status": [
+    "筛选 Zoey 记录状态",
+    "Filter Zoey record status"
+  ],
+  "zoeyDesign.filter.zoey.document.category": [
+    "筛选 Zoey 资料类别",
+    "Filter Zoey document category"
+  ],
+  "zoeyDesign.documents.and.related.records": [
+    "资料与对应记录",
+    "Documents and related records"
+  ],
+  "zoeyDesign.follow.up.across.properties": [
+    "跨房跟进事项",
+    "Follow-up across properties"
+  ],
+  "zoeyDesign.records": [
+    "条记录",
+    "records"
+  ],
+  "zoeyDesign.no.matching.records": [
+    "没有符合条件的记录。",
+    "No matching records."
+  ],
+  "zoeyDesign.zoey.s.documents.and.inspection.records.select.a.filename": [
+    "Zoey 的资料及检查记录，点击文件名查看对应资料",
+    "Zoey's documents and inspection records; select a filename to view its document"
+  ],
+  "zoeyDesign.file.record": [
+    "文件 / 记录",
+    "File / record"
+  ],
+  "zoeyDesign.record.status": [
+    "记录现况",
+    "Record status"
+  ],
+  "zoeyDesign.no.attachment.view.original.record": [
+    "无附件 · 查看原始记录",
+    "No attachment · View original record"
+  ],
+  "zoeyDesign.permit.design.synthetic.workspace": [
+    "Permit / 设计 · 合成工作界面",
+    "Permit / Design · Synthetic workspace"
+  ],
+  "zoeyDesign.check.the.property.s.stage.then.review.drawings.application": [
+    "先知道房屋在哪个阶段，再查图纸、申请资料与检查事实。",
+    "Check the property's stage, then review drawings, application documents, and inspection facts."
+  ],
+  "zoeyDesign.zoey.sample.property.navigation": [
+    "Zoey 示例房屋导航",
+    "Zoey sample property navigation"
+  ],
+  "zoeyDesign.sample.property.overview": [
+    "示例房屋概况",
+    "Sample property overview"
+  ],
+  "zoeyDesign.assigned.records": [
+    "负责记录",
+    "Assigned records"
+  ],
+  "zoeyDesign.documents.for.this.record": [
+    "这条记录的资料",
+    "Documents for this record"
+  ],
+  "zoeyDesign.collapse.documents": [
+    "收起资料",
+    "Collapse documents"
+  ],
+  "zoeyDesign.view.documents": [
+    "查看资料 →",
+    "View documents →"
+  ],
+  "zoeyDesign.this.record.has.no.attachment.files.from.other.properties": [
+    "这条记录没有附件，不显示其他房屋或其他记录的文件。",
+    "This record has no attachment. Files from other properties or records are not shown."
+  ],
+  "zoeyDesign.synthetic.document.preview.no.real.file.is.opened.or": [
+    "合成资料预览，不下载或打开真实文件。",
+    "Synthetic document preview; no real file is opened or downloaded."
+  ],
+  "zoeyDesign.close.this.document": [
+    "关闭这份资料",
+    "Close this document"
+  ],
+  "zoeyDesign.additional.notes": [
+    "补充备注",
+    "Additional notes"
+  ],
+  "zoeyDesign.no.notes.added.to.this.preview": [
+    "本次预览尚未添加备注。",
+    "No notes added to this preview."
+  ],
+  "zoeyDesign.edit.preview.notes": [
+    "编辑预览备注",
+    "Edit preview notes"
+  ],
+  "zoeyDesign.only.for": [
+    "仅针对",
+    "Only for"
+  ],
+  "zoeyDesign.no.additional.notes.entered": [
+    "未填写补充备注。",
+    "No additional notes entered."
+  ],
+  "zoeyDesign.this.compares.information.and.document.access.only.notes.do": [
+    "仅比较信息与资料入口；备注不改变检查结果、任务状态或 D/J 关键确认。",
+    "This compares information and document access only. Notes do not change inspection results, task status, or D/J milestone confirmations."
+  ],
+  "zoeyDesign.the.record.is.outside.the.current.filter.select.a": [
+    "当前记录不在筛选结果中，请从列表选择一项。",
+    "The record is outside the current filter. Select a record from the list."
+  ],
+  "zoeyDesign.existing.records.include.drawings.permit.file.types.tasks.waiting": [
+    "现有资料基础：图纸与 Permit 文件类型、任务及等待记录、检查日期 / 结果 / 整改人 / 备注。三种聚合工作界面是本次设计提案；没有新增政府审批状态、预计许可时长或图纸版本审批。申请回执不等于核发 Permit；Final 仍以最近一次 Final 检查及节点确认规则为准。",
+    "Existing records include drawings, Permit file types, tasks, waiting notes, and inspection dates, results, correction assignees, and notes. These three workspaces are design proposals; they add no government approval states, Permit estimates, or drawing-version reviews. An application receipt is not an issued Permit. Final still follows the latest Final Inspection and milestone confirmation rules."
+  ]
+}

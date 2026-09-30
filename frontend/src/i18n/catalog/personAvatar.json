@@ -1,0 +1,10 @@
+{
+  "personAvatar.unassigned": [
+    "待分派",
+    "Unassigned"
+  ],
+  "personAvatar.disabled": [
+    "（已停用）",
+    "(disabled)"
+  ]
+}

@@ -1,3 +1,7 @@
+import { projectUpdateText } from '../i18n/taskDisplay.ts';
+import { systemText } from '../i18n/core.ts';
+import { useLanguage } from '../i18n/LanguageProvider';
+import { m as uiText } from '../i18n/core.ts';
 import Badge from '@cloudscape-design/components/badge';
 import Box from '@cloudscape-design/components/box';
 import Link from '@cloudscape-design/components/link';
@@ -6,15 +10,15 @@ import { Update } from '../api/client';
 import { RoleLabel } from './RoleLabel';
 
 const KIND_TAB: Record<string, string> = { file: 'files', data: 'data', expense: 'budget', budget: 'budget', analysis: 'analysis', step: 'overview', project: 'overview', utility: 'data&section=utilities', inspection: 'overview', procurement: 'procurement' };
-const KIND_LABEL: Record<string, string> = { file: '文件', data: '数据', expense: '支出', budget: '预算', analysis: '分析', step: '清单', project: '项目', utility: '水电', inspection: '检查', procurement: '采购' };
+const KIND_LABEL: Record<string, string> = { get file() { return uiText("updatesList.files"); }, get data() { return uiText("updatesList.data"); }, get expense() { return uiText("updatesList.expenses"); }, get budget() { return uiText("updatesList.budget"); }, get analysis() { return uiText("updatesList.analysis"); }, get step() { return uiText("updatesList.checklist"); }, get project() { return uiText("app.projects"); }, get utility() { return uiText("updatesList.utilities"); }, get inspection() { return uiText("updatesList.inspections"); }, get procurement() { return uiText("app.procurement"); } };
 
 const dayKey = (iso: string) => iso.slice(0, 10);
 const hm = (iso: string) => iso.slice(11, 16);
 function dayLabel(d: string): string {
   const today = new Date(); const t = today.toISOString().slice(0, 10);
   const y = new Date(today.getTime() - 86400000).toISOString().slice(0, 10);
-  if (d === t) return '今天';
-  if (d === y) return '昨天';
+  if (d === t) return uiText("updatesList.today");
+  if (d === y) return uiText("updatesList.yesterday");
   return d.slice(5).replace('-', '/');
 }
 
@@ -30,7 +34,8 @@ function split(text: string): { action: string; object: string | null } {
 
 /** “谁更新了什么”：按天分组。窄屏整行换行，不截断——手机上也要读得全。 */
 export default function UpdatesList({ items, showProject, onGo, emptyText = '还没有更新记录。' }: { items: Update[]; showProject?: boolean; onGo: (href: string) => void; emptyText?: string }) {
-  if (!items.length) return <Box color="text-body-secondary">{emptyText}</Box>;
+  useLanguage();
+  if (!items.length) return <Box color="text-body-secondary">{systemText(emptyText)}</Box>;
   const groups: { day: string; rows: Update[] }[] = [];
   for (const u of items) {
     const d = dayKey(u.created_at);
@@ -44,7 +49,7 @@ export default function UpdatesList({ items, showProject, onGo, emptyText = '还
           <Box variant="small" color="text-body-secondary" fontWeight="bold" margin={{ bottom: 'xxs' }}>{dayLabel(g.day)}</Box>
           {g.rows.map((u) => {
             const href = `/projects/${u.project_id}?tab=${KIND_TAB[u.kind] ?? 'overview'}`;
-            const { action, object } = split(u.text);
+            const { action, object } = split(projectUpdateText(u));
             return (
               <div
                 key={u.id}
@@ -61,7 +66,7 @@ export default function UpdatesList({ items, showProject, onGo, emptyText = '还
                   {object && <Box variant="span" fontWeight="bold">{object}</Box>}
                 </Box>
                 {!showProject && (
-                  <Link href={href} variant="secondary" fontSize="body-s" onFollow={(e) => { e.preventDefault(); onGo(href); }}>去看</Link>
+                  <Link href={href} variant="secondary" fontSize="body-s" onFollow={(e) => { e.preventDefault(); onGo(href); }}>{uiText("updatesList.view")}</Link>
                 )}
               </div>
             );

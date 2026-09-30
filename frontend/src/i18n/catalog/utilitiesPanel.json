@@ -1,0 +1,94 @@
+{
+  "utilitiesPanel.copy.failed.copy.manually.or.check.clipboard.permissions": [
+    "复制失败，请手动复制，或检查浏览器的剪贴板权限。",
+    "Copy failed. Copy manually or check clipboard permissions."
+  ],
+  "utilitiesPanel.enter.a.valid.http.or.https.url.without.account": [
+    "请输入有效的 http:// 或 https:// 网址，且不要包含账号密码。",
+    "Enter a valid http:// or https:// URL without account credentials."
+  ],
+  "utilitiesPanel.all.three.utilities.active": [
+    "三家都已开通",
+    "All three utilities active"
+  ],
+  "utilitiesPanel.all.three.utilities.closed": [
+    "三家都已关闭",
+    "All three utilities closed"
+  ],
+  "utilitiesPanel.3.active": [
+    "/ 3 已开通",
+    "/ 3 active"
+  ],
+  "utilitiesPanel.one.is.blocked": [
+    "，有一家卡住了",
+    "; one is blocked"
+  ],
+  "utilitiesPanel.the.utility.activation.checklist.item.is.satisfied.when.all": [
+    "三家都开通后，总览清单里“开通水电瓦斯”会自动打勾；都关闭后“关水电瓦斯”自动打勾。",
+    "The utility activation checklist item is satisfied when all three are active; the closure item is satisfied when all three are closed."
+  ],
+  "utilitiesPanel.entered.by": [
+    "填的",
+    "Entered by"
+  ],
+  "utilitiesPanel.no.entry.yet": [
+    "还没人填",
+    "No entry yet"
+  ],
+  "utilitiesPanel.for.example.evergy": [
+    "比如 Evergy",
+    "For example: Evergy"
+  ],
+  "utilitiesPanel.website": [
+    "网址",
+    "Website"
+  ],
+  "utilitiesPanel.company.website.or.sign.in.page.omitted.protocols.default": [
+    "可填写公司官网或登录页；省略协议时使用 https://。",
+    "Company website or sign-in page. Omitted protocols default to https://."
+  ],
+  "utilitiesPanel.open.in.new.tab": [
+    "在新标签页打开",
+    "Open in new tab"
+  ],
+  "utilitiesPanel.open.website": [
+    "打开网站",
+    "Open website"
+  ],
+  "utilitiesPanel.account": [
+    "账号",
+    "Account"
+  ],
+  "utilitiesPanel.username": [
+    "登录名",
+    "Username"
+  ],
+  "utilitiesPanel.password": [
+    "密码",
+    "Password"
+  ],
+  "utilitiesPanel.show.or.hide.password": [
+    "显示或隐藏密码",
+    "Show or hide password"
+  ],
+  "utilitiesPanel.account.holder": [
+    "用谁的名字开的",
+    "Account holder"
+  ],
+  "utilitiesPanel.some.properties.use.a.s.name.and.others.use": [
+    "有的房用 A 的名字，有的用别人的，写清楚防混淆",
+    "Some properties use A's name and others use another person's. Specify the holder to avoid confusion."
+  ],
+  "utilitiesPanel.issue": [
+    "卡在哪",
+    "Issue"
+  ],
+  "utilitiesPanel.what.is.pending.or.who.has.not.replied": [
+    "在等什么、谁没回",
+    "What is pending, or who has not replied?"
+  ],
+  "utilitiesPanel.credentials.follow.existing.role.permissions.verify.the.information.before": [
+    "账号凭证按现有角色权限显示；保存前请确认信息准确。",
+    "Credentials follow existing role permissions. Verify the information before saving."
+  ]
+}

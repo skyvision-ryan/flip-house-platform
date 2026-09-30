@@ -1,3 +1,6 @@
+import { systemText } from '../i18n/core.ts';
+import { useLanguage } from '../i18n/LanguageProvider';
+import { m as uiText } from '../i18n/core.ts';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
 import ColumnLayout from '@cloudscape-design/components/column-layout';
@@ -25,6 +28,7 @@ interface Props {
 
 /** 上传并登记：文件页和清单表的“交文件 / 交照片”共用。 */
 export default function UploadForm({ projectId, docType: initType = 'other', lockType = false, stepKey = null, photoOnly = false, compact = false, onDone }: Props) {
+  useLanguage();
   const meta = useMeta();
   const flash = useFlash();
   const { actor } = useActor();
@@ -38,7 +42,7 @@ export default function UploadForm({ projectId, docType: initType = 'other', loc
   const [step, setStep] = useState<string | null>(stepKey);
   const [uploading, setUploading] = useState(false);
 
-  const typeOptions = (meta?.file_types ?? []).map((t) => ({ label: `${t.label}（${t.stage}）`, value: t.value }));
+  const typeOptions = (meta?.file_types ?? []).map((t) => ({ label: `${t.label}（${systemText(t.stage)}）`, value: t.value }));
   const peopleOptions = (meta?.roles ?? []).map((r) => ({ label: r.label, value: r.code, description: r.duties || undefined }));
   const stepOptions = (meta?.stage_checklist ?? []).flatMap((st) => st.items.map((it) => ({ label: `${st.label} · ${it.title}`, value: it.key })));
   const defaultUploader = actor !== '负责人' ? actor : (meta?.file_default_owner?.[docType] ?? '负责人');
@@ -61,10 +65,10 @@ export default function UploadForm({ projectId, docType: initType = 'other', loc
         await api.upload(projectId, form);
       }
       setPicked([]); setDocDate(''); setCounterparty(''); setAmount(''); setExpiresAt('');
-      flash({ type: 'success', content: `${picked.length > 1 ? `${picked.length} 个文件` : '文件'}已上传并登记（${uploader}）` });
+      flash({ type: 'success', content: uiText("sentences.uploaded.and.recorded", { value1: (picked.length > 1 ? uiText("sentences.files", { value1: (picked.length) }) : uiText("updatesList.files")), value2: (uploader) }) });
       onDone();
     } catch (e: any) {
-      flash({ type: 'error', content: `上传失败：${e.message}` });
+      flash({ type: 'error', content: uiText("sentences.upload.failed", { value1: (e.message) }) });
     } finally {
       setUploading(false);
     }
@@ -79,31 +83,31 @@ export default function UploadForm({ projectId, docType: initType = 'other', loc
         accept={photoOnly ? '.jpg,.jpeg,.png,.heic,.webp' : '.pdf,.docx,.doc,.xlsx,.xls,.xml,.jpg,.jpeg,.png,.txt'}
         showFileSize
         showFileThumbnail={photoOnly}
-        i18nStrings={{ uploadButtonText: (m) => (m ? '选择照片' : '选择文件'), dropzoneText: (m) => (m ? '拖拽照片到这里' : '拖拽文件到这里'), removeFileAriaLabel: (i) => `移除第 ${i + 1} 个`, limitShowFewer: '收起', limitShowMore: '更多', errorIconAriaLabel: '错误' }}
-        constraintText={photoOnly ? '手机拍的照片直接传，可以多张' : '支持 PDF、Word、Excel、XML、图片'}
+        i18nStrings={{ uploadButtonText: (m) => (m ? uiText("uploadForm.select.photos") : uiText("uploadForm.select.files")), dropzoneText: (m) => (m ? uiText("uploadForm.drop.photos.here") : uiText("uploadForm.drop.files.here")), removeFileAriaLabel: (i) => uiText("sentences.remove.item.2", { value1: (i + 1) }), limitShowFewer: uiText("procurementItemRow.collapse"), limitShowMore: uiText('uploadForm.more'), errorIconAriaLabel: uiText("uploadForm.error") }}
+        constraintText={photoOnly ? uiText("uploadForm.upload.multiple.photos.directly.from.your.phone") : uiText("uploadForm.supports.pdf.word.excel.xml.and.images")}
       />
       <ColumnLayout columns={compact ? 2 : 4}>
         {!photoOnly && (
-          <FormField label="文件类型">
+          <FormField label={uiText("uploadForm.file.type")}>
             <Select disabled={lockType} selectedOption={typeOptions.find((o) => o.value === docType) ?? null} options={typeOptions} onChange={({ detail }) => setDocType(detail.selectedOption.value!)} />
           </FormField>
         )}
-        <FormField label="关联步骤" description={stepKey ? '从清单进来的，已定' : '照片关联步骤后参与证据判定；任务仍需提交确认。'}>
-          <Select disabled={!!stepKey} selectedOption={stepOptions.find((o) => o.value === step) ?? null} options={[{ label: '不挂', value: '' }, ...stepOptions]} onChange={({ detail }) => setStep(detail.selectedOption.value || null)} placeholder="选一步" expandToViewport />
+        <FormField label={uiText("uploadForm.linked.step")} description={stepKey ? uiText("uploadForm.selected.from.the.checklist") : uiText("uploadForm.linked.photos.count.toward.evidence.the.task.still.requires")}>
+          <Select disabled={!!stepKey} selectedOption={stepOptions.find((o) => o.value === step) ?? null} options={[{ label: uiText("uploadForm.no.linked.step"), value: '' }, ...stepOptions]} onChange={({ detail }) => setStep(detail.selectedOption.value || null)} placeholder={uiText("uploadForm.select.a.step")} expandToViewport />
         </FormField>
-        <FormField label="上传人（谁传的）" description={actor === '负责人' ? '按类型给了默认值，可改' : '就是你'}>
+        <FormField label={uiText("uploadForm.uploaded.by")} description={actor === '负责人' ? uiText("uploadForm.defaulted.by.file.type.editable") : uiText("uploadForm.you")}>
           <Select selectedOption={peopleOptions.find((o) => o.value === uploader) ?? { label: uploader, value: uploader }} options={peopleOptions} onChange={({ detail }) => setUploadedBy(detail.selectedOption.value!)} expandToViewport />
         </FormField>
-        {!compact && !photoOnly && <FormField label="文件日期"><DatePicker value={docDate} onChange={({ detail }) => setDocDate(detail.value)} placeholder="YYYY/MM/DD" /></FormField>}
-        {!compact && !photoOnly && <FormField label="对方（承包商 / 卖方 / 机构）"><Input value={counterparty} onChange={({ detail }) => setCounterparty(detail.value)} /></FormField>}
-        {!compact && !photoOnly && <FormField label="涉及金额（美元）"><Input type="number" value={amount} onChange={({ detail }) => setAmount(detail.value)} /></FormField>}
+        {!compact && !photoOnly && <FormField label={uiText("uploadForm.document.date")}><DatePicker value={docDate} onChange={({ detail }) => setDocDate(detail.value)} placeholder="YYYY/MM/DD" /></FormField>}
+        {!compact && !photoOnly && <FormField label={uiText("uploadForm.counterparty.contractor.seller.agency")}><Input value={counterparty} onChange={({ detail }) => setCounterparty(detail.value)} /></FormField>}
+        {!compact && !photoOnly && <FormField label={uiText("uploadForm.amount.usd")}><Input type="number" value={amount} onChange={({ detail }) => setAmount(detail.value)} /></FormField>}
         {!photoOnly && (docType === 'insurance' || !compact) && (
-          <FormField label="到期日" description={docType === 'insurance' ? '保险有时限，到期前 30 天工作台会提醒' : '有时限的文件才填'}>
+          <FormField label={uiText("uploadForm.expiration.date")} description={docType === 'insurance' ? uiText("uploadForm.the.workspace.flags.insurance.within.30.days.of.expiration") : uiText("uploadForm.only.for.time.limited.documents")}>
             <DatePicker value={expiresAt} onChange={({ detail }) => setExpiresAt(detail.value)} placeholder="YYYY/MM/DD" />
           </FormField>
         )}
       </ColumnLayout>
-      <Box><Button variant="primary" loading={uploading} disabled={!picked.length} onClick={upload}>{photoOnly ? '上传照片' : '上传并登记'}</Button></Box>
+      <Box><Button variant="primary" loading={uploading} disabled={!picked.length} onClick={upload}>{photoOnly ? uiText("uploadForm.upload.photos") : uiText("uploadForm.upload.and.record")}</Button></Box>
     </SpaceBetween>
   );
 }

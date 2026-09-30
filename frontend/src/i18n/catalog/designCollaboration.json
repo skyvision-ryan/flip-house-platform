@@ -1,0 +1,506 @@
+{
+  "designCollaboration.your.account.cannot.view.designs.for.this.role": [
+    "当前登录账号无权查看这个角色的设计。",
+    "Your account cannot view designs for this role."
+  ],
+  "designCollaboration.sign.in.with.your.own.account.to.view.designs": [
+    "请登录自己的账号查看职责对应的设计。",
+    "Sign in with your own account to view designs for your role."
+  ],
+  "designCollaboration.can.view.designs.for.all.roles": [
+    "可查看全部职责设计",
+    "Can view designs for all roles"
+  ],
+  "designCollaboration.showing.designs.authorized.for.this.account": [
+    "显示当前账号获授权查看的职责设计",
+    "Showing designs authorized for this account"
+  ],
+  "designCollaboration.showing.designs.for.this.account.s.role.only": [
+    "仅显示当前账号职责对应的设计",
+    "Showing designs for this account's role only"
+  ],
+  "designCollaboration.accessible.role.designs": [
+    "可访问的角色设计",
+    "Accessible role designs"
+  ],
+  "designCollaboration.not.yet.available": [
+    "待制作",
+    "Not yet available"
+  ],
+  "designCollaboration.back.to.my.designs": [
+    "返回我的设计",
+    "Back to my designs"
+  ],
+  "designCollaboration.no.dedicated.design.is.assigned.to.this.account.s": [
+    "这个账号的职责暂未安排专属设计。",
+    "No dedicated design is assigned to this account's role yet."
+  ],
+  "designCollaboration.this.workspace.s.design.comparison.is.not.available.yet": [
+    "这个工作区的设计比较尚未制作。请稍后重试。",
+    "This workspace's design comparison is not available yet. Try again later."
+  ],
+  "designCollaboration.overview": [
+    "总览",
+    "Overview"
+  ],
+  "designCollaboration.has.issues": [
+    "有卡点",
+    "Has issues"
+  ],
+  "designCollaboration.browser.storage.is.unavailable.copy.your.selection.to.share": [
+    "浏览器未允许保存；可以复制选择发给我。",
+    "Browser storage is unavailable; copy your selection to share it."
+  ],
+  "designCollaboration.copy.failed.send.the.option.letter.and.requested.changes": [
+    "复制未成功，请直接把方案字母和想改的地方发给我。",
+    "Copy failed. Send the option letter and requested changes directly."
+  ],
+  "designCollaboration.renovation": [
+    "装修",
+    "Renovation"
+  ],
+  "designCollaboration.pre.listing": [
+    "预上市",
+    "Pre-listing"
+  ],
+  "designCollaboration.permit.design": [
+    "Permit / 设计",
+    "Permit / Design"
+  ],
+  "designCollaboration.insurance.documents": [
+    "保险资料",
+    "Insurance documents"
+  ],
+  "designCollaboration.listing.preparation": [
+    "上市准备",
+    "Listing preparation"
+  ],
+  "designCollaboration.documents.missing": [
+    "资料待补",
+    "Documents missing"
+  ],
+  "designCollaboration.search.property.or.task": [
+    "搜索房屋或事项",
+    "Search property or task"
+  ],
+  "designCollaboration.for.example.cedar.gas.or.procurement": [
+    "例如 Cedar、燃气、采购",
+    "For example: Cedar, gas, or procurement"
+  ],
+  "designCollaboration.filter.preview.content": [
+    "筛选预览内容",
+    "Filter preview content"
+  ],
+  "designCollaboration.property.business.tabs": [
+    "房屋业务页签",
+    "Property business tabs"
+  ],
+  "designCollaboration.documents": [
+    "资料",
+    "Documents"
+  ],
+  "designCollaboration.current.position": [
+    "目前位置",
+    "Current position"
+  ],
+  "designCollaboration.sample.task.due.date": [
+    "示例任务截止",
+    "Sample task due date"
+  ],
+  "designCollaboration.stage.and.task.execution.status.are.separate": [
+    "· 阶段与任务执行状态分开",
+    "· Stage and task execution status are separate"
+  ],
+  "designCollaboration.work.underway.for.this.property": [
+    "这套房正在推进的事项",
+    "Work underway for this property"
+  ],
+  "designCollaboration.no.tasks.match.clear.filters.to.view.tasks": [
+    "当前筛选没有事项，清除筛选后查看。",
+    "No tasks match. Clear filters to view tasks."
+  ],
+  "designCollaboration.procurement.by.stage": [
+    "分阶段采购",
+    "Procurement by stage"
+  ],
+  "designCollaboration.kitchen.materials.received.delivery.needs.verification": [
+    "厨房材料已到货，交付待核对。",
+    "Kitchen materials received; delivery needs verification."
+  ],
+  "designCollaboration.this.sample.property.has.no.procurement.items.switch.to": [
+    "这套示例房屋还没有采购条目。可以切换到 46 Oak 查看已有采购。",
+    "This sample property has no procurement items. Switch to 46 Oak to view existing examples."
+  ],
+  "designCollaboration.kitchen.materials.received": [
+    "厨房材料 · 已到货",
+    "Kitchen materials · Received"
+  ],
+  "designCollaboration.light.fixtures.ordered": [
+    "照明灯具 · 已订购",
+    "Light fixtures · Ordered"
+  ],
+  "designCollaboration.hardware.specifications.needed": [
+    "五金配件 · 待规格",
+    "Hardware · Specifications needed"
+  ],
+  "designCollaboration.kitchen": [
+    "厨房",
+    "Kitchen"
+  ],
+  "designCollaboration.view.deliverables": [
+    "查看交付",
+    "View deliverables"
+  ],
+  "designCollaboration.procurement.records.sample": [
+    "采购记录 · 示例",
+    "Procurement records · Sample"
+  ],
+  "designCollaboration.budget.and.recorded.expenses": [
+    "预算与已记录支出",
+    "Budget and recorded expenses"
+  ],
+  "designCollaboration.synthetic.amounts.for.the.current.property.used.to.compare": [
+    "当前房屋的合成金额，用于比较资料入口。",
+    "Synthetic amounts for the current property, used to compare access to records."
+  ],
+  "designCollaboration.planned.renovation.budget": [
+    "装修计划预算",
+    "Planned renovation budget"
+  ],
+  "designCollaboration.recorded.expenses": [
+    "已记录支出",
+    "Recorded expenses"
+  ],
+  "designCollaboration.remaining.budget": [
+    "剩余预算",
+    "Remaining budget"
+  ],
+  "designCollaboration.remaining.budget.is.not.profit.no.employee.efficiency.scores": [
+    "剩余预算不等于利润；这里没有人员效率评分。",
+    "Remaining budget is not profit. No employee efficiency scores are shown here."
+  ],
+  "designCollaboration.property.documents": [
+    "房屋资料",
+    "Property documents"
+  ],
+  "designCollaboration.insurance.files": [
+    "保险文件",
+    "Insurance files"
+  ],
+  "designCollaboration.receipt.photos": [
+    "到货照片",
+    "Receipt photos"
+  ],
+  "designCollaboration.permit.application.documents": [
+    "Permit 申请资料",
+    "Permit application documents"
+  ],
+  "designCollaboration.view.sample.record": [
+    "查看示例记录 →",
+    "View sample record →"
+  ],
+  "designCollaboration.project.coordination": [
+    "项目统筹",
+    "Project coordination"
+  ],
+  "designCollaboration.property.services": [
+    "房屋服务",
+    "Property services"
+  ],
+  "designCollaboration.jessie.s.workspace": [
+    "Jessie 的工作界面",
+    "Jessie's workspace"
+  ],
+  "designCollaboration.kody.s.workspace": [
+    "Kody 的工作界面",
+    "Kody's workspace"
+  ],
+  "designCollaboration.all.projects.property.details.work.i.need.to.advance": [
+    "全部项目 → 单套房情况 → 需要我推进的事项",
+    "All projects → Property details → Work I need to advance"
+  ],
+  "designCollaboration.understand.every.property.s.position.and.handle.my.utilities": [
+    "了解全部项目位置，办理我负责的水电、燃气与保险资料",
+    "Understand every property's position and handle my utilities, gas, and insurance documents"
+  ],
+  "designCollaboration.sample.property.navigation": [
+    "示例房屋导航",
+    "Sample property navigation"
+  ],
+  "designCollaboration.back.to.all.properties": [
+    "返回全部房屋",
+    "Back to all properties"
+  ],
+  "designCollaboration.restore.default.order": [
+    "恢复默认顺序",
+    "Restore default order"
+  ],
+  "designCollaboration.sort.by.task.due.date": [
+    "按任务截止排序",
+    "Sort by task due date"
+  ],
+  "designCollaboration.property.position": [
+    "房屋 / 位置",
+    "Property / position"
+  ],
+  "designCollaboration.current.focus.and.next.action": [
+    "当前重点与下一动作",
+    "Current focus and next action"
+  ],
+  "designCollaboration.task.due.date": [
+    "任务截止",
+    "Task due date"
+  ],
+  "designCollaboration.no.properties.match.these.filters": [
+    "没有符合筛选的房屋。",
+    "No properties match these filters."
+  ],
+  "designCollaboration.expiration.date.not.entered": [
+    "未填到期日",
+    "Expiration date not entered"
+  ],
+  "designCollaboration.service.category": [
+    "服务类别",
+    "Service category"
+  ],
+  "designCollaboration.find.existing.insurance.files.by.property.uploading.a.file": [
+    "按房屋查找现有保险文件，不把文件上传等同于保单有效。",
+    "Find existing insurance files by property. Uploading a file does not verify coverage."
+  ],
+  "designCollaboration.group.relevant.property.accounts.when.contacting.a.service.provider": [
+    "联系一家服务公司时，把相关房屋账户放在一起。",
+    "Group relevant property accounts when contacting a service provider."
+  ],
+  "designCollaboration.metro.gas.sample": [
+    "Metro Gas（示例）",
+    "Metro Gas (sample)"
+  ],
+  "designCollaboration.city.gas.sample": [
+    "City Gas（示例）",
+    "City Gas (sample)"
+  ],
+  "designCollaboration.city.water.sample": [
+    "City Water（示例）",
+    "City Water (sample)"
+  ],
+  "designCollaboration.metro.electric.sample": [
+    "Metro Electric（示例）",
+    "Metro Electric (sample)"
+  ],
+  "designCollaboration.property.files": [
+    "房屋文件",
+    "Property files"
+  ],
+  "designCollaboration.service.provider": [
+    "服务公司",
+    "Service provider"
+  ],
+  "designCollaboration.account": [
+    "账户",
+    "Account"
+  ],
+  "designCollaboration.tasks.across.properties": [
+    "跨房业务事项",
+    "Tasks across properties"
+  ],
+  "designCollaboration.no.tasks.match.these.filters": [
+    "当前没有符合筛选的事项。",
+    "No tasks match these filters."
+  ],
+  "designCollaboration.open.property.details": [
+    "深入这套房",
+    "Open property details"
+  ],
+  "designCollaboration.recent.collaboration": [
+    "最近协作",
+    "Recent collaboration"
+  ],
+  "designCollaboration.records.show.this.task.still.needs.follow.up": [
+    "。记录显示当前事项仍需跟进。",
+    ". Records show this task still needs follow-up."
+  ],
+  "designCollaboration.view.insurance.file": [
+    "查看保险文件",
+    "View insurance file"
+  ],
+  "designCollaboration.open.service.account": [
+    "打开服务账户",
+    "Open service account"
+  ],
+  "designCollaboration.kitchen.material.receipt.photos": [
+    "厨房材料到货照片",
+    "Kitchen material receipt photos"
+  ],
+  "designCollaboration.view.delivery.documents": [
+    "查看交付资料",
+    "View delivery documents"
+  ],
+  "designCollaboration.related.properties.and.records": [
+    "相关房屋与记录",
+    "Related properties and records"
+  ],
+  "designCollaboration.execution.records.and.milestone.confirmations.remain.separate.this.does": [
+    "执行记录与阶段关键确认分开保留；这里不代替 D/J 确认。",
+    "Execution records and milestone confirmations remain separate; this does not replace D/J confirmation."
+  ],
+  "designCollaboration.switch.summary.service": [
+    "摘要服务切换",
+    "Switch summary service"
+  ],
+  "designCollaboration.insurance.pdf.synthetic": [
+    "保险.pdf（合成）",
+    "Insurance.pdf (synthetic)"
+  ],
+  "designCollaboration.document.expiration.date": [
+    "文件到期日",
+    "Document expiration date"
+  ],
+  "designCollaboration.property.files.insurance": [
+    "房屋文件 · 保险",
+    "Property files · Insurance"
+  ],
+  "designCollaboration.uploaded.means.a.file.exists.it.does.not.verify": [
+    "已上传仅表示存在文件，不等于核验了保险有效性。",
+    "Uploaded means a file exists; it does not verify valid insurance coverage."
+  ],
+  "designCollaboration.collapse.file.details": [
+    "收起文件详情",
+    "Collapse file details"
+  ],
+  "designCollaboration.view.file.details": [
+    "查看文件详情",
+    "View file details"
+  ],
+  "designCollaboration.account.number": [
+    "账户编号",
+    "Account number"
+  ],
+  "designCollaboration.synthetic": [
+    "（合成）",
+    "(synthetic)"
+  ],
+  "designCollaboration.account.holder": [
+    "开户姓名",
+    "Account holder"
+  ],
+  "designCollaboration.sample.project.company": [
+    "示例项目公司",
+    "Sample project company"
+  ],
+  "designCollaboration.issue": [
+    "卡点",
+    "Issue"
+  ],
+  "designCollaboration.awaiting.gas.company.visit.confirmation": [
+    "等待燃气公司确认到场",
+    "Awaiting gas company visit confirmation"
+  ],
+  "designCollaboration.awaiting.response.to.closure.request": [
+    "等待关闭申请回复",
+    "Awaiting response to closure request"
+  ],
+  "designCollaboration.no.issue.recorded": [
+    "未记录卡点",
+    "No issue recorded"
+  ],
+  "designCollaboration.edit.account.issue": [
+    "编辑账户卡点",
+    "Edit account issue"
+  ],
+  "designCollaboration.sample.account.issue": [
+    "示例账户卡点",
+    "Sample account issue"
+  ],
+  "designCollaboration.sample.issue.updated.it.persists.across.preview.options.and": [
+    "示例卡点已更新，可切换其他方案查看；刷新后恢复。",
+    "Sample issue updated. It persists across preview options and resets on refresh."
+  ],
+  "designCollaboration.account.passwords.are.not.shown.in.this.comparison.existing": [
+    "账户密码不在比较稿中展示；现有账户资料权限保持不变。",
+    "Account passwords are not shown in this comparison. Existing account-data permissions are unchanged."
+  ],
+  "designCollaboration.document.preview": [
+    "资料预览",
+    "Document preview"
+  ],
+  "designCollaboration.delivery.documents": [
+    "交付资料",
+    "Delivery documents"
+  ],
+  "designCollaboration.synthetic.sample.for.comparing.document.navigation": [
+    "合成样例 · 用于比较查找资料的路径。",
+    "Synthetic sample · For comparing document navigation."
+  ],
+  "designCollaboration.not.entered": [
+    "尚未填写",
+    "Not entered"
+  ],
+  "designCollaboration.file.source.property.and.submission.batch.should.remain.visible": [
+    "文件来源、所属房屋和交付批次应在这里持续可见。",
+    "File source, property, and submission batch should remain visible here."
+  ],
+  "designCollaboration.compare.complete.workspaces.around.the.work.employees.actually.do": [
+    "从员工实际要做的工作出发，比较完整工作界面的组织方式。",
+    "Compare complete workspaces around the work employees actually do."
+  ],
+  "designCollaboration.compare.designs.by.role": [
+    "按角色比较设计",
+    "Compare designs by role"
+  ],
+  "designCollaboration.jessie.needs.the.full.picture.before.advancing.specific.people": [
+    "Jessie 需要先掌握全盘，再推进具体的人和事",
+    "Jessie needs the full picture before advancing specific people and tasks"
+  ],
+  "designCollaboration.kody.needs.project.context.and.quick.access.to.service": [
+    "Kody 需要知道房屋进度，也要快速找到办理所需资料",
+    "Kody needs project context and quick access to service records"
+  ],
+  "designCollaboration.her.work.extends.beyond.personal.tasks.she.coordinates.procurement": [
+    "她不是只处理待办：要在多套房之间统筹采购、资料、团队交付和上市准备。三种方案比较的是：先看一套房、全部房，还是同类业务。",
+    "Her work extends beyond personal tasks: she coordinates procurement, documents, team deliverables, and listing preparation across properties. Compare starting from one property, all properties, or the same business function."
+  ],
+  "designCollaboration.he.helps.jessie.with.utilities.gas.and.insurance.maintains": [
+    "他协助 Jessie 处理水电、燃气与保险，维护账户并记录卡点。三种方案比较的是：先按房屋查漏、按事项办事，还是按服务公司集中处理。",
+    "He helps Jessie with utilities, gas, and insurance, maintains accounts, and records issues. Compare reviewing gaps by property, working by task, or grouping work by service provider."
+  ],
+  "designCollaboration.design.rationale.and.tradeoffs": [
+    "设计依据与取舍",
+    "Design rationale and tradeoffs"
+  ],
+  "designCollaboration.apply.to": [
+    "放到",
+    "Apply to"
+  ],
+  "designCollaboration.s.work": [
+    "的工作里",
+    "'s work"
+  ],
+  "designCollaboration.interactive.preview.synthetic.data": [
+    "· 交互预览（合成数据）",
+    "· Interactive preview (synthetic data)"
+  ],
+  "designCollaboration.for.comparing.workflows.only.actual.projects.are.unchanged.feedback": [
+    "仅用于比较操作方式，不会更新正式项目；反馈只保存在当前浏览器。",
+    "For comparing workflows only. Actual projects are unchanged; feedback stays in this browser."
+  ],
+  "designCollaboration.the.selected.item.is.outside.the.filter.select.another": [
+    "当前选中项不在筛选结果中，请从列表重新选择。",
+    "The selected item is outside the filter. Select another from the list."
+  ],
+  "designCollaboration.which.works.best": [
+    "用哪种更顺手？",
+    "Which works best?"
+  ],
+  "designCollaboration.preferences.stay.in.this.browser.copy.them.to.share": [
+    "偏好只保存在此浏览器，复制后发给我即可。预览不是实际员工账号，也不写项目数据。",
+    "Preferences stay in this browser; copy them to share. Previews are not real employee accounts and do not write project data."
+  ],
+  "designCollaboration.for.example.jessie.wants.procurement.across.all.properties.first": [
+    "例如：Jessie 先看所有房屋的采购；Kody 要更容易找到公司账户",
+    "For example: Jessie wants procurement across all properties first; Kody needs easier access to company accounts"
+  ],
+  "designCollaboration.save.device.preference.option": [
+    "保存本机偏好 · 方案",
+    "Save device preference · Option"
+  ]
+}

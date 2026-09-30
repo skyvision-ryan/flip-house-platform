@@ -1,0 +1,22 @@
+{
+  "bulletList.no.data": [
+    "暂无数据",
+    "No data"
+  ],
+  "bulletList.actual": [
+    "实际",
+    "Actual"
+  ],
+  "bulletList.target": [
+    "目标",
+    "Target"
+  ],
+  "bulletList.over": [
+    "超出",
+    "Over"
+  ],
+  "bulletList.remaining": [
+    "剩余",
+    "Remaining"
+  ]
+}

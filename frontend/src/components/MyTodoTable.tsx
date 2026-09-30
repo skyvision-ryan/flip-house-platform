@@ -1,3 +1,5 @@
+import { useLanguage } from '../i18n/LanguageProvider';
+import { m as uiText } from '../i18n/core.ts';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
 import Checkbox from '@cloudscape-design/components/checkbox';
@@ -25,12 +27,13 @@ import Header from './ui/Header';
 import Table from './ui/Table';
 import UploadForm from './UploadForm';
 
-const KIND_LABEL: Record<string, string> = { file: '交文件', photo: '交照片', field: '填数', record: '记录', confirm: '确认', tick: '打勾' };
+const KIND_LABEL: Record<string, string> = { get file() { return uiText("myTodoTable.provide.files"); }, get photo() { return uiText("myTodoTable.provide.photos"); }, get field() { return uiText("myTodoTable.enter.data"); }, get record() { return uiText("myTodoTable.record"); }, get confirm() { return uiText("myTodoTable.confirm"); }, get tick() { return uiText("myTodoTable.mark.done"); } };
 
 type Row = TodoRow;
 
 /** “轮到我做的”表：待办页和工作台小组件共用。行由后端 /api/dashboard/role 给。 */
 export default function MyTodoTable({ rows, onReload, compact = false }: { rows: Row[] | null; onReload: () => Promise<void> | void; compact?: boolean }) {
+  useLanguage();
   const navigate = useNavigate();
   const role = useRole();
   const flash = useFlash();
@@ -41,7 +44,7 @@ export default function MyTodoTable({ rows, onReload, compact = false }: { rows:
 
   const afterDone = async (doneTitle: string, projectId: number) => {
     const steps = await api.steps(projectId).catch(() => null as Steps | null);
-    flash({ type: 'success', content: steps ? nextUpFlash(doneTitle, steps) : `已完成「${doneTitle}」` });
+    flash({ type: 'success', content: steps ? nextUpFlash(doneTitle, steps) : uiText("sentences.completed", { value1: (doneTitle) }) });
     setModal(null);
     await onReload();
   };
@@ -121,15 +124,15 @@ export default function MyTodoTable({ rows, onReload, compact = false }: { rows:
       <Table cardId="legacy-todo"
         variant={compact ? 'embedded' : 'container'}
         loading={rows === null}
-        loadingText="正在看哪套房轮到你"
+        loadingText={uiText("myTodoTable.checking.which.properties.need.your.action")}
         items={rows ?? []}
-        header={compact ? undefined : <Header variant="h2" counter={rows ? `(${rows.length})` : undefined} description={current.length ? `其中 ${current.length} 件是现在这段的事，其余是前面段落没交的。` : '暂时没有轮到你的事。'}>轮到我做的</Header>}
-        empty={<Box textAlign="center" padding="l">暂时没有轮到你的事。</Box>}
+        header={compact ? undefined : <Header variant="h2" counter={rows ? `(${rows.length})` : undefined} description={current.length ? uiText("sentences.items.belong.to.the.current.stage.the.rest.are.outstanding", { value1: (current.length) }) : uiText("myTodoTable.no.tasks.need.your.action.right.now")}>{uiText("myTodoTable.my.next.actions")}</Header>}
+        empty={<Box textAlign="center" padding="l">{uiText("myTodoTable.no.tasks.need.your.action.right.now")}</Box>}
         columnDefinitions={[
-          { id: 'p', header: '哪套房', cell: (r) => <div><div>{r.project.project_name}</div><Box variant="small" color="text-body-secondary">{r.project.address}</Box></div> },
-          { id: 's', header: '阶段', cell: (r) => <span>{r.stage}{r.is_current && <Box variant="span" color="text-status-info">　现在这段</Box>}{r.project.stage === 'portfolio' && <Box variant="span" color="text-body-secondary">　已售收尾</Box>}</span> },
-          { id: 't', header: '要做什么', cell: (r) => <span className={r.item.gate ? "ui-strong" : undefined}>{r.item.owners.map((o) => <RoleLabel key={o} code={o} />)}{r.item.title}</span> },
-          { id: 'd', header: '要交什么', cell: (r) => (r.item.deliverable ? `${KIND_LABEL[r.item.deliverable.kind]} · ${r.item.deliverable.label}` : '—') },
+          { id: 'p', header: uiText("myTodoTable.property"), cell: (r) => <div><div>{r.project.project_name}</div><Box variant="small" color="text-body-secondary">{r.project.address}</Box></div> },
+          { id: 's', header: uiText("myTodoTable.stage"), cell: (r) => <span>{r.stage}{r.is_current && <Box variant="span" color="text-status-info">　{uiText("myTodoTable.current.stage")}</Box>}{r.project.stage === 'portfolio' && <Box variant="span" color="text-body-secondary">　{uiText("myTodoTable.sold.closeout")}</Box>}</span> },
+          { id: 't', header: uiText("myTodoTable.what.to.do"), cell: (r) => <span className={r.item.gate ? "ui-strong" : undefined}>{r.item.owners.map((o) => <RoleLabel key={o} code={o} />)}{r.item.title}</span> },
+          { id: 'd', header: uiText("myTodoTable.what.to.provide"), cell: (r) => (r.item.deliverable ? `${KIND_LABEL[r.item.deliverable.kind]} · ${r.item.deliverable.label}` : '—') },
           {
             id: 'a', header: '', width: 160, minWidth: 160,
             cell: (r) => {
@@ -149,7 +152,7 @@ export default function MyTodoTable({ rows, onReload, compact = false }: { rows:
         visible={modal?.kind === 'upload'}
         onDismiss={() => setModal(null)}
         size="large"
-        header={modal?.kind === 'upload' ? `${modal.row.item.deliverable?.kind === 'photo' ? '交照片' : '交文件'}：${modal.row.item.title}` : ''}
+        header={modal?.kind === 'upload' ? `${modal.row.item.deliverable?.kind === 'photo' ? uiText("myTodoTable.provide.photos") : uiText("myTodoTable.provide.files")}：${modal.row.item.title}` : ''}
       >
         {modal?.kind === 'upload' && (
           <UploadForm
@@ -168,14 +171,14 @@ export default function MyTodoTable({ rows, onReload, compact = false }: { rows:
         visible={modal?.kind === 'field'}
         onDismiss={() => setModal(null)}
         header={modal?.kind === 'field' ? `${modal.row.item.title}：${FIELD_LABEL[modal.row.item.deliverable?.field ?? ''] ?? ''}` : ''}
-        footer={<Box float="right"><SpaceBetween direction="horizontal" size="xs"><Button variant="link" onClick={() => setModal(null)}>取消</Button><Button variant="primary" loading={saving} disabled={!fieldVal} onClick={saveField}>保存</Button></SpaceBetween></Box>}
+        footer={<Box float="right"><SpaceBetween direction="horizontal" size="xs"><Button variant="link" onClick={() => setModal(null)}>{uiText("fieldWithSource.cancel")}</Button><Button variant="primary" loading={saving} disabled={!fieldVal} onClick={saveField}>{uiText("fieldWithSource.save")}</Button></SpaceBetween></Box>}
       >
         {modal?.kind === 'field' && (
           <FormField label={FIELD_LABEL[modal.row.item.deliverable?.field ?? ''] ?? ''}>
             {modal.row.item.deliverable?.field?.endsWith('_date')
               ? <DatePicker value={fieldVal} onChange={({ detail }) => setFieldVal(detail.value)} placeholder="YYYY/MM/DD" />
               : modal.row.item.deliverable?.field === 'risks'
-                ? <Textarea value={fieldVal} rows={3} onChange={({ detail }) => setFieldVal(detail.value)} placeholder="死亡记录、unpermitted sqft、其他常见风险" />
+                ? <Textarea value={fieldVal} rows={3} onChange={({ detail }) => setFieldVal(detail.value)} placeholder={uiText("myTodoTable.death.disclosures.unpermitted.square.footage.and.other.known.risks")} />
                 : <Input type="number" value={fieldVal} onChange={({ detail }) => setFieldVal(detail.value)} />}
           </FormField>
         )}
@@ -184,31 +187,31 @@ export default function MyTodoTable({ rows, onReload, compact = false }: { rows:
       <Modal
         visible={modal?.kind === 'tick'}
         onDismiss={() => setModal(null)}
-        header={modal?.kind === 'tick' ? `标完成：${modal.row.item.title}` : ''}
-        footer={<Box float="right"><SpaceBetween direction="horizontal" size="xs"><Button variant="link" onClick={() => setModal(null)}>取消</Button><Button variant="primary" loading={busy} onClick={doTick}>确认完成</Button></SpaceBetween></Box>}
+        header={modal?.kind === 'tick' ? uiText("sentences.mark.complete", { value1: (modal.row.item.title) }) : ''}
+        footer={<Box float="right"><SpaceBetween direction="horizontal" size="xs"><Button variant="link" onClick={() => setModal(null)}>{uiText("fieldWithSource.cancel")}</Button><Button variant="primary" loading={busy} onClick={doTick}>{uiText("myTodoTable.confirm.completion")}</Button></SpaceBetween></Box>}
       >
         {modal?.kind === 'tick' && (
-          <Box>确认「{modal.row.item.title}」已完成？完成后会告诉你下一位是谁。</Box>
+          <Box>{uiText("myTodoTable.confirm.2")}{modal.row.item.title}{uiText("myTodoTable.is.complete.the.next.responsible.role.will.then.be")}</Box>
         )}
       </Modal>
 
       <Modal
         visible={modal?.kind === 'confirm'}
         onDismiss={() => setModal(null)}
-        header={modal?.kind === 'confirm' ? `确认节点：${modal.row.item.title}` : ''}
-        footer={<Box float="right"><Button variant="link" onClick={() => setModal(null)}>关闭</Button></Box>}
+        header={modal?.kind === 'confirm' ? uiText("sentences.confirm.milestone", { value1: (modal.row.item.title) }) : ''}
+        footer={<Box float="right"><Button variant="link" onClick={() => setModal(null)}>{uiText("myTodoTable.close")}</Button></Box>}
       >
         {modal?.kind === 'confirm' && (
           <SpaceBetween size="m">
-            <Box>{modal.row.item.evidence_hint ?? '请确认该节点的证据与条件已满足。'}</Box>
+            <Box>{modal.row.item.evidence_hint ?? uiText("myTodoTable.confirm.that.the.milestone.evidence.and.conditions.have.been")}</Box>
             <Box variant="small" color="text-body-secondary">{modal.row.project.project_name} · {modal.row.stage}</Box>
             <SpaceBetween direction="horizontal" size="s">
-              {modal.row.item.confirmation_mode === "any" ? <Button variant="primary" loading={busy} disabled={!modal.row.item.ready || !confirmCodes.length} onClick={() => doConfirm(role.actor)}>确认满足</Button> : confirmCodes.map((c) => (
+              {modal.row.item.confirmation_mode === "any" ? <Button variant="primary" loading={busy} disabled={!modal.row.item.ready || !confirmCodes.length} onClick={() => doConfirm(role.actor)}>{uiText("myTodoTable.confirm.conditions.met")}</Button> : confirmCodes.map((c) => (
                 <Checkbox key={c} checked={false} disabled={busy} onChange={() => doConfirm(c)}>
-                  <span className="ui-inline-tight">以 {c} 确认</span>
+                  <span className="ui-inline-tight">{uiText("myTodoTable.as")} {c} {uiText("myTodoTable.confirm")}</span>
                 </Checkbox>
               ))}
-              {!confirmCodes.length && <Box color="text-body-secondary">你这边已经确认过了，或无权代确认。</Box>}
+              {!confirmCodes.length && <Box color="text-body-secondary">{uiText("myTodoTable.you.have.already.confirmed.or.do.not.have.permission")}</Box>}
             </SpaceBetween>
           </SpaceBetween>
         )}

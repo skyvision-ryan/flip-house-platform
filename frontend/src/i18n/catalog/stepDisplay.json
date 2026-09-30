@@ -1,0 +1,50 @@
+{
+  "stepDisplay.confirmation.not.valid": [
+    "确认不成立",
+    "Confirmation not valid"
+  ],
+  "stepDisplay.no.confirmations.yet": [
+    "还没有人确认",
+    "No confirmations yet"
+  ],
+  "stepDisplay.manually.marked.complete.without.delivery.evidence": [
+    "有人手工标记完成，没有交付证据",
+    "Manually marked complete without delivery evidence"
+  ],
+  "stepDisplay.checked": [
+    "已打勾",
+    "Checked"
+  ],
+  "stepDisplay.site.records.available": [
+    "已有现场记录",
+    "Site records available"
+  ],
+  "stepDisplay.documents.available.in.project": [
+    "资料已在项目里",
+    "Documents available in project"
+  ],
+  "stepDisplay.matched.by.file.type.not.linked.to.this.item": [
+    "按资料类型匹配，不是绑定到这一项",
+    "Matched by file type, not linked to this item"
+  ],
+  "stepDisplay.data.entered": [
+    "数据已填",
+    "Data entered"
+  ],
+  "stepDisplay.record.available": [
+    "已有记录",
+    "Record available"
+  ],
+  "stepDisplay.final.inspection.passed": [
+    "final 检查通过",
+    "Final inspection passed"
+  ],
+  "stepDisplay.final.inspection.must.pass.before.confirmation": [
+    "final 检查通过后才能确认",
+    "Final Inspection must pass before confirmation"
+  ],
+  "stepDisplay.a.deliverable.is.required.this.item.cannot.be.marked": [
+    "这一项要交东西才算满足，不能手工勾",
+    "A deliverable is required; this item cannot be marked complete manually"
+  ]
+}

@@ -1,11 +1,12 @@
 // 与后端 analysis.py 完全相同的公式，用于输入改动时的即时重算。保存时以后端结果为准。
 
-export interface Row { label: string; amount: number | string | null }
+export interface Row { template_key?: string; template_name_snapshot?: string; label: string; amount: number | string | null }
 export interface RehabRow { category: string; label: string; amount: number | string | null; note?: string | null }
 export interface Financing { enabled: boolean; down_pct: number; rate_pct: number; years: number }
-export interface SourceInfo { source: string; fetched_at?: string; confidence?: number | null; note?: string | null }
+export interface SourceInfo { note_template_snapshot?: string | null; source: string; fetched_at?: string; confidence?: number | null; note?: string | null }
 
 export interface AnalysisInputs {
+  name_template?: { snapshot: string; tier: string; version: number };
   purchase_price: number | string | null;
   purchase_extras: Row[];
   holding_months: number | string | null;

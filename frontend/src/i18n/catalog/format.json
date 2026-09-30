@@ -1,0 +1,10 @@
+{
+  "format.enter.an.amount.enter.0.only.for.a.known": [
+    "请填写金额；真实零金额请填 0。",
+    "Enter an amount; enter 0 only for a known zero."
+  ],
+  "format.enter.a.valid.number": [
+    "请填写有效数字。",
+    "Enter a valid number."
+  ]
+}

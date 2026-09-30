@@ -1,3 +1,4 @@
+import { systemText } from '../../i18n/core.ts';
 import { ReactNode, useCallback, useRef, useState } from 'react';
 import { BORDER, FONT, SHADOW, SURFACE, TEXT, TEXT_2 } from './palette';
 
@@ -36,7 +37,7 @@ export function useTooltip() {
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, lineHeight: '18px' }}>
               {r.color && <span style={{ width: 12, height: 2, background: r.color, borderRadius: 1, flexShrink: 0 }} />}
               <span style={{ fontWeight: 700 }}>{r.value}</span>
-              <span style={{ color: TEXT_2 }}>{r.label}</span>
+              <span style={{ color: TEXT_2 }}>{systemText(r.label)}</span>
             </div>
           ))}
         </div>

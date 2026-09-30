@@ -1,0 +1,142 @@
+{
+  "budgetTab.budget.item.added": [
+    "预算项已添加",
+    "Budget item added"
+  ],
+  "budgetTab.expense.recorded": [
+    "支出已记录",
+    "Expense recorded"
+  ],
+  "budgetTab.summary": [
+    "汇总",
+    "Summary"
+  ],
+  "budgetTab.total.budget": [
+    "总预算",
+    "Total budget"
+  ],
+  "budgetTab.over.budget": [
+    "已超支",
+    "Over budget"
+  ],
+  "budgetTab.budget.spending": [
+    "预算 − 已支出",
+    "Budget − spending"
+  ],
+  "budgetTab.budget.used": [
+    "已用比例",
+    "Budget used"
+  ],
+  "budgetTab.over.105.is.flagged.as.at.risk": [
+    "超过 105% 记为有风险",
+    "Over 105% is flagged as at risk"
+  ],
+  "budgetTab.compare.planned.and.actual.amounts.by.category": [
+    "按类别对比计划与实际。",
+    "Compare planned and actual amounts by category."
+  ],
+  "budgetTab.budget.vs.actual": [
+    "预算 vs 实际",
+    "Budget vs. actual"
+  ],
+  "budgetTab.no.budget.or.expenses.yet": [
+    "还没有预算或支出",
+    "No budget or expenses yet"
+  ],
+  "budgetTab.compare": [
+    "对比",
+    "Compare"
+  ],
+  "budgetTab.budget.share": [
+    "预算占比",
+    "Budget share"
+  ],
+  "budgetTab.actual.share": [
+    "实际占比",
+    "Actual share"
+  ],
+  "budgetTab.variance": [
+    "差异",
+    "Variance"
+  ],
+  "budgetTab.add.budget.item": [
+    "添加预算项",
+    "Add budget item"
+  ],
+  "budgetTab.no.budget.items.yet": [
+    "还没有预算项",
+    "No budget items yet"
+  ],
+  "budgetTab.planned.amount": [
+    "计划金额",
+    "Planned amount"
+  ],
+  "budgetTab.record.expense": [
+    "记一笔支出",
+    "Record expense"
+  ],
+  "budgetTab.record.invoices.and.payments.here.material.progress.is.in": [
+    "发票与付款记在这里；材料进度在「采购」页签。",
+    "Record invoices and payments here; material progress is in Procurement."
+  ],
+  "budgetTab.next.page": [
+    "下一页",
+    "Next page"
+  ],
+  "budgetTab.previous.page": [
+    "上一页",
+    "Previous page"
+  ],
+  "budgetTab.find.expenses": [
+    "查找支出",
+    "Find expenses"
+  ],
+  "budgetTab.supplier.notes.date.or.amount": [
+    "供应商、备注、日期或金额",
+    "Supplier, notes, date, or amount"
+  ],
+  "budgetTab.filter.expense.category": [
+    "筛选支出类别",
+    "Filter expense category"
+  ],
+  "budgetTab.all.categories": [
+    "全部类别",
+    "All categories"
+  ],
+  "budgetTab.filters.affect.only.the.details.below.summary.totals.still": [
+    "筛选仅影响下方明细，上方汇总仍为全房记录。",
+    "Filters affect only the details below. Summary totals still cover the whole property."
+  ],
+  "budgetTab.no.matching.expenses": [
+    "没有匹配的支出",
+    "No matching expenses"
+  ],
+  "budgetTab.no.expenses.recorded.for.this.property": [
+    "本房尚无支出记录",
+    "No expenses recorded for this property"
+  ],
+  "budgetTab.could.not.load.budget": [
+    "读取预算失败",
+    "Could not load budget"
+  ],
+  "budgetTab.add": [
+    "添加",
+    "Add"
+  ],
+  "budgetTab.closing.preserves.these.inputs.save.before.leaving.the.page": [
+    "关闭弹窗会保留本次输入，离开页面前请完成保存。",
+    "Closing preserves these inputs. Save before leaving the page."
+  ],
+  "budgetTab.select.a.category": [
+    "请选择类别。",
+    "Select a category."
+  ],
+  "budgetTab.select.category": [
+    "选择类别",
+    "Select category"
+  ],
+  "budgetTab.planned.amount.usd": [
+    "计划金额（USD）",
+    "Planned amount (USD)"
+  ]
+}

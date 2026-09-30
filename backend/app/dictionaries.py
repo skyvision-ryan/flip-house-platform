@@ -364,15 +364,191 @@ PROCUREMENT_STATUSES = [
     {"value": "na", "label": "不适用"},
 ]
 PROCUREMENT_TEMPLATE: list[dict] = [
-    *[{"wave": "before_rough", "name": n} for n in ("淋浴花洒组件", "独立浴缸及独立浴缸水龙头", "镜前灯（点位）", "入户吊灯（点位）", "餐桌灯（点位）", "岛台灯（点位）")],
-    *[{"wave": "long_lead", "name": n} for n in ("洗手台橱柜", "厨房橱柜、厨房Backsplash样式", "入户门、后门", "车库门", "推拉门、窗户", "炉子、排油烟机、洗碗机（36寸款）", "一体式壁炉的壁炉门")],
-    *[{"wave": "after_waterproof", "name": n} for n in (
-        "地板", "淋浴间瓷砖及淋浴间地面瓷砖", "壁炉门", "室内门", "室内门把手", "入户门锁",
-        "炉子、排油烟机、洗碗机", "洗手台镜子", "镜前灯", "洗手台水龙头", "厨房水龙头", "岛台灯",
-        "壁炉样式", "入户吊灯", "餐桌灯", "卧室灯", "室外壁灯", "庭院灯",
-    )],
-    *[{"wave": "yard", "name": n} for n in ("草坪", "植物", "砂石及木屑", "围墙", "围栏")],
-    {"wave": "other", "name": "其他"},
+    {
+        "wave": "before_rough",
+        "name": "淋浴花洒组件",
+        "template_key": "material.before_rough.shower-fixtures"
+    },
+    {
+        "wave": "before_rough",
+        "name": "独立浴缸及独立浴缸水龙头",
+        "template_key": "material.before_rough.freestanding-tub"
+    },
+    {
+        "wave": "before_rough",
+        "name": "镜前灯（点位）",
+        "template_key": "material.before_rough.vanity-light-locations"
+    },
+    {
+        "wave": "before_rough",
+        "name": "入户吊灯（点位）",
+        "template_key": "material.before_rough.entry-light-location"
+    },
+    {
+        "wave": "before_rough",
+        "name": "餐桌灯（点位）",
+        "template_key": "material.before_rough.dining-light-location"
+    },
+    {
+        "wave": "before_rough",
+        "name": "岛台灯（点位）",
+        "template_key": "material.before_rough.island-light-locations"
+    },
+    {
+        "wave": "long_lead",
+        "name": "洗手台橱柜",
+        "template_key": "material.long_lead.vanity-cabinets"
+    },
+    {
+        "wave": "long_lead",
+        "name": "厨房橱柜、厨房Backsplash样式",
+        "template_key": "material.long_lead.kitchen-cabinets-backsplash"
+    },
+    {
+        "wave": "long_lead",
+        "name": "入户门、后门",
+        "template_key": "material.long_lead.entry-back-doors"
+    },
+    {
+        "wave": "long_lead",
+        "name": "车库门",
+        "template_key": "material.long_lead.garage-door"
+    },
+    {
+        "wave": "long_lead",
+        "name": "推拉门、窗户",
+        "template_key": "material.long_lead.sliding-doors-windows"
+    },
+    {
+        "wave": "long_lead",
+        "name": "炉子、排油烟机、洗碗机（36寸款）",
+        "template_key": "material.long_lead.appliances-36-inch"
+    },
+    {
+        "wave": "long_lead",
+        "name": "一体式壁炉的壁炉门",
+        "template_key": "material.long_lead.integrated-fireplace-door"
+    },
+    {
+        "wave": "after_waterproof",
+        "name": "地板",
+        "template_key": "material.after_waterproof.flooring"
+    },
+    {
+        "wave": "after_waterproof",
+        "name": "淋浴间瓷砖及淋浴间地面瓷砖",
+        "template_key": "material.after_waterproof.shower-tile"
+    },
+    {
+        "wave": "after_waterproof",
+        "name": "壁炉门",
+        "template_key": "material.after_waterproof.fireplace-door"
+    },
+    {
+        "wave": "after_waterproof",
+        "name": "室内门",
+        "template_key": "material.after_waterproof.interior-doors"
+    },
+    {
+        "wave": "after_waterproof",
+        "name": "室内门把手",
+        "template_key": "material.after_waterproof.interior-handles"
+    },
+    {
+        "wave": "after_waterproof",
+        "name": "入户门锁",
+        "template_key": "material.after_waterproof.entry-lock"
+    },
+    {
+        "wave": "after_waterproof",
+        "name": "炉子、排油烟机、洗碗机",
+        "template_key": "material.after_waterproof.appliances"
+    },
+    {
+        "wave": "after_waterproof",
+        "name": "洗手台镜子",
+        "template_key": "material.after_waterproof.vanity-mirrors"
+    },
+    {
+        "wave": "after_waterproof",
+        "name": "镜前灯",
+        "template_key": "material.after_waterproof.vanity-lights"
+    },
+    {
+        "wave": "after_waterproof",
+        "name": "洗手台水龙头",
+        "template_key": "material.after_waterproof.bathroom-faucets"
+    },
+    {
+        "wave": "after_waterproof",
+        "name": "厨房水龙头",
+        "template_key": "material.after_waterproof.kitchen-faucet"
+    },
+    {
+        "wave": "after_waterproof",
+        "name": "岛台灯",
+        "template_key": "material.after_waterproof.island-lights"
+    },
+    {
+        "wave": "after_waterproof",
+        "name": "壁炉样式",
+        "template_key": "material.after_waterproof.fireplace-design"
+    },
+    {
+        "wave": "after_waterproof",
+        "name": "入户吊灯",
+        "template_key": "material.after_waterproof.entry-light"
+    },
+    {
+        "wave": "after_waterproof",
+        "name": "餐桌灯",
+        "template_key": "material.after_waterproof.dining-light"
+    },
+    {
+        "wave": "after_waterproof",
+        "name": "卧室灯",
+        "template_key": "material.after_waterproof.bedroom-lights"
+    },
+    {
+        "wave": "after_waterproof",
+        "name": "室外壁灯",
+        "template_key": "material.after_waterproof.outdoor-wall-lights"
+    },
+    {
+        "wave": "after_waterproof",
+        "name": "庭院灯",
+        "template_key": "material.after_waterproof.landscape-lights"
+    },
+    {
+        "wave": "yard",
+        "name": "草坪",
+        "template_key": "material.yard.lawn"
+    },
+    {
+        "wave": "yard",
+        "name": "植物",
+        "template_key": "material.yard.plants"
+    },
+    {
+        "wave": "yard",
+        "name": "砂石及木屑",
+        "template_key": "material.yard.gravel-mulch"
+    },
+    {
+        "wave": "yard",
+        "name": "围墙",
+        "template_key": "material.yard.masonry-wall"
+    },
+    {
+        "wave": "yard",
+        "name": "围栏",
+        "template_key": "material.yard.fence"
+    },
+    {
+        "wave": "other",
+        "name": "其他",
+        "template_key": "material.other.other"
+    }
 ]
 
 # 水电瓦斯三家：每套房各一条

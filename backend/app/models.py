@@ -285,6 +285,9 @@ class ProcurementItem(Base):
     """材料采购行：按节点波次管理选型 / 下单 / 到货 / 异常。"""
     __tablename__ = "procurement_items"
 
+    template_key: Mapped[Optional[str]] = mapped_column(String)
+    template_name_snapshot: Mapped[Optional[str]] = mapped_column(String)
+
     worklist_selected: Mapped[Optional[bool]] = mapped_column(Boolean)  # presentation scope; never completion evidence
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -418,6 +421,8 @@ class Task(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), index=True)
     step_key: Mapped[Optional[str]] = mapped_column(String, index=True)  # 模板项的稳定 key；临时事项为空
+    template_key: Mapped[Optional[str]] = mapped_column(String)
+    template_name_snapshot: Mapped[Optional[str]] = mapped_column(String)
     source: Mapped[str] = mapped_column(String, default="template")  # template / node_confirmation / adhoc / change
     stage_key: Mapped[str] = mapped_column(String)  # s1…s6，展示分组由前端按 meta 映射
     title: Mapped[str] = mapped_column(String)

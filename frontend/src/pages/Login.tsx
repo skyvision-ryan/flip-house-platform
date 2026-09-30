@@ -1,3 +1,6 @@
+import { systemText } from '../i18n/core.ts';
+import { useLanguage } from '../i18n/LanguageProvider';
+import { m as uiText } from '../i18n/core.ts';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
 import Form from '@cloudscape-design/components/form';
@@ -11,6 +14,7 @@ import Container from '../components/ui/Surface';
 
 /** 登录页：账号密码。演示模式下也能登录（管理员要进“用户”页）。 */
 export default function Login({ onLogin, demoMode, onSkip }: { onLogin: (me: Me) => void; demoMode: boolean; onSkip?: () => void }) {
+  useLanguage();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
@@ -18,9 +22,9 @@ export default function Login({ onLogin, demoMode, onSkip }: { onLogin: (me: Me)
 
   const submit = async () => {
     if (busy) return;
-    if (!username.trim() || !password) { setErr('账号和密码都要填'); return; }
+    if (!username.trim() || !password) { setErr(uiText("login.enter.both.account.and.password")); return; }
     setBusy(true); setErr(null);
-    try { onLogin(await api.login(username.trim(), password)); } catch (e: any) { setErr(e.message?.includes('401') || e.message?.includes('不对') ? '账号或密码不对' : e.message); } finally { setBusy(false); }
+    try { onLogin(await api.login(username.trim(), password)); } catch (e: any) { setErr(e.status === 401 ? uiText("login.incorrect.account.or.password") : e.message); } finally { setBusy(false); }
   };
 
   return (
@@ -28,29 +32,29 @@ export default function Login({ onLogin, demoMode, onSkip }: { onLogin: (me: Me)
       <div className="ui-login-card">
         <form onSubmit={(e) => { e.preventDefault(); submit(); }}>
           <Form
-            header={<Header variant="h1" description="登录后查看房屋进展，处理分派给你的工作。">翻新项目平台</Header>}
+            header={<Header variant="h1" description={uiText("login.sign.in.to.review.property.progress.and.handle.assigned")}>{uiText("productTopBar.flip.house.platform")}</Header>}
             actions={
               <SpaceBetween direction="horizontal" size="xs">
-                {demoMode && onSkip && <Button variant="link" onClick={onSkip}>先不登录，用演示身份</Button>}
-                <Button variant="primary" loading={busy} formAction="submit">登录</Button>
+                {demoMode && onSkip && <Button variant="link" onClick={onSkip}>{uiText("login.continue.with.a.demo.role")}</Button>}
+                <Button variant="primary" loading={busy} formAction="submit">{uiText("cardRegistry.sign.in")}</Button>
               </SpaceBetween>
             }
-            errorText={err ?? undefined}
+            errorText={systemText(err ?? undefined)}
           >
             <Container cardId="login">
               <SpaceBetween size="l">
-                <FormField label="邮箱" constraintText="原有演示账号和管理员也可使用原账号名登录。">
+                <FormField label={uiText("login.email")} constraintText={uiText("login.existing.demo.and.administrator.accounts.can.also.sign.in")}>
                   <Input value={username} onChange={({ detail }) => setUsername(detail.value)} autoFocus autoComplete="username" placeholder="name@example.com" />
                 </FormField>
-                <FormField label="密码">
+                <FormField label={uiText("utilitiesPanel.password")}>
                   <Input type="password" value={password} onChange={({ detail }) => setPassword(detail.value)} autoComplete="current-password" />
                 </FormField>
               </SpaceBetween>
             </Container>
           </Form>
         </form>
-        <p className="ui-muted">忘记密码或无法登录？请联系项目负责人。</p>
-        {demoMode && <Box margin={{ top: 'm' }} variant="small" color="text-body-secondary" textAlign="center">现在是演示模式：没登录也能用顶栏“我是”自报身份。正式上线后必须登录。</Box>}
+        <p className="ui-muted">{uiText("login.forgot.your.password.or.cannot.sign.in.contact.the")}</p>
+        {demoMode && <Box margin={{ top: 'm' }} variant="small" color="text-body-secondary" textAlign="center">{uiText("login.demo.mode.allows.visitors.to.select.a.role.from")}</Box>}
       </div>
     </div>
   );

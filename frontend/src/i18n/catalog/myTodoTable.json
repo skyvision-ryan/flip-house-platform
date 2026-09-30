@@ -1,0 +1,98 @@
+{
+  "myTodoTable.provide.files": [
+    "交文件",
+    "Provide files"
+  ],
+  "myTodoTable.provide.photos": [
+    "交照片",
+    "Provide photos"
+  ],
+  "myTodoTable.enter.data": [
+    "填数",
+    "Enter data"
+  ],
+  "myTodoTable.record": [
+    "记录",
+    "Record"
+  ],
+  "myTodoTable.confirm": [
+    "确认",
+    "Confirm"
+  ],
+  "myTodoTable.mark.done": [
+    "打勾",
+    "Mark done"
+  ],
+  "myTodoTable.checking.which.properties.need.your.action": [
+    "正在看哪套房轮到你",
+    "Checking which properties need your action"
+  ],
+  "myTodoTable.no.tasks.need.your.action.right.now": [
+    "暂时没有轮到你的事。",
+    "No tasks need your action right now."
+  ],
+  "myTodoTable.my.next.actions": [
+    "轮到我做的",
+    "My next actions"
+  ],
+  "myTodoTable.property": [
+    "哪套房",
+    "Property"
+  ],
+  "myTodoTable.stage": [
+    "阶段",
+    "Stage"
+  ],
+  "myTodoTable.current.stage": [
+    "现在这段",
+    "Current stage"
+  ],
+  "myTodoTable.sold.closeout": [
+    "已售收尾",
+    "Sold / closeout"
+  ],
+  "myTodoTable.what.to.do": [
+    "要做什么",
+    "What to do"
+  ],
+  "myTodoTable.what.to.provide": [
+    "要交什么",
+    "What to provide"
+  ],
+  "myTodoTable.death.disclosures.unpermitted.square.footage.and.other.known.risks": [
+    "死亡记录、unpermitted sqft、其他常见风险",
+    "Death disclosures, unpermitted square footage, and other known risks"
+  ],
+  "myTodoTable.confirm.completion": [
+    "确认完成",
+    "Confirm completion"
+  ],
+  "myTodoTable.confirm.2": [
+    "确认「",
+    "Confirm “"
+  ],
+  "myTodoTable.is.complete.the.next.responsible.role.will.then.be": [
+    "」已完成？完成后会告诉你下一位是谁。",
+    "” is complete? The next responsible role will then be shown."
+  ],
+  "myTodoTable.close": [
+    "关闭",
+    "Close"
+  ],
+  "myTodoTable.confirm.that.the.milestone.evidence.and.conditions.have.been": [
+    "请确认该节点的证据与条件已满足。",
+    "Confirm that the milestone evidence and conditions have been met."
+  ],
+  "myTodoTable.confirm.conditions.met": [
+    "确认满足",
+    "Confirm conditions met"
+  ],
+  "myTodoTable.as": [
+    "以",
+    "As"
+  ],
+  "myTodoTable.you.have.already.confirmed.or.do.not.have.permission": [
+    "你这边已经确认过了，或无权代确认。",
+    "You have already confirmed, or do not have permission to confirm for this role."
+  ]
+}

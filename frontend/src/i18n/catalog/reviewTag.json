@@ -1,0 +1,22 @@
+{
+  "reviewTag.copied": [
+    "已复制",
+    "Copied"
+  ],
+  "reviewTag.copy.location": [
+    "复制位置",
+    "Copy location"
+  ],
+  "reviewTag.cannot.copy.record": [
+    "无法复制，请记录",
+    "Cannot copy. Record"
+  ],
+  "reviewTag.and.the.current.page.address": [
+    "与当前页面地址。",
+    "and the current page address."
+  ],
+  "reviewTag.feedback.location.copied": [
+    "反馈位置已复制",
+    "Feedback location copied"
+  ]
+}

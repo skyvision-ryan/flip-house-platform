@@ -1,0 +1,210 @@
+{
+  "insights.over.budget": [
+    "超支",
+    "Over budget"
+  ],
+  "insights.behind.schedule": [
+    "落后",
+    "Behind schedule"
+  ],
+  "insights.nearing.planned.completion": [
+    "临近完工",
+    "Nearing planned completion"
+  ],
+  "insights.missing.data": [
+    "缺数据",
+    "Missing data"
+  ],
+  "insights.missing.files": [
+    "缺文件",
+    "Missing files"
+  ],
+  "insights.pricing.needed": [
+    "待定价",
+    "Pricing needed"
+  ],
+  "insights.no.analysis.yet": [
+    "未算账",
+    "No analysis yet"
+  ],
+  "insights.action.by": [
+    "轮到",
+    "Action by"
+  ],
+  "insights.insurance.expiring": [
+    "保险到期",
+    "Insurance expiring"
+  ],
+  "insights.awaiting.permit": [
+    "等 permit",
+    "Awaiting Permit"
+  ],
+  "insights.inspection.failed": [
+    "检查没过",
+    "Inspection failed"
+  ],
+  "insights.utility.issue": [
+    "水电卡住",
+    "Utility issue"
+  ],
+  "insights.ready.to.prepare.the.listing": [
+    "可以准备挂牌了",
+    "Ready to prepare the listing"
+  ],
+  "insights.no.issued.permit.file.recorded.yet": [
+    "还没登记 permit 文件",
+    "No issued Permit file recorded yet"
+  ],
+  "insights.an.issued.government.permit.is.required.before.construction.can": [
+    "拿到政府核发的文件才能开工",
+    "An issued government Permit is required before construction can start"
+  ],
+  "insights.due.today": [
+    "今天到期",
+    "Due today"
+  ],
+  "insights.property.insurance": [
+    "房屋保险",
+    "Property insurance"
+  ],
+  "insights.correction.assignee.not.entered": [
+    "，还没写谁整改",
+    "; correction assignee not entered"
+  ],
+  "insights.correction.assignee.not.entered.2": [
+    "还没写谁整改",
+    "Correction assignee not entered"
+  ],
+  "insights.water": [
+    "水",
+    "Water"
+  ],
+  "insights.electricity": [
+    "电",
+    "Electricity"
+  ],
+  "insights.gas": [
+    "瓦斯",
+    "Gas"
+  ],
+  "insights.no.deal.analysis.yet": [
+    "还没算过账",
+    "No deal analysis yet"
+  ],
+  "insights.run.a.deal.analysis.before.discussing.price": [
+    "先跑一遍交易分析再谈价",
+    "Run a deal analysis before discussing price"
+  ],
+  "insights.hot.lead.has.no.target.sale.price": [
+    "热线索还没定目标售价",
+    "Hot lead has no target sale price"
+  ],
+  "insights.add.it.before.making.an.offer": [
+    "出价前需要补上",
+    "Add it before making an offer"
+  ],
+  "insights.all.properties.are.on.track": [
+    "所有房子都在正轨上",
+    "All properties are on track"
+  ],
+  "insights.start.with.an.address": [
+    "从一个地址开始",
+    "Start with an address"
+  ],
+  "insights.prioritize.the.red.and.yellow.items.below": [
+    "优先处理下面标红和标黄的。",
+    "Prioritize the red and yellow items below."
+  ],
+  "insights.fill.in.missing.data.when.time.allows": [
+    "有空可以补一补缺失的数据。",
+    "Fill in missing data when time allows."
+  ],
+  "insights.enter.an.address.to.look.up.property.information.and": [
+    "输入地址，系统会自动补全房产数据并标注来源。",
+    "Enter an address to look up property information and its sources."
+  ],
+  "insights.no.projects.are.over.budget": [
+    "目前没有项目超预算。",
+    "No projects are over budget."
+  ],
+  "insights.n.projects.are.over.budget": [
+    "有 {n} 个项目超预算：",
+    "{n} projects are over budget:"
+  ],
+  "insights.no.projects.are.behind.schedule.or.nearing.completion": [
+    "没有落后或临近完工的项目。",
+    "No projects are behind schedule or nearing completion."
+  ],
+  "insights.n.schedule.related.insights": [
+    "与工期有关的有 {n} 条：",
+    "{n} schedule-related insights:"
+  ],
+  "insights.all.projects.have.their.key.data": [
+    "所有项目的关键数据都齐了。",
+    "All projects have their key data."
+  ],
+  "insights.n.projects.have.incomplete.data": [
+    "有 {n} 个项目数据不完整：",
+    "{n} projects have incomplete data:"
+  ],
+  "insights.permits.are.recorded.for.all.active.projects": [
+    "在建项目的 permit 都已登记。",
+    "Permits are recorded for all active projects."
+  ],
+  "insights.n.projects.are.awaiting.permits": [
+    "有 {n} 个项目还在等 permit：",
+    "{n} projects are awaiting Permits:"
+  ],
+  "insights.no.insurance.policies.are.nearing.expiration": [
+    "没有快到期的保险。",
+    "No insurance policies are nearing expiration."
+  ],
+  "insights.n.insurance.policies.are.nearing.expiration": [
+    "有 {n} 份保险快到期：",
+    "{n} insurance policies are nearing expiration:"
+  ],
+  "insights.no.failed.inspections.need.corrections": [
+    "没有没过的检查。",
+    "No failed inspections need corrections."
+  ],
+  "insights.n.failed.inspections.need.corrections": [
+    "有 {n} 次检查没过在整改：",
+    "{n} failed inspections need corrections:"
+  ],
+  "insights.all.utilities.are.active": [
+    "水电瓦斯都开通了。",
+    "All utilities are active."
+  ],
+  "insights.n.utilities.are.not.yet.active": [
+    "有 {n} 家还没开通：",
+    "{n} utilities are not yet active:"
+  ],
+  "insights.all.active.projects.have.their.required.files": [
+    "在建项目的文件都齐了。",
+    "All active projects have their required files."
+  ],
+  "insights.n.projects.have.missing.files": [
+    "有 {n} 个项目缺文件：",
+    "{n} projects have missing files:"
+  ],
+  "insights.all.leads.have.analysis.and.target.prices": [
+    "线索都已算过账并定了目标售价。",
+    "All leads have analysis and target prices."
+  ],
+  "insights.n.leads.need.analysis.or.pricing": [
+    "有 {n} 条线索要先算账或定价：",
+    "{n} leads need analysis or pricing:"
+  ],
+  "insights.no.active.properties.are.awaiting.someone.s.action": [
+    "在建的房子暂时没有等着谁做的事。",
+    "No active properties are awaiting someone's action."
+  ],
+  "insights.n.properties.need.someone.s.action": [
+    "有 {n} 套房在等人做事：",
+    "{n} properties need someone's action:"
+  ],
+  "insights.no.urgent.actions.today": [
+    "今天没有需要紧急处理的事。",
+    "No urgent actions today."
+  ]
+}

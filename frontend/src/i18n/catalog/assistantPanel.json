@@ -1,0 +1,74 @@
+{
+  "assistantPanel.me": [
+    "我",
+    "Me"
+  ],
+  "assistantPanel.view": [
+    "去看看",
+    "View"
+  ],
+  "assistantPanel.start.with.these": [
+    "先看这几条：",
+    "Start with these:"
+  ],
+  "assistantPanel.i.cannot.answer.that.yet.this.assistant.reads.project": [
+    "这个问题现在还答不了。目前我只会按规则读项目数据（超支、落后、缺数据、缺文件、待定价）。接入大模型后可以直接问。",
+    "I cannot answer that yet. This assistant reads project records using rules for budget overruns, delays, missing data, missing files, and pricing."
+  ],
+  "assistantPanel.this.rule.based.assistant.provides.guidance.from.existing.project": [
+    "当前为规则助手，根据已有项目数据提供提示。",
+    "This rule-based assistant provides guidance from existing project records."
+  ],
+  "assistantPanel.assistant.is.loading": [
+    "助手正在读取",
+    "Assistant is loading"
+  ],
+  "assistantPanel.reading.projects": [
+    "正在读取所有项目…",
+    "Reading projects…"
+  ],
+  "assistantPanel.suggested.questions": [
+    "建议提问",
+    "Suggested questions"
+  ],
+  "assistantPanel.suggested.questions.2": [
+    "建议的问题",
+    "Suggested questions"
+  ],
+  "assistantPanel.which.projects.are.over.budget": [
+    "哪些项目超预算了？",
+    "Which projects are over budget?"
+  ],
+  "assistantPanel.which.projects.have.incomplete.data": [
+    "哪些项目数据不完整？",
+    "Which projects have incomplete data?"
+  ],
+  "assistantPanel.which.property.is.due.to.finish.soon": [
+    "最近要完工的是哪套？",
+    "Which property is due to finish soon?"
+  ],
+  "assistantPanel.ask.a.question": [
+    "问一句",
+    "Ask a question"
+  ],
+  "assistantPanel.ask.a.question.such.as.which.project.is.behind": [
+    "问一句，比如“哪个项目落后了”",
+    "Ask a question, such as “Which project is behind schedule?”"
+  ],
+  "assistantPanel.send": [
+    "发送",
+    "Send"
+  ],
+  "assistantPanel.total": [
+    "共",
+    "Total"
+  ],
+  "assistantPanel.projects": [
+    "个项目，",
+    "projects,"
+  ],
+  "assistantPanel.insights": [
+    "条洞察。",
+    "insights."
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "procurementRequirementForm.new.procurement.requirement": [
+    "新增采购需求",
+    "New procurement requirement"
+  ],
+  "procurementRequirementForm.add.requirement.for.this.property": [
+    "补充本房采购需求",
+    "Add requirement for this property"
+  ],
+  "procurementRequirementForm.requirement.name.required": [
+    "需求名称（必填）",
+    "Requirement name (required)"
+  ],
+  "procurementRequirementForm.use.milestone.required": [
+    "使用节点（必选）",
+    "Use milestone (required)"
+  ],
+  "procurementRequirementForm.add.requirement": [
+    "添加需求",
+    "Add requirement"
+  ]
+}

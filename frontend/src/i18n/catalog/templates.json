@@ -1,0 +1,298 @@
+{
+  "material.before_rough.shower-fixtures": [
+    "淋浴花洒组件",
+    "Shower fixture set"
+  ],
+  "material.before_rough.freestanding-tub": [
+    "独立浴缸及独立浴缸水龙头",
+    "Freestanding bathtub and tub filler"
+  ],
+  "material.before_rough.vanity-light-locations": [
+    "镜前灯（点位）",
+    "Vanity lights (fixture locations)"
+  ],
+  "material.before_rough.entry-light-location": [
+    "入户吊灯（点位）",
+    "Entry chandelier (fixture location)"
+  ],
+  "material.before_rough.dining-light-location": [
+    "餐桌灯（点位）",
+    "Dining light (fixture location)"
+  ],
+  "material.before_rough.island-light-locations": [
+    "岛台灯（点位）",
+    "Island lights (fixture locations)"
+  ],
+  "material.long_lead.vanity-cabinets": [
+    "洗手台橱柜",
+    "Bathroom vanity cabinets"
+  ],
+  "material.long_lead.kitchen-cabinets-backsplash": [
+    "厨房橱柜、厨房Backsplash样式",
+    "Kitchen cabinets and backsplash selection"
+  ],
+  "material.long_lead.entry-back-doors": [
+    "入户门、后门",
+    "Front and back doors"
+  ],
+  "material.long_lead.garage-door": [
+    "车库门",
+    "Garage door"
+  ],
+  "material.long_lead.sliding-doors-windows": [
+    "推拉门、窗户",
+    "Sliding doors and windows"
+  ],
+  "material.long_lead.appliances-36-inch": [
+    "炉子、排油烟机、洗碗机（36寸款）",
+    "Range, range hood, and dishwasher (36-inch specification; verify applicable appliance)"
+  ],
+  "material.long_lead.integrated-fireplace-door": [
+    "一体式壁炉的壁炉门",
+    "Integrated fireplace door"
+  ],
+  "material.after_waterproof.flooring": [
+    "地板",
+    "Flooring"
+  ],
+  "material.after_waterproof.shower-tile": [
+    "淋浴间瓷砖及淋浴间地面瓷砖",
+    "Shower wall and floor tile"
+  ],
+  "material.after_waterproof.fireplace-door": [
+    "壁炉门",
+    "Fireplace door"
+  ],
+  "material.after_waterproof.interior-doors": [
+    "室内门",
+    "Interior doors"
+  ],
+  "material.after_waterproof.interior-handles": [
+    "室内门把手",
+    "Interior door handles"
+  ],
+  "material.after_waterproof.entry-lock": [
+    "入户门锁",
+    "Entry door lock"
+  ],
+  "material.after_waterproof.appliances": [
+    "炉子、排油烟机、洗碗机",
+    "Range, range hood, and dishwasher"
+  ],
+  "material.after_waterproof.vanity-mirrors": [
+    "洗手台镜子",
+    "Vanity mirrors"
+  ],
+  "material.after_waterproof.vanity-lights": [
+    "镜前灯",
+    "Vanity lights"
+  ],
+  "material.after_waterproof.bathroom-faucets": [
+    "洗手台水龙头",
+    "Bathroom faucets"
+  ],
+  "material.after_waterproof.kitchen-faucet": [
+    "厨房水龙头",
+    "Kitchen faucet"
+  ],
+  "material.after_waterproof.island-lights": [
+    "岛台灯",
+    "Island lights"
+  ],
+  "material.after_waterproof.fireplace-design": [
+    "壁炉样式",
+    "Fireplace design"
+  ],
+  "material.after_waterproof.entry-light": [
+    "入户吊灯",
+    "Entry chandelier"
+  ],
+  "material.after_waterproof.dining-light": [
+    "餐桌灯",
+    "Dining light"
+  ],
+  "material.after_waterproof.bedroom-lights": [
+    "卧室灯",
+    "Bedroom lights"
+  ],
+  "material.after_waterproof.outdoor-wall-lights": [
+    "室外壁灯",
+    "Outdoor wall lights"
+  ],
+  "material.after_waterproof.landscape-lights": [
+    "庭院灯",
+    "Landscape lights"
+  ],
+  "material.yard.lawn": [
+    "草坪",
+    "Lawn"
+  ],
+  "material.yard.plants": [
+    "植物",
+    "Plants"
+  ],
+  "material.yard.gravel-mulch": [
+    "砂石及木屑",
+    "Gravel and mulch"
+  ],
+  "material.yard.masonry-wall": [
+    "围墙",
+    "Masonry wall"
+  ],
+  "material.yard.fence": [
+    "围栏",
+    "Fence"
+  ],
+  "material.other.other": [
+    "其他",
+    "Other"
+  ],
+  "task.screen": [
+    "筛选房源",
+    "Screen properties"
+  ],
+  "task.view": [
+    "看房",
+    "Visit property"
+  ],
+  "task.analysis": [
+    "算账：估价与装修费",
+    "Analyze valuation and renovation costs"
+  ],
+  "task.price": [
+    "董事会定价、谈价",
+    "Board pricing and negotiation"
+  ],
+  "task.open_escrow": [
+    "Open escrow（决定买）",
+    "Open Escrow (purchase decision)"
+  ],
+  "task.loan_insurance": [
+    "开始贷款、买保险",
+    "Start financing and obtain insurance"
+  ],
+  "task.loan_doc": [
+    "签 loan doc",
+    "Sign loan documents"
+  ],
+  "task.home_inspection": [
+    "房屋检查",
+    "Home inspection"
+  ],
+  "task.measure": [
+    "量尺、估价",
+    "Measure and estimate"
+  ],
+  "task.design": [
+    "设计方案",
+    "Design proposal"
+  ],
+  "task.close_escrow": [
+    "Close escrow（过户）",
+    "Close of Escrow (acquisition)"
+  ],
+  "task.utilities_on": [
+    "开水电瓦斯",
+    "Activate utilities"
+  ],
+  "task.design_final": [
+    "设计定稿",
+    "Finalize design"
+  ],
+  "task.permit_apply": [
+    "申请 permit",
+    "Apply for Permit"
+  ],
+  "task.prep_work": [
+    "先干不用 permit 的活",
+    "Work not requiring a Permit"
+  ],
+  "task.permit_issued": [
+    "拿到 permit 文件",
+    "Obtain issued Permit"
+  ],
+  "task.start": [
+    "可以开工",
+    "Ready to start construction"
+  ],
+  "task.purchase": [
+    "房屋采购",
+    "Property procurement"
+  ],
+  "task.progress": [
+    "施工进度",
+    "Construction progress"
+  ],
+  "task.inspections": [
+    "阶段性检查",
+    "Construction inspections"
+  ],
+  "task.final": [
+    "final（City 验收通过）",
+    "Final Inspection (city)"
+  ],
+  "task.agent": [
+    "选 listing agent",
+    "Select listing agent"
+  ],
+  "task.listing": [
+    "上市",
+    "Listing"
+  ],
+  "task.mow": [
+    "园丁剪草",
+    "Lawn care"
+  ],
+  "task.offer": [
+    "收到 offer",
+    "Offer received"
+  ],
+  "task.sale_docs": [
+    "卖房文件",
+    "Sale documents"
+  ],
+  "task.sign": [
+    "签卖房文件",
+    "Sign sale documents"
+  ],
+  "task.closed": [
+    "交割完成",
+    "Sale closing complete"
+  ],
+  "task.services_off": [
+    "关水电瓦斯、退保险",
+    "Close utilities and cancel insurance"
+  ],
+  "analysisTemplate.inspection": [
+    "检验",
+    "Home inspection"
+  ],
+  "analysisTemplate.appraisal": [
+    "评估",
+    "Appraisal"
+  ],
+  "analysisTemplate.closing": [
+    "过户费",
+    "Closing charges"
+  ],
+  "analysisTemplate.propertyTax": [
+    "房产税",
+    "Property tax"
+  ],
+  "analysisTemplate.insurance": [
+    "保险",
+    "Insurance"
+  ],
+  "analysisTemplate.utilities": [
+    "水电",
+    "Utilities"
+  ],
+  "task.staging": [
+    "staging",
+    "Staging"
+  ],
+  "task.disclosure": [
+    "seller disclosure",
+    "Seller disclosure"
+  ]
+}

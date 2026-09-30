@@ -1,0 +1,54 @@
+{
+  "editProjectModal.no.override.calculated.automatically": [
+    "不覆盖（自动计算）",
+    "No override (calculated automatically)"
+  ],
+  "editProjectModal.project.updated": [
+    "项目已更新",
+    "Project updated"
+  ],
+  "editProjectModal.edit.project": [
+    "编辑项目",
+    "Edit project"
+  ],
+  "editProjectModal.continue.editing": [
+    "继续编辑",
+    "Continue editing"
+  ],
+  "editProjectModal.closing.discards.these.inputs": [
+    "关闭会丢弃本次输入。",
+    "Closing discards these inputs."
+  ],
+  "editProjectModal.advanced.by.checklist.milestones.cannot.be.edited.manually": [
+    "由清单的大节点推进，不能手改",
+    "Advanced by checklist milestones; cannot be edited manually"
+  ],
+  "editProjectModal.substage": [
+    "子阶段",
+    "Substage"
+  ],
+  "editProjectModal.only.lead.follow.up.and.priority.can.be.edited": [
+    "只有线索阶段可以手改热度与进展",
+    "Only lead follow-up and priority can be edited manually"
+  ],
+  "editProjectModal.lead.priority": [
+    "线索热度",
+    "Lead priority"
+  ],
+  "editProjectModal.actual.sale.price.usd": [
+    "实际成交价（美元）",
+    "Actual sale price (USD)"
+  ],
+  "editProjectModal.status.override": [
+    "状态覆盖",
+    "Status override"
+  ],
+  "editProjectModal.calculated.from.budget.and.progress.by.default.override.with": [
+    "默认由预算与进度自动计算；需要人工判断时在此覆盖并写明理由。",
+    "Calculated from budget and progress by default. Override with a reason when manual judgment is needed."
+  ],
+  "editProjectModal.override.reason": [
+    "覆盖理由",
+    "Override reason"
+  ]
+}

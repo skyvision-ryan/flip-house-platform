@@ -1,5 +1,4 @@
-import { I18nProvider } from '@cloudscape-design/components/i18n';
-import messages from '@cloudscape-design/components/i18n/messages/all.zh-CN';
+import { LanguageProvider } from './i18n/LanguageProvider';
 import '@cloudscape-design/global-styles/index.css';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
@@ -11,12 +10,12 @@ import './theme';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <I18nProvider locale="zh-CN" messages={[messages]}>
+    <LanguageProvider>
       <MetaProvider>
         <BrowserRouter>
           <App />
         </BrowserRouter>
       </MetaProvider>
-    </I18nProvider>
+    </LanguageProvider>
   </React.StrictMode>,
 );

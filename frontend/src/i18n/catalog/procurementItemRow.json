@@ -1,0 +1,278 @@
+{
+  "procurementItemRow.not.entered": [
+    "未填写",
+    "Not entered"
+  ],
+  "procurementItemRow.ordered.item.amount": [
+    "已订商品金额",
+    "Ordered item amount"
+  ],
+  "procurementItemRow.order.date": [
+    "下单日期",
+    "Order date"
+  ],
+  "procurementItemRow.estimated.arrival": [
+    "预计到货",
+    "Estimated arrival"
+  ],
+  "procurementItemRow.ordered.item.amount.order.date.estimated.arrival": [
+    "已订商品金额 · 下单日期 · 预计到货",
+    "Ordered item amount · Order date · Estimated arrival"
+  ],
+  "procurementItemRow.no.linked.order.see.details.for.legacy.records": [
+    "未关联订单，旧记录见详情",
+    "No linked order; see details for legacy records"
+  ],
+  "procurementItemRow.not.ordered": [
+    "尚未下单",
+    "Not ordered"
+  ],
+  "procurementItemRow.collapse": [
+    "收起",
+    "Collapse"
+  ],
+  "procurementItemRow.view": [
+    "查看",
+    "View"
+  ],
+  "procurementItemRow.collapse.details": [
+    "收起详情",
+    "Collapse details"
+  ],
+  "procurementItemRow.view.details": [
+    "查看详情",
+    "View details"
+  ],
+  "procurementItemRow.requirement": [
+    "需求",
+    "Requirement"
+  ],
+  "procurementItemRow.collapse.requirement.editor": [
+    "收起需求编辑",
+    "Collapse requirement editor"
+  ],
+  "procurementItemRow.restore.edit.requirement": [
+    "恢复需求 / 修改",
+    "Restore / edit requirement"
+  ],
+  "procurementItemRow.edit.requirement": [
+    "修改需求",
+    "Edit requirement"
+  ],
+  "procurementItemRow.not.needed.for.this.property.excluded.from.progress.restore": [
+    "本房不需要 · 已排除进度；恢复时将需求状态改为待选型或待下单，原备注保留。",
+    "Not needed for this property · Excluded from progress. Restore by changing the requirement to Selection needed or Ready to order; existing notes are retained."
+  ],
+  "procurementItemRow.this.requirement.is.outside.the.current.procurement.list": [
+    "此需求未纳入本次采购清单。",
+    "This requirement is outside the current procurement list."
+  ],
+  "procurementItemRow.material.name": [
+    "材料名称",
+    "Material name"
+  ],
+  "procurementItemRow.specifications": [
+    "规格",
+    "Specifications"
+  ],
+  "procurementItemRow.use.milestone": [
+    "使用节点",
+    "Use milestone"
+  ],
+  "procurementItemRow.required.on.site": [
+    "需要到场",
+    "Required on site"
+  ],
+  "procurementItemRow.requirement.budget.not.paid.amount": [
+    "需求预算（非实付）",
+    "Requirement budget (not paid amount)"
+  ],
+  "procurementItemRow.product.reference": [
+    "商品参考",
+    "Product reference"
+  ],
+  "procurementItemRow.orders": [
+    "订单 ·",
+    "Orders ·"
+  ],
+  "procurementItemRow.orders.2": [
+    "笔",
+    "orders"
+  ],
+  "procurementItemRow.order.number.not.entered": [
+    "订单号未填写",
+    "Order number not entered"
+  ],
+  "procurementItemRow.open.order": [
+    "打开订单",
+    "Open order"
+  ],
+  "procurementItemRow.receiving": [
+    "/ 收货",
+    "/ receiving"
+  ],
+  "procurementItemRow.order": [
+    "下单",
+    "Order"
+  ],
+  "procurementItemRow.ordered": [
+    "· 订购",
+    "· Ordered"
+  ],
+  "procurementItemRow.not.entered.2": [
+    "未填",
+    "Not entered"
+  ],
+  "procurementItemRow.received.in.good.condition": [
+    "/ 完好实收",
+    "/ received in good condition"
+  ],
+  "procurementItemRow.needs.verification": [
+    "待核对",
+    "Needs verification"
+  ],
+  "procurementItemRow.remaining": [
+    "/ 待补",
+    "/ remaining"
+  ],
+  "procurementItemRow.item.amount": [
+    "· 商品金额",
+    "· Item amount"
+  ],
+  "procurementItemRow.brand": [
+    "品牌",
+    "Brand"
+  ],
+  "procurementItemRow.model": [
+    "型号",
+    "Model"
+  ],
+  "procurementItemRow.color": [
+    "颜色",
+    "Color"
+  ],
+  "procurementItemRow.seller": [
+    "卖家",
+    "Seller"
+  ],
+  "procurementItemRow.unit.price": [
+    "单价",
+    "Unit price"
+  ],
+  "procurementItemRow.delivery.address": [
+    "收货地址",
+    "Delivery address"
+  ],
+  "procurementItemRow.action.needed": [
+    "需处理：",
+    "Action needed:"
+  ],
+  "procurementItemRow.product.link": [
+    "商品链接",
+    "Product link"
+  ],
+  "procurementItemRow.tracking.link": [
+    "物流链接",
+    "Tracking link"
+  ],
+  "procurementItemRow.delivery": [
+    "配送",
+    "Delivery"
+  ],
+  "procurementItemRow.replacement.shipment": [
+    "（补发）",
+    "(replacement shipment)"
+  ],
+  "procurementItemRow.estimated.arrival.not.entered": [
+    "预计到货未填写",
+    "Estimated arrival not entered"
+  ],
+  "procurementItemRow.tracking": [
+    "物流",
+    "Tracking"
+  ],
+  "procurementItemRow.received": [
+    "实收",
+    "Received"
+  ],
+  "procurementItemRow.return": [
+    "退货",
+    "Return"
+  ],
+  "procurementItemRow.total.order.refunds": [
+    "整单累计退款",
+    "Total order refunds"
+  ],
+  "procurementItemRow.not.allocated.to.this.item": [
+    "，未分摊到本项。",
+    "; not allocated to this item."
+  ],
+  "procurementItemRow.merchant.order": [
+    "商家订单",
+    "Merchant order"
+  ],
+  "procurementItemRow.proof.of.purchase": [
+    "购买凭据",
+    "Proof of purchase"
+  ],
+  "procurementItemRow.legacy.purchase.records.excluded.from.order.totals": [
+    "旧购买记录（不计入订单汇总）",
+    "Legacy purchase records (excluded from order totals)"
+  ],
+  "procurementItemRow.merchant": [
+    "商家",
+    "Merchant"
+  ],
+  "procurementItemRow.order.number": [
+    "订单号",
+    "Order number"
+  ],
+  "procurementItemRow.amount": [
+    "金额",
+    "Amount"
+  ],
+  "procurementItemRow.quantity": [
+    "数量",
+    "Quantity"
+  ],
+  "procurementItemRow.actual.receipt": [
+    "实际到货",
+    "Actual receipt"
+  ],
+  "procurementItemRow.follow.up": [
+    "跟进",
+    "Follow-up"
+  ],
+  "procurementItemRow.carrier": [
+    "承运商",
+    "Carrier"
+  ],
+  "procurementItemRow.tracking.number": [
+    "运单号",
+    "Tracking number"
+  ],
+  "procurementItemRow.shipment.status": [
+    "物流状态",
+    "Shipment status"
+  ],
+  "procurementItemRow.receiving.location": [
+    "收货地点",
+    "Receiving location"
+  ],
+  "procurementItemRow.company": [
+    "公司",
+    "Company"
+  ],
+  "procurementItemRow.property.address": [
+    "房屋地址",
+    "Property address"
+  ],
+  "procurementItemRow.original.order": [
+    "原订单",
+    "Original order"
+  ],
+  "procurementItemRow.original.tracking": [
+    "原物流",
+    "Original tracking"
+  ]
+}

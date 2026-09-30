@@ -1,3 +1,6 @@
+import { systemText } from '../i18n/core.ts';
+import { useLanguage } from '../i18n/LanguageProvider';
+import { m as uiText } from '../i18n/core.ts';
 import Badge from '@cloudscape-design/components/badge';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
@@ -19,6 +22,7 @@ interface Props {
 }
 
 export default function FieldWithSource({ field, onSave, onSetPrimary }: Props) {
+  useLanguage();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(field.value ?? '');
   const [saving, setSaving] = useState(false);
@@ -26,13 +30,13 @@ export default function FieldWithSource({ field, onSave, onSetPrimary }: Props) 
 
   return (
     <div className="ui-field-source">
-      <div className="ui-field-label"><span>{field.label}</span><Button variant="inline-icon" iconName="edit" ariaLabel={`编辑${field.label}`} onClick={() => { setDraft(field.value ?? ''); setEditing(true); }} /></div>
+      <div className="ui-field-label"><span>{systemText(systemText(field.label))}</span><Button variant="inline-icon" iconName="edit" ariaLabel={uiText("sentences.edit", { value1: (systemText(field.label)) })} onClick={() => { setDraft(field.value ?? ''); setEditing(true); }} /></div>
       <div className="ui-field-value">{text(field.value)}</div>
       <div className="ui-field-meta">
         {primary && <SourceBadge source={primary.source} fetchedAt={primary.fetched_at} confidence={primary.confidence} note={primary.note} />}
         {field.has_conflict && (
           <Popover
-            header="多个来源的值不一致"
+            header={uiText("fieldWithSource.sources.disagree.on.this.value")}
             size="large"
             triggerType="custom"
             content={
@@ -40,33 +44,33 @@ export default function FieldWithSource({ field, onSave, onSetPrimary }: Props) 
                 variant="embedded"
                 items={field.sources}
                 columnDefinitions={[
-                  { id: 'value', header: '值', cell: (s) => text(s.value) },
-                  { id: 'source', header: '来源', cell: (s) => <SourceBadge source={s.source} /> },
-                  { id: 'time', header: '时间', cell: (s) => dateTime(s.fetched_at) },
-                  { id: 'conf', header: '把握度', cell: (s) => (s.confidence == null ? '—' : pct(s.confidence * 100, 0)) },
-                  { id: 'act', header: '', cell: (s) => (s.is_primary ? <Badge color="grey">主值</Badge> : <Button variant="inline-link" onClick={() => onSetPrimary(s.id)}>设为主值</Button>) },
+                  { id: 'value', header: uiText("fieldWithSource.value"), cell: (s) => text(s.value) },
+                  { id: 'source', header: uiText("fieldWithSource.source"), cell: (s) => <SourceBadge source={s.source} /> },
+                  { id: 'time', header: uiText("fieldWithSource.time"), cell: (s) => dateTime(s.fetched_at) },
+                  { id: 'conf', header: uiText("fieldWithSource.confidence"), cell: (s) => (s.confidence == null ? '—' : pct(s.confidence * 100, 0)) },
+                  { id: 'act', header: '', cell: (s) => (s.is_primary ? <Badge color="grey">{uiText("fieldWithSource.primary.value")}</Badge> : <Button variant="inline-link" onClick={() => onSetPrimary(s.id)}>{uiText("fieldWithSource.use.as.primary")}</Button>) },
                 ]}
               />
             }
           >
-            <Badge color="red">有冲突</Badge>
+            <Badge color="red">{uiText("fieldWithSource.conflicting.values")}</Badge>
           </Popover>
         )}
       </div>
       <Modal
         visible={editing}
         onDismiss={() => setEditing(false)}
-        header={`编辑：${field.label}`}
+        header={uiText("sentences.edit.2", { value1: (systemText(field.label)) })}
         footer={
           <Box float="right">
             <SpaceBetween direction="horizontal" size="xs">
-              <Button variant="link" onClick={() => setEditing(false)}>取消</Button>
-              <Button variant="primary" loading={saving} onClick={async () => { setSaving(true); try { await onSave(draft === '' ? null : draft); setEditing(false); } finally { setSaving(false); } }}>保存</Button>
+              <Button variant="link" onClick={() => setEditing(false)}>{uiText("fieldWithSource.cancel")}</Button>
+              <Button variant="primary" loading={saving} onClick={async () => { setSaving(true); try { await onSave(draft === '' ? null : draft); setEditing(false); } finally { setSaving(false); } }}>{uiText("fieldWithSource.save")}</Button>
             </SpaceBetween>
           </Box>
         }
       >
-        <FormField label={field.label} description="人工修改后，该值成为主值，来源标记为“人工”。原有来源记录保留，可随时切换回去。">
+        <FormField label={systemText(systemText(field.label))} description={uiText("fieldWithSource.an.edited.value.becomes.the.primary.value.with.a")}>
           <Input value={draft} type={field.type === 'int' ? 'number' : 'text'} onChange={({ detail }) => setDraft(detail.value)} />
         </FormField>
       </Modal>

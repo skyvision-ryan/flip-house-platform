@@ -1,3 +1,5 @@
+import { localizedMetadata } from '../i18n/systemLabels.ts';
+import { messageFromCode, m as uiText } from '../i18n/core.ts';
 export type Option = { value: string; label: string };
 
 export interface Meta {
@@ -42,6 +44,7 @@ export interface GroupPosition {
 
 export interface Deliverable { kind: 'file' | 'photo' | 'field' | 'record' | 'confirm' | 'tick'; label: string; doc_type?: string | null; field?: string | null; record?: string | null }
 export interface StepItem {
+  final_inspection_passed?: boolean | null; photo_count?: number;
   confirmation_mode?: "any"; ready?: boolean; missing?: string[]; needs_review?: boolean; history_pending?: boolean; can_confirm?: boolean;
   confirmation?: { user_id: number; name: string; role: string; at: string } | null;
   key: string; title: string; owners: string[]; gate: boolean; confirm: string[]; confirmed: string[]; done: boolean; how: 'auto' | 'manual' | 'manual_override' | null;
@@ -148,6 +151,7 @@ export interface ProcurementFields {
 export type ProcurementRequirements = Pick<ProcurementFields, 'required_quantity' | 'unit' | 'needed_on' | 'budget_amount' | 'use_location' | 'note' | 'specification' | 'product_url'>;
 export type ProcurementPatch = Partial<ProcurementRequirements & { name: string; wave: string; status: string; expected_updated_at: string }>;
 export interface ProcurementItem extends ProcurementFields {
+  template_key?: string | null; template_name_snapshot?: string | null;
   in_worklist?: boolean;
   attention_reasons?: string[];
   order_managed?: boolean; legacy_purchase?: Partial<ProcurementFields & { status: string; checked_at: string | null; checked_by_user_id: number | null }> | null; order_progress_note?: string; order_notes?: string | null;
@@ -204,6 +208,7 @@ export interface Me { id: number; username: string; display_name: string; role_c
 // ---------- KAN-75：任务实例、成员、事件 ----------
 export interface UserBrief { id: number; username: string; display_name: string; role_code: string; active: boolean }
 export interface TaskEvent {
+  participant_names?: Record<string, string>;
   id: number; task_id: number | null; project_id: number; kind: string; kind_label: string;
   actor: UserBrief | null; actor_role_snapshot: string | null; before: Record<string, any> | null; after: Record<string, any> | null;
   reason: string | null; created_at: string; text: string;
@@ -216,6 +221,7 @@ export interface Submission {
   files: SubmissionFile[];
 }
 export interface Task {
+  template_key?: string | null; template_name_snapshot?: string | null;
   node_confirmation?: StepItem | null;
   procurement_progress?: { excluded?: number; total: number; ready: number; complete: boolean; nodes: { wave: string; total: number; ready: number }[] } | null;
   id: number; project_id: number; project_name: string; project_address: string;
@@ -231,11 +237,11 @@ export interface Task {
   satisfied: boolean; satisfied_how: string | null; satisfied_evidence: string | null; evidence_hint: string | null;
   last_event: TaskEvent | null; done_at: string | null; requires_file: boolean; submissions: Submission[]; created_at: string; updated_at: string;
 }
-export interface FocusFact { label: string; value: string; tone: 'normal' | 'warning' }
+export interface FocusFact { task_display?: { title: string; template_key?: string | null; template_name_snapshot?: string | null } | null; task_state?: string | null; label: string; value: string; tone: 'normal' | 'warning' }
 export interface TaskList { tasks: Task[]; stages: { key: string; label: string; short: string; index: number }[]; current_stage_index: number; template_missing: boolean; can_assign: boolean; focus: FocusFact[] }
 export interface WorkbenchProject {
   project_id: number; project_name: string; address: string; group_position: GroupPosition; position_label: string;
-  next_action: { task_id: number; title: string; exec_status: TaskExecStatus; exec_status_label: string; due_at: string | null; actor: UserBrief | null; kind: 'review' | 'assign' | 'do' } | null;
+  next_action: { task_id: number; title: string; template_key?: string | null; template_name_snapshot?: string | null; exec_status: TaskExecStatus; exec_status_label: string; due_at: string | null; actor: UserBrief | null; kind: 'review' | 'assign' | 'do' } | null;
   procurement?: { owner: string | null; ready: number; total: number; spent: string; missing_totals: number; order_count: number; problems: {id: number; name: string; note: string}[] } | null;
   waiting_count: number; unassigned_current_count: number;
 }
@@ -260,13 +266,15 @@ export function setSessionIdentity(id: number | null) { sessionUserId = id; }
 export function broadcastSession() { localStorage.setItem('session-updated', String(Date.now())); }
 
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(path, { credentials: 'same-origin', headers: { ...(init?.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }), ...actorHeader(), ...(!path.startsWith("/api/auth/") && sessionUserId != null ? { "X-Session-User": String(sessionUserId) } : {}) }, ...init }).catch(() => { throw new Error('无法连接服务，请检查网络后重试。'); });
+  const res = await fetch(path, { credentials: 'same-origin', headers: { ...(init?.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }), ...actorHeader(), ...(!path.startsWith("/api/auth/") && sessionUserId != null ? { "X-Session-User": String(sessionUserId) } : {}) }, ...init }).catch(() => { throw new Error(uiText("client.cannot.connect.check.your.connection.and.try.again")); });
   if (res.status === 401 && !path.startsWith('/api/auth/')) window.dispatchEvent(new Event(AUTH_EVENT));
   if (!res.ok) {
     let msg = `${res.status} ${res.statusText}`;
     try {
       const j = await res.json();
       if (j.detail) msg = typeof j.detail === 'string' ? j.detail : (typeof j.detail?.message === 'string' ? j.detail.message : JSON.stringify(j.detail));
+      if (msg.startsWith('SESSION_CHANGED:')) window.dispatchEvent(new Event(SESSION_EVENT));
+      msg = messageFromCode(j.message_code, j.message_params, msg);
     } catch { /* ignore */ }
     if (msg.startsWith("SESSION_CHANGED:")) window.dispatchEvent(new Event(SESSION_EVENT));
     throw Object.assign(new Error(msg), { status: res.status });
@@ -337,11 +345,11 @@ export const api = {
   budgetSummary: (id: number) => req<BudgetSummary>(`/api/projects/${id}/budget-summary`),
   analyses: (id: number) => req<Analysis[]>(`/api/projects/${id}/analyses`),
   analysisPrefill: (id: number, tier = 'medium') => req<{ inputs: Analysis['inputs']; outputs: Analysis['outputs'] }>(`/api/projects/${id}/analyses/prefill?tier=${tier}`),
-  createAnalysis: (id: number, body: { name?: string; inputs?: Analysis['inputs']; tier?: string }) => req<Analysis>(`/api/projects/${id}/analyses`, { method: 'POST', body: JSON.stringify(body) }),
+  createAnalysis: (id: number, body: { name?: string; inputs?: Analysis['inputs']; tier?: string; use_default_name?: boolean }) => req<Analysis>(`/api/projects/${id}/analyses`, { method: 'POST', body: JSON.stringify(body) }),
   patchAnalysis: (aid: number, body: { name?: string; inputs?: Analysis['inputs']; is_current?: boolean }) => req<Analysis>(`/api/analyses/${aid}`, { method: 'PATCH', body: JSON.stringify(body) }),
   deleteAnalysis: (aid: number) => req<void>(`/api/analyses/${aid}`, { method: 'DELETE' }),
   applyAnalysis: (aid: number, body: { mode: 'replace' | 'append'; apply_prices: boolean }) => req<Project>(`/api/analyses/${aid}/apply`, { method: 'POST', body: JSON.stringify(body) }),
-  steps: (id: number) => req<Steps>(`/api/projects/${id}/steps`),
+  steps: (id: number) => req<Steps>(`/api/projects/${id}/steps`).then(localizedMetadata),
   toggleStep: (id: number, key: string, body: { done: boolean; note?: string | null; confirm_as?: string | null }) => req<Steps>(`/api/projects/${id}/steps/${key}`, { method: 'POST', body: JSON.stringify(body) }),
   utilities: (id: number) => req<Utility[]>(`/api/projects/${id}/utilities`),
   saveUtility: (id: number, kind: string, body: UtilityIn) => req<Utility[]>(`/api/projects/${id}/utilities/${kind}`, { method: 'PUT', body: JSON.stringify(body) }),

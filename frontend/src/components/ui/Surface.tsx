@@ -1,3 +1,4 @@
+import { useLanguage } from '../../i18n/LanguageProvider';
 import { type ReactNode, type CSSProperties } from 'react';
 import BaseContainer, { type ContainerProps } from '@cloudscape-design/components/container';
 import BaseTable, { type TableProps } from '@cloudscape-design/components/table';
@@ -9,6 +10,7 @@ import HelpText from '../HelpText';
 type CardProps = { cardId: CardKey; cardContext?: string };
 
 export function CardFrame({ cardId, cardContext, children }: CardProps & { children: ReactNode }) {
+  useLanguage();
   return <div className="ui-card" data-card-id={CARD_REGISTRY[cardId].id} data-card-key={cardId} data-card-context={cardContext}>
     <ReviewTag cardId={cardId} context={cardContext} />
     {children}
@@ -16,6 +18,7 @@ export function CardFrame({ cardId, cardContext, children }: CardProps & { child
 }
 
 export default function Container({ cardId, cardContext, embedded = false, ...props }: ContainerProps & CardProps & { embedded?: boolean }) {
+  useLanguage();
   return <CardFrame cardId={cardId} cardContext={cardContext}>
     <BaseContainer {...props} style={embedded ? {
       root: { background: 'transparent', borderWidth: '0', borderRadius: '0', boxShadow: 'none' },
@@ -26,12 +29,14 @@ export default function Container({ cardId, cardContext, embedded = false, ...pr
 }
 
 export function Table<T>({ cardId, cardContext, ...props }: TableProps<T> & Partial<CardProps>) {
+  useLanguage();
   const minWidth = props.columnDefinitions.reduce((sum, column, index) => sum + (typeof column.minWidth === 'number' ? column.minWidth : typeof column.width === 'number' ? column.width : index === 0 ? 180 : 120), props.selectionType ? 48 : 0);
   const table = <div className="ui-table" style={{ '--ui-table-min-width': `${minWidth}px` } as CSSProperties}><BaseTable wrapLines {...props} /></div>;
   return cardId ? <CardFrame cardId={cardId} cardContext={cardContext}>{table}</CardFrame> : table;
 }
 
 export function ExpandableSection({ cardId, cardContext, headerDescription, children, ...props }: ExpandableSectionProps & Partial<CardProps>) {
+  useLanguage();
   const section = <BaseExpandable {...props}>
     {headerDescription && <HelpText>{headerDescription}</HelpText>}
     {children}

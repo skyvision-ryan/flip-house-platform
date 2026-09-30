@@ -1,3 +1,4 @@
+import { m as uiText } from '../i18n/core.ts';
 import type { Task, TaskExecStatus } from '../api/client';
 
 /**
@@ -26,7 +27,7 @@ export function groupMyTasks(tasks: Task[]): MyGroups {
   return g;
 }
 
-export const GROUP_LABEL: Record<MyGroupKey, string> = { now: '现在可做', waiting: '等待中', later: '提前准备', done: '已完成' };
+export const GROUP_LABEL: Record<MyGroupKey, string> = { get now() { return uiText("taskGroups.ready.to.work"); }, get waiting() { return uiText("leadershipProjectDetail.waiting"); }, get later() { return uiText("projectPreplan.prepare.ahead.2"); }, get done() { return uiText("stagePositionBar.complete"); } };
 
 /** 执行状态 → Cloudscape StatusIndicator 类型。只有这五种，别的值当未开始处理。 */
 export function statusIndicator(s: TaskExecStatus | string): 'stopped' | 'in-progress' | 'pending' | 'success' {
@@ -53,5 +54,5 @@ export function statusActions(t: Task, meId: number | null): ('start' | 'wait' |
 
 /** 「YYYY-MM-DD」→「MM/DD」；空值显示未设定。 */
 export function dueText(due: string | null | undefined): string {
-  return due ? due.slice(5, 10).replace('-', '/') : '未设定';
+  return due ? due.slice(5, 10).replace('-', '/') : uiText("projectPreplan.not.set");
 }

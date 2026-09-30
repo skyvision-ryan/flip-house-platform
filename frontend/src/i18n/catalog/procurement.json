@@ -1,0 +1,34 @@
+{
+  "procurement.custom.address": [
+    "自定义地址",
+    "Custom address"
+  ],
+  "procurement.enter.a.material.name": [
+    "请填写材料名称",
+    "Enter a material name"
+  ],
+  "procurement.required.quantity.must.be.greater.than.0": [
+    "需求数量需大于 0",
+    "Required quantity must be greater than 0"
+  ],
+  "procurement.procurement.budget.must.be.nonnegative.with.no.more.than": [
+    "采购项预算需为非负数，最多两位小数",
+    "Procurement budget must be nonnegative with no more than two decimal places"
+  ],
+  "procurement.enter.a.valid.date.in.yyyy.mm.dd.format": [
+    "日期请按 YYYY-MM-DD 填写有效日期",
+    "Enter a valid date in YYYY-MM-DD format"
+  ],
+  "procurement.links.must.start.with.https.or.http": [
+    "链接须以 https:// 或 http:// 开头",
+    "Links must start with https:// or http://"
+  ],
+  "procurement.enter.a.complete.link": [
+    "请填写完整链接",
+    "Enter a complete link"
+  ],
+  "procurement.location.not.entered": [
+    "未填地点",
+    "Location not entered"
+  ]
+}

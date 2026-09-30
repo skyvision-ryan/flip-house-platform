@@ -1,3 +1,6 @@
+import { systemText } from '../../i18n/core.ts';
+import { useLanguage } from '../../i18n/LanguageProvider';
+import { m as uiText } from '../../i18n/core.ts';
 import { useCollection } from '@cloudscape-design/collection-hooks';
 import TextFilter from '@cloudscape-design/components/text-filter';
 import Pagination from '@cloudscape-design/components/pagination';
@@ -35,6 +38,7 @@ function sizeStr(n: number) {
 }
 
 export default function FilesTab({ projectId }: { projectId: number }) {
+  useLanguage();
   const meta = useMeta();
   const flash = useFlash();
   const role = useRole();
@@ -67,8 +71,8 @@ export default function FilesTab({ projectId }: { projectId: number }) {
 
   return (
     <SpaceBetween size="l">
-      {loadError && <Alert type="error" action={<Button onClick={load}>重试</Button>}>{loadError}</Alert>}
-      <ExpandableSection cardId="files-upload" variant="container" headerText="上传并登记文件">
+      {loadError && <Alert type="error" action={<Button onClick={load}>{uiText("addProject.retry")}</Button>}>{systemText(loadError)}</Alert>}
+      <ExpandableSection cardId="files-upload" variant="container" headerText={uiText("filesTab.upload.and.register.files")}>
         <UploadForm projectId={projectId} onDone={load} />
       </ExpandableSection>
 
@@ -77,45 +81,44 @@ export default function FilesTab({ projectId }: { projectId: number }) {
           <Header
             variant="h2"
             counter={`(${shown.length} / ${files.length})`}
-            description="查找本房已有资料；图片可直接放大查看，其他文件保留原文件入口。"
+            description={uiText("filesTab.find.this.property.s.records.zoom.images.directly.other")}
           >
-            文件登记表
-          </Header>
+            {uiText("filesTab.file.register")} </Header>
         }
         {...collectionProps}
-        items={items} loading={loading} loadingText="正在读取文件"
-        pagination={<Pagination {...paginationProps} ariaLabels={{ nextPageLabel: '下一页', previousPageLabel: '上一页', pageLabel: n => `第 ${n} 页` }} />}
+        items={items} loading={loading} loadingText={uiText("filesTab.loading.files")}
+        pagination={<Pagination {...paginationProps} ariaLabels={{ nextPageLabel: uiText("budgetTab.next.page"), previousPageLabel: uiText("budgetTab.previous.page"), pageLabel: n => uiText("sentences.page", { value1: (n) }) }} />}
         filter={<SpaceBetween size="s">
-          <TextFilter filteringText={query} onChange={({ detail }) => filter('fileq', detail.filteringText)} filteringAriaLabel="查找文件" filteringPlaceholder="文件名、对方、步骤或日期" countText={`${shown.length} 个匹配`} />
+          <TextFilter filteringText={query} onChange={({ detail }) => filter('fileq', detail.filteringText)} filteringAriaLabel={uiText("filesTab.find.files")} filteringPlaceholder={uiText("filesTab.filename.counterparty.step.or.date")} countText={uiText("sentences.matches", { value1: (shown.length) })} />
           <SpaceBetween direction="horizontal" size="s">
-            <Select ariaLabel="筛选文件类型" selectedOption={typeOptions.find(o => o.value === docType) ?? { label: '全部类型', value: '' }} options={[{ label: '全部类型', value: '' }, ...typeOptions]} onChange={({ detail }) => filter('filetype', detail.selectedOption.value ?? '')} />
-            <Select ariaLabel="筛选上传人" selectedOption={{ label: who || '全部上传人', value: who }} options={[{ label: '全部上传人', value: '' }, ...uploaders.map(u => ({ label: u, value: u }))]} onChange={({ detail }) => filter('uploader', detail.selectedOption.value ?? '')} />
-            {(query || who || docType) && <Button onClick={clear}>清除筛选</Button>}
+            <Select ariaLabel={uiText("filesTab.filter.file.type")} selectedOption={typeOptions.find(o => o.value === docType) ?? { label: uiText("filesTab.all.types"), value: '' }} options={[{ label: uiText("filesTab.all.types"), value: '' }, ...typeOptions]} onChange={({ detail }) => filter('filetype', detail.selectedOption.value ?? '')} />
+            <Select ariaLabel={uiText("filesTab.filter.uploader")} selectedOption={{ label: who || uiText("filesTab.all.uploaders"), value: who }} options={[{ label: uiText("filesTab.all.uploaders"), value: '' }, ...uploaders.map(u => ({ label: u, value: u }))]} onChange={({ detail }) => filter('uploader', detail.selectedOption.value ?? '')} />
+            {(query || who || docType) && <Button onClick={clear}>{uiText("directorDesign.clear.filters")}</Button>}
           </SpaceBetween>
         </SpaceBetween>}
-        empty={<Box textAlign="center" color="inherit"><b>{loadError ? '文件尚未读取成功' : files.length ? '没有匹配的文件' : '本房尚无文件'}</b>{files.length > 0 && <Button variant="inline-link" onClick={clear}>清除筛选</Button>}</Box>}
+        empty={<Box textAlign="center" color="inherit"><b>{loadError ? uiText("filesTab.files.have.not.loaded.successfully") : files.length ? uiText("filesTab.no.matching.files") : uiText("filesTab.no.files.for.this.property")}</b>{files.length > 0 && <Button variant="inline-link" onClick={clear}>{uiText("directorDesign.clear.filters")}</Button>}</Box>}
         columnDefinitions={[
-          { id: 'name', header: '文件名', minWidth: 260, sortingField: 'filename', cell: (f) => (
+          { id: 'name', header: uiText("filesTab.filename"), minWidth: 260, sortingField: 'filename', cell: (f) => (
             <span className="ui-inline">
               {(f.mime ?? '').startsWith('image/') && <img src={`/api/files/${f.id}/download`} alt="" className="ui-thumbnail ui-thumbnail-file" onError={e => { e.currentTarget.hidden = true; }} />}
-              {f.mime?.startsWith('image/') ? <Button variant="inline-link" onClick={() => setPreview(f.id)}>{f.filename} · 查看图片</Button> : <Link href={`/api/files/${f.id}/download`} external>{f.filename}</Link>}
-            <Button variant="inline-link" onClick={() => { setEditError(''); setEditing(f); setDraft({ doc_type: f.doc_type ?? 'other', doc_date: f.doc_date ?? '', counterparty: f.counterparty ?? '', amount: f.amount == null ? '' : String(f.amount), uploaded_by: f.uploaded_by ?? '', expires_at: f.expires_at ?? '' }); }}>编辑登记</Button>
+              {f.mime?.startsWith('image/') ? <Button variant="inline-link" onClick={() => setPreview(f.id)}>{f.filename} {uiText("taskWorkbench.view.image")}</Button> : <Link href={`/api/files/${f.id}/download`} external>{f.filename}</Link>}
+            <Button variant="inline-link" onClick={() => { setEditError(''); setEditing(f); setDraft({ doc_type: f.doc_type ?? 'other', doc_date: f.doc_date ?? '', counterparty: f.counterparty ?? '', amount: f.amount == null ? '' : String(f.amount), uploaded_by: f.uploaded_by ?? '', expires_at: f.expires_at ?? '' }); }}>{uiText("filesTab.edit.registration")}</Button>
             </span>
           ) },
-          { id: 'step', header: '挂到哪一步', cell: (f) => (f.step_key ? stepTitle(f.step_key) : '—') },
-          { id: 'who', header: '谁传的', cell: (f) => (f.uploaded_by ? <RoleLabel code={f.uploaded_by} /> : '—') },
-          { id: 'type', header: '类型', cell: (f) => labelOf(meta?.file_types, f.doc_type) },
-          { id: 'stage', header: '阶段', cell: (f) => text(f.stage) },
-          { id: 'date', header: '文件日期', sortingField: 'doc_date', cell: (f) => dateStr(f.doc_date) },
-          { id: 'cp', header: '对方', cell: (f) => text(f.counterparty) },
-          { id: 'amt', header: '金额', cell: (f) => money(f.amount) },
-          { id: 'exp', header: '到期日', cell: (f) => (f.expires_at ? <Badge color={new Date(f.expires_at + 'T00:00:00').getTime() - Date.now() < 30 * 86400000 ? 'red' : 'grey'}>{dateStr(f.expires_at)}</Badge> : '—') },
-          { id: 'src', header: '来源', cell: (f) => <Badge color="grey">{f.source === 'lark' ? 'Lark 迁入' : '上传'}</Badge> },
-          { id: 'size', header: '大小', cell: (f) => sizeStr(f.size) },
-          { id: 'act', header: '操作', cell: (f) => (
+          { id: 'step', header: uiText("filesTab.linked.step"), cell: (f) => (f.step_key ? stepTitle(f.step_key) : '—') },
+          { id: 'who', header: uiText("filesTab.uploaded.by"), cell: (f) => (f.uploaded_by ? <RoleLabel code={f.uploaded_by} /> : '—') },
+          { id: 'type', header: uiText("dataTab.type"), cell: (f) => labelOf(meta?.file_types, f.doc_type) },
+          { id: 'stage', header: uiText("myTodoTable.stage"), cell: (f) => text(f.stage) },
+          { id: 'date', header: uiText("uploadForm.document.date"), sortingField: 'doc_date', cell: (f) => dateStr(f.doc_date) },
+          { id: 'cp', header: uiText("filesTab.counterparty"), cell: (f) => text(f.counterparty) },
+          { id: 'amt', header: uiText("procurementItemRow.amount"), cell: (f) => money(f.amount) },
+          { id: 'exp', header: uiText("uploadForm.expiration.date"), cell: (f) => (f.expires_at ? <Badge color={new Date(f.expires_at + 'T00:00:00').getTime() - Date.now() < 30 * 86400000 ? 'red' : 'grey'}>{dateStr(f.expires_at)}</Badge> : '—') },
+          { id: 'src', header: uiText("fieldWithSource.source"), cell: (f) => <Badge color="grey">{f.source === 'lark' ? uiText("filesTab.imported.from.lark") : uiText("filesTab.uploaded")}</Badge> },
+          { id: 'size', header: uiText("filesTab.size"), cell: (f) => sizeStr(f.size) },
+          { id: 'act', header: uiText("filesTab.actions"), cell: (f) => (
             <SpaceBetween direction="horizontal" size="xs">
 
-              <Button variant="inline-link" onClick={async () => { await api.deleteFile(f.id); await load(); flash({ type: 'success', content: '文件已删除' }); }}>删除</Button>
+              <Button variant="inline-link" onClick={async () => { await api.deleteFile(f.id); await load(); flash({ type: 'success', content: uiText("filesTab.file.deleted") }); }}>{uiText("analysisTab.delete")}</Button>
             </SpaceBetween>
           ) },
         ]}
@@ -125,37 +128,37 @@ export default function FilesTab({ projectId }: { projectId: number }) {
       <Modal
         visible={!!editing}
         onDismiss={() => { if (!saving) setEditing(null); }}
-        header={`编辑登记信息：${editing?.filename ?? ''}`}
+        header={uiText("sentences.edit.file.registration", { value1: (editing?.filename ?? '') })}
         footer={
           <Box float="right">
             <SpaceBetween direction="horizontal" size="xs">
-              <Button variant="link" disabled={saving} onClick={() => setEditing(null)}>取消</Button>
+              <Button variant="link" disabled={saving} onClick={() => setEditing(null)}>{uiText("fieldWithSource.cancel")}</Button>
               <Button variant="primary" loading={saving} onClick={async () => {
                 if (!editing || saving) return;
                 setSaving(true); setEditError('');
                 try {
                   await api.patchFile(editing.id, fileRegistrationPatch(draft as FileRegistrationDraft, canManageMetadata, role.canReadMoney));
-                  setEditing(null); await load(); flash({ type: 'success', content: '登记信息已更新' });
+                  setEditing(null); await load(); flash({ type: 'success', content: uiText("filesTab.registration.updated") });
                 } catch (error: unknown) {
-                  setEditError(`保存失败：${error instanceof Error ? error.message : String(error)}`);
+                  setEditError(uiText("sentences.save.failed", { value1: (error instanceof Error ? error.message : String(error)) }));
                 } finally { setSaving(false); }
-              }}>保存</Button>
+              }}>{uiText("fieldWithSource.save")}</Button>
             </SpaceBetween>
           </Box>
         }
       >
         <SpaceBetween size="m">
           {editError && <Alert type="error">{editError}</Alert>}
-          <FormField label="文件类型">
+          <FormField label={uiText("uploadForm.file.type")}>
             <Select disabled={!canManageMetadata} selectedOption={typeOptions.find((o) => o.value === draft.doc_type) ?? null} options={typeOptions} onChange={({ detail }) => setDraft((d: any) => ({ ...d, doc_type: detail.selectedOption.value }))} />
           </FormField>
-          <FormField label="上传人（谁传的）">
+          <FormField label={uiText("uploadForm.uploaded.by")}>
             <Select disabled={!canManageMetadata} selectedOption={peopleOptions.find((o) => o.value === draft.uploaded_by) ?? null} options={peopleOptions} onChange={({ detail }) => setDraft((d: any) => ({ ...d, uploaded_by: detail.selectedOption.value }))} />
           </FormField>
-          <FormField label="文件日期"><DatePicker value={draft.doc_date ?? ''} onChange={({ detail }) => setDraft((d: any) => ({ ...d, doc_date: detail.value }))} placeholder="YYYY/MM/DD" /></FormField>
-          <FormField label="对方"><Input value={draft.counterparty ?? ''} onChange={({ detail }) => setDraft((d: any) => ({ ...d, counterparty: detail.value }))} /></FormField>
-          {role.canReadMoney && <FormField label="涉及金额（美元）"><Input type="number" value={draft.amount ?? ''} onChange={({ detail }) => setDraft((d: any) => ({ ...d, amount: detail.value }))} /></FormField>}
-          <FormField label="到期日（保险这类有时限的文件）"><DatePicker value={draft.expires_at ?? ''} onChange={({ detail }) => setDraft((d: any) => ({ ...d, expires_at: detail.value }))} placeholder="YYYY/MM/DD" /></FormField>
+          <FormField label={uiText("uploadForm.document.date")}><DatePicker value={draft.doc_date ?? ''} onChange={({ detail }) => setDraft((d: any) => ({ ...d, doc_date: detail.value }))} placeholder="YYYY/MM/DD" /></FormField>
+          <FormField label={uiText("filesTab.counterparty")}><Input value={draft.counterparty ?? ''} onChange={({ detail }) => setDraft((d: any) => ({ ...d, counterparty: detail.value }))} /></FormField>
+          {role.canReadMoney && <FormField label={uiText("uploadForm.amount.usd")}><Input type="number" value={draft.amount ?? ''} onChange={({ detail }) => setDraft((d: any) => ({ ...d, amount: detail.value }))} /></FormField>}
+          <FormField label={uiText("filesTab.expiration.date.for.insurance.and.other.time.limited.documents")}><DatePicker value={draft.expires_at ?? ''} onChange={({ detail }) => setDraft((d: any) => ({ ...d, expires_at: detail.value }))} placeholder="YYYY/MM/DD" /></FormField>
         </SpaceBetween>
       </Modal>
     </SpaceBetween>

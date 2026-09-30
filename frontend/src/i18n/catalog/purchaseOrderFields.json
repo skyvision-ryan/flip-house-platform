@@ -1,0 +1,118 @@
+{
+  "purchaseOrderFields.select": [
+    "请选择",
+    "Select"
+  ],
+  "purchaseOrderFields.unverified": [
+    "未核实",
+    "Unverified"
+  ],
+  "purchaseOrderFields.not.shipped": [
+    "未发货",
+    "Not shipped"
+  ],
+  "purchaseOrderFields.in.transit": [
+    "运输中",
+    "In transit"
+  ],
+  "purchaseOrderFields.ready.for.pickup": [
+    "可以取货",
+    "Ready for pickup"
+  ],
+  "purchaseOrderFields.carrier.shows.delivered": [
+    "网站显示送达",
+    "Carrier shows delivered"
+  ],
+  "purchaseOrderFields.shipment.exception": [
+    "物流异常",
+    "Shipment exception"
+  ],
+  "purchaseOrderFields.merchant.order.number": [
+    "商家订单号",
+    "Merchant order number"
+  ],
+  "purchaseOrderFields.add.item": [
+    "添加采购项",
+    "Add item"
+  ],
+  "purchaseOrderFields.what.was.purchased": [
+    "买了什么",
+    "What was purchased"
+  ],
+  "purchaseOrderFields.unit.not.entered": [
+    "单位未填",
+    "Unit not entered"
+  ],
+  "purchaseOrderFields.address.not.entered": [
+    "地址未填",
+    "Address not entered"
+  ],
+  "purchaseOrderFields.tracking.notes.and.receipts": [
+    "物流、备注与凭据",
+    "Tracking, notes, and receipts"
+  ],
+  "purchaseOrderFields.pending.actions": [
+    "待处理事项",
+    "Pending actions"
+  ],
+  "purchaseOrderFields.next.follow.up.date": [
+    "下次跟进日期",
+    "Next follow-up date"
+  ],
+  "purchaseOrderFields.last.manual.verification.date": [
+    "最近人工核对日期",
+    "Last manual verification date"
+  ],
+  "purchaseOrderFields.order.notes": [
+    "订单备注",
+    "Order notes"
+  ],
+  "purchaseOrderFields.original.order.link": [
+    "原订单链接",
+    "Original order link"
+  ],
+  "purchaseOrderFields.actual.seller.store": [
+    "实际卖家 / 门店",
+    "Actual seller / store"
+  ],
+  "purchaseOrderFields.purchasing.entity": [
+    "采购主体",
+    "Purchasing entity"
+  ],
+  "purchaseOrderFields.original.delivery.record.read.only": [
+    "原配送记录（只读）",
+    "Original delivery record (read-only)"
+  ],
+  "purchaseOrderFields.estimated": [
+    "· 预计",
+    "· Estimated"
+  ],
+  "purchaseOrderFields.tax.shipping.and.amount.reconciliation": [
+    "税费、运费与金额核对",
+    "Tax, shipping, and amount reconciliation"
+  ],
+  "purchaseOrderFields.tax.usd": [
+    "税费（USD）",
+    "Tax (USD)"
+  ],
+  "purchaseOrderFields.shipping.usd": [
+    "运费（USD）",
+    "Shipping (USD)"
+  ],
+  "purchaseOrderFields.discount.usd": [
+    "折扣（USD）",
+    "Discount (USD)"
+  ],
+  "purchaseOrderFields.amount.reconciliation.notes": [
+    "金额核对说明",
+    "Amount reconciliation notes"
+  ],
+  "purchaseOrderFields.calculated.total": [
+    "· 计算总额",
+    "· Calculated total"
+  ],
+  "purchaseOrderFields.difference": [
+    "· 差额",
+    "· Difference"
+  ]
+}

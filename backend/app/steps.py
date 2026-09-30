@@ -197,7 +197,9 @@ def compute_steps(db: Session, p: models.Project, hide_money: bool = False) -> d
                 how = "auto" if ok else ("manual_override" if override else None)
                 evidence = why if ok else (f"{m.done_by} 手工确认，没有交付证据" if override else None)
             items.append({
-                "key": it["key"], "title": it["title"], "owners": it["owners"], "gate": bool(it.get("gate")),
+                "key": it["key"], "title": it["title"],
+                "final_inspection_passed": _final_inspection_ok(p)[0] if it["key"] == "final" else None,
+                "photo_count": sum(1 for f in p.files if f.step_key == it["key"] and (f.mime or "").startswith("image/")), "owners": it["owners"], "gate": bool(it.get("gate")),
                 "ws": it.get("ws"), "purpose": it.get("purpose"), "done_when": it.get("done_when"),
                 "deliverable": it.get("deliverable"), "evidence_hint": ("缺少：" + "、".join(gate_extra["missing"]) if gate_extra.get("missing") else it["done_when"]) if gate_extra else _hint(it, p, hide_money), **gate_extra,
                 "confirm": confirm, "confirmed": confirmed,

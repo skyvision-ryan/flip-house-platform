@@ -1,3 +1,5 @@
+import { useLanguage } from '../../i18n/LanguageProvider';
+import { m as uiText } from '../../i18n/core.ts';
 import type { ReactNode } from 'react';
 import Button from '@cloudscape-design/components/button';
 import ButtonDropdown, { type ButtonDropdownProps } from '@cloudscape-design/components/button-dropdown';
@@ -8,14 +10,15 @@ export default function ProductTopBar({ search, identityMenu, me, onHome, onDisp
   search: ReactNode; me: UserBrief | null; onHome: () => void; onDisplay: () => void;
   identityMenu: { text: string; title: string; items: ButtonDropdownProps['items']; onItemClick: ButtonDropdownProps['onItemClick'] };
 }) {
+  useLanguage();
   return <header className="ui-product-bar">
-    <a href="/" className="ui-product-name" onClick={(e) => { e.preventDefault(); onHome(); }}>翻新项目平台</a>
+    <a href="/" className="ui-product-name" onClick={(e) => { e.preventDefault(); onHome(); }}>{uiText("productTopBar.flip.house.platform")}</a>
     {search && <div className="ui-product-search">{search}</div>}
     <div className="ui-product-tools">
-      <Button variant="icon" iconName="settings" ariaLabel="显示设置" onClick={onDisplay} />
+      <Button variant="icon" iconName="settings" ariaLabel={uiText("app.display.settings")} onClick={onDisplay} />
       {me && <EmployeeAvatar user={me} size="small" />}
       <ButtonDropdown items={identityMenu.items} onItemClick={identityMenu.onItemClick} ariaLabel={identityMenu.title}>
-        <span className="ui-identity-full">{identityMenu.text}</span><span className="ui-identity-compact">{me?.display_name ?? '演示身份'}</span>
+        <span className="ui-identity-full">{identityMenu.text}</span><span className="ui-identity-compact">{me?.display_name ?? uiText("productTopBar.demo.role")}</span>
       </ButtonDropdown>
     </div>
   </header>;

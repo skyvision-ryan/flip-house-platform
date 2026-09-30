@@ -779,3 +779,18 @@ table, .ui-facts, .ui-metrics { font-variant-numeric: tabular-nums; }
   .procurement-overview .proc-house-summary { grid-template-columns:1fr; }
   .proc-overview-issues p { grid-template-columns:1fr; }
 }
+
+/* Both languages share Helvetica and the same component tree. */
+.ui-language-setting { margin-block-end: 24px; }
+.ui-language-setting h3 { margin-block: 0 12px; }
+.ui-language-setting p { color: var(--ui-secondary); line-height: 1.5; }
+html[lang="en-US"] .ui-setting-row { grid-template-columns: auto minmax(0, 1fr) auto; }
+html[lang="en-US"] .ui-stage-label,
+html[lang="en-US"] .ui-role-label,
+html[lang="en-US"] .ui-actions { white-space: normal; overflow-wrap: anywhere; }
+html[lang="en-US"] .ui-stage-label { align-items: start; }
+@media (max-width: 480px) {
+  html[lang="en-US"] .ui-setting-row { grid-template-columns: auto minmax(0, 1fr); }
+  html[lang="en-US"] .ui-setting-row > :last-child { grid-column: 2; }
+  html[lang="en-US"] .ui-stage-label { font-size: 14px; line-height: 1.4; }
+}

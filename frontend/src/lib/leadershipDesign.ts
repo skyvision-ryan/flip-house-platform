@@ -1,3 +1,4 @@
+import { m as uiText } from '../i18n/core.ts';
 import type { RoleDesign } from './roleDesigns';
 import type { UserBrief } from '../api/client';
 export type LeadershipPersona = 'david' | 'admin';
@@ -25,7 +26,7 @@ export interface LeadershipPreview {
   kind: 'leadership'; person: UserBrief; role_title: string; role_description: string;
   designs: RoleDesign[]; default_design: 'A' | 'B' | 'C'; as_of: string; projects: LeadershipProject[];
 }
-export const leadershipMoney = (value: number | null) => value == null ? '资料未齐' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
+export const leadershipMoney = (value: number | null) => value == null ? uiText("founderDesign.incomplete.records") : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
 export function currentAnalysis(p: LeadershipProject) { const current = p.analyses.filter(a => a.current); return current.length === 1 ? current[0] : null; }
 export function investedScale(p: LeadershipProject): number | null {
   return p.lifecycle === 'lead' || p.purchase_price == null || p.expenses == null ? null : Math.round((p.purchase_price + p.expenses) * 100) / 100;

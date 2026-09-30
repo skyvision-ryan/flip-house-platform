@@ -19,7 +19,7 @@ const step = (o: Partial<StepItem> & { key: string; title: string }): StepItem =
 const p1Progress = step({
   key: 'progress', title: '施工进度', owners: ['PM'],
   deliverable: { kind: 'photo', label: '进度照片', doc_type: 'photo' },
-  done: true, how: 'auto', evidence: '已传 4 张照片（PM 传的）', can_auto: true,
+  photo_count: 4, done: true, how: 'auto', evidence: '已传 4 张照片（PM 传的）', can_auto: true,
   done_by: 'PM', done_at: '2026-09-07T10:34:00', note: '屋顶完工，厨房水电走线中',
 });
 const p1HomeInspection = step({
@@ -93,7 +93,7 @@ const madeVoidGate = step({
   evidence_hint: '最近一次 final 检查未通过：final 验收（failed）',
 });
 
-test('site-record：有照片的现场记录，数量从 evidence 里解析', () => {
+test('site-record：数量读取结构化 photo_count，证据原文不参与判断', () => {
   const f = factOf(p1Progress);
   assert.strictEqual(f.kind, 'site-record');
   assert.strictEqual(f.label, '已有现场记录 · 4 张照片');
@@ -102,8 +102,8 @@ test('site-record：有照片的现场记录，数量从 evidence 里解析', ()
   assert.strictEqual(f.hint, undefined);
 });
 
-test('site-record：evidence 里解析不出张数就不带数量', () => {
-  const f = factOf(step({ ...p1Progress, evidence: '已传照片（PM 传的）' }));
+test('site-record：缺少结构化张数就不猜测数量', () => {
+  const f = factOf(step({ ...p1Progress, photo_count: undefined, evidence: '已传照片（PM 传的）' }));
   assert.strictEqual(f.label, '已有现场记录');
 });
 
@@ -230,7 +230,7 @@ test('limitsOf：final 门没过就列 final 限制', () => {
 });
 
 test('limitsOf：final 检查已通过就不再列限制', () => {
-  const passed = step({ ...p1Final, evidence: 'final 检查通过：final 验收（2026-09-10）', evidence_hint: 'final 检查通过：final 验收（2026-09-10）' });
+  const passed = step({ ...p1Final, final_inspection_passed: true, evidence: 'final 检查通过：final 验收（2026-09-10）', evidence_hint: 'final 检查通过：final 验收（2026-09-10）' });
   assert.deepStrictEqual(limitsOf(passed, 'D', false, true), []);
 });
 

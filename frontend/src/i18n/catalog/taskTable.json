@@ -1,0 +1,62 @@
+{
+  "taskTable.all.stages": [
+    "全部阶段",
+    "All stages"
+  ],
+  "taskTable.task.assignments": [
+    "任务安排",
+    "Task assignments"
+  ],
+  "taskTable.select.a.row.to.view.its.summary.on.the": [
+    "点击一行，在右侧查看任务摘要；点击负责人头像调整分派。",
+    "Select a row to view its summary on the right. Select an assignee's avatar to change the assignment."
+  ],
+  "taskTable.search.task.name.or.assignee": [
+    "搜索任务名或负责人",
+    "Search task name or assignee"
+  ],
+  "taskTable.search.tasks": [
+    "搜索任务",
+    "Search tasks"
+  ],
+  "taskTable.filter.by.stage": [
+    "按阶段筛选",
+    "Filter by stage"
+  ],
+  "taskTable.tasks.are.not.ready.for.this.property.yet.refresh": [
+    "这套房的任务尚未准备好，请稍后刷新。",
+    "Tasks are not ready for this property yet. Refresh shortly."
+  ],
+  "taskTable.no.tasks.match.this.filter": [
+    "这个筛选下没有任务。",
+    "No tasks match this filter."
+  ],
+  "taskTable.task": [
+    "任务",
+    "Task"
+  ],
+  "taskTable.milestone.confirmation": [
+    "节点确认 ·",
+    "Milestone confirmation ·"
+  ],
+  "taskTable.reassign": [
+    "改派",
+    "Reassign"
+  ],
+  "taskTable.assign": [
+    "分派",
+    "Assign"
+  ],
+  "taskTable.status.evidence": [
+    "状态 / 证据",
+    "Status / evidence"
+  ],
+  "taskTable.evidence": [
+    "证据：",
+    "Evidence:"
+  ],
+  "taskTable.due": [
+    "截止",
+    "Due"
+  ]
+}

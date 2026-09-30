@@ -1,0 +1,46 @@
+{
+  "procurementTask.this.property.has.no.procurement.task.add.it.from": [
+    "本房尚未建立采购任务，请从项目任务区补齐。",
+    "This property has no procurement task. Add it from the project's task section."
+  ],
+  "procurementTask.property.procurement.lead": [
+    "本房采购负责人",
+    "Property procurement lead"
+  ],
+  "procurementTask.procurement.lead": [
+    "采购负责人 ·",
+    "Procurement lead ·"
+  ],
+  "procurementTask.awaiting.jessie.assignment": [
+    "待 Jessie 分派",
+    "Awaiting Jessie assignment"
+  ],
+  "procurementTask.all.required.items.ready": [
+    "已备齐",
+    "All required items ready"
+  ],
+  "procurementTask.procurement.in.progress": [
+    "采购中",
+    "Procurement in progress"
+  ],
+  "procurementTask.property.total": [
+    "全房",
+    "Property total"
+  ],
+  "procurementTask.items.ready": [
+    "项已备齐",
+    "items ready"
+  ],
+  "procurementTask.change.lead.due.date": [
+    "调整负责人 / 截止",
+    "Change lead / due date"
+  ],
+  "procurementTask.assign.procurement.lead": [
+    "分派采购负责人",
+    "Assign procurement lead"
+  ],
+  "procurementTask.view.procurement.history": [
+    "查看采购历史",
+    "View procurement history"
+  ]
+}

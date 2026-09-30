@@ -1,0 +1,94 @@
+{
+  "stepActions.purchase.price.usd": [
+    "买入价（美元）",
+    "Purchase price (USD)"
+  ],
+  "stepActions.construction.start.date": [
+    "开工日期",
+    "Construction start date"
+  ],
+  "stepActions.listing.date": [
+    "挂牌日期",
+    "Listing date"
+  ],
+  "stepActions.closing.date": [
+    "成交日期",
+    "Closing date"
+  ],
+  "stepActions.confirm.milestone": [
+    "确认节点",
+    "Confirm milestone"
+  ],
+  "stepActions.enter.date": [
+    "填日期",
+    "Enter date"
+  ],
+  "stepActions.record.risk": [
+    "写风险",
+    "Record risk"
+  ],
+  "stepActions.enter.price": [
+    "填价格",
+    "Enter price"
+  ],
+  "stepActions.mark.complete": [
+    "标完成",
+    "Mark complete"
+  ],
+  "stepActions.enter.utility.accounts": [
+    "填水电账户",
+    "Enter utility accounts"
+  ],
+  "stepActions.record.expense": [
+    "记支出",
+    "Record expense"
+  ],
+  "stepActions.manage.procurement": [
+    "管采购",
+    "Manage procurement"
+  ],
+  "stepActions.record.inspection": [
+    "记检查",
+    "Record inspection"
+  ],
+  "stepActions.open.analysis": [
+    "去算账",
+    "Open analysis"
+  ],
+  "stepActions.take.action": [
+    "去处理",
+    "Take action"
+  ],
+  "stepActions.pending.action": [
+    "待处理",
+    "Pending action"
+  ],
+  "stepActions.utility.accounts.needed": [
+    "待填水电账户",
+    "Utility accounts needed"
+  ],
+  "stepActions.expense.entry.needed": [
+    "待记支出",
+    "Expense entry needed"
+  ],
+  "stepActions.procurement.action.needed": [
+    "待处理采购",
+    "Procurement action needed"
+  ],
+  "stepActions.inspection.entry.needed": [
+    "待记检查",
+    "Inspection entry needed"
+  ],
+  "stepActions.analysis.needed": [
+    "待算账",
+    "Analysis needed"
+  ],
+  "stepActions.completion.entry.needed": [
+    "待标完成",
+    "Completion entry needed"
+  ],
+  "stepActions.related.team.members": [
+    "相关同事",
+    "Related team members"
+  ]
+}

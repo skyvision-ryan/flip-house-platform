@@ -1,0 +1,1150 @@
+{
+  "sentences.your.role": [
+    "你的角色：{{value1}}（{{value2}}）",
+    "Your role: {{value1}} ({{value2}})"
+  ],
+  "sentences.return.to.my.role": [
+    "回到自己（{{value1}}）",
+    "Return to my role ({{value1}})"
+  ],
+  "sentences.demo.role": [
+    "我是：{{value1}} · {{value2}}",
+    "Demo role: {{value1}} · {{value2}}"
+  ],
+  "sentences.demo.mode.select.the.role.entering.data.current.tier": [
+    "演示模式：谁在填，就选谁。当前级别：{{value1}}",
+    "Demo mode: select the role entering data. Current tier: {{value1}}"
+  ],
+  "sentences.create.from": [
+    "用“{{value1}}”新建",
+    "Create from “{{value1}}”"
+  ],
+  "sentences.edit": [
+    "编辑{{value1}}",
+    "Edit {{value1}}"
+  ],
+  "sentences.edit.2": [
+    "编辑：{{value1}}",
+    "Edit: {{value1}}"
+  ],
+  "sentences.inspection.saved": [
+    "检查记录已保存（{{value1}}）",
+    "Inspection saved ({{value1}})"
+  ],
+  "sentences.not.saved": [
+    "未保存：{{value1}}",
+    "Not saved: {{value1}}"
+  ],
+  "sentences.has.passed.open.escrow.and.is.no.longer.a.lead": [
+    "{{value1}} 已经过了 Open escrow，不再是线索；子阶段没有保存。",
+    "{{value1}} has passed Open Escrow and is no longer a lead. The follow-up stage was not saved."
+  ],
+  "sentences.moved.to": [
+    "{{value1}} 移到「{{value2}}」",
+    "{{value1}} moved to “{{value2}}”"
+  ],
+  "sentences.could.not.change.the.follow.up.stage.of": [
+    "没能修改「{{value1}}」的子阶段：{{value2}}",
+    "Could not change the follow-up stage of “{{value1}}”: {{value2}}"
+  ],
+  "sentences.responsible.roles": [
+    "　负责角色 {{value1}}",
+    " · Responsible roles: {{value1}}"
+  ],
+  "sentences.completed": [
+    "已完成「{{value1}}」",
+    "Completed “{{value1}}”"
+  ],
+  "sentences.items.belong.to.the.current.stage.the.rest.are.outstanding": [
+    "其中 {{value1}} 件是现在这段的事，其余是前面段落没交的。",
+    "{{value1}} items belong to the current stage; the rest are outstanding from earlier stages."
+  ],
+  "sentences.mark.complete": [
+    "标完成：{{value1}}",
+    "Mark complete: {{value1}}"
+  ],
+  "sentences.confirm.milestone": [
+    "确认节点：{{value1}}",
+    "Confirm milestone: {{value1}}"
+  ],
+  "sentences.from.orders": [
+    "{{value1}} 起 · {{value2}} 笔",
+    "From {{value1}} · {{value2}} orders"
+  ],
+  "sentences.lines.missing": [
+    "（{{value1}} 行未填）",
+    "({{value1}} lines missing)"
+  ],
+  "sentences.details": [
+    "{{value1}}详情：{{value2}}",
+    "{{value1}} details: {{value2}}"
+  ],
+  "sentences.procurement.details": [
+    "采购详情：{{value1}}",
+    "Procurement details: {{value1}}"
+  ],
+  "sentences.view.material.image": [
+    "查看材料图片：{{value1}}",
+    "View material image: {{value1}}"
+  ],
+  "sentences.estimated": [
+    " · 预计 {{value1}}",
+    " · Estimated {{value1}}"
+  ],
+  "sentences.carrier.not.proof.of.receipt": [
+    " · 网站{{value1}}（不代表实收）",
+    " · Carrier: {{value1}} (not proof of receipt)"
+  ],
+  "sentences.estimated.2": [
+    "预计 {{value1}}",
+    "Estimated {{value1}}"
+  ],
+  "sentences.damaged": [
+    "（破损 {{value1}}）",
+    "({{value1}} damaged)"
+  ],
+  "sentences.reversed": [
+    " · 已撤销：{{value1}}",
+    " · Reversed: {{value1}}"
+  ],
+  "sentences.refund": [
+    " · 退款 {{value1}}",
+    " · Refund {{value1}}"
+  ],
+  "sentences.due": [
+    " · 截止 {{value1}}",
+    " · Due {{value1}}"
+  ],
+  "sentences.adjust.displayed.requirements.shown": [
+    "调整清单显示范围 · 已显示 {{value1}} 项",
+    "Adjust displayed requirements · {{value1}} shown"
+  ],
+  "sentences.adjust.items.not.needed.here.currently.excluded": [
+    "调整本房不需要项 · 当前 {{value1}} 项",
+    "Adjust items not needed here · {{value1}} currently excluded"
+  ],
+  "sentences.assign.person": [
+    "安排负责人：{{value1}}",
+    "Assign person: {{value1}}"
+  ],
+  "sentences.set.due.date": [
+    "安排截止：{{value1}}",
+    "Set due date: {{value1}}"
+  ],
+  "sentences.confirmation": [
+    "{{value1}} 确认",
+    "{{value1}} confirmation"
+  ],
+  "sentences.assignment": [
+    "安排：{{value1}}",
+    "Assignment: {{value1}}"
+  ],
+  "sentences.orders": [
+    "{{value1}} 笔",
+    "{{value1}} orders"
+  ],
+  "sentences.link.imported.item": [
+    "关联导入商品 {{value1}}",
+    "Link imported item {{value1}}"
+  ],
+  "sentences.procurement.item.quantity": [
+    "采购项 {{value1}} 数量",
+    "Procurement item {{value1}} quantity"
+  ],
+  "sentences.procurement.item.unit.price": [
+    "采购项 {{value1}} 单价",
+    "Procurement item {{value1}} unit price"
+  ],
+  "sentences.remove.procurement.item": [
+    "移除采购项 {{value1}}",
+    "Remove procurement item {{value1}}"
+  ],
+  "sentences.brand": [
+    "品牌 {{value1}}",
+    "Brand: {{value1}}"
+  ],
+  "sentences.seller": [
+    "卖家 {{value1}}",
+    "Seller: {{value1}}"
+  ],
+  "sentences.item.estimated.arrival": [
+    "本项预计 {{value1}}",
+    "Item estimated arrival: {{value1}}"
+  ],
+  "sentences.deliver.item.to": [
+    "本项送至 {{value1}}",
+    "Deliver item to: {{value1}}"
+  ],
+  "sentences.procurement.item.brand": [
+    "采购项 {{value1}} 品牌",
+    "Procurement item {{value1}} brand"
+  ],
+  "sentences.procurement.item.delivery.address": [
+    "采购项 {{value1}} 收货地址",
+    "Procurement item {{value1}} delivery address"
+  ],
+  "sentences.procurement.item.estimated.arrival": [
+    "采购项 {{value1}} 预计到货",
+    "Procurement item {{value1}} estimated arrival"
+  ],
+  "sentences.procurement.item.actual.seller": [
+    "采购项 {{value1}} 实际卖家",
+    "Procurement item {{value1}} actual seller"
+  ],
+  "sentences.remove.item": [
+    "移除商品 {{value1}}",
+    "Remove item {{value1}}"
+  ],
+  "sentences.procurement.item": [
+    "采购项 {{value1}}",
+    "Procurement item {{value1}}"
+  ],
+  "sentences.requirement.for.item": [
+    "商品 {{value1}} 对应采购项",
+    "Requirement for item {{value1}}"
+  ],
+  "sentences.item.quantity": [
+    "商品 {{value1}} 数量",
+    "Item {{value1}} quantity"
+  ],
+  "sentences.item.unit.price.usd": [
+    "商品 {{value1}} 单价（USD）",
+    "Item {{value1}} unit price (USD)"
+  ],
+  "sentences.item.estimated.arrival.2": [
+    "商品 {{value1}} 预计到货",
+    "Item {{value1}} estimated arrival"
+  ],
+  "sentences.item.issue.notes": [
+    "商品 {{value1}} 问题说明",
+    "Item {{value1}} issue notes"
+  ],
+  "sentences.item.specifications.seller.and.tracking": [
+    "商品 {{value1}} 规格、卖家与物流",
+    "Item {{value1}} specifications, seller, and tracking"
+  ],
+  "sentences.item.actual.seller": [
+    "商品 {{value1}} 实际卖家",
+    "Item {{value1}} actual seller"
+  ],
+  "sentences.item.brand": [
+    "商品 {{value1}} 品牌",
+    "Item {{value1}} brand"
+  ],
+  "sentences.item.name": [
+    "商品 {{value1}} 商品名称",
+    "Item {{value1}} name"
+  ],
+  "sentences.item.unit": [
+    "商品 {{value1}} 单位",
+    "Item {{value1}} unit"
+  ],
+  "sentences.item.specifications": [
+    "商品 {{value1}} 规格",
+    "Item {{value1}} specifications"
+  ],
+  "sentences.item.model": [
+    "商品 {{value1}} 型号",
+    "Item {{value1}} model"
+  ],
+  "sentences.item.color": [
+    "商品 {{value1}} 颜色",
+    "Item {{value1}} color"
+  ],
+  "sentences.item.product.link": [
+    "商品 {{value1}} 商品链接",
+    "Item {{value1}} product link"
+  ],
+  "sentences.item.image.link": [
+    "商品 {{value1}} 图片链接",
+    "Item {{value1}} image link"
+  ],
+  "sentences.item.subtotal.including.merchant.specific.discounts": [
+    "商品 {{value1}} 小计（如商家另计折扣）",
+    "Item {{value1}} subtotal (including merchant-specific discounts)"
+  ],
+  "sentences.item.canceled.quantity": [
+    "商品 {{value1}} 已取消数量",
+    "Item {{value1}} canceled quantity"
+  ],
+  "sentences.item.notes": [
+    "商品 {{value1}} 备注",
+    "Item {{value1}} notes"
+  ],
+  "sentences.item.delivery.address": [
+    "商品 {{value1}} 收货地址",
+    "Item {{value1}} delivery address"
+  ],
+  "sentences.item.carrier.status.not.proof.of.receipt": [
+    "商品 {{value1}} 网站状态（不代表实收）",
+    "Item {{value1}} carrier status (not proof of receipt)"
+  ],
+  "sentences.item.tracking.link": [
+    "商品 {{value1}} 物流链接",
+    "Item {{value1}} tracking link"
+  ],
+  "sentences.copy.feedback.location.for.card": [
+    "复制卡片 {{value1}} 的反馈位置",
+    "Copy feedback location for card {{value1}}"
+  ],
+  "sentences.responsible.roles.2": [
+    "负责角色：{{value1}}",
+    "Responsible roles: {{value1}}"
+  ],
+  "sentences.stage.position": [
+    "阶段位置：{{value1}}",
+    "Stage position: {{value1}}"
+  ],
+  "sentences.property.position": [
+    "这套房在{{value1}}",
+    "Property position: {{value1}}"
+  ],
+  "sentences.day.of": [
+    "第 {{value1}} / {{value2}} 天",
+    "Day {{value1}} of {{value2}}"
+  ],
+  "sentences.days.overdue": [
+    "已超期 {{value1}} 天",
+    "{{value1}} days overdue"
+  ],
+  "sentences.tasks": [
+    "{{value1}}事项",
+    "{{value1}} tasks"
+  ],
+  "sentences.requirements.met": [
+    "{{value1}} / {{value2}} 项满足",
+    "{{value1}} / {{value2}} requirements met"
+  ],
+  "sentences.other.tasks": [
+    "{{value1}}其余事项（{{value2}}）",
+    "Other {{value1}} tasks ({{value2}})"
+  ],
+  "sentences.could.not.be.saved.the.preceding.tasks.were.saved": [
+    "「{{value1}}」没保存成功：{{value2}}。前面 {{value3}} 项已保存。",
+    "“{{value1}}” could not be saved: {{value2}}. The preceding {{value3}} tasks were saved."
+  ],
+  "sentences.assigned.tasks.to": [
+    "已把 {{value1}} 项任务分派给 {{value2}}",
+    "Assigned {{value1}} tasks to {{value2}}"
+  ],
+  "sentences.assigned.to": [
+    "已把「{{value1}}」分派给 {{value2}}{{value3}}",
+    "Assigned “{{value1}}” to {{value2}}{{value3}}"
+  ],
+  "sentences.removed.assignment.for": [
+    "已取消「{{value1}}」的分派",
+    "Removed assignment for “{{value1}}”"
+  ],
+  "sentences.updated.the.due.date.for": [
+    "已更新「{{value1}}」的截止日期",
+    "Updated the due date for “{{value1}}”"
+  ],
+  "sentences.assign.tasks": [
+    "分派 {{value1}} 项任务",
+    "Assign {{value1}} tasks"
+  ],
+  "sentences.update.assignment": [
+    "调整安排：{{value1}}",
+    "Update assignment: {{value1}}"
+  ],
+  "sentences.assign": [
+    "分派：{{value1}}",
+    "Assign: {{value1}}"
+  ],
+  "sentences.photos.files.linked.to.this.item": [
+    "这一项的照片 / 文件（{{value1}}）",
+    "Photos / files linked to this item ({{value1}})"
+  ],
+  "sentences.other.project.documents.of.this.type": [
+    "项目里的同类资料（{{value1}}）",
+    "Other project documents of this type ({{value1}})"
+  ],
+  "sentences.due.date": [
+    "「{{value1}}」截止日期：{{value2}}",
+    "“{{value1}}” due date: {{value2}}"
+  ],
+  "sentences.expected": [
+    "（预计 {{value1}}）",
+    "(expected {{value1}})"
+  ],
+  "sentences.change.assignee": [
+    "调整负责人：{{value1}}",
+    "Change assignee: {{value1}}"
+  ],
+  "sentences.provide": [
+    "：要交 {{value1}}",
+    ": provide {{value1}}"
+  ],
+  "sentences.missing": [
+    "缺少：{{value1}}",
+    "Missing: {{value1}}"
+  ],
+  "sentences.current": [
+    "当前：{{value1}}",
+    "Current: {{value1}}"
+  ],
+  "sentences.tasks.unassigned": [
+    "{{value1}} 项待分派",
+    "{{value1}} tasks unassigned"
+  ],
+  "sentences.view.task": [
+    "查看任务：{{value1}}",
+    "View task: {{value1}}"
+  ],
+  "sentences.default.responsible.roles": [
+    " · 默认负责角色 {{value1}}",
+    " · Default responsible roles: {{value1}}"
+  ],
+  "sentences.record.waiting": [
+    "记录等待：{{value1}}",
+    "Record waiting: {{value1}}"
+  ],
+  "sentences.conditions.confirmed": [
+    "已确认满足：{{value1}}",
+    "Conditions confirmed: {{value1}}"
+  ],
+  "sentences.expected.2": [
+    "，预计 {{value1}}",
+    ", expected {{value1}}"
+  ],
+  "sentences.started": [
+    "已开始「{{value1}}」",
+    "Started “{{value1}}”"
+  ],
+  "sentences.resumed": [
+    "已恢复「{{value1}}」",
+    "Resumed “{{value1}}”"
+  ],
+  "sentences.waiting.recorded": [
+    "已记录等待：{{value1}}",
+    "Waiting recorded: {{value1}}"
+  ],
+  "sentences.submissions": [
+    "提交记录（{{value1}}）",
+    "Submissions ({{value1}})"
+  ],
+  "sentences.returned.for.changes": [
+    "已退回「{{value1}}」",
+    "Returned “{{value1}}” for changes"
+  ],
+  "sentences.confirmed.completion.of": [
+    "已确认「{{value1}}」完成",
+    "Confirmed completion of “{{value1}}”"
+  ],
+  "sentences.submission.was.returned": [
+    "第 {{value1}} 次提交被退回",
+    "Submission {{value1}} was returned"
+  ],
+  "sentences.other.files.for.this.property": [
+    "这套房的其他文件（{{value1}}）",
+    "Other files for this property ({{value1}})"
+  ],
+  "sentences.submitted.awaiting.confirmation": [
+    "已提交「{{value1}}」，等 {{value2}} 确认",
+    "Submitted “{{value1}}”; awaiting {{value2}} confirmation"
+  ],
+  "sentences.uploaded.and.recorded": [
+    "{{value1}}已上传并登记（{{value2}}）",
+    "{{value1}} uploaded and recorded ({{value2}})"
+  ],
+  "sentences.files": [
+    "{{value1}} 个文件",
+    "{{value1}} files"
+  ],
+  "sentences.upload.failed": [
+    "上传失败：{{value1}}",
+    "Upload failed: {{value1}}"
+  ],
+  "sentences.remove.item.2": [
+    "移除第 {{value1}} 个",
+    "Remove item {{value1}}"
+  ],
+  "sentences.copied": [
+    "{{value1}}已复制",
+    "{{value1}} copied"
+  ],
+  "sentences.copy": [
+    "复制{{value1}}",
+    "Copy {{value1}}"
+  ],
+  "sentences.account.saved": [
+    "{{value1}}的账户已保存（{{value2}}）",
+    "{{value1}} account saved ({{value2}})"
+  ],
+  "sentences.could.not.save": [
+    "没保存上：{{value1}}",
+    "Could not save: {{value1}}"
+  ],
+  "sentences.review": [
+    "审核 {{value1}}",
+    "Review {{value1}}"
+  ],
+  "sentences.assign.2": [
+    "安排 {{value1}}",
+    "Assign {{value1}}"
+  ],
+  "sentences.orders.lack.payment.amounts.the.total.is.incomplete": [
+    " · {{value1}} 笔实付未填，汇总不完整",
+    " · {{value1}} orders lack payment amounts; the total is incomplete"
+  ],
+  "sentences.items.need.action": [
+    "{{value1}} 项需处理 · {{value2}}：{{value3}}",
+    "{{value1}} items need action · {{value2}}: {{value3}}"
+  ],
+  "sentences.no.target": [
+    "{{value1}} · 无目标",
+    "{{value1}} · No target"
+  ],
+  "sentences.view.estimate.inputs.for": [
+    "查看{{value1}}的估算经营依据",
+    "View estimate inputs for {{value1}}"
+  ],
+  "sentences.view.budget.evidence.for": [
+    "查看{{value1}}的预算依据",
+    "View budget evidence for {{value1}}"
+  ],
+  "sentences.view.expense.evidence.for": [
+    "查看{{value1}}的支出依据",
+    "View expense evidence for {{value1}}"
+  ],
+  "sentences.project.coordinator": [
+    "项目统筹：{{value1}}",
+    "Project coordinator: {{value1}}"
+  ],
+  "sentences.days": [
+    "{{value1}} 天",
+    "{{value1}} days"
+  ],
+  "sentences.missing.2": [
+    "缺少：{{value1}}。",
+    "Missing: {{value1}}."
+  ],
+  "sentences.days.2": [
+    "{{value1}} 天{{value2}}",
+    "{{value1}} days{{value2}}"
+  ],
+  "sentences.excluded.missing": [
+    "未计入；待补{{value1}}",
+    "Excluded; missing {{value1}}"
+  ],
+  "sentences.excluded.missing.2": [
+    "未计入；待补 {{value1}}",
+    "Excluded; missing {{value1}}"
+  ],
+  "sentences.overdue": [
+    "逾期：{{value1}}",
+    "Overdue: {{value1}}"
+  ],
+  "sentences.due.2": [
+    "{{value1}}（截止 {{value2}}）",
+    "{{value1}} (due {{value2}})"
+  ],
+  "sentences.awaiting.review": [
+    "待审：{{value1}}",
+    "Awaiting review: {{value1}}"
+  ],
+  "sentences.current.submission.days": [
+    "当前批次 {{value1}} 天",
+    "Current submission: {{value1}} days"
+  ],
+  "sentences.recorded.investment.covers.active.properties": [
+    "登记投入覆盖其中 {{value1}}/{{value2}} 套进行中项目。",
+    "Recorded investment covers {{value1}}/{{value2}} active properties."
+  ],
+  "sentences.properties": [
+    "{{value1}} 套",
+    "{{value1}} properties"
+  ],
+  "sentences.prefers.option.referencing": [
+    "{{value1}}：倾向方案 {{value2}}「{{value3}}」，参考 {{value4}}。{{value5}}",
+    "{{value1}}: prefers option {{value2}} “{{value3}}”, referencing {{value4}}. {{value5}}"
+  ],
+  "sentences.requested.changes": [
+    "想调整：{{value1}}",
+    "Requested changes: {{value1}}"
+  ],
+  "sentences.current.submission.awaiting.review.for.calendar.days": [
+    " · 当前批次待审 {{value1}} 个日历日",
+    " · Current submission awaiting review for {{value1}} calendar days"
+  ],
+  "sentences.view.for": [
+    "查看{{value1}}的{{value2}}",
+    "View {{value2}} for {{value1}}"
+  ],
+  "sentences.view.full.image": [
+    "查看完整图片：{{value1}}",
+    "View full image: {{value1}}"
+  ],
+  "sentences.files.2": [
+    "{{value1}} 份文件",
+    "{{value1}} files"
+  ],
+  "sentences.design.and.permit": [
+    "{{value1}} · 设计与 Permit",
+    "{{value1}} · Design and Permit"
+  ],
+  "sentences.notes.for.are.saved.in.this.preview.and.remain.available": [
+    "「{{value1}}」的备注已保存在本次预览，切方案可继续查看。",
+    "Notes for “{{value1}}” are saved in this preview and remain available across options."
+  ],
+  "sentences.image.viewing.area": [
+    "图片查看区域：{{value1}}",
+    "Image viewing area: {{value1}}"
+  ],
+  "sentences.card": [
+    "卡片 #{{value1}} · {{value2}}",
+    "Card #{{value1}} · {{value2}}"
+  ],
+  "sentences.record": [
+    "对象：{{value1}}",
+    "Record: {{value1}}"
+  ],
+  "sentences.location": [
+    "位置：{{value1}}{{value2}}",
+    "Location: {{value1}}{{value2}}"
+  ],
+  "sentences.component": [
+    "组件：{{value1}}",
+    "Component: {{value1}}"
+  ],
+  "sentences.is.over.budget.mainly.in.over": [
+    "{{value1}} 已超预算 {{value2}}，主要来自“{{value3}}”（超 {{value4}}）。",
+    "{{value1}} is {{value2}} over budget, mainly in “{{value3}}” ({{value4}} over)."
+  ],
+  "sentences.over.budget": [
+    "超预算 {{value1}}",
+    "{{value1}} over budget"
+  ],
+  "sentences.mainly.in.which.is.over.budget": [
+    "主要来自“{{value1}}”，这一类超了 {{value2}}",
+    "Mainly in “{{value1}}”, which is {{value2}} over budget"
+  ],
+  "sentences.is.days.from.its.planned.finish.prepare.for.listing": [
+    "{{value1}} 距计划完工还有 {{value2}} 天，可以准备挂牌了。",
+    "{{value1}} is {{value2}} days from its planned finish. Prepare for listing."
+  ],
+  "sentences.days.to.planned.finish": [
+    "距计划完工还有 {{value1}} 天",
+    "{{value1}} days to planned finish"
+  ],
+  "sentences.has.no.issued.government.permit.file.the.issued.document.is": [
+    "{{value1}} 还没登记政府核发的 permit 文件{{value2}}。拿到文件才能开工。",
+    "{{value1}} has no issued government Permit file{{value2}}. The issued document is required before construction."
+  ],
+  "sentences.days.since.closing": [
+    "，close 到现在已经 {{value1}} 天",
+    "; {{value1}} days since closing"
+  ],
+  "sentences.days.since.closing.no.permit.file": [
+    "close 到现在 {{value1}} 天，还没有 permit 文件",
+    "{{value1}} days since closing; no Permit file"
+  ],
+  "sentences.expired.days.ago": [
+    "已过期 {{value1}} 天",
+    "Expired {{value1}} days ago"
+  ],
+  "sentences.expires.in.days": [
+    "{{value1}} 天后到期",
+    "Expires in {{value1}} days"
+  ],
+  "sentences.k.needs.to.renew.it": [
+    "{{value1}} 的{{value2}}“{{value3}}”{{value4}}，K 要续。",
+    "{{value1}}: {{value2}} “{{value3}}” {{value4}}. K needs to renew it."
+  ],
+  "sentences.k.needs.to.renew": [
+    "{{value1}} · K 要续",
+    "{{value1}} · K needs to renew"
+  ],
+  "sentences.failed": [
+    "{{value1}} 的“{{value2}}”没过{{value3}}{{value4}}。",
+    "{{value1}}: “{{value2}}” failed{{value3}}{{value4}}."
+  ],
+  "sentences.is.handling.corrections": [
+    "，{{value1}} 整改中",
+    "; {{value1}} is handling corrections"
+  ],
+  "sentences.failed.2": [
+    "“{{value1}}”没过",
+    "“{{value1}}” failed"
+  ],
+  "sentences.handling.corrections": [
+    "{{value1}} 整改中",
+    "{{value1}} handling corrections"
+  ],
+  "sentences.is.not.active.issue": [
+    "{{value1}} 的{{value2}}还没开通，卡在：{{value3}}。",
+    "{{value1}}: {{value2}} is not active. Issue: {{value3}}."
+  ],
+  "sentences.is.not.active": [
+    "{{value1}}还没开通",
+    "{{value1}} is not active"
+  ],
+  "sentences.issue": [
+    "卡在：{{value1}}",
+    "Issue: {{value1}}"
+  ],
+  "sentences.has.no.analysis.yet.run.a.deal.analysis.before.discussing": [
+    "{{value1}} 还没算过账，先跑一遍交易分析再谈价。",
+    "{{value1}} has no analysis yet. Run a deal analysis before discussing price."
+  ],
+  "sentences.is.a.hot.lead.without.a.target.sale.price.add": [
+    "{{value1}} 是热线索，但还没定目标售价，出价前需要补上。",
+    "{{value1}} is a hot lead without a target sale price. Add it before making an offer."
+  ],
+  "sentences.is.at.next.action.by": [
+    "{{value1}} 在{{value2}}，轮到 {{value3}}：{{value4}}。",
+    "{{value1}} is at {{value2}}. Next action by {{value3}}: {{value4}}."
+  ],
+  "sentences.action.by": [
+    "轮到 {{value1}}：{{value2}}",
+    "Action by {{value1}}: {{value2}}"
+  ],
+  "sentences.is.missing.key.fields": [
+    "{{value1}} 还缺 {{value2}} 项关键数据：{{value3}}{{value4}}。",
+    "{{value1}} is missing {{value2}} key fields: {{value3}}{{value4}}."
+  ],
+  "sentences.key.fields.missing": [
+    "缺 {{value1}} 项关键数据",
+    "{{value1}} key fields missing"
+  ],
+  "sentences.properties.need.your.attention.today": [
+    "今天有 {{value1}} 套房子需要你关注",
+    "{{value1}} properties need your attention today"
+  ],
+  "sentences.active.unpurchased.in.closeout": [
+    "{{value1}} 套在建，{{value2}} 套未购入，{{value3}} 套收尾。{{value4}}",
+    "{{value1}} active, {{value2}} unpurchased, {{value3}} in closeout. {{value4}}"
+  ],
+  "sentences.prioritize.these.items.today": [
+    "今天优先看这 {{value1}} 条：",
+    "Prioritize these {{value1}} items today:"
+  ],
+  "sentences.legacy.record": [
+    "{{value1}}（旧记录）",
+    "{{value1}} (legacy record)"
+  ],
+  "sentences.to": [
+    "{{value1}} 至 {{value2}}",
+    "{{value1}} to {{value2}}"
+  ],
+  "sentences.ordered.received.in.good.condition.awaiting.receipt.not.ordered": [
+    "已订 {{value1}} · 完好实收 {{value2}} · 待收 {{value3}} {{value4}} · 未订 {{value5}}",
+    "Ordered {{value1}} · Received in good condition {{value2}} · Awaiting receipt {{value3}} {{value4}} · Not ordered {{value5}}"
+  ],
+  "sentences.follow.up.due": [
+    "到期跟进：{{value1}}",
+    "Follow-up due: {{value1}}"
+  ],
+  "sentences.carrier.shows.delivered.verify.receipt": [
+    "{{value1}}：网站送达待确认",
+    "{{value1}}: carrier shows delivered; verify receipt"
+  ],
+  "sentences.shipment.exception": [
+    "{{value1}}：物流异常",
+    "{{value1}}: shipment exception"
+  ],
+  "sentences.awaiting.pickup": [
+    "{{value1}}：待取货",
+    "{{value1}}: awaiting pickup"
+  ],
+  "sentences.past.estimated.arrival": [
+    "{{value1}}：已过预计日期",
+    "{{value1}}: past estimated arrival"
+  ],
+  "sentences.items": [
+    "{{value1}} {{value2}} 项",
+    "{{value1}}: {{value2}} items"
+  ],
+  "sentences.fields.have.low.confidence.verify.them": [
+    "其中 {{value1}} 项把握度低（{{value2}}），建议核对。",
+    "{{value1}} fields have low confidence ({{value2}}); verify them."
+  ],
+  "sentences.fields.supplied.sources": [
+    "已补全 {{value1}} 项，来源：{{value2}}。{{value3}}",
+    "{{value1}} fields supplied. Sources: {{value2}}. {{value3}}"
+  ],
+  "sentences.follow.up.stage.before.escrow": [
+    "过门前档位：{{value1}}",
+    "Follow-up stage before escrow: {{value1}}"
+  ],
+  "sentences.in.escrow.previous.follow.up.stage": [
+    "escrow 中 · 过门前档位：{{value1}}",
+    "In escrow · Previous follow-up stage: {{value1}}"
+  ],
+  "sentences.enter": [
+    "填{{value1}}",
+    "Enter {{value1}}"
+  ],
+  "sentences.awaiting.confirmation": [
+    "等 {{value1}} 确认",
+    "Awaiting {{value1}} confirmation"
+  ],
+  "sentences.awaiting.confirmation.2": [
+    "待 {{value1}} 确认",
+    "Awaiting {{value1}} confirmation"
+  ],
+  "sentences.provide.2": [
+    "待交：{{value1}}",
+    "Provide: {{value1}}"
+  ],
+  "sentences.provide.photos": [
+    "待交照片：{{value1}}",
+    "Provide photos: {{value1}}"
+  ],
+  "sentences.enter.2": [
+    "待填：{{value1}}",
+    "Enter: {{value1}}"
+  ],
+  "sentences.completed.no.next.item.in.this.stage": [
+    "已完成「{{value1}}」。本段暂无下一项。",
+    "Completed “{{value1}}”. No next item in this stage."
+  ],
+  "sentences.completed.next": [
+    "已完成「{{value1}}」。下一位：{{value2}} · {{value3}}",
+    "Completed “{{value1}}”. Next: {{value2}} · {{value3}}"
+  ],
+  "sentences.have.all.confirmed": [
+    "{{value1}} 都已确认",
+    "{{value1}} have all confirmed"
+  ],
+  "sentences.confirmed.have.not": [
+    "{{value1}} 已确认；{{value2}} 还没确认",
+    "{{value1}} confirmed; {{value2}} have not"
+  ],
+  "sentences.each.of.must.confirm": [
+    "要 {{value1}} 各确认一次",
+    "Each of {{value1}} must confirm"
+  ],
+  "sentences.site.records.available.photos": [
+    "已有现场记录 · {{value1}} 张照片",
+    "Site records available · {{value1}} photos"
+  ],
+  "sentences.not.yet.available": [
+    "还没有「{{value1}}」",
+    "“{{value1}}” not yet available"
+  ],
+  "sentences.responsible.roles.3": [
+    "这一项由 {{value1}} 负责",
+    "Responsible roles: {{value1}}"
+  ],
+  "sentences.milestone.still.needs.confirmation": [
+    "本段关键节点「{{value1}}」还差 {{value2}} 确认",
+    "Milestone “{{value1}}” still needs {{value2}} confirmation"
+  ],
+  "sentences.milestone.has.no.confirmations.yet": [
+    "本段关键节点「{{value1}}」还没有人确认",
+    "Milestone “{{value1}}” has no confirmations yet"
+  ],
+  "sentences.earlier.items.have.not.met.system.requirements": [
+    "前面段落还有 {{value1}} 项系统未判定满足",
+    "{{value1}} earlier items have not met system requirements"
+  ],
+  "sentences.process.complete": [
+    "{{value1}} · 已走完",
+    "{{value1}} · Process complete"
+  ],
+  "sentences.switched.to.another.property.previous.purchase.and.target.sale.prices": [
+    "已切换到另一套房（{{value1}}），上一套房的买入价与目标售价已清空，请重新填写。",
+    "Switched to another property ({{value1}}). Previous purchase and target sale prices were cleared; enter them again."
+  ],
+  "sentences.created.and.tasks.assigned.email.is.not.connected.so.no": [
+    "已创建“{{value1}}”及 {{value2}} 项任务，已分派 {{value3}} 项。邮件通道未接通，本次未发送邮件。",
+    "Created “{{value1}}” and {{value2}} tasks; {{value3}} assigned. Email is not connected, so no email was sent."
+  ],
+  "sentences.beds.baths": [
+    "{{value1}} 房 / {{value2}} 卫",
+    "{{value1}} beds / {{value2}} baths"
+  ],
+  "sentences.use": [
+    "使用“{{value1}}”",
+    "Use “{{value1}}”"
+  ],
+  "sentences.account": [
+    "账号 {{value1}}",
+    "Account {{value1}}"
+  ],
+  "sentences.properties.lack.purchase.or.target.sale.prices.and.are.excluded": [
+    "{{value1}} 套买入价或目标售价未齐，未计入",
+    "{{value1}} properties lack purchase or target sale prices and are excluded"
+  ],
+  "sentences.removed": [
+    "已移除 {{value1}}",
+    "Removed {{value1}}"
+  ],
+  "sentences.matches": [
+    "{{value1}} 个匹配",
+    "{{value1}} matches"
+  ],
+  "sentences.requirements.met.in.this.stage": [
+    "{{value1}} · 这段做了 {{value2}}/{{value3}}",
+    "{{value1}} · {{value2}}/{{value3}} requirements met in this stage"
+  ],
+  "sentences.days.ago": [
+    "{{value1}} 天前",
+    "{{value1}} days ago"
+  ],
+  "sentences.in.days": [
+    "{{value1}} 天后",
+    "In {{value1}} days"
+  ],
+  "sentences.confirmed": [
+    " · {{value1}} 已确认",
+    " · {{value1}} confirmed"
+  ],
+  "sentences.expired.days.ago.2": [
+    "过期 {{value1}} 天",
+    "Expired {{value1}} days ago"
+  ],
+  "sentences.days.3": [
+    " {{value1}} 天",
+    " {{value1}} days"
+  ],
+  "sentences.active.unpurchased": [
+    "{{value1}} 在建 · {{value2}} 未购入",
+    "{{value1}} active · {{value2}} unpurchased"
+  ],
+  "sentences.sold.properties": [
+    "{{value1}} 套已售",
+    "{{value1}} sold properties"
+  ],
+  "sentences.records": [
+    "{{value1}} 条",
+    "{{value1}} records"
+  ],
+  "sentences.properties.need.action.today": [
+    "今天有 {{value1}} 套需要处理。",
+    "{{value1}} properties need action today."
+  ],
+  "sentences.active.unpurchased.in.closeout.2": [
+    "在建 {{value1}} 套，未购入 {{value2}} 套，收尾 {{value3}} 套。",
+    "{{value1}} active, {{value2}} unpurchased, {{value3}} in closeout."
+  ],
+  "sentences.workspace": [
+    "{{value1}} 的工作台",
+    "{{value1}} workspace"
+  ],
+  "sentences.hot.leads": [
+    "{{value1}} 套热线索",
+    "{{value1}} hot leads"
+  ],
+  "sentences.over.budget.2": [
+    "{{value1}} 个超预算",
+    "{{value1}} over budget"
+  ],
+  "sentences.items.belong.to.the.current.stage": [
+    "{{value1}} 件是现在这段的",
+    "{{value1}} items belong to the current stage"
+  ],
+  "sentences.interactive.sample": [
+    "{{value1}} 交互示例",
+    "{{value1}} interactive sample"
+  ],
+  "sentences.preference.recorded": [
+    "已记录偏好：{{value1}}",
+    "Preference recorded: {{value1}}"
+  ],
+  "sentences.option.preference.is.saved.in.this.browser": [
+    "{{value1}} 的方案 {{value2}} 偏好已保存在此浏览器。",
+    "{{value1}} option {{value2}} preference is saved in this browser."
+  ],
+  "sentences.insurance.file": [
+    "{{value1}} 保险文件",
+    "{{value1}} insurance file"
+  ],
+  "sentences.recorded.expiration.date": [
+    "记录到期日：{{value1}}",
+    "Recorded expiration date: {{value1}}"
+  ],
+  "sentences.my.tasks": [
+    "我的任务 ({{value1}})",
+    "My tasks ({{value1}})"
+  ],
+  "sentences.awaiting.my.review": [
+    "待我审核 ({{value1}})",
+    "Awaiting my review ({{value1}})"
+  ],
+  "sentences.saved": [
+    "「{{value1}}」已保存",
+    "“{{value1}}” saved"
+  ],
+  "sentences.ready": [
+    "{{value1}}/{{value2}} 已备齐",
+    "{{value1}}/{{value2}} ready"
+  ],
+  "sentences.follow.up.needed.only.items": [
+    "只看需跟进 · {{value1}} 项",
+    "Follow-up needed only · {{value1}} items"
+  ],
+  "sentences.search.results.items": [
+    "搜索结果 · {{value1}} 项",
+    "Search results · {{value1}} items"
+  ],
+  "sentences.next.follow.up": [
+    " · 下次跟进 {{value1}}",
+    " · Next follow-up {{value1}}"
+  ],
+  "sentences.quantity.received.this.time": [
+    "{{value1}} 本次实收数量",
+    "{{value1}} quantity received this time"
+  ],
+  "sentences.damaged.quantity.this.time": [
+    "{{value1}} 其中破损数量",
+    "{{value1}} damaged quantity this time"
+  ],
+  "sentences.receipt.records": [
+    "收货记录 · {{value1}} 次",
+    "Receipt records · {{value1}}"
+  ],
+  "sentences.return.records": [
+    "退货记录 · {{value1}} 条",
+    "Return records · {{value1}}"
+  ],
+  "sentences.refund.recorded": [
+    " · 退款记录 {{value1}}",
+    " · Refund recorded {{value1}}"
+  ],
+  "sentences.actions.and.original.text.history": [
+    "操作与原文历史 · {{value1}} 条",
+    "Actions and original text history · {{value1}}"
+  ],
+  "sentences.created.account": [
+    "已建账号 {{value1}}（{{value2}}）",
+    "Created account {{value1}} ({{value2}})"
+  ],
+  "sentences.updated": [
+    "已更新 {{value1}}",
+    "Updated {{value1}}"
+  ],
+  "sentences.reset.password.for": [
+    "已重置 {{value1}} 的密码",
+    "Reset password for {{value1}}"
+  ],
+  "sentences.": [
+    "{{value1}} 已{{value2}}",
+    "{{value1}}: {{value2}}"
+  ],
+  "sentences.select": [
+    "选择 {{value1}}",
+    "Select {{value1}}"
+  ],
+  "sentences.edit.3": [
+    "改 {{value1}}",
+    "Edit {{value1}}"
+  ],
+  "sentences.reset.password.for.2": [
+    "重置 {{value1}} 的密码",
+    "Reset password for {{value1}}"
+  ],
+  "sentences.version": [
+    "{{value1}}方案 {{value2}}",
+    "{{value1}} version {{value2}}"
+  ],
+  "sentences.created.prefilled.from.known.data.and.industry.defaults": [
+    "已新建“{{value1}}”，数据已按已知信息与行业默认值预填",
+    "Created “{{value1}}”, prefilled from known data and industry defaults"
+  ],
+  "sentences.applied.to.project.renovation.line.items.budget.lines": [
+    "已应用到项目：{{value1}}装修明细已{{value2}}预算项",
+    "Applied to project: {{value1}} renovation line items {{value2}} budget lines"
+  ],
+  "sentences.down.payment.charges.renovation.holding.principal.repaid": [
+    "首付 {{value1}} + 杂费 + 装修 + 持有 + 已还本金 {{value2}}",
+    "Down payment {{value1}} + charges + renovation + holding + principal repaid {{value2}}"
+  ],
+  "sentences.line.items": [
+    "{{value1}} 行明细",
+    "{{value1}} line items"
+  ],
+  "sentences.target.return.on.total.cost": [
+    "目标利润率 {{value1}}%",
+    "Target return on total cost {{value1}}%"
+  ],
+  "sentences.current.purchase.price.is.below.the.maximum": [
+    "当前买入价低于上限 {{value1}}",
+    "Current purchase price is {{value1}} below the maximum"
+  ],
+  "sentences.current.purchase.price.is.above.the.maximum": [
+    "当前买入价高出上限 {{value1}}",
+    "Current purchase price is {{value1}} above the maximum"
+  ],
+  "sentences.vs.maximum": [
+    "{{value1}} vs 上限 {{value2}}",
+    "{{value1}} vs. maximum {{value2}}"
+  ],
+  "sentences.delete.existing.budget.items.and.replace.with.category.totals": [
+    "删掉现有 {{value1}} 预算项，按类别汇总写入",
+    "Delete {{value1}} existing budget items and replace with category totals"
+  ],
+  "sentences.budget.items": [
+    "{{value1}} 个预算项",
+    "{{value1}} budget items"
+  ],
+  "sentences.remaining": [
+    "剩余 {{value1}}",
+    "{{value1}} remaining"
+  ],
+  "sentences.over.budget.the.red.segment.shows.the.excess": [
+    "已超支 {{value1}}，红色那段就是超出的部分",
+    "{{value1}} over budget; the red segment shows the excess"
+  ],
+  "sentences.view.expenses": [
+    "查看{{value1}}支出",
+    "View {{value1}} expenses"
+  ],
+  "sentences.over": [
+    "超 {{value1}}",
+    "{{value1}} over"
+  ],
+  "sentences.remaining.2": [
+    "剩 {{value1}}",
+    "{{value1}} remaining"
+  ],
+  "sentences.page": [
+    "第 {{value1}} 页",
+    "Page {{value1}}"
+  ],
+  "sentences.matching.records": [
+    "{{value1}} 笔匹配",
+    "{{value1}} matching records"
+  ],
+  "sentences.fields.have.conflicting.sources.select.primary.values": [
+    "{{value1}} 个字段来源冲突，需选择主值。",
+    "{{value1}} fields have conflicting sources; select primary values."
+  ],
+  "sentences.updated.source.marked.manual": [
+    "{{value1}} 已更新，来源标记为“人工”",
+    "{{value1}} updated; source marked Manual"
+  ],
+  "sentences.edit.file.registration": [
+    "编辑登记信息：{{value1}}",
+    "Edit file registration: {{value1}}"
+  ],
+  "sentences.save.failed": [
+    "保存失败：{{value1}}",
+    "Save failed: {{value1}}"
+  ],
+  "sentences.categories.are.over.budget.see.budget.for.all.categories": [
+    "{{value1}} 个类别超支；完整分类在预算页。",
+    "{{value1}} categories are over budget. See Budget for all categories."
+  ],
+  "sentences.over.budget.3": [
+    "已超支 {{value1}}",
+    "{{value1}} over budget"
+  ],
+  "sentences.beds.baths.2": [
+    "{{value1}} 卧 {{value2}} 卫",
+    "{{value1}} beds, {{value2}} baths"
+  ],
+  "sentences.year": [
+    "{{value1}} 年",
+    "Year {{value1}}"
+  ],
+  "sentences.deleted": [
+    "已删除“{{value1}}”",
+    "Deleted “{{value1}}”"
+  ],
+  "sentences.activity.history": [
+    "{{value1}} · 活动记录",
+    "{{value1}} · Activity history"
+  ]
+}

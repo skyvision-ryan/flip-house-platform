@@ -1,0 +1,46 @@
+{
+  "procurementFields.specifications.dimensions": [
+    "规格 / 尺寸",
+    "Specifications / dimensions"
+  ],
+  "procurementFields.required.quantity": [
+    "需求数量",
+    "Required quantity"
+  ],
+  "procurementFields.requirement.unit": [
+    "需求单位",
+    "Requirement unit"
+  ],
+  "procurementFields.each.box.sq.ft": [
+    "件 / 箱 / 平方英尺…",
+    "Each / box / sq ft…"
+  ],
+  "procurementFields.required.on.site.date": [
+    "需要到场日期",
+    "Required on-site date"
+  ],
+  "procurementFields.requirement.budget.usd": [
+    "需求预算（USD）",
+    "Requirement budget (USD)"
+  ],
+  "procurementFields.procurement.planning.amount.separate.from.the.financial.budget.and": [
+    "采购计划金额，独立于财务预算与已付款。",
+    "Procurement planning amount, separate from the financial budget and payments."
+  ],
+  "procurementFields.use.location": [
+    "使用位置",
+    "Use location"
+  ],
+  "procurementFields.requirement.notes": [
+    "需求备注",
+    "Requirement notes"
+  ],
+  "procurementFields.dimension.checks.use.requirements.selection.questions": [
+    "尺寸核对、使用要求、选型问题…",
+    "Dimension checks, use requirements, selection questions…"
+  ],
+  "procurementFields.reference.product.link": [
+    "商品参考链接",
+    "Reference product link"
+  ]
+}

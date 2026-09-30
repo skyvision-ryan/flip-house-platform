@@ -1,0 +1,350 @@
+{
+  "server.latest.final.inspection.failed": [
+    "最近一次 final 检查未通过：{{value1}}（{{value2}}）",
+    "Latest Final Inspection failed: {{value1}} ({{value2}})"
+  ],
+  "server.final.inspection.passed": [
+    "final 检查通过：{{value1}}",
+    "Final Inspection passed: {{value1}}"
+  ],
+  "server.not.entered": [
+    "还没填{{value1}}",
+    "{{value1}} not entered"
+  ],
+  "server.uploaded": [
+    "已传{{value1}}",
+    "{{value1}} uploaded"
+  ],
+  "server.not.uploaded": [
+    "还没传{{value1}}",
+    "{{value1}} not uploaded"
+  ],
+  "server.entered": [
+    "已填{{value1}}：{{value2}}",
+    "{{value1}} entered: {{value2}}"
+  ],
+  "server.entered.2": [
+    "已填{{value1}}",
+    "{{value1}} entered"
+  ],
+  "server.entered.3": [
+    "已填{{value1}} {{value2}}",
+    "{{value1}} entered: {{value2}}"
+  ],
+  "server.uploaded.by": [
+    "（{{value1}} 传的）",
+    "(uploaded by {{value1}})"
+  ],
+  "server.uploaded.2": [
+    "已上传{{value1}}：{{value2}}{{value3}}",
+    "{{value1}} uploaded: {{value2}}{{value3}}"
+  ],
+  "server.photos.uploaded": [
+    "已传 {{value1}} 张照片",
+    "{{value1}} photos uploaded"
+  ],
+  "server.confirmed.manually.without.delivery.evidence": [
+    "{{value1}} 手工确认，没有交付证据",
+    "{{value1}} confirmed manually without delivery evidence"
+  ],
+  "server.deal.analysis.versions.created": [
+    "已做 {{value1}} 版交易分析",
+    "{{value1}} deal analysis versions created"
+  ],
+  "server.expenses.recorded": [
+    "已有 {{value1}} 笔支出",
+    "{{value1}} expenses recorded"
+  ],
+  "server.pre.rough.in.materials.ready.items": [
+    "水电检查前材料已齐（{{value1}} 项）",
+    "Pre-rough-in materials ready ({{value1}} items)"
+  ],
+  "server.all.three.utilities": [
+    "水电瓦斯三家都{{value1}}",
+    "All three utilities {{value1}}"
+  ],
+  "server.entered.by": [
+    "（{{value1}} 填的）",
+    "(entered by {{value1}})"
+  ],
+  "server.inspections.passed": [
+    "已通过 {{value1}} 次检查：{{value2}}",
+    "{{value1}} inspections passed: {{value2}}"
+  ],
+  "server.manual.override": [
+    "人工覆盖：{{value1}}",
+    "Manual override: {{value1}}"
+  ],
+  "server.spending.exceeds.budget.by.more.than.5": [
+    "支出已超预算 ${{value1}}（超过 5%）",
+    "Spending exceeds budget by ${{value1}} (more than 5%)"
+  ],
+  "server.days.past.planned.finish.and.not.yet.listed": [
+    "已超过计划完工日 {{value1}} 天且尚未挂牌",
+    "{{value1}} days past planned finish and not yet listed"
+  ],
+  "server.damaged.replacement.needed": [
+    "{{value1}}：破损待补齐 {{value2}} {{value3}}",
+    "{{value1}}: {{value2}} {{value3}} damaged; replacement needed"
+  ],
+  "server.does.not.have.permission.to": [
+    "{{value1}} 没有权限{{value2}}",
+    "{{value1}} does not have permission to {{value2}}"
+  ],
+  "server.confirmed.milestone.conditions.prerequisite.evidence.retained": [
+    "{{value1}} 确认节点满足，已保留前置依据",
+    "{{value1}} confirmed milestone conditions; prerequisite evidence retained"
+  ],
+  "server.confirmed.awaiting": [
+    "{{value1}} 已确认，等 {{value2}}",
+    "{{value1}} confirmed; awaiting {{value2}}"
+  ],
+  "server.awaiting.confirmation": [
+    "待 {{value1}} 确认",
+    "Awaiting {{value1}} confirmation"
+  ],
+  "server.items": [
+    "{{value1}} 项",
+    "{{value1}} items"
+  ],
+  "server.this.task.is.assigned.to.you.cannot.change.its.progress": [
+    "这项任务现在由 {{value1}} 负责，你不能改它的进度",
+    "This task is assigned to {{value1}}; you cannot change its progress"
+  ],
+  "server.current.status.is.cannot": [
+    "现在是「{{value1}}」，不能{{value2}}",
+    "Current status is “{{value1}}”; cannot {{value2}}"
+  ],
+  "server.this.task.requires.select.at.least.one.file.before.submitting": [
+    "这项任务要交「{{value1}}」，至少选一个文件再提交",
+    "This task requires “{{value1}}”. Select at least one file before submitting."
+  ],
+  "server.submitted.delivery": [
+    "提交了“{{value1}}”第 {{value2}} 次交付",
+    "Submitted “{{value1}}”, delivery {{value2}}"
+  ],
+  "server.the.reviewer.is.you.cannot": [
+    "这项任务的审核人是 {{value1}}，你不能{{value2}}",
+    "The reviewer is {{value1}}; you cannot {{value2}}"
+  ],
+  "server.account": [
+    "账号 {{value1}}",
+    "Account {{value1}}"
+  ],
+  "server.assigned.to": [
+    "分派给 {{value1}}",
+    "Assigned to {{value1}}"
+  ],
+  "server.tasks.waiting": [
+    "{{value1}} 项等待",
+    "{{value1}} tasks waiting"
+  ],
+  "server.file.does.not.belong.to.this.project": [
+    "文件 {{value1}} 不属于这个项目",
+    "File {{value1}} does not belong to this project"
+  ],
+  "server.you.do.not.have.permission.to.use": [
+    "你没有权限使用文件「{{value1}}」",
+    "You do not have permission to use “{{value1}}”"
+  ],
+  "server.files": [
+    "（{{value1}} 个文件）",
+    "({{value1}} files)"
+  ],
+  "server.reassigned.from.to": [
+    "从 {{value1}} 改派给 {{value2}}",
+    "Reassigned from {{value1}} to {{value2}}"
+  ],
+  "server.removed.assignment.for": [
+    "取消了 {{value1}} 的分派",
+    "Removed assignment for {{value1}}"
+  ],
+  "server.is.not.a.project.member.select.add.member.and.assign": [
+    "{{value1}} 还不是本项目成员。要分派给他，请选择「加入项目并分派」",
+    "{{value1}} is not a project member. Select Add member and assign to assign this task."
+  ],
+  "server.due.date": [
+    "截止日期 {{value1}} → {{value2}}",
+    "Due date {{value1}} → {{value2}}"
+  ],
+  "server.response.expected": [
+    "，预计 {{value1}} 回复",
+    "; response expected {{value1}}"
+  ],
+  "server.joined.the.project": [
+    "{{value1}} 加入了项目",
+    "{{value1}} joined the project"
+  ],
+  "server.waiting.for": [
+    "：等 {{value1}}",
+    ": waiting for {{value1}}"
+  ],
+  "server.submission": [
+    "第 {{value1}} 次提交",
+    "Submission {{value1}}"
+  ],
+  "server.returned.submission": [
+    "退回第 {{value1}} 次提交",
+    "Returned submission {{value1}}"
+  ],
+  "server.files.2": [
+    "，{{value1}} 个文件",
+    ", {{value1}} files"
+  ],
+  "server.accepted.delivery.task.complete": [
+    "确认第 {{value1}} 次交付，任务完成",
+    "Accepted delivery {{value1}}; task complete"
+  ],
+  "validation.currencyPrecision": [
+    "金额最多保留两位小数",
+    "Amounts may have at most two decimal places"
+  ],
+  "validation.url": [
+    "请输入有效的 http:// 或 https:// 网址，且不要包含账号密码",
+    "Enter a valid http:// or https:// URL without account credentials"
+  ],
+  "validation.required": [
+    "必填",
+    "Required"
+  ],
+  "validation.failed": [
+    "输入不符合要求，请检查字段。",
+    "Check the highlighted fields and their requirements."
+  ],
+  "server.sessionChanged": [
+    "SESSION_CHANGED: 登录账号已在另一页签改变，请核对当前身份后重试",
+    "The account changed in another tab. Check your current identity and try again."
+  ],
+  "server.refundCannotDecrease": [
+    "累计退款不能少于已有退款记录",
+    "The total refund cannot be less than refunds already recorded."
+  ],
+  "server.refundExceedsPayment": [
+    "累计退款不能超过订单实付",
+    "Total refunds cannot exceed the recorded order payment."
+  ],
+  "server.duplicateRecord": [
+    "记录标识重复",
+    "Duplicate record ID."
+  ],
+  "server.combineBatchItem": [
+    "同一批次的商品请合并数量",
+    "Combine quantities for the same item in a delivery batch."
+  ],
+  "server.arrivalBeforeOrder": [
+    "预计到货不能早于下单日期",
+    "Estimated arrival cannot be before the order date."
+  ],
+  "server.missingReceiptBatch": [
+    "收货对应批次不存在",
+    "The delivery batch for this receipt does not exist."
+  ],
+  "server.receiptBeforeOrder": [
+    "实际收货不能早于下单日期",
+    "The actual receipt date cannot be before the order date."
+  ],
+  "server.futureReceipt": [
+    "实际收货不能填写未来日期",
+    "The actual receipt date cannot be in the future."
+  ],
+  "server.duplicateReceiptItem": [
+    "本次收货商品重复",
+    "An item is repeated in this receipt."
+  ],
+  "server.invalidReturn": [
+    "退货商品或完好退货数量不正确",
+    "Check the returned item and the quantity returned in good condition."
+  ],
+  "server.futureReturn": [
+    "实际退货退款不能填写未来日期",
+    "The return or refund date cannot be in the future."
+  ],
+  "server.returnExceedsReceipt": [
+    "退货数量超过已收货数量",
+    "The return quantity exceeds the quantity received."
+  ],
+  "server.damagedReturnExceeded": [
+    "破损退货数量超过已登记破损数量",
+    "Damaged returns exceed the recorded damaged quantity."
+  ],
+  "server.allocatedExceeded": [
+    "取消或配送分配数量超过订购数量",
+    "Cancelled or allocated quantities exceed the ordered quantity."
+  ],
+  "server.usableExceeded": [
+    "完好实收超过有效订购数量，请核对补发或取消",
+    "Usable receipts exceed the active order quantity. Check replacements and cancellations."
+  ],
+  "server.verifyAllocation": [
+    "分配配送前请核对商品及订购数量",
+    "Verify the item and ordered quantity before allocating delivery."
+  ],
+  "server.invalidReceiptDamage": [
+    "收货商品或破损数量不正确",
+    "Check the received item and damaged quantity."
+  ],
+  "server.batchReceiptExceeded": [
+    "累计收货超过本批次分配数量",
+    "Total receipts exceed the quantity allocated to this delivery batch."
+  ],
+  "server.verifyCancel": [
+    "取消前请核对订购数量",
+    "Verify the ordered quantity before cancelling."
+  ],
+  "server.receiptExceedsNeed": [
+    "本次收货超过尚需补齐数量，请核对商品、破损或退货记录",
+    "This receipt exceeds the remaining quantity. Check the item, damage and return records."
+  ],
+  "server.milestoneActor": [
+    "大节点要由 {{roles}} 确认，请选择以谁的身份勾",
+    "This milestone requires confirmation by {{roles}}. Select the confirming role."
+  ],
+  "server.cannotConfirmFor": [
+    "{{actor}} 不能替 {{role}} 确认大节点",
+    "{{actor}} cannot confirm a milestone on behalf of {{role}}."
+  ],
+  "server.deliverableRequired": [
+    "“{{task}}”要交东西才算完成，不能手工勾",
+    "“{{task}}” requires a deliverable and cannot be marked complete manually."
+  ],
+  "server.taskRoleRequired": [
+    "“{{task}}”由 {{roles}} 负责，{{actor}} 不能勾",
+    "“{{task}}” is assigned to {{roles}}. {{actor}} cannot mark it complete."
+  ],
+  "server.unknownRole": [
+    "没有这个角色代号：{{role}}",
+    "Unknown role code: {{role}}"
+  ],
+  "server.fileTypeDenied": [
+    "{{actor}} 不能传这类文件，只能交自己那一步的东西",
+    "{{actor}} cannot upload this file type. Upload only deliverables for your assigned step."
+  ],
+  "server.fileEditDenied": [
+    "{{actor}} 不能改别人登记的文件",
+    "{{actor}} cannot edit files registered by another person."
+  ],
+  "server.fileMetadataDenied": [
+    "{{actor}} 不能改文件的类型、挂的步骤或上传人",
+    "{{actor}} cannot change the file type, linked step or uploader."
+  ],
+  "server.fileDownloadDenied": [
+    "{{actor}} 不能下载这个文件",
+    "{{actor}} cannot download this file."
+  ],
+  "server.fileDeleteDenied": [
+    "{{actor}} 不能删别人的文件",
+    "{{actor}} cannot delete another person's file."
+  ],
+  "server.unsupportedImage": [
+    "不支持的图片",
+    "unsupported image"
+  ],
+  "server.unknownSpecialist": [
+    "专业工作区不存在",
+    "Unknown specialist workspace"
+  ],
+  "server.unknownLeadership": [
+    "管理工作区不存在",
+    "Unknown leadership workspace"
+  ]
+}

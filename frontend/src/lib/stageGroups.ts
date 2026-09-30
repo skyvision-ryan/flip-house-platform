@@ -1,3 +1,4 @@
+import { systemText, m as uiText } from '../i18n/core.ts';
 import type { GroupPosition, StageGroup } from '../api/client';
 
 /**
@@ -14,16 +15,16 @@ export function segmentsOf(groups: StageGroup[] | null | undefined, gp: GroupPos
     const history = !!gp.history_pending && g.stages.every((key) => key < (gp.initial_stage_key ?? 's1'));
     const state: SegmentState = history ? 'history' : gp.complete ? 'done' : idx < gp.group_index ? 'done' : idx === gp.group_index ? 'current' : 'future';
     let note: string | null = history ? '录入前 · 待核验' : null;
-    if (state === 'current' && gp.sub_label) note = gp.sub_label + (gp.sub_key === 'pre' && gp.lead_substage_label ? ` · ${gp.lead_substage_label}` : '');
-    if (state === 'done' && g.key === 'buying' && gp.frozen_substage_label) note = `过门前档位：${gp.frozen_substage_label}`;
-    if (state === 'current' && g.key === 'buying' && gp.sub_key === 'escrow' && gp.frozen_substage_label) note = `escrow 中 · 过门前档位：${gp.frozen_substage_label}`;
+    if (state === 'current' && gp.sub_label) note = systemText(gp.sub_label) + (gp.sub_key === 'pre' && gp.lead_substage_label ? ` · ${systemText(gp.lead_substage_label)}` : '');
+    if (state === 'done' && g.key === 'buying' && gp.frozen_substage_label) note = uiText("sentences.follow.up.stage.before.escrow", { value1: (systemText(gp.frozen_substage_label)) });
+    if (state === 'current' && g.key === 'buying' && gp.sub_key === 'escrow' && gp.frozen_substage_label) note = uiText("sentences.in.escrow.previous.follow.up.stage", { value1: (systemText(gp.frozen_substage_label)) });
     return { key: g.key, label: g.label, index: idx, state, note };
   });
 }
 
 /** 列表筛选项：全部 + 每组（买房拆成两个子项）。value 形如 `buying:pre` / `renovation`。 */
 export function groupFilterOptions(groups: StageGroup[] | null | undefined): { value: string; label: string }[] {
-  const out = [{ value: '', label: '全部位置' }];
+  const out = [{ value: '', label: uiText("stageGroups.all.positions") }];
   for (const g of groups ?? []) {
     if (g.subs.length) g.subs.forEach((s) => out.push({ value: `${g.key}:${s.key}`, label: `${g.label} · ${s.label}` }));
     else out.push({ value: g.key, label: g.label });

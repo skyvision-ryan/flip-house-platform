@@ -1,0 +1,106 @@
+{
+  "taskAssignModal.remove.assignment": [
+    "取消分派",
+    "Remove assignment"
+  ],
+  "taskAssignModal.return.task.to.unassigned": [
+    "任务回到待分派",
+    "Return task to unassigned"
+  ],
+  "taskAssignModal.project.members": [
+    "项目成员",
+    "Project members"
+  ],
+  "taskAssignModal.not.a.member.selecting.adds.them.to.the.project": [
+    "不在项目里 · 选中即加入项目并分派",
+    "Not a member · Selecting adds them to the project and assigns the task"
+  ],
+  "taskAssignModal.select.a.person.first": [
+    "先选一个人",
+    "Select a person first"
+  ],
+  "taskAssignModal.a.reason.is.required.for.reassignment.both.the.new": [
+    "改派要写原因，接手的人和原负责人都会看到",
+    "A reason is required for reassignment; both the new and previous assignees can see it"
+  ],
+  "taskAssignModal.and.add.to.project.members": [
+    "，并加入项目成员",
+    "and add to project members"
+  ],
+  "taskAssignModal.someone.just.updated.this.record": [
+    "刚被别人改过",
+    "Someone just updated this record"
+  ],
+  "taskAssignModal.add.member.and.assign": [
+    "加入项目并分派",
+    "Add member and assign"
+  ],
+  "taskAssignModal.save.assignment": [
+    "保存分派",
+    "Save assignment"
+  ],
+  "taskAssignModal.cannot.load.project.members": [
+    "读不到项目成员：",
+    "Cannot load project members:"
+  ],
+  "taskAssignModal.the.same.assignee.and.due.date.apply.reassigning.existing": [
+    "。同一个负责人、同一截止日期；已有负责人的项会改派，要写原因。",
+    ". The same assignee and due date apply. Reassigning existing tasks requires a reason."
+  ],
+  "taskAssignModal.accounts.are.grouped.by.project.membership.selecting.another.account": [
+    "候选按项目成员分组；选择其他账号时，会先提示加入项目。",
+    "Accounts are grouped by project membership. Selecting another account prompts you to add it to the project."
+  ],
+  "taskAssignModal.select.an.account": [
+    "选一个账号",
+    "Select an account"
+  ],
+  "taskAssignModal.previous.assignee": [
+    "原负责人：",
+    "Previous assignee:"
+  ],
+  "taskAssignModal.the.new.assignee.takes.over.existing.procurement.progress.previous": [
+    "。接手现有采购进度，原负责人的记录保留。",
+    ". The new assignee takes over existing procurement progress. Previous records are retained."
+  ],
+  "taskAssignModal.reassignment.resets.progress.to.not.started.the.previous.assignee": [
+    "。换人后进度回到「未开始」，原负责人的记录保留在活动记录里。",
+    ". Reassignment resets progress to Not started. The previous assignee's records remain in the activity history."
+  ],
+  "taskAssignModal.is.not.a.project.member.yet.saving.adds.them": [
+    "还不是本项目成员。保存时会加入项目，活动记录里会记一条「加入项目」。",
+    "is not a project member yet. Saving adds them to the project and records a membership event."
+  ],
+  "taskAssignModal.you.may.leave.this.blank.and.set.it.later": [
+    "可以先空着，之后在任务摘要里补。",
+    "You may leave this blank and set it later in the task summary."
+  ],
+  "taskAssignModal.reassignment.reason.required": [
+    "改派原因（必填）",
+    "Reassignment reason (required)"
+  ],
+  "taskAssignModal.explanation.optional": [
+    "说明（可选）",
+    "Explanation (optional)"
+  ],
+  "taskAssignModal.saved.in.the.activity.history": [
+    "会写进活动记录。",
+    "Saved in the activity history."
+  ],
+  "taskAssignModal.for.example.employee.a.is.on.leave.a2.is": [
+    "例如：员工 A 休假，由 A2 接手",
+    "For example: Employee A is on leave; A2 is taking over"
+  ],
+  "taskAssignModal.reviewer": [
+    "审核人：",
+    "Reviewer:"
+  ],
+  "taskAssignModal.you": [
+    "你自己",
+    "You"
+  ],
+  "taskAssignModal.assignment.changes.only.the.assignee.and.due.date.milestones": [
+    "分派只调整负责人和截止日期；关键节点仍需单独确认。",
+    "Assignment changes only the assignee and due date; milestones require separate confirmation."
+  ]
+}

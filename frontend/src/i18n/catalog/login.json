@@ -1,0 +1,38 @@
+{
+  "login.enter.both.account.and.password": [
+    "账号和密码都要填",
+    "Enter both account and password"
+  ],
+  "login.incorrect": [
+    "不对",
+    "Incorrect"
+  ],
+  "login.incorrect.account.or.password": [
+    "账号或密码不对",
+    "Incorrect account or password"
+  ],
+  "login.sign.in.to.review.property.progress.and.handle.assigned": [
+    "登录后查看房屋进展，处理分派给你的工作。",
+    "Sign in to review property progress and handle assigned work."
+  ],
+  "login.continue.with.a.demo.role": [
+    "先不登录，用演示身份",
+    "Continue with a demo role"
+  ],
+  "login.email": [
+    "邮箱",
+    "Email"
+  ],
+  "login.existing.demo.and.administrator.accounts.can.also.sign.in": [
+    "原有演示账号和管理员也可使用原账号名登录。",
+    "Existing demo and administrator accounts can also sign in with their usernames."
+  ],
+  "login.forgot.your.password.or.cannot.sign.in.contact.the": [
+    "忘记密码或无法登录？请联系项目负责人。",
+    "Forgot your password or cannot sign in? Contact the project lead."
+  ],
+  "login.demo.mode.allows.visitors.to.select.a.role.from": [
+    "现在是演示模式：没登录也能用顶栏“我是”自报身份。正式上线后必须登录。",
+    "Demo mode allows visitors to select a role from the top bar. Production requires sign-in."
+  ]
+}

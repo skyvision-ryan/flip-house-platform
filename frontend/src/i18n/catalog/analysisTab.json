@@ -1,0 +1,346 @@
+{
+  "analysisTab.item": [
+    "名目",
+    "Item"
+  ],
+  "analysisTab.delete": [
+    "删除",
+    "Delete"
+  ],
+  "analysisTab.analysis.changes.are.not.saved.keep.changes.for.this": [
+    "分析修改尚未保存。在本次浏览期间保留修改并切换方案？",
+    "Analysis changes are not saved. Keep changes for this browser session and switch versions?"
+  ],
+  "analysisTab.light.renovation": [
+    "轻装",
+    "Light renovation"
+  ],
+  "analysisTab.medium.renovation": [
+    "中装",
+    "Medium renovation"
+  ],
+  "analysisTab.heavy.renovation": [
+    "重装",
+    "Heavy renovation"
+  ],
+  "analysisTab.version.deleted": [
+    "已删除该版本",
+    "Version deleted"
+  ],
+  "analysisTab.target.sale.price.and.purchase.price.updated": [
+    "目标售价与买入价已更新，",
+    "Target sale price and purchase price updated;"
+  ],
+  "analysisTab.replace": [
+    "替换为",
+    "replace"
+  ],
+  "analysisTab.append.to": [
+    "追加到",
+    "append to"
+  ],
+  "analysisTab.reload": [
+    "重新读取",
+    "Reload"
+  ],
+  "analysisTab.no.analysis.yet.known.valuation.list.price.property.tax": [
+    "还没有算过账。系统会用已知数据（估值、挂牌价、房产税、面积）和行业默认值预填一份，你只需要改动你更清楚的数字。",
+    "No analysis yet. Known valuation, list price, property tax, area, and industry defaults will prefill a version. Update the inputs you know better."
+  ],
+  "analysisTab.prefill.medium.renovation": [
+    "按中装预填一份",
+    "Prefill medium renovation"
+  ],
+  "analysisTab.acquisition": [
+    "买入",
+    "Acquisition"
+  ],
+  "analysisTab.holding": [
+    "持有",
+    "Holding"
+  ],
+  "analysisTab.sale": [
+    "卖出",
+    "Sale"
+  ],
+  "analysisTab.unsaved.changes": [
+    "修改尚未保存",
+    "Unsaved changes"
+  ],
+  "analysisTab.retry.saving": [
+    "重试保存",
+    "Retry saving"
+  ],
+  "analysisTab.inputs.remain.in.this.browser.session.including.when.you": [
+    "输入在本次浏览期间保留；离开再返回可继续保存，刷新前请先重试。",
+    "Inputs remain in this browser session, including when you leave and return. Retry saving before refreshing."
+  ],
+  "analysisTab.changing.inputs.recalculates.results.prefilled.fields.retain.their.sources": [
+    "修改数字后自动重算。预填字段保留来源，采用前请核实。",
+    "Changing inputs recalculates results. Prefilled fields retain their sources; verify before adopting them."
+  ],
+  "analysisTab.save.failed": [
+    "保存失败",
+    "Save failed"
+  ],
+  "analysisTab.saving": [
+    "保存中",
+    "Saving"
+  ],
+  "analysisTab.saved": [
+    "已保存",
+    "Saved"
+  ],
+  "analysisTab.current": [
+    "（当前）",
+    "(current)"
+  ],
+  "analysisTab.new.version.light.renovation": [
+    "新建版本：轻装",
+    "New version: light renovation"
+  ],
+  "analysisTab.new.version.medium.renovation": [
+    "新建版本：中装",
+    "New version: medium renovation"
+  ],
+  "analysisTab.new.version.heavy.renovation": [
+    "新建版本：重装",
+    "New version: heavy renovation"
+  ],
+  "analysisTab.set.as.current.version": [
+    "设为当前版本",
+    "Set as current version"
+  ],
+  "analysisTab.delete.this.version": [
+    "删除此版本",
+    "Delete this version"
+  ],
+  "analysisTab.version": [
+    "版本",
+    "Version"
+  ],
+  "analysisTab.wait.for.the.analysis.to.save.before.applying.it": [
+    "请先等待分析保存成功，再应用到项目。",
+    "Wait for the analysis to save before applying it to the project."
+  ],
+  "analysisTab.apply.to.project": [
+    "应用到项目",
+    "Apply to project"
+  ],
+  "analysisTab.key.metrics": [
+    "核心指标",
+    "Key metrics"
+  ],
+  "analysisTab.total.profit": [
+    "总利润",
+    "Total profit"
+  ],
+  "analysisTab.loss.costs.exceed.sale.price": [
+    "亏损：成本高于售价",
+    "Loss: costs exceed sale price"
+  ],
+  "analysisTab.sale.price.less.all.costs": [
+    "售价减全部成本",
+    "Sale price less all costs"
+  ],
+  "analysisTab.return.on.total.cost": [
+    "利润率",
+    "Return on total cost"
+  ],
+  "analysisTab.profit.total.cost": [
+    "利润 ÷ 总成本",
+    "Profit ÷ total cost"
+  ],
+  "analysisTab.return.on.cash.invested": [
+    "回报率",
+    "Return on cash invested"
+  ],
+  "analysisTab.profit.cash.invested": [
+    "利润 ÷ 现金投入",
+    "Profit ÷ cash invested"
+  ],
+  "analysisTab.equity.multiple": [
+    "权益倍数",
+    "Equity multiple"
+  ],
+  "analysisTab.cash.returned.after.loan.payoff.cash.invested": [
+    "卖出还清贷款后拿回的现金 ÷ 现金投入",
+    "Cash returned after loan payoff ÷ cash invested"
+  ],
+  "analysisTab.total.cost": [
+    "总成本",
+    "Total cost"
+  ],
+  "analysisTab.acquisition.holding.renovation.sale": [
+    "买入 + 持有 + 装修 + 卖出",
+    "Acquisition + holding + renovation + sale"
+  ],
+  "analysisTab.cash.invested": [
+    "现金投入",
+    "Cash invested"
+  ],
+  "analysisTab.all.cash.purchase.charges.renovation.holding": [
+    "全款：买入 + 杂费 + 装修 + 持有",
+    "All cash: purchase + charges + renovation + holding"
+  ],
+  "analysisTab.expected.sale.price.after.renovation": [
+    "修好后能卖多少",
+    "Expected sale price after renovation"
+  ],
+  "analysisTab.renovation.total": [
+    "装修合计",
+    "Renovation total"
+  ],
+  "analysisTab.additional.charges": [
+    "附加费用",
+    "Additional charges"
+  ],
+  "analysisTab.inspection.appraisal.legal.closing.etc": [
+    "检验、评估、律师、过户等",
+    "Inspection, appraisal, legal, closing, etc."
+  ],
+  "analysisTab.add.item": [
+    "加一项",
+    "Add item"
+  ],
+  "analysisTab.holding.months": [
+    "持有月数",
+    "Holding months"
+  ],
+  "analysisTab.monthly.expenses": [
+    "每月开销",
+    "Monthly expenses"
+  ],
+  "analysisTab.taxes.insurance.utilities.hoa.fees.etc": [
+    "税、保险、水电、物业费等",
+    "Taxes, insurance, utilities, HOA fees, etc."
+  ],
+  "analysisTab.finance.the.purchase.monthly.payments.included.in.holding.cash": [
+    "用贷款买（月供自动计入持有成本）",
+    "Finance the purchase (monthly payments included in holding cash flow)"
+  ],
+  "analysisTab.down.payment": [
+    "首付 %",
+    "Down payment %"
+  ],
+  "analysisTab.annual.interest.rate": [
+    "年利率 %",
+    "Annual interest rate %"
+  ],
+  "analysisTab.term.in.years": [
+    "年限",
+    "Term in years"
+  ],
+  "analysisTab.loan": [
+    "贷款",
+    "Loan"
+  ],
+  "analysisTab.down.payment.2": [
+    "，首付",
+    ", down payment"
+  ],
+  "analysisTab.monthly.payment": [
+    "，月供",
+    ", monthly payment"
+  ],
+  "analysisTab.holding.period.interest": [
+    "。持有期内利息",
+    ". Holding-period interest"
+  ],
+  "analysisTab.is.included.in.costs.principal": [
+    "计入成本，本金",
+    "is included in costs; principal"
+  ],
+  "analysisTab.is.not.a.cost.it.reduces.the.loan.balance": [
+    "不计成本（卖出时从贷款余额",
+    "is not a cost (it reduces the loan balance"
+  ],
+  "analysisTab.repaid.at.sale": [
+    "里省回来）。",
+    "repaid at sale)."
+  ],
+  "analysisTab.other": [
+    "其他",
+    "Other"
+  ],
+  "analysisTab.add.row": [
+    "加一行",
+    "Add row"
+  ],
+  "analysisTab.selling.cost.commission.seller.closing.costs": [
+    "卖出比例 %（佣金 + 卖方过户）",
+    "Selling cost % (commission + seller closing costs)"
+  ],
+  "analysisTab.other.selling.costs": [
+    "其他卖出费用",
+    "Other selling costs"
+  ],
+  "analysisTab.expected.after.repair.sale.price.from.valuation.or.your": [
+    "修好后能卖多少。来自估值或你定的目标售价。",
+    "Expected after-repair sale price, from valuation or your target price."
+  ],
+  "analysisTab.adjust.target.return.on.total.cost.profit.total.cost": [
+    "拖目标利润率（利润 ÷ 总成本），算出最多能出多少钱。",
+    "Adjust target return on total cost (profit ÷ total cost) to calculate the maximum offer."
+  ],
+  "analysisTab.maximum.allowable.offer": [
+    "最高可出价",
+    "Maximum allowable offer"
+  ],
+  "analysisTab.70.rule.reference": [
+    "70% 法则参考",
+    "70% rule reference"
+  ],
+  "analysisTab.sale.price.70.renovation": [
+    "售价 × 70% − 装修",
+    "Sale price × 70% − renovation"
+  ],
+  "analysisTab.current.purchase.price": [
+    "当前买入价",
+    "Current purchase price"
+  ],
+  "analysisTab.70.rule": [
+    "70% 法则",
+    "70% rule"
+  ],
+  "analysisTab.maximum": [
+    "上限",
+    "Maximum"
+  ],
+  "analysisTab.the.gray.background.marks.the.maximum.offer.at.the": [
+    "灰底是目标利润率下的最高出价，条是当前买入价，超出上限的那段画红；细刻度是 70% 法则参考。",
+    "The gray background marks the maximum offer at the target return on total cost; the bar is the current purchase price, with any excess in red. The thin marker is the 70% rule reference."
+  ],
+  "analysisTab.the.bar.shows.cost.composition.the.line.is.sale": [
+    "一根条看成本构成，竖线是售价：条比线短就有利润。",
+    "The bar shows cost composition; the line is sale price. A shorter cost bar indicates profit."
+  ],
+  "analysisTab.apply": [
+    "应用",
+    "Apply"
+  ],
+  "analysisTab.set.project.target.sale.price.and.purchase.price.from": [
+    "把售价写为项目目标售价，买入价写为项目买入价",
+    "Set project target sale price and purchase price from this analysis"
+  ],
+  "analysisTab.how.to.apply.renovation.line.items.to.the.budget": [
+    "装修明细如何进入预算项",
+    "How to apply renovation line items to the budget"
+  ],
+  "analysisTab.replace.2": [
+    "替换",
+    "Replace"
+  ],
+  "analysisTab.append": [
+    "追加",
+    "Append"
+  ],
+  "analysisTab.keep.existing.budget.lines.and.append.by.category": [
+    "保留现有预算项，按类别追加",
+    "Keep existing budget lines and append by category"
+  ],
+  "analysisTab.this.converts.a.pre.purchase.estimate.into.the.post": [
+    "这一步把“买前估算”变成“买后预算”，以后实际支出对着它记，就能看出估算准不准。",
+    "This converts a pre-purchase estimate into the post-purchase budget. Record actual expenses against it to evaluate estimate accuracy."
+  ]
+}

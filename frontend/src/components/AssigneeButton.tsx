@@ -1,3 +1,4 @@
+import { useLanguage } from '../i18n/LanguageProvider';
 import Icon from '@cloudscape-design/components/icon';
 import type { UserBrief } from '../api/client';
 import PersonAvatar from './PersonAvatar';
@@ -6,6 +7,7 @@ import PersonAvatar from './PersonAvatar';
 export default function AssigneeButton({ user, label, onClick, disabled = false }: {
   user: UserBrief | null | undefined; label: string; onClick: () => void; disabled?: boolean;
 }) {
+  useLanguage();
   return <button type="button" className="ui-assignee-button" aria-label={label} title={label}
     disabled={disabled} onClick={(e) => { e.stopPropagation(); onClick(); }}>
     <PersonAvatar user={user} size="small" showRole={false} />

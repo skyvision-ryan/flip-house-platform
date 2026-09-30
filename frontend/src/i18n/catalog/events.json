@@ -1,0 +1,238 @@
+{
+  "event.assigned": [
+    "分派给 {{person}}",
+    "Assigned to {{person}}"
+  ],
+  "event.reassigned": [
+    "从 {{before}} 改派给 {{after}}",
+    "Reassigned from {{before}} to {{after}}"
+  ],
+  "event.unassigned": [
+    "取消了 {{person}} 的分派",
+    "Removed assignment for {{person}}"
+  ],
+  "event.rescheduled": [
+    "截止日期 {{before}} → {{after}}",
+    "Due date: {{before}} → {{after}}"
+  ],
+  "event.started": [
+    "开始处理",
+    "Started work"
+  ],
+  "event.resumed": [
+    "恢复处理",
+    "Resumed work"
+  ],
+  "event.waiting": [
+    "记录等待",
+    "Recorded waiting"
+  ],
+  "event.waitingPerson": [
+    "记录等待：等 {{person}}",
+    "Waiting for {{person}}"
+  ],
+  "event.waitingDate": [
+    "记录等待，预计 {{date}} 回复",
+    "Waiting; response expected {{date}}"
+  ],
+  "event.waitingBoth": [
+    "记录等待：等 {{person}}，预计 {{date}} 回复",
+    "Waiting for {{person}}; response expected {{date}}"
+  ],
+  "event.joined": [
+    "{{person}} 加入了项目",
+    "{{person}} joined the project"
+  ],
+  "event.submitted_one": [
+    "第 {{seq}} 次提交，{{count}} 个文件",
+    "Submission {{seq}} with {{count}} file"
+  ],
+  "event.submitted_other": [
+    "第 {{seq}} 次提交，{{count}} 个文件",
+    "Submission {{seq}} with {{count}} files"
+  ],
+  "event.submittedNote": [
+    "第 {{seq}} 次提交，只交了说明",
+    "Submission {{seq}} with a note only"
+  ],
+  "event.returned": [
+    "退回第 {{seq}} 次提交",
+    "Returned submission {{seq}}"
+  ],
+  "event.confirmed": [
+    "确认第 {{seq}} 次交付，任务完成",
+    "Accepted delivery {{seq}}; task complete"
+  ],
+  "event.nodeConfirmed": [
+    "{{person}} 确认节点满足，已保留前置依据",
+    "{{person}} confirmed milestone conditions; prerequisite evidence retained"
+  ],
+  "event.stageIntake": [
+    "记录房屋录入起点；此前历史未自动完成",
+    "Recorded the property’s starting stage; earlier history was not automatically completed"
+  ],
+  "event.requirementAdded": [
+    "新增采购需求",
+    "Added procurement requirement"
+  ],
+  "counts.items_one": [
+    "{{count}} 项",
+    "{{count}} item"
+  ],
+  "counts.items_other": [
+    "{{count}} 项",
+    "{{count}} items"
+  ],
+  "counts.waiting_one": [
+    "{{count}} 项等待",
+    "{{count}} task waiting"
+  ],
+  "counts.waiting_other": [
+    "{{count}} 项等待",
+    "{{count}} tasks waiting"
+  ],
+  "content.original": [
+    "原文",
+    "Original text"
+  ],
+  "content.readingNotice": [
+    "自填内容及旧历史保留原文，尚未接入自动翻译。",
+    "Employee-entered content and legacy history are shown in their original language. Automatic content translation is not connected."
+  ],
+  "analysisTemplate.version": [
+    "{{tier}} · 版本 {{version}}",
+    "{{tier}} · Version {{version}}"
+  ],
+  "analysisTemplate.originalLabel": [
+    "原文名称",
+    "Original label"
+  ],
+  "analysis.sourcePurchase": [
+    "行业默认：检验 {{inspection}}、评估 {{appraisal}}、过户 {{closing}}%",
+    "Industry defaults: inspection {{inspection}}, appraisal {{appraisal}}, closing {{closing}}%"
+  ],
+  "analysis.sourceInsurance": [
+    "行业默认：售价 × {{rate}}% ÷ 12",
+    "Industry default: sale price × {{rate}}% ÷ 12"
+  ],
+  "analysis.sourceRehab": [
+    "行业默认：{{tier}} ${{rate}}/sqft × {{area}} sqft，按常见比例拆分；接入公司历史数据后替换",
+    "Industry default: {{tier}} at ${{rate}}/sqft × {{area}} sqft, allocated by typical shares; replace when company historical data is available"
+  ],
+  "analysis.sourceSelling": [
+    "行业默认：{{rate}}%（佣金 + 卖方过户）",
+    "Industry default: {{rate}}% (commission + seller closing costs)"
+  ],
+  "budget.expenseCount": [
+    "{{count}} 笔支出",
+    "Expenses: {{count}}"
+  ],
+  "taskRule.open_escrow": [
+    "购房合同齐备后，由 D / J 或负责人中的一人确认满足。",
+    "Once the purchase contract is provided, one authorized D / J participant or project lead confirms the milestone."
+  ],
+  "taskDeliverable.open_escrow": [
+    "购房合同",
+    "The purchase contract"
+  ],
+  "taskRule.close_escrow": [
+    "买入日期、过户结算单齐备后，由 D / J 或负责人中的一人确认满足。",
+    "Once the purchase date and closing statement is provided, one authorized D / J participant or project lead confirms the milestone."
+  ],
+  "taskDeliverable.close_escrow": [
+    "买入日期、过户结算单",
+    "The purchase date and closing statement"
+  ],
+  "taskRule.start": [
+    "Permit 已核发文件、开工日期齐备后，由 D / J 或负责人中的一人确认满足。",
+    "Once the issued permit and construction start date is provided, one authorized D / J participant or project lead confirms the milestone."
+  ],
+  "taskDeliverable.start": [
+    "Permit 已核发文件、开工日期",
+    "The issued permit and construction start date"
+  ],
+  "taskRule.final": [
+    "最近一次 Final 检查通过齐备后，由 D / J 或负责人中的一人确认满足。",
+    "Once a passing result for the latest Final Inspection is provided, one authorized D / J participant or project lead confirms the milestone."
+  ],
+  "taskDeliverable.final": [
+    "最近一次 Final 检查通过",
+    "A passing result for the latest Final Inspection"
+  ],
+  "taskRule.listing": [
+    "挂牌日期或上市协议齐备后，由 J 或负责人中的一人确认满足。",
+    "Once the listing date or listing agreement is provided, one authorized J participant or project lead confirms the milestone."
+  ],
+  "taskDeliverable.listing": [
+    "挂牌日期或上市协议",
+    "The listing date or listing agreement"
+  ],
+  "terminology.permit": [
+    "施工许可",
+    "Permit"
+  ],
+  "terminology.offer": [
+    "报价",
+    "Offer"
+  ],
+  "terminology.finalInspection": [
+    "最终检查",
+    "Final Inspection"
+  ],
+  "terminology.staging": [
+    "staging",
+    "Staging"
+  ],
+  "terminology.sellerDisclosure": [
+    "seller disclosure",
+    "Seller disclosure"
+  ],
+  "procurementScope.pending": [
+    "新增需求／待处理（{{count}}）",
+    "Pending requirements ({{count}})"
+  ],
+  "procurementScope.excluded": [
+    "本房不需要（{{count}}）",
+    "Not needed here ({{count}})"
+  ],
+  "position.buyingPre": [
+    "买房 · 未购入",
+    "Acquisition · Not purchased"
+  ],
+  "position.buyingEscrow": [
+    "买房 · escrow 中",
+    "Acquisition · In escrow"
+  ],
+  "counts.files_one": [
+    "{{count}} 份",
+    "{{count}} file"
+  ],
+  "counts.files_other": [
+    "{{count}} 份",
+    "{{count}} files"
+  ],
+  "counts.orders_one": [
+    "{{count}} 笔",
+    "{{count}} order"
+  ],
+  "counts.orders_other": [
+    "{{count}} 笔",
+    "{{count}} orders"
+  ],
+  "update.orderCreated": [
+    "{{person}} 建立订单：{{order}}",
+    "{{person}} created order: {{order}}"
+  ],
+  "update.orderUpdated": [
+    "{{person}} 更新订单：{{order}}",
+    "{{person}} updated order: {{order}}"
+  ],
+  "update.receiptConfirmed": [
+    "{{person}} 确认收货：{{order}}",
+    "{{person}} confirmed receipt: {{order}}"
+  ],
+  "settings.languageControl": [
+    "语言 / Language",
+    "语言 / Language"
+  ]
+}

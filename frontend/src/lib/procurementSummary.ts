@@ -1,3 +1,4 @@
+import { m as uiText, systemText } from '../i18n/core.ts';
 import type { ProcurementItem } from '../api/client';
 import type { PurchaseOrder } from './purchaseOrders';
 
@@ -24,13 +25,13 @@ export function materialPurchaseFacts(row: ProcurementItem, orders: PurchaseOrde
   const legacy = !linked.length && (row.amount != null || !!row.ordered_on || !!row.received_on);
   const progress = linked.length
     ? row.status === 'received' ? '已备齐' : cancelled ? '订单已取消' : anyReceived ? '部分到货' : '已下单'
-    : row.status === 'exception' ? (legacy ? '旧记录待跟进' : '未下单') : legacy ? `${row.status === 'received' ? '已到货' : row.status === 'ordered' ? '已下单' : '已登记'}（旧记录）` : null;
+    : row.status === 'exception' ? (legacy ? '旧记录待跟进' : '未下单') : legacy ? uiText("sentences.legacy.record", { value1: (row.status === 'received' ? uiText("procurementDesign.received") : row.status === 'ordered' ? uiText("procurementDesign.ordered") : uiText("directorDesign.recorded")) }) : null;
   return { linked, lines, missing, orderedDates, expectedDates, receivedDates, progress,
     amount: linked.length ? (missing === amounts.length ? '未填写' : usd.format(cents / 100)) : legacy ? '未关联订单' : '未下单',
     ordered: !linked.length ? (legacy ? '旧记录见详情' : '未下单') : linked.length > 1 ? '多笔订单' : orderedDates[0] || '未填写',
-    expected: !linked.length ? (legacy ? '旧记录见详情' : '未下单') : expectedDates.length > 1 ? `${expectedDates[0]} 至 ${expectedDates[expectedDates.length - 1]}` : expectedDates[0] || '未填写',
+    expected: !linked.length ? (legacy ? '旧记录见详情' : '未下单') : expectedDates.length > 1 ? uiText("sentences.to", { value1: (expectedDates[0]), value2: (expectedDates[expectedDates.length - 1]) }) : expectedDates[0] || '未填写',
     attentionTone: damaged || failedShipping ? 'error' as const : 'warning' as const,
-    attentionLabel: damaged ? '破损待补齐' : failedShipping ? '物流异常' : '需跟进',
+    attentionLabel: damaged ? uiText("procurementSummary.damaged.items.need.replacement") : failedShipping ? uiText("purchaseOrderFields.shipment.exception") : uiText("procurementSummary.follow.up.needed"),
   };
 }
 
@@ -38,7 +39,7 @@ export function houseOrderTotal(orders: PurchaseOrder[]) {
   const missing = orders.filter(o => o.document.total == null || o.document.total === '').length;
   const paid = orders.reduce((sum,o) => sum + Math.round(Number(o.document.total ?? 0) * 100), 0);
   const refunds = orders.reduce((sum,o) => sum + Math.round(Number(o.summary.refund ?? 0) * 100), 0);
-  return { missing, refunds: refunds / 100, label: !orders.length ? '—' : missing === orders.length ? '未填写' : usd.format((paid-refunds)/100) };
+  return { missing, refunds: refunds / 100, label: !orders.length ? '—' : missing === orders.length ? uiText("procurementItemRow.not.entered") : usd.format((paid-refunds)/100) };
 }
 
 /** Unordered demand is distinct from ordered goods still awaiting receipt. Never convert units. */
@@ -52,6 +53,6 @@ export function materialQuantityFacts(row: ProcurementItem, orders: PurchaseOrde
   const legacy = !lines.length && (!!row.legacy_purchase || row.amount != null || !!row.ordered_on || !!row.received_on);
   const unplaced = row.required_quantity != null && ordered != null && !legacy ? Math.max(0, Math.round((Number(row.required_quantity)-ordered)*1000000)/1000000) : null;
   return {unit, ordered, received, pending, unplaced, legacy,
-    text: legacy ? '有旧购买记录，请先核对数量' : !comparable ? '订单单位或数量待核对，不自动合计' : `已订 ${ordered} · 完好实收 ${received ?? '待核对'} · 待收 ${pending ?? '待核对'} ${unit} · 未订 ${unplaced ?? '待核对'}`,
+    text: legacy ? uiText("procurementSummary.legacy.purchase.records.exist.verify.quantities.first") : !comparable ? uiText("procurementSummary.order.units.or.quantities.need.verification.no.automatic.total") : uiText("sentences.ordered.received.in.good.condition.awaiting.receipt.not.ordered", { value1: (ordered), value2: (received ?? uiText("procurementItemRow.needs.verification")), value3: (pending ?? uiText("procurementItemRow.needs.verification")), value4: (systemText(unit)), value5: (unplaced ?? uiText("procurementItemRow.needs.verification")) }),
   };
 }

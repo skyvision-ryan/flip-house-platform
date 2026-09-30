@@ -1,0 +1,1630 @@
+{
+  "previews.continuous.property.workspace": [
+    "单套房连续工作台",
+    "Continuous property workspace"
+  ],
+  "previews.where.is.this.property.and.who.needs.to.act.next": [
+    "这套房走到哪里，下一步该找谁？",
+    "Where is this property, and who needs to act next?"
+  ],
+  "previews.project.navigation.grouped.tasks.and.persistent.detail.context": [
+    "项目导航、分组任务和持续保留的详情上下文。",
+    "Project navigation, grouped tasks, and persistent detail context."
+  ],
+  "previews.use.the.property.as.the.project.reading.its.stage.assignees": [
+    "用房屋作为项目，阶段、负责人、交付和关键节点在同一工作界面阅读。",
+    "Use the property as the project, reading its stage, assignees, deliverables, and milestones together."
+  ],
+  "previews.useful.for.working.through.one.property.with.jessie.without.repeatedly": [
+    "适合跟 Jessie 一起深入推进一套房，不必反复跨页面。",
+    "Useful for working through one property with Jessie without repeatedly changing pages."
+  ],
+  "previews.comparing.issues.across.properties.requires.switching.global.scanning.is.less": [
+    "跨房比较卡点需要切房；全局扫描不如 B。",
+    "Comparing issues across properties requires switching; global scanning is less direct than B."
+  ],
+  "previews.all.property.coordination.desk": [
+    "全部房屋统筹台",
+    "All-property coordination desk"
+  ],
+  "previews.which.properties.need.my.involvement.and.which.comes.first": [
+    "哪几套房需要我介入，先处理哪一套？",
+    "Which properties need my involvement, and which comes first?"
+  ],
+  "previews.compare.project.status.and.assignees.in.a.shared.overview.with": [
+    "多个项目放在同一总览里，以统一列对照状态和负责人。",
+    "Compare project status and assignees in a shared overview with consistent columns."
+  ],
+  "previews.one.row.per.property.highlights.issues.next.actions.and.deliverables": [
+    "每房一行，优先呈现卡点、下一动作和待 Jessie 核对的交付；点房继续看细节。",
+    "One row per property highlights issues, next actions, and deliverables Jessie needs to check. Open the property for details."
+  ],
+  "previews.useful.for.jessie.to.scan.the.portfolio.before.deciding.whom": [
+    "适合 Jessie 每天先看全盘，再决定今天找谁。",
+    "Useful for Jessie to scan the portfolio before deciding whom to contact today."
+  ],
+  "previews.handling.a.specific.task.requires.opening.a.property.one.more": [
+    "操作具体事项前需要深入一房，比 A 多一步。",
+    "Handling a specific task requires opening a property, one more step than A."
+  ],
+  "previews.cross.property.work.list": [
+    "跨房业务清单",
+    "Cross-property work list"
+  ],
+  "previews.should.i.focus.on.procurement.documents.or.pending.reviews.today": [
+    "今天集中处理采购、资料还是待审核事项？",
+    "Should I focus on procurement, documents, or pending reviews today?"
+  ],
+  "previews.searchable.work.lists.narrowed.by.status.assignee.and.fields": [
+    "可搜索的业务清单，按状态、负责人和字段缩小范围。",
+    "Searchable work lists narrowed by status, assignee, and fields."
+  ],
+  "previews.retain.the.property.on.every.item.and.review.related.work": [
+    "每项保留所属房屋，集中核对同类工作，不把软件开发票的概念带给员工。",
+    "Retain the property on every item and review related work together, without exposing software ticket concepts to employees."
+  ],
+  "previews.useful.for.reviewing.deliverables.or.discussing.the.same.business.issue": [
+    "适合集中审交付、开业务专题会，一次处理同类问题。",
+    "Useful for reviewing deliverables or discussing the same business issue across properties."
+  ],
+  "previews.whole.property.progress.is.distributed.the.detail.panel.supplies.context": [
+    "房屋整体进度比较分散，要依靠右侧背景补足。",
+    "Whole-property progress is distributed; the detail panel supplies context."
+  ],
+  "previews.property.service.checklist": [
+    "房屋服务核对台",
+    "Property service checklist"
+  ],
+  "previews.which.property.s.water.electricity.gas.or.insurance.records.are": [
+    "哪套房的水、电、燃气或保险资料还没办妥？",
+    "Which property's water, electricity, gas, or insurance records are incomplete?"
+  ],
+  "previews.aligned.columns.search.filters.and.expandable.details": [
+    "固定列对齐、搜索筛选、逐项展开详情。",
+    "Aligned columns, search, filters, and expandable details."
+  ],
+  "previews.compare.four.services.per.property.open.gas.for.its.account": [
+    "每房对照四类服务；点燃气打开该房账户，点保险查看文件及到期日。",
+    "Compare four services per property. Open gas for its account, or insurance for files and expiration dates."
+  ],
+  "previews.useful.for.checking.each.property.daily.and.identifying.incomplete.service": [
+    "适合每天逐房查漏，服务是否齐全一眼能看见。",
+    "Useful for checking each property daily and identifying incomplete service records."
+  ],
+  "previews.denser.information.mobile.starts.with.property.summaries.and.opens.details": [
+    "信息更密；手机按房屋摘要阅读，再进入详情。",
+    "Denser information; mobile starts with property summaries and opens details."
+  ],
+  "previews.cross.property.action.queue": [
+    "跨房行动队列",
+    "Cross-property action queue"
+  ],
+  "previews.what.should.i.handle.next.and.what.is.awaiting.someone": [
+    "接下来处理什么，哪些还在等别人回复？",
+    "What should I handle next, and what is awaiting someone else's response?"
+  ],
+  "previews.filtered.and.grouped.work.views.with.continuous.list.and.detail": [
+    "可筛选、分组的工作视图，列表与详情连续阅读。",
+    "Filtered and grouped work views with continuous list and detail context."
+  ],
+  "previews.bring.kody.s.assignments.service.issues.and.insurance.files.together": [
+    "把 Kody 的分派事项、服务卡点和保险文件整理到一起，保留房屋与记录来源。",
+    "Bring Kody's assignments, service issues, and insurance files together, retaining the property and source record."
+  ],
+  "previews.useful.for.handling.work.across.properties.and.finding.the.next": [
+    "适合在几套房之间连续办事，快速找到下一项。",
+    "Useful for handling work across properties and finding the next action quickly."
+  ],
+  "previews.less.direct.than.a.for.checking.whether.a.property.s": [
+    "不如 A 容易发现某套房四类资料是否齐全。",
+    "Less direct than A for checking whether a property's four service records are complete."
+  ],
+  "previews.service.provider.desk": [
+    "服务公司办理台",
+    "Service provider desk"
+  ],
+  "previews.which.properties.can.i.handle.together.when.contacting.this.provider": [
+    "联系这家服务公司时，可以一起处理哪几套房？",
+    "Which properties can I handle together when contacting this provider?"
+  ],
+  "previews.horizontal.cards.organize.records.sources.and.actions.around.one.entity": [
+    "围绕一个对象组织资料、来源和相关操作的横向卡片。",
+    "Horizontal cards organize records, sources, and actions around one entity."
+  ],
+  "previews.group.existing.property.accounts.by.provider.insurance.remains.organized.by": [
+    "按已有服务公司聚合同批房屋账户；保险仍按房屋文件查看。公司分组是本项目的设计推导。",
+    "Group existing property accounts by provider; insurance remains organized by property files. Provider grouping is this project's design adaptation."
+  ],
+  "previews.useful.for.handling.several.accounts.with.one.provider.without.repeatedly": [
+    "适合联系同一家公司时连续办理，减少反复找账户。",
+    "Useful for handling several accounts with one provider without repeatedly searching."
+  ],
+  "previews.portfolio.completeness.is.less.visible.keep.a.clear.return.path": [
+    "全盘完整性较弱，要随时保留返回房屋的入口。",
+    "Portfolio completeness is less visible; keep a clear return path to properties."
+  ],
+  "previews.renovation.preparation": [
+    "装修准备",
+    "Renovation preparation"
+  ],
+  "previews.gas.activation.awaits.provider.response": [
+    "燃气开通在等服务商回复",
+    "Gas activation awaits provider response"
+  ],
+  "previews.kody.follows.up.with.gas.provider": [
+    "Kody 跟进燃气公司",
+    "Kody follows up with gas provider"
+  ],
+  "previews.request.in.progress": [
+    "办理中",
+    "Request in progress"
+  ],
+  "previews.insurance.file.has.no.expiration.date": [
+    "保险文件缺少到期日",
+    "Insurance file has no expiration date"
+  ],
+  "previews.kody.adds.insurance.details": [
+    "Kody 补充保险资料",
+    "Kody adds insurance details"
+  ],
+  "previews.expiration.date.missing": [
+    "缺到期日",
+    "Expiration date missing"
+  ],
+  "previews.under.renovation": [
+    "装修中",
+    "Under renovation"
+  ],
+  "previews.procurement.delivery.awaits.jessie.review": [
+    "采购交付等待 Jessie 核对",
+    "Procurement delivery awaits Jessie review"
+  ],
+  "previews.jessie.reviews.receipt.evidence": [
+    "Jessie 查看到货资料",
+    "Jessie reviews receipt evidence"
+  ],
+  "previews.prepare.staging.and.listing.documents": [
+    "准备 staging 与挂牌资料",
+    "Prepare staging and listing documents"
+  ],
+  "previews.jessie.coordinates.listing.preparation.with.agent": [
+    "Jessie 与 agent 核对上市准备",
+    "Jessie coordinates listing preparation with agent"
+  ],
+  "previews.close.utilities.and.retain.service.records": [
+    "关闭水电燃气，留存办理记录",
+    "Close utilities and retain service records"
+  ],
+  "previews.kody.contacts.providers": [
+    "Kody 联系服务商",
+    "Kody contacts providers"
+  ],
+  "previews.activate.utilities": [
+    "开通水电燃气",
+    "Activate utilities"
+  ],
+  "previews.service.setup": [
+    "服务办理",
+    "Service setup"
+  ],
+  "previews.water.and.electricity.are.active.gas.provider.has.not.confirmed": [
+    "水、电已开通；燃气公司尚未确认到场时间。",
+    "Water and electricity are active; gas provider has not confirmed the visit time."
+  ],
+  "previews.assigned.task.service.account": [
+    "已分派事项 · 服务账户",
+    "Assigned task · Service account"
+  ],
+  "previews.add.insurance.file.expiration.date": [
+    "补充保险文件到期日",
+    "Add insurance file expiration date"
+  ],
+  "previews.the.file.is.uploaded.but.has.no.expiration.date.this": [
+    "文件已上传，但到期日没有填写。这里是文件资料缺口，不自动生成新任务。",
+    "The file is uploaded but has no expiration date. This is a document gap; it does not create a new task automatically."
+  ],
+  "previews.insurance.file.record": [
+    "保险文件记录",
+    "Insurance file record"
+  ],
+  "previews.verify.kitchen.material.receipt": [
+    "核对厨房材料到货",
+    "Verify kitchen material receipt"
+  ],
+  "previews.the.procurement.assignee.submitted.receipt.photos.jessie.needs.to.review": [
+    "采购负责人已提交到货照片，等待 Jessie 核对本次交付。",
+    "The procurement assignee submitted receipt photos; Jessie needs to review this delivery."
+  ],
+  "previews.assigned.task.submission.batch": [
+    "已分派事项 · 提交批次",
+    "Assigned task · Submission batch"
+  ],
+  "previews.application.documents.are.being.assembled.the.project.remains.in.renovation": [
+    "申请资料整理中，项目仍处于装修阶段。",
+    "Application documents are being assembled; the project remains in renovation."
+  ],
+  "previews.assigned.task": [
+    "已分派事项",
+    "Assigned task"
+  ],
+  "previews.coordinate.staging.and.listing.documents": [
+    "协调 staging 与挂牌资料",
+    "Coordinate staging and listing documents"
+  ],
+  "previews.check.listing.documents.and.staging.with.the.agent.after.preparation": [
+    "与 agent 核对上市资料和 staging 安排，准备完成后仍按现有关键节点规则确认。",
+    "Check listing documents and staging with the agent. After preparation, existing milestone confirmation rules still apply."
+  ],
+  "previews.close.utilities": [
+    "关闭水电燃气",
+    "Close utilities"
+  ],
+  "previews.water.and.electricity.are.closed.the.gas.closure.request.is": [
+    "水、电已关闭；燃气关闭申请正在办理。",
+    "Water and electricity are closed; the gas closure request is pending."
+  ],
+  "previews.prepare.service.account.details.ahead": [
+    "提前整理服务账户资料",
+    "Prepare service account details ahead"
+  ],
+  "previews.gather.providers.and.account.holder.details.this.does.not.mean": [
+    "先整理服务公司和开户信息，不表示已经开通服务。",
+    "Gather providers and account-holder details. This does not mean services are active."
+  ],
+  "previews.david.director.s.project.review": [
+    "David · 董事项目观察",
+    "David · Director's project review"
+  ],
+  "previews.identify.properties.worth.reviewing.then.inspect.estimate.inputs.key.risks": [
+    "先看哪些房屋值得关注，再理解估算依据、关键风险和下一步需要核对的事实。盈利假设、已登记支出、关键节点分开显示；预览不替董事作业务判断，不执行审批或签署。",
+    "Identify properties worth reviewing, then inspect estimate inputs, key risks, and the next facts to verify. Profit assumptions, recorded expenses, and milestones remain separate. This preview makes no decisions, approvals, or signatures for the director."
+  ],
+  "previews.which.properties.warrant.review.and.what.do.their.estimates.and": [
+    "哪些房屋值得打开看，估算与关键节点分别是什么现况？",
+    "Which properties warrant review, and what do their estimates and milestones show?"
+  ],
+  "previews.place.a.resource.table.beside.contextual.details.to.retain.the": [
+    "资源表格与上下文详情并列，比较多个对象时保留所在集合。",
+    "Place a resource table beside contextual details to retain the comparison set."
+  ],
+  "previews.one.row.per.property.shows.stage.current.analysis.budget.and": [
+    "一房一行，阶段、当前分析版本、预算支出和 D/J 事实并排；点击房屋读原记录与资料。",
+    "One row per property shows stage, current analysis, budget and expenses, and D/J facts. Open the property for original records."
+  ],
+  "previews.useful.for.scanning.multiple.properties.and.then.reviewing.those.needing": [
+    "适合快速扫视多套房，再进入值得关注的房屋。",
+    "Useful for scanning multiple properties and then reviewing those needing attention."
+  ],
+  "previews.complex.issues.require.the.detail.panel.estimate.definitions.still.need": [
+    "复杂问题需要读右侧详情；并排列数字仍须核对估算口径。",
+    "Complex issues require the detail panel; estimate definitions still need verification."
+  ],
+  "previews.what.issue.needs.understanding.now.what.is.recorded.and.what": [
+    "现在有什么问题需要理解，原记录是什么，下一步做什么？",
+    "What issue needs understanding now, what is recorded, and what comes next?"
+  ],
+  "previews.project.updates.combine.current.facts.issues.next.steps.and.timing": [
+    "项目更新同时表达当前情况、问题、下一步与时间背景。",
+    "Project updates combine current facts, issues, next steps, and timing."
+  ],
+  "previews.group.properties.by.documentation.progress.and.closing.topics.link.issues": [
+    "按资料、进度和结算议题组织房屋，问题直接连接项目更新、实际任务与证据。分组不是审批流。",
+    "Group properties by documentation, progress, and closing topics. Link issues to updates, tasks, and evidence. Groups are not approval workflows."
+  ],
+  "previews.useful.for.discussing.specific.issues.with.jessie.without.searching.through": [
+    "适合与 Jessie 围绕具体问题对齐，少在正常数据中来回查找。",
+    "Useful for discussing specific issues with Jessie without searching through on-track records."
+  ],
+  "previews.does.not.replace.full.financial.comparisons.topic.groups.are.synthetic": [
+    "不替代完整财务比较；议题分类是合成设计样例，不是已上线的董事决策台账。",
+    "Does not replace full financial comparisons. Topic groups are synthetic design examples, not a production director decision ledger."
+  ],
+  "previews.where.do.this.property.s.profit.assumptions.come.from.and": [
+    "这套房的盈利假设来自哪里，不同估算版本为什么不同？",
+    "Where do this property's profit assumptions come from, and why do versions differ?"
+  ],
+  "previews.select.dimensions.to.explore.while.retaining.the.property.and.its": [
+    "手动选择维度逐层展开，保持所选对象并查看构成与依据。",
+    "Select dimensions to explore while retaining the property and its underlying inputs."
+  ],
+  "previews.select.property.and.analysis.version.then.inspect.acquisition.renovation.holding": [
+    "先选房屋和分析版本，再展开购入、装修、持有与卖出成本；数字使用现有交易分析公式。这里只借鉴探索方式，不接 Power BI 或 AI 判断。",
+    "Select property and analysis version, then inspect acquisition, renovation, holding, and selling costs using existing formulas. This adopts an exploration pattern without Power BI or AI decisions."
+  ],
+  "previews.versions.costs.and.sources.stay.together.for.checking.assumptions.and": [
+    "版本、成本与来源放在一起，便于核对假设和缺失资料。",
+    "Versions, costs, and sources stay together for checking assumptions and gaps."
+  ],
+  "previews.reviewing.one.property.at.a.time.is.slower.model.estimates": [
+    "逐房查看较慢；模型估算不代表最终净利润，也不构成自动投资建议。",
+    "Reviewing one property at a time is slower. Model estimates are not final net profit or automatic investment advice."
+  ],
+  "previews.zoey.design.permits.and.inspections": [
+    "Zoey · 设计、Permit 与检查",
+    "Zoey · Design, Permits, and inspections"
+  ],
+  "previews.understand.property.stages.find.design.and.permit.documents.and.inspection": [
+    "了解各房屋阶段，找到设计文件、Permit 资料和检查记录，明确缺什么、接下来跟进什么。这里不提供金额、任务分派或 D/J 节点确认。",
+    "Understand property stages, find design and Permit documents and inspection records, and identify gaps and follow-up. No amounts, task assignment, or D/J confirmation are available here."
+  ],
+  "previews.property.document.workspace": [
+    "单房资料工作台",
+    "Property document workspace"
+  ],
+  "previews.where.are.this.property.s.drawings.permits.and.inspection.records": [
+    "处理这套房时，图纸、Permit 和检查资料在哪里？",
+    "Where are this property's drawings, Permits, and inspection records?"
+  ],
+  "previews.present.attributes.resources.and.explanations.in.project.context.with.a": [
+    "在项目概况与详情侧栏中集中呈现属性、资源和说明。",
+    "Present attributes, resources, and explanations in project context with a detail sidebar."
+  ],
+  "previews.keep.the.property.s.stage.visible.and.switch.between.drawings": [
+    "左侧始终保留房屋阶段，房屋内按图纸、Permit、检查切换；资料与所属记录连续阅读。",
+    "Keep the property's stage visible and switch between drawings, Permits, and inspections. Documents remain alongside their records."
+  ],
+  "previews.useful.for.organizing.a.property.s.design.and.application.materials": [
+    "适合围绕一套房整理设计与申请材料，减少来回查找。",
+    "Useful for organizing a property's design and application materials without repeated searching."
+  ],
+  "previews.the.same.issue.across.properties.requires.switching.between.them": [
+    "同类问题分散在多套房时，需要逐房切换。",
+    "The same issue across properties requires switching between them."
+  ],
+  "previews.cross.property.follow.up.list": [
+    "跨房跟进清单",
+    "Cross-property follow-up list"
+  ],
+  "previews.which.documents.are.missing.and.which.inspection.needs.follow.up": [
+    "哪些资料待补，哪次检查还需要跟进？",
+    "Which documents are missing, and which inspection needs follow-up?"
+  ],
+  "previews.searchable.work.narrowed.by.status.assignee.and.date": [
+    "可搜索的工作清单，以状态、负责人和日期字段缩小范围。",
+    "Searchable work narrowed by status, assignee, and date."
+  ],
+  "previews.group.design.permit.and.inspection.records.by.current.facts.each": [
+    "把跨房设计、Permit 和检查记录按现况分组，每条保留房屋、记录来源与具体文件。分组是查找方式，不是新增审批流程。",
+    "Group design, Permit, and inspection records by current facts. Each retains its property, source, and files. Grouping is navigation, not an added approval process."
+  ],
+  "previews.useful.for.reviewing.document.gaps.external.dependencies.and.failed.inspections": [
+    "适合集中核对资料缺口、外部等待和未通过的检查。",
+    "Useful for reviewing document gaps, external dependencies, and failed inspections together."
+  ],
+  "previews.complete.property.records.are.spread.across.status.groups.open.details": [
+    "房屋的完整资料分散在多个状态组，需进入详情看背景。",
+    "Complete property records are spread across status groups; open details for context."
+  ],
+  "previews.document.and.inspection.register": [
+    "资料与检查登记表",
+    "Document and inspection register"
+  ],
+  "previews.which.property.and.record.does.this.file.belong.to": [
+    "我要找的那份文件属于哪套房、哪条记录？",
+    "Which property and record does this file belong to?"
+  ],
+  "previews.fixed.column.comparisons.search.filters.and.expandable.details": [
+    "固定列对照、搜索筛选和逐项展开详情。",
+    "Fixed-column comparisons, search, filters, and expandable details."
+  ],
+  "previews.show.filename.property.category.and.source.record.together.explicitly.show": [
+    "将文件名称、房屋、资料类别和对应记录并排列出；缺文件时明确展示空缺，检查原始记录也能打开。",
+    "Show filename, property, category, and source record together. Explicitly show missing files and allow opening original inspection records."
+  ],
+  "previews.useful.for.finding.files.and.distinguishing.application.receipts.from.issued": [
+    "适合找文件、核对申请回执与核发文件，减少打开错资料。",
+    "Useful for finding files and distinguishing application receipts from issued Permits."
+  ],
+  "previews.prioritizes.document.retrieval.over.a.b.s.action.flow.next": [
+    "比 A、B 更重视资料检索，下一步行动需要阅读记录详情。",
+    "Prioritizes document retrieval over A/B's action flow; next actions require reading details."
+  ],
+  "previews.renovation.final.requires.review": [
+    "装修 · Final 待核对",
+    "Renovation · Final requires review"
+  ],
+  "previews.prepare.kitchen.design.proposal": [
+    "整理厨房设计方案",
+    "Prepare kitchen design proposal"
+  ],
+  "previews.the.proposal.is.saved.but.site.dimensions.still.need.checking": [
+    "方案文件已存入这套房，仍在核对现场尺寸；上传方案不表示设计已经定稿。",
+    "The proposal is saved, but site dimensions still need checking. Uploading a proposal does not finalize the design."
+  ],
+  "previews.assigned.task.project.drawing.file": [
+    "已分派任务 · 项目文件 drawing",
+    "Assigned task · Project drawing file"
+  ],
+  "previews.items.to.verify": [
+    "待核对事项",
+    "Items to verify"
+  ],
+  "previews.site.dimensions.and.appliance.locations": [
+    "现场尺寸与设备位置",
+    "Site dimensions and appliance locations"
+  ],
+  "previews.synthetic.proposal.kitchen.layout.and.appliance.locations.site.dimensions.remain": [
+    "合成方案内容：厨房布局及设备位置示意，现场尺寸仍待核对。该文件不是定稿图纸。",
+    "Synthetic proposal: kitchen layout and appliance locations. Site dimensions remain unverified; this is not a final drawing."
+  ],
+  "previews.follow.up.on.permit.application.receipt": [
+    "跟进 Permit 申请回执",
+    "Follow up on Permit application receipt"
+  ],
+  "previews.application.receipt.uploaded.awaiting.an.external.response.no.issued.permit": [
+    "申请回执已上传，正在等待外部回复。当前没有核发的 Permit 文件，不能以回执代替。",
+    "Application receipt uploaded; awaiting an external response. No issued Permit is available; the receipt cannot substitute for it."
+  ],
+  "previews.assigned.task.waiting.record.permit.application.file": [
+    "已分派任务的等待记录 · permit_application 文件",
+    "Assigned task waiting record · Permit application file"
+  ],
+  "previews.sample.city.intake.desk": [
+    "示例城市受理窗口",
+    "Sample city intake desk"
+  ],
+  "previews.waiting.reason": [
+    "等待原因",
+    "Waiting reason"
+  ],
+  "previews.awaiting.review.of.application.documents": [
+    "等待申请材料审阅回复",
+    "Awaiting review of application documents"
+  ],
+  "previews.expected.response": [
+    "预计回复",
+    "Expected response"
+  ],
+  "previews.not.agreed": [
+    "未约定",
+    "Not agreed"
+  ],
+  "previews.issued.permit": [
+    "核发 Permit",
+    "Issued Permit"
+  ],
+  "previews.not.uploaded": [
+    "未上传",
+    "Not uploaded"
+  ],
+  "previews.synthetic.intake.receipt.confirms.application.submission.only.it.is.not": [
+    "合成申请受理回执，仅说明已递交申请资料。它不是政府核发的 Permit。",
+    "Synthetic intake receipt confirms application submission only. It is not a government-issued Permit."
+  ],
+  "previews.prepare.design.document.requirements": [
+    "整理设计资料需求",
+    "Prepare design document requirements"
+  ],
+  "previews.property.survey.drawings.are.not.yet.available.this.shows.a": [
+    "准备设计资料时尚未取得房屋测量图。此处展示现有任务的资料缺口，不表示新增一项政府审批状态。",
+    "Property survey drawings are not yet available. This shows a task's document gap, not a new government approval status."
+  ],
+  "previews.assigned.task.instructions.missing.file": [
+    "已分派任务说明 · 文件缺口",
+    "Assigned task instructions · Missing file"
+  ],
+  "previews.missing.document": [
+    "缺少资料",
+    "Missing document"
+  ],
+  "previews.property.survey.drawing": [
+    "房屋测量图",
+    "Property survey drawing"
+  ],
+  "previews.existing.attachments": [
+    "现有附件",
+    "Existing attachments"
+  ],
+  "previews.not.uploaded.yet": [
+    "尚未上传",
+    "Not uploaded yet"
+  ],
+  "previews.save.final.drawings": [
+    "保存定稿图纸",
+    "Save final drawings"
+  ],
+  "previews.a.final.drawing.file.exists.file.presence.task.review.and": [
+    "这套房已有定稿图纸类型的文件。文件存在与普通任务审核、D/J 关键节点确认分别记录。",
+    "A final-drawing file exists. File presence, task review, and milestone confirmation are recorded separately."
+  ],
+  "previews.project.file.final.drawings": [
+    "项目文件 drawing_final",
+    "Project file: final drawings"
+  ],
+  "previews.record.notes": [
+    "记录说明",
+    "Record notes"
+  ],
+  "previews.shown.by.file.type.approval.status.is.not.inferred": [
+    "按文件类型展示，不推断审批状态",
+    "Shown by file type; approval status is not inferred"
+  ],
+  "previews.synthetic.final.drawings.this.comparison.adds.no.drawing.version.approval": [
+    "合成定稿图纸文件。此比较稿没有新增图纸版本审批或自动替换规则。",
+    "Synthetic final drawings. This comparison adds no drawing-version approval or automatic replacement rules."
+  ],
+  "previews.view.issued.permit": [
+    "查看已核发 Permit",
+    "View issued Permit"
+  ],
+  "previews.a.synthetic.issued.permit.file.is.saved.separately.from.the": [
+    "项目中保存了一份核发 Permit 类型的合成文件，与申请回执分开。该文件不代表全部检查已经通过。",
+    "A synthetic issued-Permit file is saved separately from the application receipt. It does not mean every inspection passed."
+  ],
+  "previews.project.file.permit": [
+    "项目文件 permit",
+    "Project file: Permit"
+  ],
+  "previews.government.issued.permit": [
+    "政府已核发 Permit",
+    "Government-issued Permit"
+  ],
+  "previews.linked.property": [
+    "关联房屋",
+    "Linked property"
+  ],
+  "previews.synthetic.issued.permit.showing.file.type.and.property.no.permit": [
+    "合成核发 Permit 文件，用于展示文件类型与所属房屋。没有填写或推断许可有效期、政府审批时长。",
+    "Synthetic issued Permit showing file type and property. No Permit validity period or government processing time is entered or inferred."
+  ],
+  "previews.rough.in.inspection": [
+    "水电粗装检查",
+    "Rough-in inspection"
+  ],
+  "previews.this.inspection.failed.correction.items.and.assignee.are.recorded.updating": [
+    "本次检查未通过，已记录需整改的项目与整改人。备注更新不会把检查结果改为通过。",
+    "This inspection failed; correction items and assignee are recorded. Updating notes does not change the result to Passed."
+  ],
+  "previews.inspection.record.inspection.report.file": [
+    "Inspection 检查记录 · inspection_report 文件",
+    "Inspection record · Inspection report file"
+  ],
+  "previews.inspection.date": [
+    "检查日期",
+    "Inspection date"
+  ],
+  "previews.inspection.result": [
+    "检查结果",
+    "Inspection result"
+  ],
+  "previews.corrections.assigned.to": [
+    "整改人",
+    "Corrections assigned to"
+  ],
+  "previews.site.construction.contact.sample": [
+    "现场施工联系人（示例）",
+    "Site construction contact (sample)"
+  ],
+  "previews.inspection.notes": [
+    "检查备注",
+    "Inspection notes"
+  ],
+  "previews.add.pipe.and.wire.identification.per.report": [
+    "按报告补充管线标识",
+    "Add pipe and wire identification per report"
+  ],
+  "previews.final.designation": [
+    "Final 标记",
+    "Final designation"
+  ],
+  "previews.no": [
+    "否",
+    "No"
+  ],
+  "previews.synthetic.failed.inspection.report.pipe.and.wire.identification.is.needed": [
+    "合成检查报告：本次未通过，需要补充管线标识。后续复查应保存为其对应的检查记录。",
+    "Synthetic failed inspection report: pipe and wire identification is needed. Reinspection must have its own inspection record."
+  ],
+  "previews.rough.in.reinspection": [
+    "水电粗装复查",
+    "Rough-in reinspection"
+  ],
+  "previews.an.inspection.and.date.are.scheduled.but.no.result.report": [
+    "已记录一次计划检查及日期，尚无结果报告。预约不等于复查通过。",
+    "An inspection and date are scheduled, but no result report exists. Scheduling does not mean the reinspection passed."
+  ],
+  "previews.inspection.record": [
+    "Inspection 检查记录",
+    "Inspection record"
+  ],
+  "previews.final.inspection.earlier.record": [
+    "Final 检查 · 较早记录",
+    "Final Inspection · Earlier record"
+  ],
+  "previews.an.earlier.final.inspection.passed.but.a.later.one.failed": [
+    "这是一条较早通过的 Final 检查，之后已有新的未通过记录。不能只取任意一次通过作为当前 Final 结论。",
+    "An earlier Final Inspection passed, but a later one failed. An arbitrary past pass cannot determine the current Final result."
+  ],
+  "previews.inspection.record.earlier.final": [
+    "Inspection 检查记录 · 较早 Final",
+    "Inspection record · Earlier Final"
+  ],
+  "previews.record.position": [
+    "记录位置",
+    "Record position"
+  ],
+  "previews.earlier.record.not.the.latest": [
+    "较早记录，非最近一次",
+    "Earlier record, not the latest"
+  ],
+  "previews.synthetic.historical.report.passed.september.20.a.newer.september.24": [
+    "合成历史报告：9 月 20 日通过。存在 9 月 24 日未通过的新记录，本文件不能替代最新检查。",
+    "Synthetic historical report: passed September 20. A newer September 24 failure exists; this file cannot replace the latest inspection."
+  ],
+  "previews.final.inspection.latest.record": [
+    "Final 检查 · 最近记录",
+    "Final Inspection · Latest record"
+  ],
+  "previews.the.latest.final.inspection.failed.and.needs.corrections.final.confirmation": [
+    "最近一次标为 Final 的检查未通过，需继续整改。现有 Final 关键节点仍要求最近一次 Final 通过以及 D/J 各自确认，Zoey 无权代确认。",
+    "The latest Final Inspection failed and needs corrections. Final confirmation follows the current milestone rules; Zoey cannot confirm on another role's behalf."
+  ],
+  "previews.inspection.record.latest.final": [
+    "Inspection 检查记录 · 最近一次 Final",
+    "Inspection record · Latest Final"
+  ],
+  "previews.complete.corrections.in.the.latest.report": [
+    "按最新报告补齐整改项",
+    "Complete corrections in the latest report"
+  ],
+  "previews.synthetic.latest.report.corrections.remain.and.inspection.failed.this.preview": [
+    "合成最新检查报告：仍有整改项，检查未通过。此处没有节点通过、批准开工或代 D/J 确认操作。",
+    "Synthetic latest report: corrections remain and inspection failed. This preview cannot pass milestones, authorize construction, or confirm for D/J."
+  ],
+  "previews.jeremy.and.tristin.share.the.same.procurement.role.and.workspace": [
+    "Jeremy / Tristin 是同一岗位，共用采购工作台。工作按选型、下单、交期、收货与异常等大类推进，材料是业务记录，不逐件分派任务。项目页只看采购概况。",
+    "Jeremy and Tristin share the same procurement role and workspace. Work follows selection, ordering, delivery, receiving, and exceptions; materials are business records, not individually assigned tasks. Project pages show the procurement overview."
+  ],
+  "previews.property.procurement.review": [
+    "房屋采购核对台",
+    "Property procurement review"
+  ],
+  "previews.which.property.and.use.milestone.still.need.materials": [
+    "我先核对哪套房、哪个使用节点还缺材料？",
+    "Which property and use milestone still need materials?"
+  ],
+  "previews.search.filter.and.compare.a.record.table.then.open.an": [
+    "搜索、筛选和按列核对的资料表，点一条进入对应详情。",
+    "Search, filter, and compare a record table, then open an item's details."
+  ],
+  "previews.review.materials.by.property.and.milestone.with.selection.orders.delivery": [
+    "工作台按房屋与使用节点核对材料，顶部大类汇总选型、下单、交期、收货与异常；在右侧直接维护金额、备注、完整图片、订单和物流，项目页同步高层状态。",
+    "Review materials by property and milestone, with selection, orders, delivery, receiving, and exceptions summarized. Review item details, amounts, notes, images, orders, and tracking alongside the list; the project shows summary status."
+  ],
+  "previews.the.team.selected.this.organization.for.the.actual.procurement.page": [
+    "团队已选为实际采购页的默认分类。每套房缺什么、何时到、送哪里可以一起核对。",
+    "The team selected this organization for the actual procurement page. Review missing materials, arrival dates, and destinations together."
+  ],
+  "previews.handling.exceptions.across.properties.requires.changing.filters.or.reading.multiple": [
+    "跨房集中处理异常时，需要切换筛选或阅读多组表格。",
+    "Handling exceptions across properties requires changing filters or reading multiple groups."
+  ],
+  "previews.carbon.official.data.table.guidance": [
+    "Carbon · Data table 官方规范",
+    "Carbon · Official data table guidance"
+  ],
+  "previews.cross.property.procurement.status.queue": [
+    "跨房采购状态队列",
+    "Cross-property procurement status queue"
+  ],
+  "previews.would.grouping.the.same.material.status.across.properties.make.follow": [
+    "把不同房屋中同一状态的材料放一起，会不会更好处理？",
+    "Would grouping the same material status across properties make follow-up easier?"
+  ],
+  "previews.grouped.lists.and.filters.with.details.beside.the.selected.record": [
+    "列表分组、筛选和与选中记录连续阅读的详情。",
+    "Grouped lists and filters with details beside the selected record."
+  ],
+  "previews.organize.the.same.materials.by.status.retaining.arrival.dates.destinations": [
+    "同一批材料改按状态组织，保留相同的交期、收货地点、金额、备注和图片编辑。 在工作台按大类推进，直接维护材料记录；项目页只看概况。",
+    "Organize the same materials by status, retaining arrival dates, destinations, amounts, notes, and images. Handle procurement in the workspace; project pages show the overview."
+  ],
+  "previews.review.exceptions.selection.and.ordering.together.with.fewer.property.switches": [
+    "异常、待选型和待下单可以集中查看，少在房屋间来回切换。",
+    "Review exceptions, selection, and ordering together with fewer property switches."
+  ],
+  "previews.a.property.s.full.list.is.spread.across.status.groups": [
+    "房屋完整清单分散在不同状态组，整体核对不如 A 直接。",
+    "A property's full list is spread across status groups; A is more direct for a complete review."
+  ],
+  "previews.linear.official.display.options.guide": [
+    "Linear · Display options 官方说明",
+    "Linear · Official display options guide"
+  ],
+  "previews.material.selection.desk": [
+    "材料选型资料台",
+    "Material selection desk"
+  ],
+  "previews.would.specifications.notes.and.documents.organized.by.material.better.support": [
+    "先围绕材料读规格备注和资料，是否更贴近选型工作？",
+    "Would specifications, notes, and documents organized by material better support selection?"
+  ],
+  "previews.cards.organize.a.record.s.title.description.documents.and.actions": [
+    "围绕一个对象组织标题、正文、资料入口和操作的卡片。",
+    "Cards organize a record's title, description, documents, and actions."
+  ],
+  "previews.one.card.per.material.emphasizes.specifications.notes.and.full.images": [
+    "一张卡对应一件材料，突出规格、备注和完整图片入口；沿用相同的采购字段。 在工作台按大类推进，直接维护材料记录；项目页只看概况。",
+    "One card per material emphasizes specifications, notes, and full images, using the same procurement fields. Daily work stays in the workspace; the project page shows the overview."
+  ],
+  "previews.material.context.is.readable.without.compressing.documents.into.narrow.columns": [
+    "选型时直接读材料上下文，资料不被压缩进狭窄表格。",
+    "Material context is readable without compressing documents into narrow columns."
+  ],
+  "previews.fewer.items.fit.on.screen.batch.status.checks.are.less": [
+    "同屏可见条目更少，批量核对状态不如 A、B 紧凑。",
+    "Fewer items fit on screen; batch status checks are less compact than A/B."
+  ],
+  "previews.fluent.2.official.card.guidance": [
+    "Fluent 2 · Card 官方规范",
+    "Fluent 2 · Official card guidance"
+  ],
+  "previews.maple.house.sample.property": [
+    "Maple House · 示例房屋",
+    "Maple House · Sample property"
+  ],
+  "previews.renovation.rough.in": [
+    "装修 · 水电粗装",
+    "Renovation · Rough-in"
+  ],
+  "previews.cedar.house.sample.property": [
+    "Cedar House · 示例房屋",
+    "Cedar House · Sample property"
+  ],
+  "previews.renovation.after.waterproofing": [
+    "装修 · 防水后",
+    "Renovation · After waterproofing"
+  ],
+  "previews.pine.house.sample.property": [
+    "Pine House · 示例房屋",
+    "Pine House · Sample property"
+  ],
+  "previews.renovation.product.selection": [
+    "装修 · 选型准备",
+    "Renovation · Product selection"
+  ],
+  "previews.note.in.wall.valve.and.shower.fixture.compatibility.is.unverified": [
+    "备注：墙内阀体与花洒款式尚未核对，先确认现场安装条件。",
+    "Note: in-wall valve and shower fixture compatibility is unverified. Check site installation conditions first."
+  ],
+  "previews.synthetic.procurement.item.for.comparing.a.b.c.amount.is": [
+    "合成采购条目，仅供比较 A/B/C；金额是材料合计，不是财务付款记录。",
+    "Synthetic procurement item for comparing A/B/C. Amount is the item total, not a financial payment record."
+  ],
+  "previews.selection.details": [
+    "选型信息",
+    "Selection details"
+  ],
+  "previews.site.verification.pending.specifications.are.not.confirmed": [
+    "待现场核对，当前没有已确认规格",
+    "Site verification pending; specifications are not confirmed"
+  ],
+  "previews.site.condition.notes": [
+    "现场条件核对备注",
+    "Site-condition notes"
+  ],
+  "previews.synthetic.note.in.wall.valve.and.fixture.compatibility.needs.checking": [
+    "合成备注：墙内阀体与花洒款式尚未核对，先确认现场安装条件。 设计推荐不代表已批准采购。",
+    "Synthetic note: in-wall valve and fixture compatibility needs checking. Verify installation conditions. Design recommendations are not purchase approvals."
+  ],
+  "previews.demo.company.receiving.point": [
+    "Demo 公司收货点",
+    "Demo company receiving point"
+  ],
+  "previews.sample.specification.verify.site.dimensions.before.purchase": [
+    "示例规格，购买前需核对现场尺寸",
+    "Sample specification; verify site dimensions before purchase"
+  ],
+  "previews.note.fixture.locations.are.recorded.as.confirmed.procurement.remains.ready": [
+    "备注：照明点位已在记录中确认，采购状态仍为待下单。",
+    "Note: fixture locations are recorded as confirmed; procurement remains Ready to order."
+  ],
+  "previews.fixture.location.notes": [
+    "点位备注",
+    "Fixture-location notes"
+  ],
+  "previews.view.material.record.excerpt": [
+    "查看材料记录摘录",
+    "View material record excerpt"
+  ],
+  "previews.vanity.light.location.notes": [
+    "镜前灯点位备注",
+    "Vanity light location notes"
+  ],
+  "previews.synthetic.note.fixture.locations.are.confirmed.procurement.is.still.ready": [
+    "合成备注：照明点位已在记录中确认，采购状态仍为待下单。 设计推荐不代表已批准采购。",
+    "Synthetic note: fixture locations are confirmed; procurement is still Ready to order. Design recommendations are not purchase approvals."
+  ],
+  "previews.custom.cabinets": [
+    "定制橱柜",
+    "Custom cabinets"
+  ],
+  "previews.note.ordered.delivery.date.is.not.confirmed": [
+    "备注：已经下单，配送日期尚未确认。",
+    "Note: ordered; delivery date is not confirmed."
+  ],
+  "previews.arrival.details": [
+    "到货信息",
+    "Arrival details"
+  ],
+  "previews.no.actual.receipt.recorded.ordering.does.not.imply.receipt": [
+    "未记录实际到货，不能按下单状态推断",
+    "No actual receipt recorded; ordering does not imply receipt"
+  ],
+  "previews.post.order.follow.up.notes": [
+    "下单后跟进备注",
+    "Post-order follow-up notes"
+  ],
+  "previews.synthetic.note.ordered.with.delivery.date.unconfirmed.design.recommendations.are": [
+    "合成备注：已经下单，配送日期尚未确认。 设计推荐不代表已批准采购。",
+    "Synthetic note: ordered, with delivery date unconfirmed. Design recommendations are not purchase approvals."
+  ],
+  "previews.demo.temporary.warehouse.appointment.required": [
+    "Demo 临时仓库 · 预约收货",
+    "Demo temporary warehouse · Appointment required"
+  ],
+  "previews.bathroom.floor.tile": [
+    "浴室地砖",
+    "Bathroom floor tile"
+  ],
+  "previews.note.received.package.labels.differ.from.the.original.selection.notes": [
+    "备注：现场收到的包装标识与原选型备注不一致，需要核对。",
+    "Note: received package labels differ from the original selection notes. Verification is needed."
+  ],
+  "previews.package.labels.need.verification": [
+    "包装标识待核对",
+    "Package labels need verification"
+  ],
+  "previews.site.exception.notes": [
+    "现场异常备注",
+    "Site exception notes"
+  ],
+  "previews.synthetic.note.package.labels.differ.from.selection.notes.and.need": [
+    "合成备注：现场收到的包装标识与原选型备注不一致，需要核对。 设计推荐不代表已批准采购。",
+    "Synthetic note: package labels differ from selection notes and need checking. Design recommendations are not purchase approvals."
+  ],
+  "previews.verify.package.labels.against.material.specifications": [
+    "核对包装标识与材料规格",
+    "Verify package labels against material specifications"
+  ],
+  "previews.note.marked.received.materials.still.need.organizing.by.installation.location": [
+    "备注：已登记到货状态，现场尚需按安装位置整理。",
+    "Note: marked received; materials still need organizing by installation location."
+  ],
+  "previews.material.organization.notes": [
+    "材料整理备注",
+    "Material organization notes"
+  ],
+  "previews.synthetic.note.received.status.recorded.organize.by.installation.location.design": [
+    "合成备注：已登记到货状态，现场尚需按安装位置整理。 设计推荐不代表已批准采购。",
+    "Synthetic note: received status recorded; organize by installation location. Design recommendations are not purchase approvals."
+  ],
+  "previews.note.verify.yard.power.locations.before.choosing.fixtures": [
+    "备注：需要核对庭院供电位置，再确认灯具形式。",
+    "Note: verify yard power locations before choosing fixtures."
+  ],
+  "previews.selection.basis": [
+    "选择依据",
+    "Selection basis"
+  ],
+  "previews.power.locations.need.verification": [
+    "供电位置仍待核对",
+    "Power locations need verification"
+  ],
+  "previews.yard.site.condition.notes": [
+    "庭院现场条件备注",
+    "Yard site-condition notes"
+  ],
+  "previews.synthetic.note.verify.power.locations.before.fixture.selection.design.recommendations": [
+    "合成备注：需要核对庭院供电位置，再确认灯具形式。 设计推荐不代表已批准采购。",
+    "Synthetic note: verify power locations before fixture selection. Design recommendations are not purchase approvals."
+  ],
+  "previews.freestanding.bathtub.and.tub.filler": [
+    "独立浴缸及水龙头",
+    "Freestanding bathtub and tub filler"
+  ],
+  "previews.note.the.sample.property.s.design.does.not.use.a": [
+    "备注：当前示例房屋的方案不采用独立浴缸，采购项标记不适用。",
+    "Note: the sample property's design does not use a freestanding tub; this item is Not applicable."
+  ],
+  "previews.scope": [
+    "范围",
+    "Scope"
+  ],
+  "previews.not.applicable.to.this.sample.property.other.project.templates.are": [
+    "不适用于这套示例房屋，不修改其他项目模板",
+    "Not applicable to this sample property; other project templates are unchanged"
+  ],
+  "previews.design.scope.notes": [
+    "方案范围备注",
+    "Design scope notes"
+  ],
+  "previews.synthetic.note.this.design.excludes.a.freestanding.tub.the.item": [
+    "合成备注：当前示例房屋的方案不采用独立浴缸，采购项标记不适用。 设计推荐不代表已批准采购。",
+    "Synthetic note: this design excludes a freestanding tub; the item is Not applicable. Design recommendations are not purchase approvals."
+  ],
+  "previews.note.dining.layout.is.not.final.light.locations.await.the": [
+    "备注：餐桌布局尚未定稿，灯具点位等待对应方案。",
+    "Note: dining layout is not final; light locations await the corresponding plan."
+  ],
+  "previews.waiting.for": [
+    "等待内容",
+    "Waiting for"
+  ],
+  "previews.alignment.of.dining.layout.and.light.locations": [
+    "餐桌布局与灯具点位的对应关系",
+    "Alignment of dining layout and light locations"
+  ],
+  "previews.selection.waiting.notes": [
+    "选型等待备注",
+    "Selection waiting notes"
+  ],
+  "previews.synthetic.note.dining.layout.is.not.final.light.locations.await": [
+    "合成备注：餐桌布局尚未定稿，灯具点位等待对应方案。 设计推荐不代表已批准采购。",
+    "Synthetic note: dining layout is not final; light locations await the plan. Design recommendations are not purchase approvals."
+  ],
+  "previews.kitchen.sink": [
+    "厨房水槽",
+    "Kitchen sink"
+  ],
+  "previews.note.verify.against.countertop.cutout.records.before.purchasing": [
+    "备注：需要与台面开孔记录再次核对后办理购买。",
+    "Note: verify against countertop cutout records before purchasing."
+  ],
+  "previews.pre.purchase.verification": [
+    "购买前核对",
+    "Pre-purchase verification"
+  ],
+  "previews.consistency.between.countertop.cutout.and.sink.design": [
+    "台面开孔与水槽方案一致性",
+    "Consistency between countertop cutout and sink design"
+  ],
+  "previews.countertop.cutout.verification.notes": [
+    "台面开孔核对备注",
+    "Countertop cutout verification notes"
+  ],
+  "previews.synthetic.note.recheck.countertop.cutouts.before.purchasing.design.recommendations.are": [
+    "合成备注：需要与台面开孔记录再次核对后办理购买。 设计推荐不代表已批准采购。",
+    "Synthetic note: recheck countertop cutouts before purchasing. Design recommendations are not purchase approvals."
+  ],
+  "previews.t.group.operating.view": [
+    "T · 集团经营视角",
+    "T · Group operating view"
+  ],
+  "previews.review.investment.scale.return.assumptions.and.progress.across.properties.then": [
+    "跨房看投入规模、预计收益依据和项目推进，发现共性卡点后回到具体房屋与责任人。判断来自同一批项目记录，不把估算当成实际利润，也不把任务数量当成员工效率。",
+    "Review investment scale, return assumptions, and progress across properties, then open a property and responsible person for recurring issues. Use the same records without treating estimates as actual profit or task counts as employee efficiency."
+  ],
+  "previews.project.operating.ledger": [
+    "项目经营账簿",
+    "Project operating ledger"
+  ],
+  "previews.where.is.money.committed.are.return.assumptions.complete.and.what": [
+    "钱投在哪些房，收益依据是否齐全，项目走到哪一步？",
+    "Where is money committed, are return assumptions complete, and what stage is each project at?"
+  ],
+  "previews.fixed.column.comparison.search.sorting.and.contextual.details.for.the": [
+    "固定列比较、搜索排序和选中行的上下文详情。",
+    "Fixed-column comparison, search, sorting, and contextual details for the selected row."
+  ],
+  "previews.compare.recorded.investment.explainable.estimates.actual.holding.days.and.issues": [
+    "每房对照登记投入、可解释的收益估算、业务持有天数和当前问题，点击展开构成与资料缺口。",
+    "Compare recorded investment, explainable estimates, actual holding days, and issues per property. Expand inputs and data gaps."
+  ],
+  "previews.useful.for.forming.a.portfolio.view.then.tracing.amounts.and": [
+    "适合建立全局判断，再逐房追溯金额和时间。",
+    "Useful for forming a portfolio view, then tracing amounts and dates property by property."
+  ],
+  "previews.many.columns.on.mobile.scroll.the.table.to.select.a": [
+    "列较多；手机通过滚动表格选房，再进入完整详情。",
+    "Many columns; on mobile, scroll the table to select a property, then open full details."
+  ],
+  "previews.operating.issue.groups": [
+    "经营问题聚合",
+    "Operating issue groups"
+  ],
+  "previews.which.recurring.issues.across.properties.need.coordination": [
+    "哪些问题跨房反复出现，需要统筹介入？",
+    "Which recurring issues across properties need coordination?"
+  ],
+  "previews.initiatives.group.projects.by.a.common.theme.while.retaining.assignees": [
+    "Initiatives 将项目按共同主题聚合，并保留负责人和项目更新。",
+    "Initiatives group projects by a common theme while retaining assignees and updates."
+  ],
+  "previews.group.by.return.data.gaps.progress.issues.and.unreconciled.closing": [
+    "按收益资料缺口、推进卡点、结算待核组织房屋；同房可出现在多个问题下，但金额汇总按房去重。",
+    "Group by return-data gaps, progress issues, and unreconciled closing. A property may appear in several groups, but amounts are deduplicated."
+  ],
+  "previews.useful.for.identifying.shared.gaps.and.dependencies.before.contacting.assignees": [
+    "适合先查共性缺口与依赖，再问具体负责人。",
+    "Useful for identifying shared gaps and dependencies before contacting assignees."
+  ],
+  "previews.groups.are.not.automatic.risk.scores.return.to.all.properties": [
+    "问题分组不是自动风险评分；正常项目仍需回全部房屋查看。",
+    "Groups are not automatic risk scores. Return to all properties to review on-track projects."
+  ],
+  "previews.turnover.and.progress.view": [
+    "周转与推进透视",
+    "Turnover and progress view"
+  ],
+  "previews.which.stages.hold.properties.and.recorded.investment.and.what.is": [
+    "房屋和登记投入停在哪个阶段，下一步在等什么？",
+    "Which stages hold properties and recorded investment, and what is each waiting for?"
+  ],
+  "previews.open.details.from.aggregate.dimensions.while.preserving.filters.with.a": [
+    "点击汇总维度进入明细，保留筛选条件并能清除返回整体。",
+    "Open details from aggregate dimensions while preserving filters, with a clear return to the whole portfolio."
+  ],
+  "previews.select.properties.by.stage.then.inspect.holding.days.overdue.unfinished": [
+    "从阶段分布选房，再把持有天数、未完成到期事项和待审批次分别展开；时间不代替完成事实。",
+    "Select properties by stage, then inspect holding days, overdue unfinished tasks, and pending submissions separately. Time is not completion evidence."
+  ],
+  "previews.useful.for.understanding.the.current.distribution.and.progress.issues.every": [
+    "适合查看当前项目分布与推进阻点，汇总始终能找到来源。",
+    "Useful for understanding the current distribution and progress issues; every total retains its source."
+  ],
+  "previews.a.current.snapshot.not.a.historical.trend.without.actual.proceeds": [
+    "这是当前切面，不是历史趋势；没有实际回款记录便不预测可用现金。",
+    "A current snapshot, not a historical trend. Without actual proceeds records, available cash is not forecast."
+  ],
+  "previews.cabinet.specifications.need.confirmation.between.procurement.and.site.installation": [
+    "柜体规格待确认，采购与现场安装需对齐。",
+    "Cabinet specifications need confirmation between procurement and site installation."
+  ],
+  "previews.verify.dimensions.and.installation.plans.before.updating.procurement.records": [
+    "核对尺寸资料与安装安排，确认后再更新采购记录。",
+    "Verify dimensions and installation plans before updating procurement records."
+  ],
+  "previews.current.milestone": [
+    "当前关键节点",
+    "Current milestone"
+  ],
+  "previews.synthetic.milestone.facts.reviewing.this.design.does.not.execute.approvals": [
+    "这里展示合成节点事实；查看设计不执行审批，也不改变现有节点控制。",
+    "Synthetic milestone facts. Reviewing this design does not execute approvals or change milestone controls."
+  ],
+  "previews.kitchen.material.delivery.awaiting.review": [
+    "厨房材料交付待审核",
+    "Kitchen material delivery awaiting review"
+  ],
+  "previews.gas.visit.arrangement": [
+    "燃气到场安排",
+    "Gas visit arrangement"
+  ],
+  "previews.project.collaborator.sample": [
+    "项目协作成员（示例）",
+    "Project collaborator (sample)"
+  ],
+  "previews.provider.has.not.replied.with.a.visit.time": [
+    "服务公司尚未回复到场时间",
+    "Provider has not replied with a visit time"
+  ],
+  "previews.external.response.sample": [
+    "外部回复（示例）",
+    "External response (sample)"
+  ],
+  "previews.complete.site.measurement.record": [
+    "完成现场测量记录",
+    "Complete site measurement record"
+  ],
+  "previews.previous.analysis": [
+    "上一版测算",
+    "Previous analysis"
+  ],
+  "previews.acquisition.charges": [
+    "购入附加费用",
+    "Acquisition charges"
+  ],
+  "previews.tax.insurance.and.utility.assumptions": [
+    "税费、保险及水电假设",
+    "Tax, insurance, and utility assumptions"
+  ],
+  "previews.additional.selling.costs": [
+    "销售附加费用",
+    "Additional selling costs"
+  ],
+  "previews.modeled.purchase.price": [
+    "模型买入价",
+    "Modeled purchase price"
+  ],
+  "previews.purchase.price.input.for.this.analysis.verify.separately.against.project": [
+    "本分析版本的买入价输入；与项目登记资料分别核对",
+    "Purchase price input for this analysis; verify separately against project records"
+  ],
+  "previews.manual.estimate.synthetic.version.not.a.transaction.commitment": [
+    "人工估算 · 合成版本，非成交承诺",
+    "Manual estimate · Synthetic version, not a transaction commitment"
+  ],
+  "previews.renovation.inputs.for.this.version.not.added.again.to.expenses": [
+    "此分析版本的装修输入，不与支出重复相加",
+    "Renovation inputs for this version; not added again to expenses"
+  ],
+  "previews.holding.period": [
+    "持有期",
+    "Holding period"
+  ],
+  "previews.6.months.1.400.month": [
+    "6 个月 × $1,400/月",
+    "6 months × $1,400/month"
+  ],
+  "previews.model.assumption.not.actual.holding.time": [
+    "测算假设，非实际持有时间",
+    "Model assumption, not actual holding time"
+  ],
+  "previews.all.cash.assumption.modeled.interest.0": [
+    "假设全款，模型利息 $0",
+    "All-cash assumption; modeled interest $0"
+  ],
+  "previews.explicit.synthetic.assumption.not.the.actual.financing.source": [
+    "本合成版本明确假设；不表示真实资金来源",
+    "Explicit synthetic assumption, not the actual financing source"
+  ],
+  "previews.transaction.costs": [
+    "交易费用",
+    "Transaction costs"
+  ],
+  "previews.acquisition.8.000.sale.6.1.500": [
+    "购入 $8,000；卖出 6% + $1,500",
+    "Acquisition $8,000; sale 6% + $1,500"
+  ],
+  "previews.model.assumption.future.costs.are.not.actual.expenses": [
+    "测算假设，尚未发生的成本不当实际支出",
+    "Model assumption; future costs are not actual expenses"
+  ],
+  "previews.current.analysis": [
+    "当前测算",
+    "Current analysis"
+  ],
+  "previews.12.cedar.record.verification.summary": [
+    "12 Cedar · 资料核对摘要",
+    "12 Cedar · Record verification summary"
+  ],
+  "previews.synthetic.project.records": [
+    "合成项目资料",
+    "Synthetic project records"
+  ],
+  "previews.cabinet.specifications.and.installation.plans.need.alignment.verify.dimensions.before": [
+    "柜体规格待确认，采购与现场安装需对齐。 核对尺寸资料与安装安排，确认后再更新采购记录。 该资料仅为设计比较样例，不能作为真实成交或到账凭证。",
+    "Cabinet specifications and installation plans need alignment. Verify dimensions before updating procurement. This synthetic design example is not transaction or payment evidence."
+  ],
+  "previews.project.follow.up.record": [
+    "项目跟进记录",
+    "Project follow-up record"
+  ],
+  "previews.next.verification": [
+    "接下来核对",
+    "Next verification"
+  ],
+  "previews.recorded.expenses.are.8.000.over.budget.planned.finish.has": [
+    "登记支出超预算 $8,000，计划完工日已过；最新 Final 未通过。",
+    "Recorded expenses are $8,000 over budget; planned finish has passed and the latest Final failed."
+  ],
+  "previews.verify.additional.expense.evidence.and.the.correction.reinspection.plan.separately": [
+    "分别核对新增费用依据和整改复查安排，保留两条问题。",
+    "Verify additional expense evidence and the correction / reinspection plan separately."
+  ],
+  "previews.final.review": [
+    "Final 核对",
+    "Final review"
+  ],
+  "previews.the.latest.final.inspection.failed.a.historical.pass.cannot.override": [
+    "最近一次 Final 检查未通过；历史通过不能覆盖，D/J 仍需各自确认。",
+    "The latest Final Inspection failed; a historical pass cannot override it. Current milestone confirmation rules still apply."
+  ],
+  "previews.final.corrections.and.reinspection": [
+    "Final 整改与复查",
+    "Final corrections and reinspection"
+  ],
+  "previews.awaiting.correction.evidence.and.reinspection.scheduling": [
+    "等待现场整改材料与复查排期",
+    "Awaiting correction evidence and reinspection scheduling"
+  ],
+  "previews.additional.expense.evidence.needs.verification": [
+    "追加费用依据待核对",
+    "Additional expense evidence needs verification"
+  ],
+  "previews.8.months.1.400.month": [
+    "8 个月 × $1,400/月",
+    "8 months × $1,400/month"
+  ],
+  "previews.38.oak.record.verification.summary": [
+    "38 Oak · 资料核对摘要",
+    "38 Oak · Record verification summary"
+  ],
+  "previews.expenses.exceed.budget.by.8.000.planned.finish.has.passed": [
+    "登记支出超预算 $8,000，计划完工日已过；最新 Final 未通过。 分别核对新增费用依据和整改复查安排，保留两条问题。 该资料仅为设计比较样例，不能作为真实成交或到账凭证。",
+    "Expenses exceed budget by $8,000, planned finish has passed, and the latest Final failed. Verify expense evidence and reinspection arrangements separately. This synthetic example is not transaction or payment evidence."
+  ],
+  "previews.purchase.price.complete.renovation.budget.and.actual.dates.are.missing": [
+    "买入价、完整装修预算及业务日期尚未补齐，当前无法形成可靠预计利润。",
+    "Purchase price, complete renovation budget, and actual dates are missing; a reliable profit estimate is unavailable."
+  ],
+  "previews.complete.acquisition.and.budget.evidence.before.comparing.returns.and.holding": [
+    "先补购入与预算依据，再比较本项目的收益和持有时间。",
+    "Complete acquisition and budget evidence before comparing returns and holding time."
+  ],
+  "previews.complete.purchase.price.and.budget.records": [
+    "补齐买入价与预算资料",
+    "Complete purchase price and budget records"
+  ],
+  "previews.no.complete.estimate": [
+    "未建完整估算",
+    "No complete estimate"
+  ],
+  "previews.28.maple.record.verification.summary": [
+    "28 Maple · 资料核对摘要",
+    "28 Maple · Record verification summary"
+  ],
+  "previews.purchase.price.budget.and.actual.dates.are.incomplete.add.evidence": [
+    "买入价、完整装修预算及业务日期尚未补齐，当前无法形成可靠预计利润。 先补购入与预算依据，再比较本项目的收益和持有时间。 该资料仅为设计比较样例，不能作为真实成交或到账凭证。",
+    "Purchase price, budget, and actual dates are incomplete. Add evidence before comparing returns and holding time. This synthetic example is not transaction or payment evidence."
+  ],
+  "previews.listed.for.sale.target.price.is.an.estimate.not.an": [
+    "正在上市，目标售价是估算依据，未签成交价。",
+    "Listed for sale; target price is an estimate, not an agreed sale price."
+  ],
+  "previews.review.market.feedback.and.price.assumptions.verify.actual.selling.costs": [
+    "查看市场反馈与当前报价依据；实际销售费用需结算后核对。",
+    "Review market feedback and price assumptions. Verify actual selling costs after closing."
+  ],
+  "previews.compile.this.week.s.market.feedback": [
+    "整理本周市场反馈",
+    "Compile this week's market feedback"
+  ],
+  "previews.complete.listing.documents": [
+    "完成上市资料",
+    "Complete listing documents"
+  ],
+  "previews.5.months.1.400.month": [
+    "5 个月 × $1,400/月",
+    "5 months × $1,400/month"
+  ],
+  "previews.7.pine.record.verification.summary": [
+    "7 Pine · 资料核对摘要",
+    "7 Pine · Record verification summary"
+  ],
+  "previews.listed.for.sale.with.an.estimated.target.price.not.a": [
+    "正在上市，目标售价是估算依据，未签成交价。 查看市场反馈与当前报价依据；实际销售费用需结算后核对。 该资料仅为设计比较样例，不能作为真实成交或到账凭证。",
+    "Listed for sale with an estimated target price, not a signed sale price. Review feedback and reconcile actual selling costs after closing. This synthetic example is not transaction or payment evidence."
+  ],
+  "previews.sale.recorded.but.loan.payoff.final.costs.and.payment.reconciliation": [
+    "已记录成交，但贷款清偿、最终费用和到账核对未齐，净回款与最终净利润待核对。",
+    "Sale recorded, but loan payoff, final costs, and payment reconciliation are incomplete. Net proceeds and final net profit need verification."
+  ],
+  "previews.reconcile.closing.statements.and.receipt.evidence.sale.price.is.not": [
+    "核对结算清单与到账依据，不能把成交额作为可用现金。",
+    "Reconcile closing statements and receipt evidence; sale price is not available cash."
+  ],
+  "previews.complete.closing.reconciliation.records": [
+    "补齐结算核对资料",
+    "Complete closing reconciliation records"
+  ],
+  "previews.7.months.1.400.month": [
+    "7 个月 × $1,400/月",
+    "7 months × $1,400/month"
+  ],
+  "previews.63.birch.record.verification.summary": [
+    "63 Birch · 资料核对摘要",
+    "63 Birch · Record verification summary"
+  ],
+  "previews.sale.recorded.but.payoff.final.costs.and.payment.evidence.are": [
+    "已记录成交，但贷款清偿、最终费用和到账核对未齐，净回款与最终净利润待核对。 核对结算清单与到账依据，不能把成交额作为可用现金。 该资料仅为设计比较样例，不能作为真实成交或到账凭证。",
+    "Sale recorded, but payoff, final costs, and payment evidence are incomplete. Net proceeds and profit require reconciliation. This synthetic example is not transaction or payment evidence."
+  ],
+  "previews.still.an.unpurchased.lead.excluded.from.held.project.investment.and": [
+    "仍为未购入线索，不进入在手项目的投入或预计利润合计。",
+    "Still an unpurchased lead; excluded from held-project investment and profit totals."
+  ],
+  "previews.retain.estimate.assumptions.and.decide.whether.to.continue.follow.up": [
+    "保留估算假设，先核对是否继续跟进；本页不替代投资决定。",
+    "Retain estimate assumptions and decide whether to continue follow-up. This page does not make investment decisions."
+  ],
+  "previews.verify.basic.lead.information": [
+    "核对线索基础资料",
+    "Verify basic lead information"
+  ],
+  "previews.proposed.purchase.price.assumption.not.purchased": [
+    "线索拟买价假设，尚未购入",
+    "Proposed purchase price assumption; not purchased"
+  ],
+  "previews.91.elm.record.verification.summary": [
+    "91 Elm · 资料核对摘要",
+    "91 Elm · Record verification summary"
+  ],
+  "previews.unpurchased.lead.excluded.from.held.project.totals.retain.assumptions.and": [
+    "仍为未购入线索，不进入在手项目的投入或预计利润合计。 保留估算假设，先核对是否继续跟进；本页不替代投资决定。 该资料仅为设计比较样例，不能作为真实成交或到账凭证。",
+    "Unpurchased lead, excluded from held-project totals. Retain assumptions and verify follow-up plans. This synthetic example is not transaction or payment evidence."
+  ],
+  "previews.sabrina.financial.verification": [
+    "Sabrina · 财务核对",
+    "Sabrina · Financial verification"
+  ],
+  "previews.match.expenses.properties.budgets.and.receipts.prioritize.missing.records.and": [
+    "把每笔费用、所属房屋、预算和凭证对应起来，先找缺资料与金额不一致的记录。当前系统有预算和支出登记，没有独立付款台账；付款备注不能当作银行已付事实。",
+    "Match expenses, properties, budgets, and receipts. Prioritize missing records and mismatched amounts. The system has budget and expense records, not a separate payment ledger; payment notes are not bank-confirmed facts."
+  ],
+  "previews.cross.project.expense.ledger": [
+    "跨项目支出账簿",
+    "Cross-project expense ledger"
+  ],
+  "previews.which.property.and.expense.does.this.amount.belong.to.and": [
+    "这笔钱属于哪套房、什么费用，凭证在哪里？",
+    "Which property and expense does this amount belong to, and where is its receipt?"
+  ],
+  "previews.fixed.column.amount.comparisons.search.filters.sorting.and.selected.row": [
+    "固定列的金额比较、搜索筛选、排序与选中行详情。",
+    "Fixed-column amount comparisons, search, filters, sorting, and selected-row details."
+  ],
+  "previews.show.property.expense.amount.and.verification.status.together.keeping.budget": [
+    "把房屋、费用、金额和核对状态放在同一行，右侧保持预算与单据来源。",
+    "Show property, expense, amount, and verification status together, keeping budget and receipt sources alongside."
+  ],
+  "previews.useful.for.reviewing.expenses.across.properties.and.finding.amount.differences": [
+    "适合连续核对多套房的支出，金额差异容易发现。",
+    "Useful for reviewing expenses across properties and finding amount differences."
+  ],
+  "previews.mobile.requires.horizontal.table.scrolling.open.a.record.for.complete": [
+    "手机需要横向查看表格，完整资料通过点记录进入。",
+    "Mobile requires horizontal table scrolling; open a record for complete details."
+  ],
+  "previews.financial.verification.queue": [
+    "财务待核对队列",
+    "Financial verification queue"
+  ],
+  "previews.which.missing.documents.or.amount.discrepancies.need.follow.up.first": [
+    "今天哪笔资料缺失或金额不一致，需要先跟进？",
+    "Which missing documents or amount discrepancies need follow-up first?"
+  ],
+  "previews.a.central.triage.queue.with.clear.groups.and.contextual.details": [
+    "Triage 的待处理事项集中入口、清楚分组和上下文详情。",
+    "A central triage queue with clear groups and contextual details."
+  ],
+  "previews.show.unverified.payments.amounts.and.missing.receipts.first.while.retaining": [
+    "先列待付款核实、金额待核和凭证待补，再保留已登记记录；点击直接看应补什么。",
+    "Show unverified payments, amounts, and missing receipts first, while retaining recorded entries. Open each to see what is missing."
+  ],
+  "previews.useful.for.handling.exceptions.at.the.start.of.the.day": [
+    "适合一天开始时处理例外，减少在正常记录中来回查找。",
+    "Useful for handling exceptions at the start of the day without searching through normal records."
+  ],
+  "previews.the.queue.does.not.replace.the.ledger.payment.verification.is": [
+    "不能用队列代替完整账簿；付款核实只作样例备注，未接付款流程。",
+    "The queue does not replace the ledger. Payment verification is sample commentary, not an integrated payment workflow."
+  ],
+  "previews.property.budget.review": [
+    "逐房预算核对",
+    "Property budget review"
+  ],
+  "previews.which.expenses.are.recorded.for.this.property.and.how.do": [
+    "这套房登记了哪些费用，与各项预算差在哪里？",
+    "Which expenses are recorded for this property, and how do they differ from budget?"
+  ],
+  "previews.grouped.resources.organized.by.shared.attributes.with.expandable.records": [
+    "按共同属性组织资源，并展开相关记录的分组视图。",
+    "Grouped resources organized by shared attributes with expandable records."
+  ],
+  "previews.choose.a.property.on.the.left.compare.budget.and.recorded": [
+    "左侧选择房屋，中间对照预算与已登记支出，右侧查看每筆单据与说明。",
+    "Choose a property on the left, compare budget and recorded expenses in the center, and inspect receipts and notes on the right."
+  ],
+  "previews.useful.for.reviewing.a.property.s.accounts.with.jessie.while": [
+    "适合和 Jessie 逐房对账，保留房屋上下文。",
+    "Useful for reviewing a property's accounts with Jessie while retaining context."
+  ],
+  "previews.the.ledger.is.more.direct.for.cross.property.supplier.searches": [
+    "跨房查同一家供应商时，账簿视图更直接；预算差额不表示节约或利润。",
+    "The ledger is more direct for cross-property supplier searches. Budget differences are not savings or profit."
+  ],
+  "previews.first.interior.construction.expense": [
+    "室内施工第一笔费用",
+    "First interior construction expense"
+  ],
+  "previews.construction.labor": [
+    "施工人工",
+    "Construction labor"
+  ],
+  "previews.construction.expense.recorded.the.formal.invoice.is.missing.progress.photos": [
+    "已登记施工费用，附件缺正式发票。现场进度照片不能替代金额凭证。",
+    "Construction expense recorded; the formal invoice is missing. Progress photos are not amount evidence."
+  ],
+  "previews.synthetic.expense.record.expense.fields": [
+    "合成支出记录 · Expense 对应字段",
+    "Synthetic expense record · Expense fields"
+  ],
+  "previews.cedar.works.sample": [
+    "Cedar Works（示例）",
+    "Cedar Works (sample)"
+  ],
+  "previews.expense.date": [
+    "费用日期",
+    "Expense date"
+  ],
+  "previews.payment.notes": [
+    "付款备注",
+    "Payment notes"
+  ],
+  "previews.reported.paid.on.site.bank.receipt.unverified": [
+    "现场称已支付，未核验银行回单",
+    "Reported paid on site; bank receipt unverified"
+  ],
+  "previews.current.gap": [
+    "当前缺口",
+    "Current gap"
+  ],
+  "previews.formal.invoice.and.payment.evidence": [
+    "正式发票及付款依据",
+    "Formal invoice and payment evidence"
+  ],
+  "previews.cedar.works.recorded.3.200.for.first.stage.interior.work": [
+    "Cedar Works 记录第一阶段室内施工费用 $3,200；本说明不是发票或付款回单。",
+    "Cedar Works recorded $3,200 for first-stage interior work. This note is not an invoice or payment receipt."
+  ],
+  "previews.kitchen.cabinet.expense": [
+    "厨房柜体费用",
+    "Kitchen cabinet expense"
+  ],
+  "previews.kitchen.materials": [
+    "厨房材料",
+    "Kitchen materials"
+  ],
+  "previews.recorded.6.800.versus.a.6.500.quote.the.300": [
+    "登记金额为 $6,800，报价附件为 $6,500，差额 $300 的原因尚未填写。",
+    "Recorded $6,800 versus a $6,500 quote. The $300 difference has no explanation yet."
+  ],
+  "previews.synthetic.expense.record.expense.and.budget.category": [
+    "合成支出记录 · Expense 与预算分类",
+    "Synthetic expense record · Expense and budget category"
+  ],
+  "previews.studio.cabinets.sample": [
+    "Studio Cabinets（示例）",
+    "Studio Cabinets (sample)"
+  ],
+  "previews.quoted.amount": [
+    "报价金额",
+    "Quoted amount"
+  ],
+  "previews.verification.needed": [
+    "核对事项",
+    "Verification needed"
+  ],
+  "previews.check.whether.300.is.shipping.to.avoid.duplicate.entry": [
+    "核对 $300 是否为运输费，避免重复登记",
+    "Check whether $300 is shipping to avoid duplicate entry"
+  ],
+  "previews.studio.cabinets.quoted.6.500.without.shipping.details.this.does": [
+    "Studio Cabinets：柜体报价 $6,500，运输费用未列明；尚不足以解释登记金额 $6,800。",
+    "Studio Cabinets quoted $6,500 without shipping details. This does not yet explain the recorded $6,800."
+  ],
+  "previews.permit.application.fee": [
+    "Permit 申请费",
+    "Permit application fee"
+  ],
+  "previews.permit.fees": [
+    "Permit 费用",
+    "Permit fees"
+  ],
+  "previews.recorded.expense.matches.the.receipt.the.receipt.proves.a.fee": [
+    "已登记费用与收据金额一致。收据代表费用凭证，不代表 Permit 已签发。",
+    "Recorded expense matches the receipt. The receipt proves a fee record, not Permit issuance."
+  ],
+  "previews.synthetic.expense.record.expense.and.linked.file": [
+    "合成支出记录 · Expense 与关联文件",
+    "Synthetic expense record · Expense and linked file"
+  ],
+  "previews.payee": [
+    "收款方",
+    "Payee"
+  ],
+  "previews.city.permit.office.sample": [
+    "City Permit Office（示例）",
+    "City Permit Office (sample)"
+  ],
+  "previews.receipt.amount": [
+    "收据金额",
+    "Receipt amount"
+  ],
+  "previews.sample.receipt.marked.paid.no.bank.verification": [
+    "样例收据记为已付；未接银行核验",
+    "Sample receipt marked paid; no bank verification"
+  ],
+  "previews.38.oak.permit.application.fee.450.sample.receipt.dated.2026": [
+    "38 Oak · Permit 申请费 $450 · 样例收据日期 2026-09-19。不是 Permit 签发文件。",
+    "38 Oak · Permit application fee $450 · Sample receipt dated 2026-09-19. This is not an issued Permit."
+  ],
+  "previews.insurance.charge.document": [
+    "保险费用单据",
+    "Insurance charge document"
+  ],
+  "previews.a.980.charge.notice.was.received.payment.is.unverified.this": [
+    "收到 $980 费用单据，付款情况尚未核对；这笔样例未计入已登记支出。",
+    "A $980 charge notice was received; payment is unverified. This sample is excluded from recorded expenses."
+  ],
+  "previews.synthetic.document.awaiting.verification.no.separate.payable.payment.status.field": [
+    "合成待核对单据 · 当前无独立应付/付款状态字段",
+    "Synthetic document awaiting verification · No separate payable / payment status field exists"
+  ],
+  "previews.service.provider": [
+    "服务商",
+    "Service provider"
+  ],
+  "previews.oak.coverage.sample": [
+    "Oak Coverage（示例）",
+    "Oak Coverage (sample)"
+  ],
+  "previews.document.date": [
+    "单据日期",
+    "Document date"
+  ],
+  "previews.document.amount": [
+    "单据金额",
+    "Document amount"
+  ],
+  "previews.980.not.recorded": [
+    "$980（未登记）",
+    "$980 (not recorded)"
+  ],
+  "previews.payment.status": [
+    "付款情况",
+    "Payment status"
+  ],
+  "previews.unverified.this.does.not.imply.an.implemented.payment.ledger": [
+    "待核实；不代表系统已有待付款台账",
+    "Unverified; this does not imply an implemented payment ledger"
+  ],
+  "previews.38.oak.insurance.charge.980.a.charge.notice.without.a": [
+    "38 Oak · 保险费用 $980；这是费用通知，没有银行回单，不能据此确认已付款或保单已生效。",
+    "38 Oak · Insurance charge $980. A charge notice without a bank receipt cannot confirm payment or effective coverage."
+  ],
+  "previews.pre.listing.cleaning.expense": [
+    "上市前清洁费",
+    "Pre-listing cleaning expense"
+  ],
+  "previews.cleaning": [
+    "清洁",
+    "Cleaning"
+  ],
+  "previews.recorded.expense.matches.the.synthetic.invoice.property.and.expense.date": [
+    "已登记费用与合成发票一致，保留房屋和费用日期便于逐房核对。",
+    "Recorded expense matches the synthetic invoice. Property and expense date remain available for review."
+  ],
+  "previews.pine.clean.sample": [
+    "Pine Clean（示例）",
+    "Pine Clean (sample)"
+  ],
+  "previews.invoice.amount": [
+    "发票金额",
+    "Invoice amount"
+  ],
+  "previews.the.record.does.not.distinguish.payment.status.separately": [
+    "登记记录未单独区分付款状态",
+    "The record does not distinguish payment status separately"
+  ],
+  "previews.7.pine.pre.listing.cleaning.600.an.invoice.does.not": [
+    "7 Pine · 上市前清洁服务 $600；发票存在不代表付款已核验。",
+    "7 Pine · Pre-listing cleaning $600. An invoice does not verify payment."
+  ],
+  "previews.utility.expense.allocation": [
+    "水电费用归集",
+    "Utility expense allocation"
+  ],
+  "previews.recorded.total.420.add.water.and.electricity.bills.and.verify": [
+    "已登记合计 $420，需补齐水费与电费账单，确认两笔都属于本房。",
+    "Recorded total $420. Add water and electricity bills and verify both belong to this property."
+  ],
+  "previews.synthetic.expense.record.category.aggregation.sample": [
+    "合成支出记录 · Expense 分类汇总样例",
+    "Synthetic expense record · Category aggregation sample"
+  ],
+  "previews.two.service.providers.sample": [
+    "两家服务公司（示例）",
+    "Two service providers (sample)"
+  ],
+  "previews.water.and.electricity.bills": [
+    "水费账单、电费账单",
+    "Water and electricity bills"
+  ],
+  "previews.expense.entry.does.not.establish.bank.payment.status": [
+    "不能从支出登记推断银行付款状态",
+    "Expense entry does not establish bank payment status"
+  ]
+}

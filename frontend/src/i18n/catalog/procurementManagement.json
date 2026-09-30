@@ -1,0 +1,58 @@
+{
+  "procurementManagement.manage.this.property.s.procurement": [
+    "管理本房采购",
+    "Manage this property's procurement"
+  ],
+  "procurementManagement.save.your.changes.or.select.discard.and.close": [
+    "请先保存，或点击“放弃并关闭”。",
+    "Save your changes, or select “Discard and close”."
+  ],
+  "procurementManagement.discard.and.close": [
+    "放弃并关闭",
+    "Discard and close"
+  ],
+  "procurementManagement.procurement.lead": [
+    "负责人：",
+    "Procurement lead:"
+  ],
+  "procurementManagement.change.lead.due.date": [
+    "调整负责人 / 截止日期",
+    "Change lead / due date"
+  ],
+  "procurementManagement.find.requirements.to.update": [
+    "查找需要调整的需求",
+    "Find requirements to update"
+  ],
+  "procurementManagement.search.procurement.requirements": [
+    "搜索管理采购需求",
+    "Search procurement requirements"
+  ],
+  "procurementManagement.new.properties.show.the.full.template.automatically.existing.property": [
+    "新房默认显示完整模板，无需再选范围。此处保留既有房屋的显示设置；不需要的材料请使用下方“不需要项”。",
+    "New properties show the full template automatically. Existing property display settings remain available here; use “Not needed” below to exclude materials."
+  ],
+  "procurementManagement.has.linked.orders": [
+    "· 已有关联订单",
+    "· Has linked orders"
+  ],
+  "procurementManagement.no.matching.requirements.try.another.search": [
+    "没有匹配的需求，请更换搜索词。",
+    "No matching requirements. Try another search."
+  ],
+  "procurementManagement.save.scope": [
+    "保存本次范围",
+    "Save scope"
+  ],
+  "procurementManagement.mark.only.requirements.without.linked.orders.as.not.needed": [
+    "仅对尚未关联订单的需求标记不需要。原因与历史保留。",
+    "Mark only requirements without linked orders as not needed. Reasons and history are retained."
+  ],
+  "procurementManagement.reason.not.needed": [
+    "不需要的原因",
+    "Reason not needed"
+  ],
+  "procurementManagement.save.excluded.items": [
+    "保存不需要项",
+    "Save excluded items"
+  ]
+}

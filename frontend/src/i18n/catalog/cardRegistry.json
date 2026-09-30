@@ -1,0 +1,298 @@
+{
+  "cardRegistry.follow.up.stage": [
+    "跟进档位",
+    "Follow-up stage"
+  ],
+  "cardRegistry.role.task.reference": [
+    "角色待办参考",
+    "Role task reference"
+  ],
+  "cardRegistry.stage.pre.assignment": [
+    "阶段预安排",
+    "Stage pre-assignment"
+  ],
+  "cardRegistry.recipient.preview": [
+    "收件人预览",
+    "Recipient preview"
+  ],
+  "cardRegistry.current.submission": [
+    "本次提交",
+    "Current submission"
+  ],
+  "cardRegistry.deliverable.upload": [
+    "交付文件上传",
+    "Deliverable upload"
+  ],
+  "cardRegistry.utility.accounts": [
+    "水电气账户",
+    "Utility accounts"
+  ],
+  "cardRegistry.property.summary": [
+    "房屋摘要",
+    "Property summary"
+  ],
+  "cardRegistry.enter.manually": [
+    "手动填写",
+    "Enter manually"
+  ],
+  "cardRegistry.property.fields": [
+    "房产字段",
+    "Property fields"
+  ],
+  "cardRegistry.ownership.and.transaction.records": [
+    "业主与交易记录",
+    "Ownership and transaction records"
+  ],
+  "cardRegistry.project.assignments": [
+    "项目安排",
+    "Project assignments"
+  ],
+  "cardRegistry.transaction.and.dates": [
+    "交易与日期",
+    "Transaction and dates"
+  ],
+  "cardRegistry.property.data.and.sources": [
+    "房产资料与来源",
+    "Property data and sources"
+  ],
+  "cardRegistry.assignments.after.creation": [
+    "创建后安排",
+    "Assignments after creation"
+  ],
+  "cardRegistry.project.list": [
+    "项目列表",
+    "Project list"
+  ],
+  "cardRegistry.demo.project.list": [
+    "演示项目列表",
+    "Demo project list"
+  ],
+  "cardRegistry.sign.in": [
+    "登录",
+    "Sign in"
+  ],
+  "cardRegistry.task.actions": [
+    "任务处理",
+    "Task actions"
+  ],
+  "cardRegistry.my.tasks": [
+    "我的任务",
+    "My tasks"
+  ],
+  "cardRegistry.requirements.needing.confirmation": [
+    "需求待确认",
+    "Requirements needing confirmation"
+  ],
+  "cardRegistry.deal.analysis": [
+    "交易分析",
+    "Deal analysis"
+  ],
+  "cardRegistry.analysis.inputs": [
+    "分析参数",
+    "Analysis inputs"
+  ],
+  "cardRegistry.acquisition.costs": [
+    "买入成本",
+    "Acquisition costs"
+  ],
+  "cardRegistry.holding.costs": [
+    "持有成本",
+    "Holding costs"
+  ],
+  "cardRegistry.renovation.line.items": [
+    "装修明细",
+    "Renovation line items"
+  ],
+  "cardRegistry.selling.costs": [
+    "卖出成本",
+    "Selling costs"
+  ],
+  "cardRegistry.sale.price": [
+    "售价",
+    "Sale price"
+  ],
+  "cardRegistry.maximum.allowable.offer": [
+    "最高出价",
+    "Maximum allowable offer"
+  ],
+  "cardRegistry.cost.breakdown": [
+    "成本结构",
+    "Cost breakdown"
+  ],
+  "cardRegistry.budget.summary": [
+    "预算汇总",
+    "Budget summary"
+  ],
+  "cardRegistry.budget.vs.actual": [
+    "预算与实际",
+    "Budget vs. actual"
+  ],
+  "cardRegistry.budget.item": [
+    "预算项",
+    "Budget item"
+  ],
+  "cardRegistry.procurement.summary": [
+    "采购汇总",
+    "Procurement summary"
+  ],
+  "cardRegistry.procurement.details": [
+    "采购明细",
+    "Procurement details"
+  ],
+  "cardRegistry.building.and.parcel": [
+    "房产结构与地块",
+    "Building and parcel"
+  ],
+  "cardRegistry.ownership": [
+    "业主信息",
+    "Ownership"
+  ],
+  "cardRegistry.current.mortgages": [
+    "当前按揭",
+    "Current mortgages"
+  ],
+  "cardRegistry.sales.history": [
+    "成交史",
+    "Sales history"
+  ],
+  "cardRegistry.upload.files": [
+    "上传文件",
+    "Upload files"
+  ],
+  "cardRegistry.file.list": [
+    "文件列表",
+    "File list"
+  ],
+  "cardRegistry.milestones.and.evidence": [
+    "关键节点与证据",
+    "Milestones and evidence"
+  ],
+  "cardRegistry.budget.variance": [
+    "预算偏差",
+    "Budget variance"
+  ],
+  "cardRegistry.project.documents": [
+    "项目资料",
+    "Project documents"
+  ],
+  "cardRegistry.risk": [
+    "风险",
+    "Risk"
+  ],
+  "cardRegistry.recent.updates": [
+    "最近更新",
+    "Recent updates"
+  ],
+  "cardRegistry.project.summary.card": [
+    "项目头卡",
+    "Project summary card"
+  ],
+  "cardRegistry.task.action.entry": [
+    "任务处理入口",
+    "Task action entry"
+  ],
+  "cardRegistry.needs.attention": [
+    "需要关注",
+    "Needs attention"
+  ],
+  "cardRegistry.active.projects.spending.gray.background.budget": [
+    "在建项目：花了多少（灰底 = 预算）",
+    "Active projects: spending (gray background = budget)"
+  ],
+  "cardRegistry.next.30.days": [
+    "未来 30 天",
+    "Next 30 days"
+  ],
+  "cardRegistry.capital.committed": [
+    "资金占用",
+    "Capital committed"
+  ],
+  "cardRegistry.estimate.accuracy.completed.projects": [
+    "估算准不准（已完成项目）",
+    "Estimate accuracy (completed projects)"
+  ],
+  "cardRegistry.expenses.over.the.last.12.weeks": [
+    "近 12 周支出",
+    "Expenses over the last 12 weeks"
+  ],
+  "cardRegistry.top.five.suppliers.by.spending": [
+    "供应商支出前五",
+    "Top five suppliers by spending"
+  ],
+  "cardRegistry.follow.up.stages.for.unpurchased.properties": [
+    "未购入房子的跟进档位",
+    "Follow-up stages for unpurchased properties"
+  ],
+  "cardRegistry.who.updated.what": [
+    "谁更新了什么",
+    "Who updated what"
+  ],
+  "cardRegistry.next.action.for.each.property": [
+    "每套房轮到谁",
+    "Next action for each property"
+  ],
+  "cardRegistry.milestones.awaiting.my.confirmation": [
+    "待我确认的门",
+    "Milestones awaiting my confirmation"
+  ],
+  "cardRegistry.my.tasks.2": [
+    "我的待办",
+    "My tasks"
+  ],
+  "cardRegistry.procurement.order.follow.up": [
+    "采购订单跟进",
+    "Procurement order follow-up"
+  ],
+  "cardRegistry.construction.site": [
+    "施工现场",
+    "Construction site"
+  ],
+  "cardRegistry.utilities.and.insurance": [
+    "水电瓦斯与保险",
+    "Utilities and insurance"
+  ],
+  "cardRegistry.permits.and.inspections": [
+    "permit 与检查",
+    "Permits and inspections"
+  ],
+  "cardRegistry.design.deliverables": [
+    "设计交付",
+    "Design deliverables"
+  ],
+  "cardRegistry.sale.documents": [
+    "卖出文件",
+    "Sale documents"
+  ],
+  "cardRegistry.leadership.overview": [
+    "老板总览",
+    "Leadership overview"
+  ],
+  "cardRegistry.attention.metrics": [
+    "关注指标",
+    "Attention metrics"
+  ],
+  "cardRegistry.personal.task.card": [
+    "个人任务卡",
+    "Personal task card"
+  ],
+  "cardRegistry.stage.evidence.items": [
+    "阶段证据事项",
+    "Stage evidence items"
+  ],
+  "cardRegistry.recent.project.card": [
+    "最近项目卡",
+    "Recent project card"
+  ],
+  "cardRegistry.handoff.project.card": [
+    "交接项目卡",
+    "Handoff project card"
+  ],
+  "cardRegistry.project.metrics": [
+    "项目指标",
+    "Project metrics"
+  ],
+  "cardRegistry.purchase.orders": [
+    "采购订单",
+    "Purchase orders"
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "taskWaitModal.a.reason.is.required.who.or.what.are.you": [
+    "要写原因：在等谁、等什么",
+    "A reason is required: who or what are you waiting for?"
+  ],
+  "taskWaitModal.save.waiting.status": [
+    "保存等待",
+    "Save waiting status"
+  ],
+  "taskWaitModal.waiting.on": [
+    "等待对象",
+    "Waiting on"
+  ],
+  "taskWaitModal.for.example.property.owner.city.or.contractor": [
+    "例如：业主、City、承包商",
+    "For example: property owner, city, or contractor"
+  ],
+  "taskWaitModal.reason.required": [
+    "原因（必填）",
+    "Reason (required)"
+  ],
+  "taskWaitModal.what.are.you.waiting.for.and.why.can.t": [
+    "在等什么、为什么现在做不下去",
+    "What are you waiting for, and why can't you continue?"
+  ],
+  "taskWaitModal.expected.response.date.optional": [
+    "预计回复日期（可选）",
+    "Expected response date (optional)"
+  ],
+  "taskWaitModal.waiting.identifies.this.task.s.dependency.without.blocking.other": [
+    "等待只说明这项任务卡在哪，不会锁住项目里别的事；统筹在项目总览里能看到。",
+    "Waiting identifies this task's dependency without blocking other project work. Coordinators can see it in the project overview."
+  ]
+}

@@ -4,7 +4,9 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from .message_codes import exception_metadata
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import select
 
@@ -41,6 +43,11 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="翻新项目平台 API", version="0.1.0", lifespan=lifespan)
+@app.exception_handler(StarletteHTTPException)
+async def localized_error_metadata(request, exc):
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail, **exception_metadata(exc)}, headers=exc.headers)
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,

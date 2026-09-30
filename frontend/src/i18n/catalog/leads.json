@@ -1,0 +1,14 @@
+{
+  "leads.unverified": [
+    "待核实",
+    "Unverified"
+  ],
+  "leads.hot.lead": [
+    "热线索",
+    "Hot lead"
+  ],
+  "leads.warm.lead": [
+    "温线索",
+    "Warm lead"
+  ]
+}

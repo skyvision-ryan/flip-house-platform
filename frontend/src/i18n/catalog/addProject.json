@@ -1,0 +1,478 @@
+{
+  "addProject.basic": [
+    "基本",
+    "Basic"
+  ],
+  "addProject.building.and.parcel": [
+    "结构与地块",
+    "Building and parcel"
+  ],
+  "addProject.market": [
+    "市场",
+    "Market"
+  ],
+  "addProject.property.changed.previous.task.assignments.have.been.cleared.assign": [
+    "已切换到另一套房，上一套房的任务安排已清空，请重新安排。",
+    "Property changed. Previous task assignments have been cleared; assign tasks for this property again."
+  ],
+  "addProject.manual.entry.requires.at.least.a.street.address": [
+    "手动填写至少要有街道一段。",
+    "Manual entry requires at least a street address."
+  ],
+  "addProject.sold.closeout": [
+    "售出收尾",
+    "Sold / closeout"
+  ],
+  "addProject.listed.for.sale": [
+    "卖房上市",
+    "Listed for sale"
+  ],
+  "addProject.confirm.that.the.selected.assignees.should.join.the.new": [
+    "请先确认将所选负责人加入新项目。",
+    "Confirm that the selected assignees should join the new project."
+  ],
+  "addProject.low.confidence.verification.recommended": [
+    "把握度低，建议核对",
+    "Low confidence; verification recommended"
+  ],
+  "addProject.entered.manually.on.creation": [
+    "新建时手动填写",
+    "Entered manually on creation"
+  ],
+  "addProject.manually.updated.on.creation": [
+    "新建时人工修改",
+    "Manually updated on creation"
+  ],
+  "addProject.reference": [
+    "参考：",
+    "Reference:"
+  ],
+  "addProject.reference.only": [
+    "，仅供参考）",
+    "; reference only)"
+  ],
+  "addProject.use.value": [
+    "采用",
+    "Use value"
+  ],
+  "addProject.this.property": [
+    "这套房屋",
+    "This property"
+  ],
+  "addProject.address.needs.confirmation": [
+    "待确认地址",
+    "Address needs confirmation"
+  ],
+  "addProject.select.or.enter.a.property.address.first": [
+    "先选择或手动填写房屋地址",
+    "Select or enter a property address first"
+  ],
+  "addProject.purchase.proposed.price.team.entry": [
+    "买入 / 意向价 · 团队填写",
+    "Purchase / proposed price · Team entry"
+  ],
+  "addProject.property.type": [
+    "物业类型",
+    "Property type"
+  ],
+  "addProject.beds.baths": [
+    "户型",
+    "Beds / baths"
+  ],
+  "addProject.interior.area": [
+    "室内面积",
+    "Interior area"
+  ],
+  "addProject.lot.area": [
+    "地块面积",
+    "Lot area"
+  ],
+  "addProject.stage.at.entry": [
+    "录入阶段",
+    "Stage at entry"
+  ],
+  "addProject.manual.entry.unverified": [
+    "人工填写 · 待核实",
+    "Manual entry · Unverified"
+  ],
+  "addProject.contains.demo.unverified.data.verify.before.purchase": [
+    "含演示 / 待核实数据，请在买入前核对。",
+    "Contains demo / unverified data. Verify before purchase."
+  ],
+  "addProject.address": [
+    "地址",
+    "Address"
+  ],
+  "addProject.property.address": [
+    "房产地址",
+    "Property address"
+  ],
+  "addProject.enter.the.street.number.and.name.then.select.a": [
+    "输入门牌号和街道，从候选中选择。试试：Fisk、Parkville、Alvarado。",
+    "Enter the street number and name, then select a suggestion. Try Fisk, Parkville, or Alvarado."
+  ],
+  "addProject.for.example.4928.nw.fisk.ave": [
+    "例如 4928 NW Fisk Ave",
+    "For example: 4928 NW Fisk Ave"
+  ],
+  "addProject.collapse.manual.entry": [
+    "收起手动填写",
+    "Collapse manual entry"
+  ],
+  "addProject.enter.address.manually": [
+    "手动填写地址",
+    "Enter address manually"
+  ],
+  "addProject.only.the.street.address.is.required.add.city.state": [
+    "只有街道必填；城市、州、邮编能填就填。这条路不查任何数据。",
+    "Only the street address is required. Add city, state, and ZIP when known. This option does not query property data."
+  ],
+  "addProject.street.address.including.number": [
+    "街道（含门牌号）",
+    "Street address (including number)"
+  ],
+  "addProject.city": [
+    "城市",
+    "City"
+  ],
+  "addProject.state": [
+    "州",
+    "State"
+  ],
+  "addProject.zip.code": [
+    "邮编",
+    "ZIP code"
+  ],
+  "addProject.use.this.address": [
+    "用这个地址",
+    "Use this address"
+  ],
+  "addProject.looking.up.property.data": [
+    "正在查询房产数据…",
+    "Looking up property data…"
+  ],
+  "addProject.property.details.include.demo.unverified.data": [
+    "房产资料包含演示 / 待核实数据",
+    "Property details include demo / unverified data"
+  ],
+  "addProject.verify.apn.areas.list.price.and.automated.valuation.team": [
+    "APN、面积、挂牌价和自动估值等需要核对；团队金额只在你明确填写或采用后保存。",
+    "Verify APN, areas, list price, and automated valuation. Team amounts are saved only when you explicitly enter or select them."
+  ],
+  "addProject.this.property.already.exists": [
+    "这套房子已经在系统里",
+    "This property already exists"
+  ],
+  "addProject.open": [
+    "打开“",
+    "Open “"
+  ],
+  "addProject.the.parcel.number.or.normalized.address.matches.an.existing": [
+    "地块号或标准地址与已有项目相同。你可以打开已有项目，也可以继续为同一套房子新建一个项目（例如二次翻新）。",
+    "The parcel number or normalized address matches an existing project. Open it, or create another project for the same property, such as a second renovation."
+  ],
+  "addProject.demo.address": [
+    "演示地址",
+    "Demo address"
+  ],
+  "addProject.address.manual.entry": [
+    "地址（手动填写）",
+    "Address (manual entry)"
+  ],
+  "addProject.assessor.s.parcel.number.apn": [
+    "地块号（APN）",
+    "Assessor's parcel number (APN)"
+  ],
+  "addProject.automated.valuation": [
+    "自动估值",
+    "Automated valuation"
+  ],
+  "addProject.data.completeness": [
+    "补全情况",
+    "Data completeness"
+  ],
+  "addProject.demo.values.are.simulated.not.this.property.s.actual": [
+    "演示数据是模拟值，不是这套房子的真实资料。",
+    "Demo values are simulated, not this property's actual records."
+  ],
+  "addProject.editing.a.field.changes.its.source.to.manual.manually": [
+    "改动任何字段后，该字段来源变为“人工”，人工填写的数据会随项目保存。",
+    "Editing a field changes its source to Manual. Manually entered data is saved with the project."
+  ],
+  "addProject.no.lookup.results.for.this.address.fields.below.are": [
+    "这个地址没有查询结果。下面的字段全部空着，你填的每一项来源记为“人工”；地块号待核实。不填也能创建。",
+    "No lookup results for this address. Fields below are blank; entries are recorded as Manual and the parcel number remains unverified. You can create the project with missing fields."
+  ],
+  "addProject.ownership.mortgages.and.sales.demo.preview.not.saved": [
+    "业主、按揭与成交史（演示预览，不保存）",
+    "Ownership, mortgages, and sales (demo preview; not saved)"
+  ],
+  "addProject.property.owner": [
+    "业主",
+    "Property owner"
+  ],
+  "addProject.mailing.address": [
+    "邮寄地址",
+    "Mailing address"
+  ],
+  "addProject.owned.since": [
+    "持有自",
+    "Owned since"
+  ],
+  "addProject.no.ownership.information": [
+    "无业主信息",
+    "No ownership information"
+  ],
+  "addProject.mortgages": [
+    "按揭",
+    "Mortgages"
+  ],
+  "addProject.no.mortgage.records": [
+    "无按揭记录",
+    "No mortgage records"
+  ],
+  "addProject.recording.date": [
+    "登记日期",
+    "Recording date"
+  ],
+  "addProject.lender": [
+    "贷方",
+    "Lender"
+  ],
+  "addProject.original.principal": [
+    "原始金额",
+    "Original principal"
+  ],
+  "addProject.estimated.balance": [
+    "估算余额",
+    "Estimated balance"
+  ],
+  "addProject.interest.rate": [
+    "利率",
+    "Interest rate"
+  ],
+  "addProject.no.sales.records": [
+    "无成交记录",
+    "No sales records"
+  ],
+  "addProject.seller": [
+    "卖方",
+    "Seller"
+  ],
+  "addProject.buyer": [
+    "买方",
+    "Buyer"
+  ],
+  "addProject.project.name": [
+    "项目名称",
+    "Project name"
+  ],
+  "addProject.investment.strategy": [
+    "投资策略",
+    "Investment strategy"
+  ],
+  "addProject.fix.and.flip": [
+    "翻新转卖",
+    "Fix and flip"
+  ],
+  "addProject.buy.renovate.list.and.sell": [
+    "买入、翻新、挂牌卖出",
+    "Buy, renovate, list, and sell"
+  ],
+  "addProject.new.construction": [
+    "新建",
+    "New construction"
+  ],
+  "addProject.demolition.and.rebuild.or.build.on.vacant.land": [
+    "拆除或空地新建",
+    "Demolition and rebuild, or build on vacant land"
+  ],
+  "addProject.buy.and.hold.rental": [
+    "持有出租",
+    "Buy and hold rental"
+  ],
+  "addProject.renovate.and.hold.for.rental.income": [
+    "翻新后持有收租",
+    "Renovate and hold for rental income"
+  ],
+  "addProject.current.property.stage": [
+    "房屋当前阶段",
+    "Current property stage"
+  ],
+  "addProject.task.preparation.starts.here.later.stage.tasks.can.be": [
+    "任务准备将从这里开始；后续阶段可以提前安排。",
+    "Task preparation starts here; later-stage tasks can be assigned ahead of time."
+  ],
+  "addProject.this.is.the.property.s.stage.when.entered.earlier": [
+    "这是房屋录入时的阶段。此前任务与节点不会自动完成，历史资料待补、待核验。",
+    "This is the property's stage when entered. Earlier tasks and milestones are not marked complete automatically; historical records need to be added and verified."
+  ],
+  "addProject.leave.blank.before.purchase.if.needed.then.use.the": [
+    "未购入时可以先空着，之后在分析器里算。两个金额不预填：旁边的参考值点「采用」才填进去。",
+    "Leave blank before purchase if needed, then use the analyzer later. Neither amount is prefilled; select “Use value” to adopt a reference amount."
+  ],
+  "addProject.purchase.proposed.price.usd": [
+    "买入价 / 意向价（美元）",
+    "Purchase / proposed price (USD)"
+  ],
+  "addProject.after.repair.value.arv.usd": [
+    "目标售价 ARV（美元）",
+    "After-repair value — ARV (USD)"
+  ],
+  "addProject.planned.start": [
+    "计划开工",
+    "Planned start"
+  ],
+  "addProject.planned.finish": [
+    "计划完工",
+    "Planned finish"
+  ],
+  "addProject.known.risks": [
+    "已知风险",
+    "Known risks"
+  ],
+  "addProject.for.example.foundation.condition.needs.professional.inspection.before.the": [
+    "例如：地基状况一般，需专业检验后再定最终出价。",
+    "For example: foundation condition needs professional inspection before the final offer."
+  ],
+  "addProject.lead.source.ownership.context.or.investment.approach": [
+    "线索来源、业主情况、定位思路。",
+    "Lead source, ownership context, or investment approach."
+  ],
+  "addProject.select.an.address.or.enter.it.manually.first": [
+    "请先选择一个地址，或手动填写地址。",
+    "Select an address or enter it manually first."
+  ],
+  "addProject.enter.a.valid.nonnegative.amount.or.leave.it.blank": [
+    "请填写有效的非负金额，或先留空。",
+    "Enter a valid nonnegative amount, or leave it blank."
+  ],
+  "addProject.sign.in.to.prepare.tasks.and.assign.employees.for": [
+    "登录后可以为新房屋准备任务，并分派给具体员工。",
+    "Sign in to prepare tasks and assign employees for a new property."
+  ],
+  "addProject.this.account.cannot.create.projects": [
+    "当前账号不能新建项目。",
+    "This account cannot create projects."
+  ],
+  "addProject.loading.project.templates.please.wait": [
+    "正在读取项目模板，请稍候。",
+    "Loading project templates. Please wait."
+  ],
+  "addProject.start.with.one.property.and.plan.the.full.process": [
+    "从一套房开始，提前安排全流程；创建后在项目总览继续协作。",
+    "Start with one property and plan the full process. Continue collaborating in its overview after creation."
+  ],
+  "addProject.confirm.property": [
+    "确认这套房屋",
+    "Confirm property"
+  ],
+  "addProject.plan.the.full.process.for.this.property": [
+    "为这套房安排全流程",
+    "Plan the full process for this property"
+  ],
+  "addProject.confirm.property.and.assignments": [
+    "确认房屋与任务安排",
+    "Confirm property and assignments"
+  ],
+  "addProject.new.project.steps": [
+    "新建项目步骤",
+    "New project steps"
+  ],
+  "addProject.confirm.property.2": [
+    "确认房屋",
+    "Confirm property"
+  ],
+  "addProject.prepare.tasks": [
+    "准备任务",
+    "Prepare tasks"
+  ],
+  "addProject.confirm.creation": [
+    "确认创建",
+    "Confirm creation"
+  ],
+  "addProject.property.data.and.sources.demo.and.manual.verification": [
+    "房产资料与来源 · 演示与人工核对",
+    "Property data and sources · Demo and manual verification"
+  ],
+  "addProject.demo.data.only.a.real.property.api.is.not": [
+    "演示数据，真实数据接口后续接入。演示值仅供预览，不随项目保存；人工填写的资料会保存，缺失资料不影响创建。",
+    "Demo data only; a real property API is not connected. Demo values are preview-only; manual entries are saved. Missing data does not prevent creation."
+  ],
+  "addProject.tasks.will.be.created.later.tasks.can.be.assigned": [
+    "项普通任务都会创建。后续任务可提前分派，任务与关键节点分别管理。",
+    "tasks will be created. Later tasks can be assigned ahead; tasks and milestones are managed separately."
+  ],
+  "addProject.retry": [
+    "重试",
+    "Retry"
+  ],
+  "addProject.could.not.load.employee.accounts": [
+    "未能读取员工账号：",
+    "Could not load employee accounts:"
+  ],
+  "addProject.you.may.create.without.assignments.and.assign.later": [
+    "。可暂不分派，创建后再安排。",
+    ". You may create without assignments and assign later."
+  ],
+  "addProject.getting.started.after.creation": [
+    "创建后如何开始",
+    "Getting started after creation"
+  ],
+  "addProject.starting.position": [
+    "起始位置",
+    "Starting position"
+  ],
+  "addProject.task.status": [
+    "任务状态",
+    "Task status"
+  ],
+  "addProject.tasks.await.action.procurement.can.record.orders.after.assignment": [
+    "普通任务待处理；采购分派后即可录单",
+    "Tasks await action; procurement can record orders after assignment"
+  ],
+  "addProject.reviewer.for.these.assignments": [
+    "本次分派审核人",
+    "Reviewer for these assignments"
+  ],
+  "addProject.set.when.assigning": [
+    "分派时确定",
+    "Set when assigning"
+  ],
+  "addProject.an.authorized.account.confirms.once.prerequisites.are.met": [
+    "必要条件齐备后，由有权限的账号确认满足",
+    "An authorized account confirms once prerequisites are met"
+  ],
+  "addProject.procurement.lead": [
+    "采购负责人",
+    "Procurement lead"
+  ],
+  "addProject.will.automatically.join.this.property.on.creation.with.an": [
+    "将在创建时自动加入本房，保留分派记录。",
+    "will automatically join this property on creation, with an assignment record."
+  ],
+  "addProject.add": [
+    "将",
+    "Add"
+  ],
+  "addProject.as.project.members.and.assign.tasks": [
+    "加入项目并分派任务",
+    "as project members and assign tasks"
+  ],
+  "addProject.unassigned": [
+    "未安排的",
+    "Unassigned"
+  ],
+  "addProject.tasks.remain.available.to.assign.later": [
+    "项任务保留为待分派，可稍后补充。",
+    "tasks remain available to assign later."
+  ],
+  "addProject.back": [
+    "上一步",
+    "Back"
+  ],
+  "addProject.create.project": [
+    "创建项目",
+    "Create project"
+  ]
+}
