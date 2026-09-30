@@ -1,0 +1,234 @@
+{
+  "taskWorkbench.previously.confirmed.but.prerequisites.have.changed.review.them.again": [
+    "此前已确认，前置资料发生变化，请复核。原确认记录保留在活动记录中。",
+    "Previously confirmed, but prerequisites have changed. Review them again. Prior confirmation stays in the activity history."
+  ],
+  "taskWorkbench.history.from.before.entry.requires.supporting.records.and.verification": [
+    "录入前历史，待补资料及核验；不视为平台内完成。",
+    "History from before entry requires supporting records and verification; it is not treated as completed in this platform."
+  ],
+  "taskWorkbench.by": [
+    "由",
+    "By"
+  ],
+  "taskWorkbench.or.a.project.lead.account": [
+    "或项目负责人账号确认。",
+    "or a project lead account."
+  ],
+  "taskWorkbench.view.property.and.prerequisites": [
+    "查看房屋与前置资料",
+    "View property and prerequisites"
+  ],
+  "taskWorkbench.open.property.procurement": [
+    "进入本房采购",
+    "Open property procurement"
+  ],
+  "taskWorkbench.procurement.lead": [
+    "采购负责人：",
+    "Procurement lead:"
+  ],
+  "taskWorkbench.items.ready.procurement.progress.updates.from.the.list.automatically": [
+    "项已备齐。采购进度由清单自动更新，无需提交审核。",
+    "items ready. Procurement progress updates from the list automatically; no review submission is required."
+  ],
+  "taskWorkbench.confirmed.on": [
+    "确认于",
+    "Confirmed on"
+  ],
+  "taskWorkbench.process.position": [
+    "所属位置",
+    "Process position"
+  ],
+  "taskWorkbench.the.project.has.not.reached.this.point.yet.but": [
+    "，项目还没走到这里，可提前准备",
+    "; the project has not reached this point yet, but preparation can start"
+  ],
+  "taskWorkbench.explanation.only": [
+    "（交说明即可）",
+    "(explanation only)"
+  ],
+  "taskWorkbench.requirements.to.satisfy": [
+    "怎么算满足",
+    "Requirements to satisfy"
+  ],
+  "taskWorkbench.start.work": [
+    "开始处理",
+    "Start work"
+  ],
+  "taskWorkbench.resume.work": [
+    "恢复处理",
+    "Resume work"
+  ],
+  "taskWorkbench.record.waiting": [
+    "记录等待",
+    "Record waiting"
+  ],
+  "taskWorkbench.provide.deliverables": [
+    "去交付",
+    "Provide deliverables"
+  ],
+  "taskWorkbench.project.overview": [
+    "项目总览",
+    "Project overview"
+  ],
+  "taskWorkbench.the.reviewer.confirmed.completion.but.corresponding.project.evidence.is": [
+    "审核人已确认完成，但项目里还没有对应证据（",
+    "The reviewer confirmed completion, but corresponding project evidence is still missing ("
+  ],
+  "taskWorkbench.deliverable": [
+    "交付物",
+    "Deliverable"
+  ],
+  "taskWorkbench.these.are.shown.separately.neither.replaces.the.other": [
+    "）。两者并列显示，不互相替代。",
+    "). These are shown separately; neither replaces the other."
+  ],
+  "taskWorkbench.details": [
+    "详情",
+    "Details"
+  ],
+  "taskWorkbench.review": [
+    "审核",
+    "Review"
+  ],
+  "taskWorkbench.delivery": [
+    "交付",
+    "Delivery"
+  ],
+  "taskWorkbench.number": [
+    "第",
+    "Number"
+  ],
+  "taskWorkbench.attempts": [
+    "次",
+    "attempts"
+  ],
+  "taskWorkbench.current.requirements": [
+    "当前生效要求",
+    "Current requirements"
+  ],
+  "taskWorkbench.follow.the.task.instructions": [
+    "按任务说明处理",
+    "Follow the task instructions"
+  ],
+  "taskWorkbench.submission": [
+    "次提交",
+    "submission"
+  ],
+  "taskWorkbench.view.image": [
+    "· 查看图片",
+    "· View image"
+  ],
+  "taskWorkbench.no.files.explanation.only": [
+    "没有文件，只交了说明。",
+    "No files; explanation only."
+  ],
+  "taskWorkbench.review.notes.required.when.returning": [
+    "审核意见（退回时必填）",
+    "Review notes (required when returning)"
+  ],
+  "taskWorkbench.describe.the.changes.needed.optional.when.accepting": [
+    "写清修改要求，确认通过时可不填。",
+    "Describe the changes needed. Optional when accepting."
+  ],
+  "taskWorkbench.return.for.changes": [
+    "退回修改",
+    "Return for changes"
+  ],
+  "taskWorkbench.accept.this.submission": [
+    "确认本次交付",
+    "Accept this submission"
+  ],
+  "taskWorkbench.acceptance.completes.the.task.and.updates.the.workspace.project": [
+    "确认后任务完成，工作台、项目总览、负责人的我的事项一起更新；节点仍按各自前置条件和权限确认。",
+    "Acceptance completes the task and updates the workspace, project overview, and assignee's tasks. Milestones retain their own prerequisites and permissions."
+  ],
+  "taskWorkbench.could.not.load.files": [
+    "文件读取失败",
+    "Could not load files"
+  ],
+  "taskWorkbench.files.for.this.submission.at.least.one": [
+    "本次交付的文件（至少一个）",
+    "Files for this submission (at least one)"
+  ],
+  "taskWorkbench.attach.files.optional": [
+    "附文件（可选）",
+    "Attach files (optional)"
+  ],
+  "taskWorkbench.select.files.already.uploaded.to.this.property.or.upload": [
+    "从这套房已上传的文件里勾，或现在上传。",
+    "Select files already uploaded to this property, or upload now."
+  ],
+  "taskWorkbench.loading.files": [
+    "读取文件中…",
+    "Loading files…"
+  ],
+  "taskWorkbench.this.property.has.no.files.yet": [
+    "这套房还没有文件。",
+    "This property has no files yet."
+  ],
+  "taskWorkbench.collapse.upload": [
+    "收起上传",
+    "Collapse upload"
+  ],
+  "taskWorkbench.upload.new.file": [
+    "上传新文件",
+    "Upload new file"
+  ],
+  "taskWorkbench.delivery.notes.optional": [
+    "交付说明（可选）",
+    "Delivery notes (optional)"
+  ],
+  "taskWorkbench.delivery.notes.required": [
+    "交付说明（必填）",
+    "Delivery notes (required)"
+  ],
+  "taskWorkbench.unsubmitted.content.stays.in.this.page.session.only.it": [
+    "尚未提交的内容仅在当前页面会话保留；提交审核后才会交给审核人。",
+    "Unsubmitted content stays in this page session only. It reaches the reviewer after submission."
+  ],
+  "taskWorkbench.for.example.entrance.dimensions.have.been.added": [
+    "例如：已补齐入口尺寸",
+    "For example: entrance dimensions have been added"
+  ],
+  "taskWorkbench.describe.what.you.did.and.the.result": [
+    "写清做了什么、结果是什么",
+    "Describe what you did and the result"
+  ],
+  "taskWorkbench.submit.for.review": [
+    "提交审核",
+    "Submit for review"
+  ],
+  "taskWorkbench.uploading.does.not.submit.the.task.after.submission.it": [
+    "上传不等于提交；提交后进入待确认，由",
+    "Uploading does not submit the task. After submission, it awaits review by"
+  ],
+  "taskWorkbench.who.can.return.or.accept.it": [
+    "退回或确认。",
+    ", who can return or accept it."
+  ],
+  "taskWorkbench.submitted.awaiting": [
+    "已提交，等",
+    "Submitted; awaiting"
+  ],
+  "taskWorkbench.confirmation": [
+    "确认。",
+    "confirmation."
+  ],
+  "taskWorkbench.handled.by": [
+    "已由",
+    "Handled by"
+  ],
+  "taskWorkbench.this.task.is.assigned.to": [
+    "这项任务由",
+    "This task is assigned to"
+  ],
+  "taskWorkbench.and.reviewed.by": [
+    "负责、",
+    "and reviewed by"
+  ],
+  "taskWorkbench.you.have.read.only.access": [
+    "审核；你只能看。",
+    "; you have read-only access."
+  ]
+}

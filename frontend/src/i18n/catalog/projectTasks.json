@@ -1,0 +1,10 @@
+{
+  "projectTasks.cannot.load.tasks": [
+    "读不到任务",
+    "Cannot load tasks"
+  ],
+  "projectTasks.you.are.not.signed.in.tasks.are.read.only": [
+    "现在没有登录：任务表只能看。分派、开始、等待都要用真实账号登录后做。",
+    "You are not signed in. Tasks are read-only; sign in to assign, start, or record waiting."
+  ]
+}

@@ -1,0 +1,190 @@
+{
+  "procurementDesign.selection.needed": [
+    "待选型",
+    "Selection needed"
+  ],
+  "procurementDesign.ready.to.order": [
+    "待下单",
+    "Ready to order"
+  ],
+  "procurementDesign.ordered": [
+    "已下单",
+    "Ordered"
+  ],
+  "procurementDesign.received": [
+    "已到货",
+    "Received"
+  ],
+  "procurementDesign.exception": [
+    "异常",
+    "Exception"
+  ],
+  "procurementDesign.all.procurement.milestones": [
+    "全部采购节点",
+    "All procurement milestones"
+  ],
+  "procurementDesign.all.statuses": [
+    "全部状态",
+    "All statuses"
+  ],
+  "procurementDesign.no.procurement.items.match.these.filters": [
+    "没有符合当前筛选的采购项。",
+    "No procurement items match these filters."
+  ],
+  "procurementDesign.review.one.property.s.list.by.use.milestone.then": [
+    "先核对一套房在各采购节点的清单，再打开具体材料。",
+    "Review one property's list by use milestone, then open a material."
+  ],
+  "procurementDesign.review.by.property": [
+    "按房屋核对",
+    "Review by property"
+  ],
+  "procurementDesign.material": [
+    "材料",
+    "Material"
+  ],
+  "procurementDesign.procurement.milestone": [
+    "采购节点",
+    "Procurement milestone"
+  ],
+  "procurementDesign.order.estimated.arrival": [
+    "下单 / 预计到货",
+    "Order / estimated arrival"
+  ],
+  "procurementDesign.not.ordered": [
+    "未下单",
+    "Not ordered"
+  ],
+  "procurementDesign.amount.usd": [
+    "金额（USD）",
+    "Amount (USD)"
+  ],
+  "procurementDesign.review.the.same.status.across.properties.retaining.each.item": [
+    "同一状态下集中查看不同房屋，保留材料使用节点与备注。",
+    "Review the same status across properties, retaining each item's use milestone and notes."
+  ],
+  "procurementDesign.work.by.status": [
+    "按状态处理",
+    "Work by status"
+  ],
+  "procurementDesign.estimated": [
+    "预计",
+    "Estimated"
+  ],
+  "procurementDesign.review.specifications.notes.and.full.images.by.material.filter": [
+    "围绕材料读规格、备注和完整图片；待选型可以直接筛出。",
+    "Review specifications, notes, and full images by material. Filter directly to items needing selection."
+  ],
+  "procurementDesign.product.selection.desk": [
+    "选型资料台",
+    "Product selection desk"
+  ],
+  "procurementDesign.show.all.statuses": [
+    "显示全部状态",
+    "Show all statuses"
+  ],
+  "procurementDesign.selection.needed.only": [
+    "只看待选型",
+    "Selection needed only"
+  ],
+  "procurementDesign.design.recommendations.are.not.purchase.approvals": [
+    "设计推荐不等于已批准采购。",
+    "Design recommendations are not purchase approvals."
+  ],
+  "procurementDesign.note.excerpts.view.material.details": [
+    "份备注摘录 · 查看材料资料",
+    "note excerpts · View material details"
+  ],
+  "procurementDesign.material.record.excerpts": [
+    "材料记录摘录",
+    "Material record excerpts"
+  ],
+  "procurementDesign.view.excerpts": [
+    "查看摘录",
+    "View excerpts"
+  ],
+  "procurementDesign.no.record.excerpts": [
+    "没有记录摘录。",
+    "No record excerpts."
+  ],
+  "procurementDesign.synthetic.note.excerpts.not.uploaded.procurement.documents": [
+    "合成备注摘录，不是已上传的采购原件。",
+    "Synthetic note excerpts, not uploaded procurement documents."
+  ],
+  "procurementDesign.changes.apply.only.to.this.design.preview.they.persist": [
+    "仅修改当前设计预览，切换 A/B/C 时保留，离开页面后清除。",
+    "Changes apply only to this design preview. They persist across A/B/C options and clear when you leave."
+  ],
+  "procurementDesign.try.editing.an.item": [
+    "试用采购项编辑",
+    "Try editing an item"
+  ],
+  "procurementDesign.procurement.status": [
+    "采购状态",
+    "Procurement status"
+  ],
+  "procurementDesign.apply.to.preview": [
+    "应用到预览",
+    "Apply to preview"
+  ],
+  "procurementDesign.images.stay.in.this.preview.only.and.clear.when": [
+    "图片只留在本次预览中，离开后清除，不上传到实际项目。",
+    "Images stay in this preview only and clear when you leave. They are not uploaded to real projects."
+  ],
+  "procurementDesign.material.images": [
+    "材料图片",
+    "Material images"
+  ],
+  "procurementDesign.try.a.material.image": [
+    "试放一张材料图片",
+    "Try a material image"
+  ],
+  "procurementDesign.preview.material.image": [
+    "预览材料图片",
+    "Preview material image"
+  ],
+  "procurementDesign.select.a.jpg.png.or.webp.image.up.to": [
+    "请选择不超过 8 MB 的 JPG、PNG 或 WebP 图片",
+    "Select a JPG, PNG, or WebP image up to 8 MB"
+  ],
+  "procurementDesign.preview.updated.actual.procurement.records.are.unchanged": [
+    "预览已更新，实际采购记录没有修改。",
+    "Preview updated. Actual procurement records are unchanged."
+  ],
+  "procurementDesign.the.item.is.outside.the.current.filter.select.another": [
+    "刚才的采购项不在当前筛选结果中。请选择一项材料。",
+    "The item is outside the current filter. Select another material."
+  ],
+  "procurementDesign.select.a.material.to.view.its.property.status.notes": [
+    "选择一项材料，查看对应房屋、状态、备注与资料。",
+    "Select a material to view its property, status, notes, and documents."
+  ],
+  "procurementDesign.the.workspace.handles.daily.procurement.project.pages.show.the": [
+    "工作台负责日常采购执行，项目页只看概况。按房屋、使用节点与材料状态查看，Jeremy / Tristin 共用。",
+    "The workspace handles daily procurement; project pages show the overview. Jeremy and Tristin share the same workflow by property, milestone, and material status."
+  ],
+  "procurementDesign.search.material.property.or.notes": [
+    "搜索材料、房屋或备注",
+    "Search material, property, or notes"
+  ],
+  "procurementDesign.search.procurement.preview": [
+    "搜索采购预览",
+    "Search procurement preview"
+  ],
+  "procurementDesign.procurement.property": [
+    "采购房屋",
+    "Procurement property"
+  ],
+  "procurementDesign.procurement.status.filter": [
+    "采购状态筛选",
+    "Procurement status filter"
+  ],
+  "procurementDesign.showing": [
+    "显示",
+    "Showing"
+  ],
+  "procurementDesign.items.tristin.and.jeremy.use.the.same.workspace.and": [
+    "项 · Tristin / Jeremy 使用同一工作区。同一岗位、同一流程。可直接编辑下方材料，项目页同步高层状态。",
+    "items · Tristin and Jeremy use the same workspace and workflow. Edit a material below; the project view reflects the summary status."
+  ]
+}

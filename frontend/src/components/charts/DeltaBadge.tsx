@@ -1,3 +1,4 @@
+import { useLanguage } from '../../i18n/LanguageProvider';
 import { FONT, TEXT_2, TEXT_BAD, TEXT_GOOD } from './palette';
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
 
 /** 偏差是正是负：带方向箭头与颜色的百分比。绿 = 好，红 = 差；语义由调用方定义。 */
 export default function DeltaBadge({ pct, goodWhenPositive, digits = 1, flatBelow = 0.05 }: Props) {
+  useLanguage();
   if (pct == null || !Number.isFinite(pct)) return <span style={{ color: TEXT_2 }}>—</span>;
   const flat = Math.abs(pct) < flatBelow;
   const good = goodWhenPositive ? pct > 0 : pct < 0;

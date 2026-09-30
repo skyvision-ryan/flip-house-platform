@@ -1,0 +1,114 @@
+{
+  "workbenchFocus.cannot.load.project.focus": [
+    "读不到项目关注",
+    "Cannot load project focus"
+  ],
+  "workbenchFocus.all.current.stage.tasks.assigned": [
+    "本段任务都已安排",
+    "All current-stage tasks assigned"
+  ],
+  "workbenchFocus.active.projects": [
+    "关注项目",
+    "Active projects"
+  ],
+  "workbenchFocus.properties.whose.process.is.not.yet.complete": [
+    "尚未走完流程的房屋。",
+    "Properties whose process is not yet complete."
+  ],
+  "workbenchFocus.awaiting.my.confirmation": [
+    "待我确认",
+    "Awaiting my confirmation"
+  ],
+  "workbenchFocus.submitted.tasks.awaiting.your.review": [
+    "已提交、等你审核的任务。",
+    "Submitted tasks awaiting your review."
+  ],
+  "workbenchFocus.current.stage.tasks.without.an.assignee": [
+    "当前阶段尚无负责人的任务。",
+    "Current-stage tasks without an assignee."
+  ],
+  "workbenchFocus.awaiting.response": [
+    "等待回复",
+    "Awaiting response"
+  ],
+  "workbenchFocus.tasks.waiting.for.feedback": [
+    "正在等待反馈的任务。",
+    "Tasks waiting for feedback."
+  ],
+  "workbenchFocus.checking.each.property.s.progress": [
+    "正在看每套房走到哪",
+    "Checking each property's progress"
+  ],
+  "workbenchFocus.procurement.amounts.include.recorded.order.payments.less.refunds.excluding": [
+    "采购金额仅计已登记订单实付减退款，不含材料旧记录；非财务核款结果。",
+    "Procurement amounts include recorded order payments less refunds, excluding legacy material records. They are not financially verified totals."
+  ],
+  "workbenchFocus.stage.bar.light.blue.is.passed.dark.blue.is": [
+    "阶段条：浅蓝已完成，深蓝当前位置，灰色未到达。点击房名进入项目，点击审核事项前往我的事项。",
+    "Stage bar: light blue is passed, dark blue is current, and gray is not reached. Select a property to open it, or a review item to open My tasks."
+  ],
+  "workbenchFocus.view.all.projects": [
+    "查看全部项目",
+    "View all projects"
+  ],
+  "workbenchFocus.project.focus": [
+    "项目关注",
+    "Project focus"
+  ],
+  "workbenchFocus.no.projects.yet": [
+    "还没有项目。",
+    "No projects yet."
+  ],
+  "workbenchFocus.next.action": [
+    "下一动作",
+    "Next action"
+  ],
+  "workbenchFocus.action.by": [
+    "行动者",
+    "Action by"
+  ],
+  "workbenchFocus.requirements.met": [
+    "项已齐",
+    "requirements met"
+  ],
+  "workbenchFocus.no.pending.actions": [
+    "无待处理事项",
+    "No pending actions"
+  ],
+  "workbenchFocus.submitted.for.your.review.return.or.accept.in.my": [
+    "已提交、等你审核；在我的事项里退回或确认。",
+    "Submitted for your review. Return or accept in My tasks."
+  ],
+  "workbenchFocus.needs.my.action": [
+    "待我处理",
+    "Needs my action"
+  ],
+  "workbenchFocus.no.submissions.await.your.confirmation": [
+    "现在没有等你确认的交付。",
+    "No submissions await your confirmation."
+  ],
+  "workbenchFocus.awaiting.my.review": [
+    "待我审核",
+    "Awaiting my review"
+  ],
+  "workbenchFocus.submitted.due": [
+    "已提交 · 截止",
+    "Submitted · Due"
+  ],
+  "workbenchFocus.start.review": [
+    "开始审核",
+    "Start review"
+  ],
+  "workbenchFocus.who.handed.what.to.whom": [
+    "谁把什么交给了谁。",
+    "Who handed what to whom."
+  ],
+  "workbenchFocus.recent.handoffs": [
+    "最近交接",
+    "Recent handoffs"
+  ],
+  "workbenchFocus.no.submissions.returns.or.reassignments.yet": [
+    "还没有提交、退回或改派。",
+    "No submissions, returns, or reassignments yet."
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "projectPage.transaction": [
+    "交易",
+    "Transaction"
+  ],
+  "projectPage.amounts.are.hidden.for.your.role": [
+    "金额对你的身份不显示",
+    "Amounts are hidden for your role"
+  ],
+  "projectPage.valuation": [
+    "估值",
+    "Valuation"
+  ],
+  "projectPage.construction.start": [
+    "开工",
+    "Construction start"
+  ],
+  "projectPage.closing": [
+    "成交",
+    "Closing"
+  ],
+  "projectPage.cannot.open.this.property": [
+    "无法打开这套房",
+    "Cannot open this property"
+  ],
+  "projectPage.edit": [
+    "编辑",
+    "Edit"
+  ],
+  "projectPage.delete.project": [
+    "删除项目",
+    "Delete project"
+  ],
+  "projectPage.this.property.was.entered.mid.process.earlier.tasks.and": [
+    "本房从中途阶段录入。此前任务与节点不视为完成，历史资料待补、待核验。",
+    "This property was entered mid-process. Earlier tasks and milestones are not considered complete; historical records need to be added and verified."
+  ],
+  "projectPage.property.and.transaction.details": [
+    "房屋与交易资料",
+    "Property and transaction details"
+  ],
+  "projectPage.strategy": [
+    "策略",
+    "Strategy"
+  ],
+  "projectPage.key.dates": [
+    "关键日期",
+    "Key dates"
+  ],
+  "projectPage.project.procurement": [
+    "项目采购",
+    "Project procurement"
+  ],
+  "projectPage.delete": [
+    "确定删除“",
+    "Delete “"
+  ],
+  "projectPage.its.budgets.expenses.file.registrations.and.analyses.will.also": [
+    "”？项目下的预算、支出、文件登记和分析会一起删除，房产记录保留。",
+    "”? Its budgets, expenses, file registrations, and analyses will also be deleted. The property record is retained."
+  ]
+}

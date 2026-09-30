@@ -1,3 +1,6 @@
+import { systemText } from '../../i18n/core.ts';
+import { useLanguage } from '../../i18n/LanguageProvider';
+import { m as uiText } from '../../i18n/core.ts';
 import { ReactNode } from 'react';
 import { FONT, ORDINAL_BLUE, SERIES, STATUS, TEXT, TEXT_2, track } from './palette';
 import { useTooltip } from './Tooltip';
@@ -17,6 +20,7 @@ interface Props {
 
 /** 一组量的大小：横向细条 + 条尾直接标数值。多系列时堆叠并带图例；单系列不画图例。 */
 export default function HBars({ rows, series = [], ordinal = false, format = (n) => String(n), labelWidth = 140, barHeight = 12, emptyText = '暂无数据' }: Props) {
+  useLanguage();
   const tip = useTooltip();
   if (!rows.length) return <div style={{ fontFamily: FONT, color: TEXT_2, fontSize: 13 }}>{emptyText}</div>;
   const totals = rows.map((r) => r.values.reduce((a, b) => a + b, 0));
@@ -38,12 +42,12 @@ export default function HBars({ rows, series = [], ordinal = false, format = (n)
       <div style={{ display: 'grid', rowGap: 8 }}>
         {rows.map((r, i) => (
           <div key={r.key} style={{ display: 'grid', gridTemplateColumns: `${labelWidth}px 1fr 64px`, alignItems: 'center', columnGap: 12, fontSize: 13 }}>
-            <div style={{ color: TEXT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.label}</div>
+            <div style={{ color: TEXT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{systemText(r.label)}</div>
             <div
               style={{ position: 'relative', height: barHeight + 8, display: 'flex', alignItems: 'center' }}
               onMouseMove={(e) => tip.show(e, [
                 ...r.values.map((v, j) => ({ label: series[j] ?? '', value: format(v), color: colorFor(i, j) })),
-                ...(r.values.length > 1 ? [{ label: '合计', value: format(totals[i]) }] : []),
+                ...(r.values.length > 1 ? [{ label: uiText("hBars.total"), value: format(totals[i]) }] : []),
               ], r.tooltipTitle ?? (typeof r.label === 'string' ? r.label : undefined))}
               onMouseLeave={tip.hide}
             >

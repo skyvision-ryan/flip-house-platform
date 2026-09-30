@@ -1,0 +1,458 @@
+{
+  "dashboard.resize.started": [
+    "开始调整大小",
+    "Resize started"
+  ],
+  "dashboard.drag.started": [
+    "开始拖动",
+    "Drag started"
+  ],
+  "dashboard.moved": [
+    "已移动",
+    "Moved"
+  ],
+  "dashboard.resized": [
+    "已调整大小",
+    "Resized"
+  ],
+  "dashboard.inserted": [
+    "已插入",
+    "Inserted"
+  ],
+  "dashboard.size.confirmed": [
+    "大小已确定",
+    "Size confirmed"
+  ],
+  "dashboard.position.confirmed": [
+    "位置已确定",
+    "Position confirmed"
+  ],
+  "dashboard.board.navigation": [
+    "看板导航",
+    "Board navigation"
+  ],
+  "dashboard.empty": [
+    "空",
+    "Empty"
+  ],
+  "dashboard.drag": [
+    "拖动",
+    "Drag"
+  ],
+  "dashboard.resize": [
+    "调整大小",
+    "Resize"
+  ],
+  "dashboard.drag.to.move": [
+    "拖动改变位置",
+    "Drag to move"
+  ],
+  "dashboard.drag.to.resize": [
+    "拖动改变大小",
+    "Drag to resize"
+  ],
+  "dashboard.leadership": [
+    "老板",
+    "Leadership"
+  ],
+  "dashboard.no.projects.yet": [
+    "还没有项目",
+    "No projects yet"
+  ],
+  "dashboard.enter.an.address.to.look.up.property.data": [
+    "输入一个地址，系统会自动补全房产数据。",
+    "Enter an address to look up property data."
+  ],
+  "dashboard.contact.the.project.lead.to.assign.a.property": [
+    "请联系项目负责人安排房屋。",
+    "Contact the project lead to assign a property."
+  ],
+  "dashboard.no.matching.projects": [
+    "没有匹配的项目",
+    "No matching projects"
+  ],
+  "dashboard.position.status": [
+    "位置 / 状态",
+    "Position / status"
+  ],
+  "dashboard.budget.used": [
+    "预算已用",
+    "Budget used"
+  ],
+  "dashboard.target.sale.price": [
+    "目标售价",
+    "Target sale price"
+  ],
+  "dashboard.updated": [
+    "更新",
+    "Updated"
+  ],
+  "dashboard.filter.by.position": [
+    "按位置筛选",
+    "Filter by position"
+  ],
+  "dashboard.properties.without.confirmed.open.escrow.are.grouped.by.follow": [
+    "还没确认 Open escrow 的房子，按跟进档位分组；确认后它会进入「买房 · escrow 中」。",
+    "Properties without confirmed Open Escrow are grouped by follow-up stage. Confirmation moves them to Acquisition · In escrow."
+  ],
+  "dashboard.suggested.tasks.follow.checklist.order.a.responsible.role.is": [
+    "「待办参考」按清单顺序显示，负责角色不等于已分派的员工。",
+    "Suggested tasks follow checklist order. A responsible role is not an assigned employee."
+  ],
+  "dashboard.list.price.and.automated.valuation.are.references.not.confirmed": [
+    "挂牌价与自动估值仅供参考，不代表可成交价格。",
+    "List price and automated valuation are references, not confirmed purchase prices."
+  ],
+  "dashboard.loading": [
+    "加载中",
+    "Loading"
+  ],
+  "dashboard.search.by.project.name.or.address": [
+    "按项目名或地址查找",
+    "Search by project name or address"
+  ],
+  "dashboard.open.a.property.to.view.progress.and.assigned.work": [
+    "按房屋名称进入项目，查看进展与负责事项。",
+    "Open a property to view progress and assigned work."
+  ],
+  "dashboard.all.projects": [
+    "所有项目",
+    "All projects"
+  ],
+  "dashboard.could.not.load.projects": [
+    "项目读取失败",
+    "Could not load projects"
+  ],
+  "dashboard.loading.2": [
+    "正在读取…",
+    "Loading…"
+  ],
+  "dashboard.item": [
+    "事项",
+    "Item"
+  ],
+  "dashboard.description": [
+    "说明",
+    "Description"
+  ],
+  "dashboard.all.projects.are.on.track.no.action.is.needed": [
+    "所有项目都在正轨上，没有需要处理的事。",
+    "All projects are on track; no action is needed."
+  ],
+  "dashboard.no.active.projects": [
+    "没有在建项目",
+    "No active projects"
+  ],
+  "dashboard.active": [
+    "在建",
+    "Active"
+  ],
+  "dashboard.no.updates.yet": [
+    "还没有人更新过。",
+    "No updates yet."
+  ],
+  "dashboard.milestone.passed": [
+    "大节点过了",
+    "Milestone passed"
+  ],
+  "dashboard.all.tasks.in.this.stage.are.done": [
+    "这段的事都做完了",
+    "All tasks in this stage are done"
+  ],
+  "dashboard.earlier": [
+    "前面",
+    "Earlier"
+  ],
+  "dashboard.items.unconfirmed": [
+    "项没确认",
+    "items unconfirmed"
+  ],
+  "dashboard.earlier.items.confirmed": [
+    "前面的都确认了",
+    "Earlier items confirmed"
+  ],
+  "dashboard.no.active.properties": [
+    "没有在进行中的房子。",
+    "No active properties."
+  ],
+  "dashboard.no.key.dates.in.the.next.30.days": [
+    "未来 30 天没有关键日期。",
+    "No key dates in the next 30 days."
+  ],
+  "dashboard.total.committed.to.active.projects": [
+    "在建项目合计压着",
+    "Total committed to active projects"
+  ],
+  "dashboard.purchase.price.recorded.expenses": [
+    "（买入价 + 已支出）",
+    "(Purchase price + recorded expenses)"
+  ],
+  "dashboard.spent": [
+    "已支出",
+    "Spent"
+  ],
+  "dashboard.no.completed.projects.with.sale.prices": [
+    "还没有带成交价的已完成项目",
+    "No completed projects with sale prices"
+  ],
+  "dashboard.sale.price": [
+    "成交价",
+    "Sale price"
+  ],
+  "dashboard.sale.price.variance": [
+    "售价偏差",
+    "Sale price variance"
+  ],
+  "dashboard.actual.expenses": [
+    "实际支出",
+    "Actual expenses"
+  ],
+  "dashboard.actual.profit": [
+    "实际利润",
+    "Actual profit"
+  ],
+  "dashboard.12.week.spending.total": [
+    "12 周共支出",
+    "12-week spending total"
+  ],
+  "dashboard.weekly.average": [
+    "，每周平均",
+    "; weekly average"
+  ],
+  "dashboard.no.expense.records": [
+    "没有支出记录",
+    "No expense records"
+  ],
+  "dashboard.no.supplier.spending": [
+    "没有供应商支出",
+    "No supplier spending"
+  ],
+  "dashboard.supplier": [
+    "供应商",
+    "Supplier"
+  ],
+  "dashboard.record.count": [
+    "笔数",
+    "Record count"
+  ],
+  "dashboard.project.count": [
+    "项目数",
+    "Project count"
+  ],
+  "dashboard.confirm": [
+    "去确认",
+    "Confirm"
+  ],
+  "dashboard.no.milestones.await.your.confirmation": [
+    "没有等你确认的大节点。",
+    "No milestones await your confirmation."
+  ],
+  "dashboard.open.procurement.workspace": [
+    "进入采购工作台",
+    "Open procurement workspace"
+  ],
+  "dashboard.sign.in.to.view.project.procurement": [
+    "登录后查看项目采购。",
+    "Sign in to view project procurement."
+  ],
+  "dashboard.no.progress.photos.yet": [
+    "还没有进度照片",
+    "No progress photos yet"
+  ],
+  "dashboard.progress.photos": [
+    "张进度照片",
+    "progress photos"
+  ],
+  "dashboard.failed": [
+    "没过",
+    "Failed"
+  ],
+  "dashboard.passed": [
+    "通过",
+    "Passed"
+  ],
+  "dashboard.scheduled": [
+    "已约",
+    "Scheduled"
+  ],
+  "dashboard.no.inspections.yet": [
+    "还没有检查",
+    "No inspections yet"
+  ],
+  "dashboard.active.2": [
+    "通",
+    "Active"
+  ],
+  "dashboard.pending": [
+    "待",
+    "Pending"
+  ],
+  "dashboard.closed": [
+    "停",
+    "Closed"
+  ],
+  "dashboard.unknown": [
+    "未知",
+    "Unknown"
+  ],
+  "dashboard.properties": [
+    "房",
+    "properties"
+  ],
+  "dashboard.water.electricity.gas": [
+    "水 · 电 · 瓦斯",
+    "Water · Electricity · Gas"
+  ],
+  "dashboard.enter.details": [
+    "去填",
+    "Enter details"
+  ],
+  "dashboard.no.properties.need.utility.management": [
+    "没有需要管水电的房子",
+    "No properties need utility management"
+  ],
+  "dashboard.issued": [
+    "已核发",
+    "Issued"
+  ],
+  "dashboard.application.submitted": [
+    "已申请",
+    "Application submitted"
+  ],
+  "dashboard.not.applied": [
+    "没申请",
+    "Not applied"
+  ],
+  "dashboard.next.inspection": [
+    "下一次检查",
+    "Next inspection"
+  ],
+  "dashboard.final.passed": [
+    "final 已过",
+    "Final passed"
+  ],
+  "dashboard.provided": [
+    "已交",
+    "Provided"
+  ],
+  "dashboard.not.provided": [
+    "没交",
+    "Not provided"
+  ],
+  "dashboard.measurement.notes": [
+    "量尺记录",
+    "Measurement notes"
+  ],
+  "dashboard.design.proposal": [
+    "设计方案",
+    "Design proposal"
+  ],
+  "dashboard.final.drawings": [
+    "定稿图纸",
+    "Final drawings"
+  ],
+  "dashboard.no.active.properties.2": [
+    "没有在进行的房子",
+    "No active properties"
+  ],
+  "dashboard.complete": [
+    "已齐全",
+    "Complete"
+  ],
+  "dashboard.missing": [
+    "待补",
+    "Missing"
+  ],
+  "dashboard.listing": [
+    "挂牌",
+    "Listing"
+  ],
+  "dashboard.document.package": [
+    "文件包",
+    "Document package"
+  ],
+  "dashboard.disclosures": [
+    "披露",
+    "Disclosures"
+  ],
+  "dashboard.signed.copy": [
+    "签署版",
+    "Signed copy"
+  ],
+  "dashboard.closing.statement": [
+    "结算单",
+    "Closing statement"
+  ],
+  "dashboard.no.properties.listed.for.sale": [
+    "没有在售的房子",
+    "No properties listed for sale"
+  ],
+  "dashboard.held": [
+    "在手",
+    "Held"
+  ],
+  "dashboard.total.investment": [
+    "总投入",
+    "Total investment"
+  ],
+  "dashboard.active.purchase.prices.expenses": [
+    "在建买入价 + 已支出",
+    "Active purchase prices + expenses"
+  ],
+  "dashboard.estimated.profit": [
+    "预计利润",
+    "Estimated profit"
+  ],
+  "dashboard.realized.profit": [
+    "已实现利润",
+    "Realized profit"
+  ],
+  "dashboard.over.budget": [
+    "超预算",
+    "Over budget"
+  ],
+  "dashboard.no.data": [
+    "没有数据",
+    "No data"
+  ],
+  "dashboard.no.unpurchased.properties": [
+    "没有未购入的房子",
+    "No unpurchased properties"
+  ],
+  "dashboard.all.widgets.are.on.the.board": [
+    "所有小组件都在看板上",
+    "All widgets are on the board"
+  ],
+  "dashboard.add.widget": [
+    "添加小组件",
+    "Add widget"
+  ],
+  "dashboard.under.construction.or.listed": [
+    "正在施工或挂牌",
+    "Under construction or listed"
+  ],
+  "dashboard.my.turn": [
+    "轮到我",
+    "My turn"
+  ],
+  "dashboard.closed.in.closeout.or.process.complete": [
+    "已交割、在收尾或已走完",
+    "Closed; in closeout or process complete"
+  ],
+  "dashboard.invested": [
+    "已投入",
+    "Invested"
+  ],
+  "dashboard.active.project.purchase.prices.expenses": [
+    "在建项目买入价 + 已支出",
+    "Active project purchase prices + expenses"
+  ],
+  "dashboard.active.target.sale.price.purchase.renovation": [
+    "在建：目标售价 − 买入 − 装修",
+    "Active: target sale price − purchase − renovation"
+  ],
+  "dashboard.remove.widget": [
+    "移除小组件",
+    "Remove widget"
+  ]
+}

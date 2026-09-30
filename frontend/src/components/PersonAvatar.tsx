@@ -1,3 +1,6 @@
+import { systemText } from '../i18n/core.ts';
+import { useLanguage } from '../i18n/LanguageProvider';
+import { m as uiText } from '../i18n/core.ts';
 import EmployeeAvatar from './ui/EmployeeAvatar';
 import Box from '@cloudscape-design/components/box';
 import Icon from '@cloudscape-design/components/icon';
@@ -9,11 +12,12 @@ import type { UserBrief } from '../api/client';
  * 头像通过 UI 包装层复用 Cloudscape Avatar；员工色绑定账号，和角色颜色无关。
  */
 export default function PersonAvatar({ user, size = 'normal', showRole = true }: { user: UserBrief | null | undefined; size?: 'normal' | 'small'; showRole?: boolean }) {
+  useLanguage();
   if (!user) {
     return (
       <span className="ui-person-empty">
         <span className="ui-avatar-empty" aria-hidden="true" data-size={size}><Icon name="add-plus" size="small" /></span>
-        <Box variant="span" color="text-body-secondary">待分派</Box>
+        <Box variant="span" color="text-body-secondary">{uiText("personAvatar.unassigned")}</Box>
       </span>
     );
   }
@@ -21,8 +25,8 @@ export default function PersonAvatar({ user, size = 'normal', showRole = true }:
     <span className="ui-person">
       <EmployeeAvatar user={user} size={size} />
       <span className="ui-person-label">
-        <div className="ui-wrap-anywhere">{user.display_name}{!user.active && <Box variant="span" color="text-status-inactive">（已停用）</Box>}</div>
-        {showRole && <Box variant="small" color="text-body-secondary">{user.role_code}</Box>}
+        <div className="ui-wrap-anywhere">{user.display_name}{!user.active && <Box variant="span" color="text-status-inactive">{uiText("personAvatar.disabled")}</Box>}</div>
+        {showRole && <Box variant="small" color="text-body-secondary">{systemText(user.role_code)}</Box>}
       </span>
     </span>
   );

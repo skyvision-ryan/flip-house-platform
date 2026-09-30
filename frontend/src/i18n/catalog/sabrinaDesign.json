@@ -1,0 +1,178 @@
+{
+  "sabrinaDesign.payment.verification.pending": [
+    "待付款核实",
+    "Payment verification pending"
+  ],
+  "sabrinaDesign.amount.needs.verification": [
+    "金额待核",
+    "Amount needs verification"
+  ],
+  "sabrinaDesign.receipt.missing": [
+    "凭证待补",
+    "Receipt missing"
+  ],
+  "sabrinaDesign.find.record": [
+    "查找记录",
+    "Find record"
+  ],
+  "sabrinaDesign.find.financial.records": [
+    "查找财务记录",
+    "Find financial records"
+  ],
+  "sabrinaDesign.property.expense.or.supplier": [
+    "房屋、费用或供应商",
+    "Property, expense, or supplier"
+  ],
+  "sabrinaDesign.property": [
+    "房屋",
+    "Property"
+  ],
+  "sabrinaDesign.financial.property.filter": [
+    "财务房屋筛选",
+    "Financial property filter"
+  ],
+  "sabrinaDesign.verification.status": [
+    "核对状态",
+    "Verification status"
+  ],
+  "sabrinaDesign.financial.status.filter": [
+    "财务状态筛选",
+    "Financial status filter"
+  ],
+  "sabrinaDesign.excluded.from.recorded.expenses": [
+    "未计入已登记支出",
+    "Excluded from recorded expenses"
+  ],
+  "sabrinaDesign.synthetic.expense.ledger": [
+    "合成财务支出账簿",
+    "Synthetic expense ledger"
+  ],
+  "sabrinaDesign.expense.property": [
+    "费用 / 房屋",
+    "Expense / property"
+  ],
+  "sabrinaDesign.category": [
+    "类别",
+    "Category"
+  ],
+  "sabrinaDesign.restore.default.expense.order": [
+    "恢复费用默认排序",
+    "Restore default expense order"
+  ],
+  "sabrinaDesign.sort.expenses.by.amount.high.to.low": [
+    "按费用金额从高到低排序",
+    "Sort expenses by amount: high to low"
+  ],
+  "sabrinaDesign.not.recorded": [
+    "未登记",
+    "Not recorded"
+  ],
+  "sabrinaDesign.match.expenses.to.properties.and.amounts.to.receipts.verify": [
+    "费用对房屋，金额对单据。先核对事实，再保留说明。",
+    "Match expenses to properties and amounts to receipts. Verify facts before recording explanations."
+  ],
+  "sabrinaDesign.all.amounts.and.receipts.are.synthetic.examples.the.current": [
+    "所有金额与单据均为合成样例。当前产品有预算和支出登记；独立付款状态及应付台账尚未实现。",
+    "All amounts and receipts are synthetic examples. The current product records budgets and expenses; separate payment statuses and an accounts payable ledger are not implemented."
+  ],
+  "sabrinaDesign.financial.property.navigation": [
+    "财务房屋导航",
+    "Financial property navigation"
+  ],
+  "sabrinaDesign.all.sample.records.for.this.property": [
+    "本房全部示例记录",
+    "All sample records for this property"
+  ],
+  "sabrinaDesign.category.budget": [
+    "分类预算",
+    "Category budget"
+  ],
+  "sabrinaDesign.budget.less.recorded.expenses": [
+    "预算减已登记支出",
+    "Budget less recorded expenses"
+  ],
+  "sabrinaDesign.the.difference.is.not.savings.or.profit.unrecorded.receipts": [
+    "差额不表示节约或利润。待付款核实的未登记单据不计入；已登记但金额待核、凭证待补的费用仍计入，等待更正或补件。预算仅含所列分类。",
+    "The difference is not savings or profit. Unrecorded receipts awaiting payment verification are excluded; recorded expenses with unverified amounts or missing receipts remain included pending correction. The budget covers only listed categories."
+  ],
+  "sabrinaDesign.sample.records": [
+    "笔示例记录",
+    "sample records"
+  ],
+  "sabrinaDesign.recorded.expenses.in.filter": [
+    "筛选内已登记支出",
+    "Recorded expenses in filter"
+  ],
+  "sabrinaDesign.no.financial.records.match.clear.the.search.or.select": [
+    "没有符合筛选的财务记录。可清空搜索或选择全部状态。",
+    "No financial records match. Clear the search or select all statuses."
+  ],
+  "sabrinaDesign.unverified.receipt.amount": [
+    "待核对单据金额",
+    "Unverified receipt amount"
+  ],
+  "sabrinaDesign.recorded.amount": [
+    "已登记金额",
+    "Recorded amount"
+  ],
+  "sabrinaDesign.recorded.amount.less.budget": [
+    "登记与预算之差",
+    "Recorded amount less budget"
+  ],
+  "sabrinaDesign.not.recorded.difference.not.calculated": [
+    "尚未登记，不计算差额",
+    "Not recorded; difference not calculated"
+  ],
+  "sabrinaDesign.record.source": [
+    "记录来源",
+    "Record source"
+  ],
+  "sabrinaDesign.linked.documents": [
+    "关联资料",
+    "Linked documents"
+  ],
+  "sabrinaDesign.view.content": [
+    "查看内容",
+    "View content"
+  ],
+  "sabrinaDesign.no.receipt.is.linked.this.gap.remains.an.expense": [
+    "这笔记录没有关联凭证。保留缺口，不以支出登记替代凭证。",
+    "No receipt is linked. This gap remains; an expense entry is not proof of payment."
+  ],
+  "sabrinaDesign.financial.document.preview": [
+    "财务资料预览",
+    "Financial document preview"
+  ],
+  "sabrinaDesign.for.comparing.navigation.only.not.a.real.file": [
+    "仅用于比较查找资料的路径，非真实文件。",
+    "For comparing navigation only; not a real file."
+  ],
+  "sabrinaDesign.close.document.preview": [
+    "关闭资料预览",
+    "Close document preview"
+  ],
+  "sabrinaDesign.verification.notes": [
+    "核对备注",
+    "Verification notes"
+  ],
+  "sabrinaDesign.no.notes.entered.for.this.preview": [
+    "尚未填写本次预览备注。",
+    "No notes entered for this preview."
+  ],
+  "sabrinaDesign.edit.verification.notes": [
+    "编辑核对备注",
+    "Edit verification notes"
+  ],
+  "sabrinaDesign.verification.notes.for.this.record": [
+    "此笔记录的核对备注",
+    "Verification notes for this record"
+  ],
+  "sabrinaDesign.notes.remain.in.this.preview.across.options.and.reset": [
+    "备注已保留在本次预览，切换方案可查看；刷新后恢复。",
+    "Notes remain in this preview across options and reset on refresh."
+  ],
+  "sabrinaDesign.select.an.expense.to.view.its.amount.budget.and": [
+    "选择一笔费用，查看金额、预算与关联凭证。",
+    "Select an expense to view its amount, budget, and linked receipt."
+  ]
+}

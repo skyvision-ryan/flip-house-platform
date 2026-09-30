@@ -1,0 +1,62 @@
+{
+  "procurementForm.enter.a.valid.date.in.yyyy.mm.dd.format": [
+    "使用有效日期，格式为 YYYY-MM-DD。",
+    "Enter a valid date in YYYY-MM-DD format."
+  ],
+  "procurementForm.enter.a.procurement.channel.or.supplier": [
+    "填写采购渠道或供应商。",
+    "Enter a procurement channel or supplier."
+  ],
+  "procurementForm.enter.the.merchant.order.or.receipt.number": [
+    "填写商家订单号或收据编号。",
+    "Enter the merchant order or receipt number."
+  ],
+  "procurementForm.select.the.procurement.stage.for.this.order": [
+    "选择本次采购阶段。",
+    "Select the procurement stage for this order."
+  ],
+  "procurementForm.enter.a.nonnegative.amount.leave.unknown.amounts.blank": [
+    "填写非负金额；未知请留空。",
+    "Enter a nonnegative amount; leave unknown amounts blank."
+  ],
+  "procurementForm.add.at.least.one.item": [
+    "至少添加一项商品。",
+    "Add at least one item."
+  ],
+  "procurementForm.select.a.procurement.item.from.this.property": [
+    "选择本房采购项。",
+    "Select a procurement item from this property."
+  ],
+  "procurementForm.ordered.quantity.must.be.greater.than.0": [
+    "订购数量须大于 0。",
+    "Ordered quantity must be greater than 0."
+  ],
+  "procurementForm.unit.price.cannot.be.negative.leave.unknown.prices.blank": [
+    "单价不能为负数；未知请留空。",
+    "Unit price cannot be negative; leave unknown prices blank."
+  ],
+  "procurementForm.enter.the.actual.receiving.location": [
+    "填写本次实际收货地点。",
+    "Enter the actual receiving location."
+  ],
+  "procurementForm.enter.a.valid.actual.receipt.date.yyyy.mm.dd": [
+    "填写有效的实际收货日期（YYYY-MM-DD）。",
+    "Enter a valid actual receipt date (YYYY-MM-DD)."
+  ],
+  "procurementForm.enter.the.quantity.received.this.time.enter.0.if": [
+    "填写本次实收数量；未收到填 0。",
+    "Enter the quantity received this time; enter 0 if none."
+  ],
+  "procurementForm.damaged.quantity.must.be.between.0.and.the.quantity": [
+    "破损数量须介于 0 与本次实收数量之间。",
+    "Damaged quantity must be between 0 and the quantity received this time."
+  ],
+  "procurementForm.enter.a.received.quantity.for.at.least.one.item": [
+    "至少填写一项本次实收数量。",
+    "Enter a received quantity for at least one item."
+  ],
+  "procurementForm.could.not.save.check.your.entries.and.try.again": [
+    "未能保存，请核对输入后重试。",
+    "Could not save. Check your entries and try again."
+  ]
+}

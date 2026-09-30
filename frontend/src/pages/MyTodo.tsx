@@ -1,3 +1,7 @@
+import { taskTitle } from '../i18n/templateNames.ts';
+import { systemText } from '../i18n/core.ts';
+import { useLanguage } from '../i18n/LanguageProvider';
+import { m as uiText } from '../i18n/core.ts';
 import Alert from '@cloudscape-design/components/alert';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
@@ -28,6 +32,7 @@ import { dueText, GROUP_LABEL, groupMyTasks, MyGroupKey, statusIndicator } from 
  * 数据只按登录账号取（/api/me/tasks），不按角色；按角色匹配的旧待办只留在工作台小组件里。
  */
 export default function MyTodo() {
+  useLanguage();
   const navigate = useNavigate();
   const meta = useMeta();
   const { me } = useActor();
@@ -66,35 +71,35 @@ export default function MyTodo() {
   const pick = (t: Task) => { setSelectedId(t.id); setParams((prev) => { const n = new URLSearchParams(prev); n.set('task', String(t.id)); return n; }, { replace: true }); };
   const replace = (t: Task) => setData((prev) => (prev ? { assigned: prev.assigned.map((x) => (x.id === t.id ? t : x)), reviewing: prev.reviewing.map((x) => (x.id === t.id ? t : x)) } : prev));
 
-  const projectOptions = [{ value: 'all', label: '全部项目' }, ...Array.from(new Map(all.map((t) => [t.project_id, { value: String(t.project_id), label: t.project_name }])).values())];
+  const projectOptions = [{ value: 'all', label: uiText("founderDesign.all.projects") }, ...Array.from(new Map(all.map((t) => [t.project_id, { value: String(t.project_id), label: t.project_name }])).values())];
   const filtered = (rows: Task[]) => rows.filter((t) => (projectFilter === 'all' || String(t.project_id) === projectFilter) && (!query || `${t.title} ${t.project_name}`.toLowerCase().includes(query.toLowerCase())));
   const list = (rows: Task[], title: string, hint?: string) => {
     const visible = filtered(rows);
     return <section aria-label={title}>
       <Box padding={{ horizontal: 'm', top: 'm', bottom: 's' }}><Header variant="h3" counter={`(${visible.length})`} help={hint}>{title}</Header></Box>
-      {!visible.length && <Box padding={{ horizontal: 'm', bottom: 'm' }} color="text-body-secondary">暂无事项</Box>}
-      {visible.map((t) => <div key={t.id}><ReviewTag cardId="my-task-card" context={`${t.project_name} · ${t.title}`} /><button type="button" className={css.taskPick} aria-pressed={t.id === selectedId} onClick={() => pick(t)}>
-        <div className={css.pickTitle}>{t.title}</div>
+      {!visible.length && <Box padding={{ horizontal: 'm', bottom: 'm' }} color="text-body-secondary">{uiText("myTodo.no.tasks")}</Box>}
+      {visible.map((t) => <div key={t.id}><ReviewTag cardId="my-task-card" context={`${t.project_name} · ${taskTitle(t)}`} /><button type="button" className={css.taskPick} aria-pressed={t.id === selectedId} onClick={() => pick(t)}>
+        <div className={css.pickTitle}>{taskTitle(t)}</div>
         <Box variant="small" color="text-body-secondary">{t.project_name} · {stageKeyLabel(meta?.stage_groups, t.stage_key, t.stage_short)}</Box>
-        <div className={css.pickMeta}><StatusIndicator type={statusIndicator(t.exec_status)}>{t.exec_status_label}</StatusIndicator><Box variant="small" color="text-body-secondary">截止 {t.due_at ? dueText(t.due_at) : '未设定'}</Box></div>
+        <div className={css.pickMeta}><StatusIndicator type={statusIndicator(t.exec_status)}>{systemText(t.exec_status_label)}</StatusIndicator><Box variant="small" color="text-body-secondary">{uiText("taskTable.due")} {t.due_at ? dueText(t.due_at) : uiText("projectPreplan.not.set")}</Box></div>
       </button></div>)}
     </section>;
   };
   const pane = (subset: Task[]) => (selected && filtered(subset).some((t) => t.id === selected.id)
-    ? <Container embedded cardId="task-processing" cardContext={selected?.title} header={<Header variant="h2" description={`${selected.project_name} · ${selected.project_address}`}>{selected.title}</Header>}><TaskWorkbench task={selected} meId={me?.id ?? null} onChanged={replace} onConflict={load} /></Container>
-    : <Container embedded cardId="task-processing"><Box color="text-body-secondary">选择一项任务，查看要求并处理。</Box></Container>);
+    ? <Container embedded cardId="task-processing" cardContext={selected?.title} header={<Header variant="h2" description={`${selected.project_name} · ${selected.project_address}`}>{taskTitle(selected)}</Header>}><TaskWorkbench task={selected} meId={me?.id ?? null} onChanged={replace} onConflict={load} /></Container>
+    : <Container embedded cardId="task-processing"><Box color="text-body-secondary">{uiText("myTodo.select.a.task.to.review.its.requirements.and.take")}</Box></Container>);
   const layout = (left: JSX.Element, subset: Task[]) => <CollaborationWorkspace processing main={left} detail={pane(subset)} detailOpen={!!selected && filtered(subset).some((t) => t.id === selected.id)} onBack={() => {
     setSelectedId(null); setParams((prev) => { const next = new URLSearchParams(prev); next.delete('task'); return next; }, { replace: true });
   }} />;
 
   return (
-    <ContentLayout maxContentWidth={1440} header={<Header variant="h1" help={me ? '处理分派给你的任务，以及等你审核的交付。' : '登录后查看你的任务。'}>我的事项</Header>}>
+    <ContentLayout maxContentWidth={1440} header={<Header variant="h1" help={me ? uiText("myTodo.handle.your.assignments.and.review.submitted.deliverables") : uiText("myTodo.sign.in.to.view.your.tasks")}>{uiText("app.my.tasks")}</Header>}>
       <SpaceBetween size="l">
-        {!me && <Alert type="info" action={<Button onClick={() => navigate('/login')}>登录</Button>}>任务按账号分派。现在没有登录，这里没有内容；演示访客可以到工作台看「按角色」的参考待办小组件。</Alert>}
-        {err && <Alert type="error" action={<Button onClick={load}>重试</Button>}>{err}</Alert>}
-        {wanted && data && !selected && <Alert type="info">这项任务不在你的负责或审核范围内。请选择列表中的事项。</Alert>}
+        {!me && <Alert type="info" action={<Button onClick={() => navigate('/login')}>{uiText("cardRegistry.sign.in")}</Button>}>{uiText("myTodo.tasks.are.assigned.to.accounts.you.are.not.signed")}</Alert>}
+        {err && <Alert type="error" action={<Button onClick={load}>{uiText("addProject.retry")}</Button>}>{systemText(err)}</Alert>}
+        {wanted && data && !selected && <Alert type="info">{uiText("myTodo.this.task.is.outside.your.assignment.or.review.scope")}</Alert>}
         {me && !data && !err && <Box textAlign="center" padding="l"><Spinner /></Box>}
-        {me && data && <div className={css.toolbar}><TextFilter filteringText={query} onChange={({ detail }) => setQuery(detail.filteringText)} filteringPlaceholder="搜索项目或任务" filteringAriaLabel="搜索我的事项" /><Select selectedOption={projectOptions.find((o) => o.value === projectFilter)!} options={projectOptions} onChange={({ detail }) => setProjectFilter(detail.selectedOption.value!)} ariaLabel="筛选项目" /></div>}
+        {me && data && <div className={css.toolbar}><TextFilter filteringText={query} onChange={({ detail }) => setQuery(detail.filteringText)} filteringPlaceholder={uiText("myTodo.search.project.or.task")} filteringAriaLabel={uiText("myTodo.search.my.tasks")} /><Select selectedOption={projectOptions.find((o) => o.value === projectFilter)!} options={projectOptions} onChange={({ detail }) => setProjectFilter(detail.selectedOption.value!)} ariaLabel={uiText("myTodo.filter.by.project")} /></div>}
         {me && data && (
           <Tabs
             activeTabId={tab}
@@ -106,11 +111,11 @@ export default function MyTodo() {
             }}
             tabs={[
               {
-                id: 'mine', label: `我的任务 (${data.assigned.length})`,
+                id: 'mine', label: uiText("sentences.my.tasks", { value1: (data.assigned.length) }),
                 content: layout(
                   <Container embedded cardId="my-task-list" disableContentPaddings>
                     <SpaceBetween size="xs">
-                      {(['now', 'waiting', 'later'] as MyGroupKey[]).map((k) => list(groups[k], GROUP_LABEL[k], k === 'later' ? '项目还没走到这一段，先看要求' : undefined))}
+                      {(['now', 'waiting', 'later'] as MyGroupKey[]).map((k) => list(groups[k], GROUP_LABEL[k], k === 'later' ? uiText("myTodo.this.stage.has.not.been.reached.review.requirements.ahead") : undefined))}
                       {groups.done.length > 0 && list(groups.done, GROUP_LABEL.done)}
                     </SpaceBetween>
                   </Container>,
@@ -118,12 +123,12 @@ export default function MyTodo() {
                 ),
               },
               {
-                id: 'review', label: `待我审核 (${data.reviewing.filter((t) => t.exec_status === 'pending_review').length})`,
+                id: 'review', label: uiText("sentences.awaiting.my.review", { value1: (data.reviewing.filter((t) => t.exec_status === 'pending_review').length) }),
                 content: layout(
                   <Container embedded cardId="my-review-list" disableContentPaddings>
                     <SpaceBetween size="xs">
-                      {list(data.reviewing.filter((t) => t.exec_status === 'pending_review'), '等我确认', '负责人已提交，退回或确认')}
-                      {list(data.reviewing.filter((t) => t.exec_status !== 'pending_review'), '我审核的其他任务')}
+                      {list(data.reviewing.filter((t) => t.exec_status === 'pending_review'), uiText("myTodo.awaiting.my.confirmation"), uiText("myTodo.the.assignee.submitted.return.or.accept"))}
+                      {list(data.reviewing.filter((t) => t.exec_status !== 'pending_review'), uiText("myTodo.other.tasks.i.review"))}
                     </SpaceBetween>
                   </Container>,
                   data.reviewing,

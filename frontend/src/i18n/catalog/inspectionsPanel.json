@@ -1,0 +1,94 @@
+{
+  "inspectionsPanel.enter.what.was.inspected": [
+    "请填写本次检查的内容。",
+    "Enter what was inspected."
+  ],
+  "inspectionsPanel.no.inspection.records.yet": [
+    "还没有检查记录。",
+    "No inspection records yet."
+  ],
+  "inspectionsPanel.final.inspection.passed.construction.finished": [
+    "final 已通过，施工结束",
+    "Final inspection passed; construction finished"
+  ],
+  "inspectionsPanel.failed.inspections.corrections.in.progress": [
+    "次没过，整改中",
+    "failed inspections; corrections in progress"
+  ],
+  "inspectionsPanel.passed": [
+    "已通过",
+    "Passed"
+  ],
+  "inspectionsPanel.inspections.final.not.yet.passed": [
+    "次，还没到 final",
+    "inspections; Final not yet passed"
+  ],
+  "inspectionsPanel.record.each.inspection.here.when.the.work.is.ready": [
+    "师傅做到一个程度，Z 约一次检查，就在这里记一行。",
+    "Record each inspection here when the work is ready and Z schedules it."
+  ],
+  "inspectionsPanel.visit.number": [
+    "第几次",
+    "Visit number"
+  ],
+  "inspectionsPanel.inspection.scope": [
+    "查什么",
+    "Inspection scope"
+  ],
+  "inspectionsPanel.date": [
+    "日期",
+    "Date"
+  ],
+  "inspectionsPanel.result": [
+    "结果",
+    "Result"
+  ],
+  "inspectionsPanel.assigned.to.correct.failures": [
+    "没过谁整改",
+    "Assigned to correct failures"
+  ],
+  "inspectionsPanel.not.entered": [
+    "还没写",
+    "Not entered"
+  ],
+  "inspectionsPanel.notes": [
+    "备注",
+    "Notes"
+  ],
+  "inspectionsPanel.recorded.by": [
+    "谁记的",
+    "Recorded by"
+  ],
+  "inspectionsPanel.edit": [
+    "改",
+    "Edit"
+  ],
+  "inspectionsPanel.delete": [
+    "删",
+    "Delete"
+  ],
+  "inspectionsPanel.record.inspection": [
+    "记一次检查",
+    "Record inspection"
+  ],
+  "inspectionsPanel.edit.inspection": [
+    "改检查记录",
+    "Edit inspection"
+  ],
+  "inspectionsPanel.for.example.framing.rough.plumbing.electrical.roofing.or.final": [
+    "比如 框架、水电粗装、屋顶、final",
+    "For example: framing, rough plumbing/electrical, roofing, or Final"
+  ],
+  "inspectionsPanel.usually.the.pm.and.contractor": [
+    "一般是 PM 加施工方",
+    "Usually the PM and contractor"
+  ],
+  "inspectionsPanel.pm.contractor.name": [
+    "PM + 承包商名字",
+    "PM + contractor name"
+  ],
+  "inspectionsPanel.this.is.a.final.inspection.the.latest.result.serves": [
+    "这是 Final 检查。最新一次结果作为节点证据，条件满足后仍需有权限的一人确认节点。",
+    "This is a Final Inspection. The latest result serves as milestone evidence; an authorized person must still confirm the milestone after its conditions are met."
+  ]
+}

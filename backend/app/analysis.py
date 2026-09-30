@@ -139,8 +139,8 @@ def full_outputs(inputs: dict) -> dict:
 
 # ---------------- 预填 ----------------
 
-def _src(source: str, note: str | None = None, confidence: float | None = None) -> dict:
-    return {"source": source, "fetched_at": datetime.now().isoformat(timespec="seconds"), "confidence": confidence, "note": note}
+def _src(source: str, note: str | None = None, confidence: float | None = None, *, system_note: bool = True) -> dict:
+    return {"note_template_snapshot": note if system_note else None, "source": source, "fetched_at": datetime.now().isoformat(timespec="seconds"), "confidence": confidence, "note": note}
 
 
 def build_prefill(*, sqft: int | None, avm_value: float | None, list_price: float | None, annual_tax: float | None,
@@ -158,7 +158,7 @@ def build_prefill(*, sqft: int | None, avm_value: float | None, list_price: floa
     def inherit(field: str, fallback_note: str) -> dict:
         got = fs.get(field)
         if got:
-            return _src(got.get("source") or "unverified", got.get("note") or fallback_note, got.get("confidence"))
+            return _src(got.get("source") or "unverified", got.get("note") or fallback_note, got.get("confidence"), system_note=not bool(got.get("note")))
         return _src("unverified", fallback_note)
 
     sale = target_arv if target_arv else (avm_value or 0)
@@ -176,9 +176,9 @@ def build_prefill(*, sqft: int | None, avm_value: float | None, list_price: floa
 
     closing = round(price * D["closing_pct"] / 100, 0)
     purchase_extras = [
-        {"label": "检验", "amount": D["inspection"]},
-        {"label": "评估", "amount": D["appraisal"]},
-        {"label": "过户费", "amount": closing},
+        {"label": "检验", "template_key": "analysisTemplate.inspection", "template_name_snapshot": "检验", "amount": D["inspection"]},
+        {"label": "评估", "template_key": "analysisTemplate.appraisal", "template_name_snapshot": "评估", "amount": D["appraisal"]},
+        {"label": "过户费", "template_key": "analysisTemplate.closing", "template_name_snapshot": "过户费", "amount": closing},
     ]
     sources["purchase_extras"] = _src("manual", f"行业默认：检验 {D['inspection']}、评估 {D['appraisal']}、过户 {D['closing_pct']}%")
 
@@ -186,9 +186,9 @@ def build_prefill(*, sqft: int | None, avm_value: float | None, list_price: floa
     ins_m = round(sale * D["insurance_pct_annual"] / 100 / 12, 0) if sale else 0
     util = next(v for cap, v in D["utilities_by_sqft"] if (sqft or 0) <= cap)
     monthly_costs = [
-        {"label": "房产税", "amount": tax_m},
-        {"label": "保险", "amount": ins_m},
-        {"label": "水电", "amount": util},
+        {"label": "房产税", "template_key": "analysisTemplate.propertyTax", "template_name_snapshot": "房产税", "amount": tax_m},
+        {"label": "保险", "template_key": "analysisTemplate.insurance", "template_name_snapshot": "保险", "amount": ins_m},
+        {"label": "水电", "template_key": "analysisTemplate.utilities", "template_name_snapshot": "水电", "amount": util},
     ]
     sources["monthly_costs.房产税"] = inherit("annual_tax", "年税 ÷ 12") if annual_tax else _src("unverified", "无税务记录")
     sources["monthly_costs.保险"] = _src("manual", f"行业默认：售价 × {D['insurance_pct_annual']}% ÷ 12")

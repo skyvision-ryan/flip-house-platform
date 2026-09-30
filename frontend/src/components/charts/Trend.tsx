@@ -1,3 +1,5 @@
+import { useLanguage } from '../../i18n/LanguageProvider';
+import { m as uiText } from '../../i18n/core.ts';
 import { useEffect, useRef, useState } from 'react';
 import { niceTicks } from './format';
 import { AXIS, FONT, SHADOW, GRID, SERIES, SURFACE, TEXT, TEXT_2 } from './palette';
@@ -15,6 +17,7 @@ interface Props {
 
 /** 随时间怎么变：2px 线 + 10% 面积晕染 + 末端圆点与直接标注 + 十字线悬停读数；浅色实线水平网格。 */
 export default function Trend({ points, format = (n) => String(n), height = 160, color = SERIES[0], xTicks = 4, emptyText = '暂无数据' }: Props) {
+  useLanguage();
   const wrap = useRef<HTMLDivElement>(null);
   const [w, setW] = useState(600);
   const [hover, setHover] = useState<number | null>(null);
@@ -72,7 +75,7 @@ export default function Trend({ points, format = (n) => String(n), height = 160,
       </svg>
       {hover != null && (
         <div style={{ position: 'absolute', left: Math.min(X(hover) + 10, w - 130), top: Math.max(0, Y(points[hover].y) - 44), background: SURFACE, border: `1px solid ${GRID}`, borderRadius: 8, boxShadow: SHADOW, padding: '6px 10px', fontSize: 13, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
-          <div style={{ color: TEXT_2 }}>{points[hover].x} 那周</div>
+          <div style={{ color: TEXT_2 }}>{points[hover].x} {uiText("trend.week")}</div>
           <div style={{ fontWeight: 700, color: TEXT }}>{format(points[hover].y)}</div>
         </div>
       )}

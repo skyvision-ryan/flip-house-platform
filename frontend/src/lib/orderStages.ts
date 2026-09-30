@@ -1,3 +1,4 @@
+import { m as uiText } from '../i18n/core.ts';
 import type { ProcurementItem } from '../api/client';
 import type { OrderLine, PurchaseOrder } from './purchaseOrders';
 
@@ -15,7 +16,7 @@ export function orderStages(lines: OrderLine[], projectId: number, materials: Pr
   for (const line of lines) {
     const material = byId.get(line.material_id);
     const value = material?.wave ?? 'unmapped';
-    if (!groups.has(value)) groups.set(value, { value, label: nodes.find(n => n.value === value)?.label ?? '采购项待核对', lines: [] });
+    if (!groups.has(value)) groups.set(value, { value, label: nodes.find(n => n.value === value)?.label ?? uiText("orderStages.procurement.items.need.verification"), lines: [] });
     groups.get(value)!.lines.push({ line, material });
   }
   const rank = (key: string) => { const index = nodes.findIndex(n => n.value === key); return index < 0 ? nodes.length : index; };

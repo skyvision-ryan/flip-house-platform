@@ -1,0 +1,150 @@
+{
+  "purchaseOrderEntry.each": [
+    "件",
+    "each"
+  ],
+  "purchaseOrderEntry.procurement.stage": [
+    "采购阶段",
+    "Procurement stage"
+  ],
+  "purchaseOrderEntry.select.the.main.use.milestone.for.this.order": [
+    "选择本次主要使用节点",
+    "Select the main use milestone for this order"
+  ],
+  "purchaseOrderEntry.procurement.channel.supplier.required": [
+    "采购渠道 / 供应商（必填）",
+    "Procurement channel / supplier (required)"
+  ],
+  "purchaseOrderEntry.procurement.channel.supplier": [
+    "采购渠道 / 供应商",
+    "Procurement channel / supplier"
+  ],
+  "purchaseOrderEntry.select.or.enter.a.supplier": [
+    "选择或输入供应商",
+    "Select or enter a supplier"
+  ],
+  "purchaseOrderEntry.order.number.required": [
+    "订单号（必填）",
+    "Order number (required)"
+  ],
+  "purchaseOrderEntry.order.items": [
+    "订单采购项",
+    "Order items"
+  ],
+  "purchaseOrderEntry.select.existing.requirements.then.verify.order.quantities.and.unit": [
+    "勾选已有需求，再核对本次订购数量与单价。",
+    "Select existing requirements, then verify order quantities and unit prices."
+  ],
+  "purchaseOrderEntry.select.requirements": [
+    "选择采购需求",
+    "Select requirements"
+  ],
+  "purchaseOrderEntry.search.this.property.s.requirements": [
+    "搜索本房需求",
+    "Search this property's requirements"
+  ],
+  "purchaseOrderEntry.search.available.requirements": [
+    "搜索可采购需求",
+    "Search available requirements"
+  ],
+  "purchaseOrderEntry.outside.current.scope": [
+    "· 尚未纳入本次",
+    "· Outside current scope"
+  ],
+  "purchaseOrderEntry.specifications.not.entered": [
+    "规格未填写",
+    "Specifications not entered"
+  ],
+  "purchaseOrderEntry.required": [
+    "· 需求",
+    "· Required"
+  ],
+  "purchaseOrderEntry.no.matching.requirements": [
+    "没有符合条件的需求。",
+    "No matching requirements."
+  ],
+  "purchaseOrderEntry.show.only.current.procurement.requirements": [
+    "仅显示本次采购需求",
+    "Show only current procurement requirements"
+  ],
+  "purchaseOrderEntry.view.this.property.s.other.requirements": [
+    "查看本房其他已有需求",
+    "View this property's other requirements"
+  ],
+  "purchaseOrderEntry.items.in.this.order": [
+    "本单商品",
+    "Items in this order"
+  ],
+  "purchaseOrderEntry.procurement.item": [
+    "采购项",
+    "Procurement item"
+  ],
+  "purchaseOrderEntry.unit.price.usd": [
+    "单价（USD）",
+    "Unit price (USD)"
+  ],
+  "purchaseOrderEntry.subtotal": [
+    "小计",
+    "Subtotal"
+  ],
+  "purchaseOrderEntry.requirement.not.linked": [
+    "待关联需求",
+    "Requirement not linked"
+  ],
+  "purchaseOrderEntry.select.a.requirement.from.this.property": [
+    "选择本房需求以关联",
+    "Select a requirement from this property"
+  ],
+  "purchaseOrderEntry.remove": [
+    "移除",
+    "Remove"
+  ],
+  "purchaseOrderEntry.view.additional.product.details": [
+    "查看商品补充信息",
+    "View additional product details"
+  ],
+  "purchaseOrderEntry.brand.receiving.details": [
+    "品牌 / 收货信息",
+    "Brand / receiving details"
+  ],
+  "purchaseOrderEntry.select.requirements.then.enter.quantities.and.unit.prices.here": [
+    "勾选需求后，在这里填写本次订购数量和单价。",
+    "Select requirements, then enter quantities and unit prices here."
+  ],
+  "purchaseOrderEntry.add.procurement.requirement": [
+    "补充采购需求",
+    "Add procurement requirement"
+  ],
+  "purchaseOrderEntry.saving.adds.the.requirement.to.this.property.and.this": [
+    "保存后加入本房需求清单，并带入此订单；取消订单不会删除已补充的需求。",
+    "Saving adds the requirement to this property and this order. Canceling the order does not delete the requirement."
+  ],
+  "purchaseOrderEntry.item.total": [
+    "商品合计",
+    "Item total"
+  ],
+  "purchaseOrderEntry.leave.unknown.amounts.blank.enter.0.only.for.a": [
+    "未知留空，零金额填 0。",
+    "Leave unknown amounts blank; enter 0 only for a known zero."
+  ],
+  "purchaseOrderEntry.record.order.payment.usd": [
+    "登记订单实付（USD）",
+    "Record order payment (USD)"
+  ],
+  "purchaseOrderEntry.seller.notes.and.proof.of.purchase": [
+    "卖家、备注与购买凭据",
+    "Seller, notes, and proof of purchase"
+  ],
+  "purchaseOrderEntry.actual.seller": [
+    "实际卖家",
+    "Actual seller"
+  ],
+  "purchaseOrderEntry.proof.of.purchase.link": [
+    "购买凭据链接",
+    "Proof of purchase link"
+  ],
+  "purchaseOrderEntry.order.link": [
+    "订单链接",
+    "Order link"
+  ]
+}

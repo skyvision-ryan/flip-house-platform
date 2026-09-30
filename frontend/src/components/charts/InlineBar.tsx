@@ -1,3 +1,4 @@
+import { useLanguage } from '../../i18n/LanguageProvider';
 import BudgetBar from './BudgetBar';
 import { FONT, TEXT, TEXT_BAD } from './palette';
 
@@ -13,6 +14,7 @@ interface Props {
 
 /** 表格单元格里的“实际 vs 目标”小条，与页面上的大条同一套画法。 */
 export default function InlineBar({ value, max, target, text, width = 150 }: Props) {
+  useLanguage();
   const over = target != null && target > 0 && value > target;
   const scale = Math.max(max, target ?? 0, value) || 1;
   return (

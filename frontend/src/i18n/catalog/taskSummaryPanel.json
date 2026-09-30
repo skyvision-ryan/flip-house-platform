@@ -1,0 +1,106 @@
+{
+  "taskSummaryPanel.select.a.task.on.the.left.to.view.its": [
+    "点击左侧任务，查看安排与处理入口。",
+    "Select a task on the left to view its assignment and actions."
+  ],
+  "taskSummaryPanel.task.summary": [
+    "任务摘要",
+    "Task summary"
+  ],
+  "taskSummaryPanel.status": [
+    "状态",
+    "Status"
+  ],
+  "taskSummaryPanel.waiting.for": [
+    "等",
+    "Waiting for"
+  ],
+  "taskSummaryPanel.reviewer": [
+    "审核人",
+    "Reviewer"
+  ],
+  "taskSummaryPanel.not.specified": [
+    "未指定",
+    "Not specified"
+  ],
+  "taskSummaryPanel.change.due.date": [
+    "改截止日期",
+    "Change due date"
+  ],
+  "taskSummaryPanel.evidence.assessment": [
+    "证据判定",
+    "Evidence assessment"
+  ],
+  "taskSummaryPanel.requirements.met": [
+    "已满足",
+    "Requirements met"
+  ],
+  "taskSummaryPanel.requirements.not.met": [
+    "未满足",
+    "Requirements not met"
+  ],
+  "taskSummaryPanel.latest.activity": [
+    "最新动态",
+    "Latest activity"
+  ],
+  "taskSummaryPanel.system": [
+    "系统",
+    "System"
+  ],
+  "taskSummaryPanel.no.records.yet": [
+    "还没有记录",
+    "No records yet"
+  ],
+  "taskSummaryPanel.evidence.requirements.are.met.the.task.still.awaits.confirmation": [
+    "证据已满足，任务仍待确认。",
+    "Evidence requirements are met; the task still awaits confirmation."
+  ],
+  "taskSummaryPanel.review.in.my.tasks": [
+    "去我的事项审核",
+    "Review in My tasks"
+  ],
+  "taskSummaryPanel.handle.in.my.tasks": [
+    "去我的事项处理",
+    "Handle in My tasks"
+  ],
+  "taskSummaryPanel.full.activity.history": [
+    "完整活动记录",
+    "Full activity history"
+  ],
+  "taskSummaryPanel.activity.history": [
+    "活动记录",
+    "Activity history"
+  ],
+  "taskSummaryPanel.select.a.task": [
+    "请选择一项任务。",
+    "Select a task."
+  ],
+  "taskSummaryPanel.confirm.milestones.according.to.their.conditions.and.permissions.from": [
+    "节点按对应条件与权限确认，可在任务或下方证据清单中处理。",
+    "Confirm milestones according to their conditions and permissions, from the task or the evidence checklist below."
+  ],
+  "taskSummaryPanel.milestone.status": [
+    "关键节点状态",
+    "Milestone status"
+  ],
+  "taskSummaryPanel.prerequisites.changed.review.required": [
+    "前置资料变化，待复核",
+    "Prerequisites changed; review required"
+  ],
+  "taskSummaryPanel.awaiting.one.authorized.confirmation": [
+    "待一人确认满足",
+    "Awaiting one authorized confirmation"
+  ],
+  "taskSummaryPanel.awaiting.confirmation": [
+    "待确认",
+    "Awaiting confirmation"
+  ],
+  "taskSummaryPanel.confirm.view.evidence.checklist": [
+    "去确认 / 看证据清单",
+    "Confirm / view evidence checklist"
+  ],
+  "taskSummaryPanel.no.milestones.in.this.stage": [
+    "本段没有关键节点。",
+    "No milestones in this stage."
+  ]
+}

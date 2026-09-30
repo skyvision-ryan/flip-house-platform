@@ -1,3 +1,7 @@
+import { taskTitle } from '../i18n/templateNames.ts';
+import { systemText } from '../i18n/core.ts';
+import { useLanguage } from '../i18n/LanguageProvider';
+import { m as uiText } from '../i18n/core.ts';
 import Alert from '@cloudscape-design/components/alert';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
@@ -27,6 +31,7 @@ const UNASSIGN = '__none__';
 export default function TaskAssignModal({ projectId, tasks, onDone, onConflict, onDismiss }: {
   projectId: number; tasks: Task[]; onDone: (t: Task) => void; onConflict: () => void; onDismiss: () => void;
 }) {
+  useLanguage();
   const flash = useFlash(); const meta = useMeta();
   // 单项：可改人、改截止；批量（勾选多行后「分派任务」）：同一个人、同一截止，逐项保存，哪一项失败就说哪一项
   const task = tasks[0];
@@ -51,12 +56,12 @@ export default function TaskAssignModal({ projectId, tasks, onDone, onConflict, 
   const opt = (u: UserBrief): SelectProps.Option => ({ value: String(u.id), label: u.display_name, description: u.role_code, tags: [u.username] });
   const eligible = (u: UserBrief) => !tasks.some(t => t.step_key === 'purchase') || userCan(meta, u, 'procurement');
   const options: SelectProps.Options = [
-    ...(task.assignee && !bulk ? [{ value: UNASSIGN, label: '取消分派', description: '任务回到待分派' }] : []),
-    { label: '项目成员', options: (members?.members ?? []).filter(eligible).map(opt) },
-    { label: '不在项目里 · 选中即加入项目并分派', options: (members?.others ?? []).filter(eligible).map(opt) },
+    ...(task.assignee && !bulk ? [{ value: UNASSIGN, label: uiText("taskAssignModal.remove.assignment"), description: uiText("taskAssignModal.return.task.to.unassigned") }] : []),
+    { label: uiText("taskAssignModal.project.members"), options: (members?.members ?? []).filter(eligible).map(opt) },
+    { label: uiText("taskAssignModal.not.a.member.selecting.adds.them.to.the.project"), options: (members?.others ?? []).filter(eligible).map(opt) },
   ];
   const selected = who === UNASSIGN
-    ? (task.assignee ? { value: UNASSIGN, label: '取消分派' } : null)
+    ? (task.assignee ? { value: UNASSIGN, label: uiText("taskAssignModal.remove.assignment") } : null)
     : (byId.get(who) ? opt(byId.get(who)!) : null);
   const target = who === UNASSIGN ? null : byId.get(who) ?? null;
   const changingPerson = (target?.id ?? null) !== (task.assignee?.id ?? null);
@@ -66,8 +71,8 @@ export default function TaskAssignModal({ projectId, tasks, onDone, onConflict, 
   const nothing = bulk ? !target : (!changingPerson && !dueChanged);
 
   const save = async () => {
-    if (who !== UNASSIGN && !target) { setErr('先选一个人'); return; }
-    if (isReassign && !reason.trim()) { setErr('改派要写原因，接手的人和原负责人都会看到'); return; }
+    if (who !== UNASSIGN && !target) { setErr(uiText("taskAssignModal.select.a.person.first")); return; }
+    if (isReassign && !reason.trim()) { setErr(uiText("taskAssignModal.a.reason.is.required.for.reassignment.both.the.new")); return; }
     setSaving(true); setErr(null);
     if (bulk) {
       let last: Task | null = null; let okCount = 0; let joined = needJoin;
@@ -84,13 +89,13 @@ export default function TaskAssignModal({ projectId, tasks, onDone, onConflict, 
           joined = false; okCount += 1;
         } catch (e: any) {
           setSaving(false);
-          setErr(`「${t.title}」没保存成功：${String(e.message ?? e)}。前面 ${okCount} 项已保存。`);
+          setErr(uiText("sentences.could.not.be.saved.the.preceding.tasks.were.saved", { value1: (taskTitle(t)), value2: (String(e.message ?? e)), value3: (okCount) }));
           if (okCount) onConflict();
           return;
         }
       }
       setSaving(false);
-      flash({ type: 'success', content: `已把 ${okCount} 项任务分派给 ${target!.display_name}` });
+      flash({ type: 'success', content: uiText("sentences.assigned.tasks.to", { value1: (okCount), value2: (target!.display_name) }) });
       if (last) onDone(last);
       return;
     }
@@ -102,11 +107,11 @@ export default function TaskAssignModal({ projectId, tasks, onDone, onConflict, 
         reason: reason.trim() || null,
         join_project: needJoin,
       });
-      flash({ type: 'success', content: target ? `已把「${task.title}」分派给 ${target.display_name}${needJoin ? '，并加入项目成员' : ''}` : changingPerson ? `已取消「${task.title}」的分派` : `已更新「${task.title}」的截止日期` });
+      flash({ type: 'success', content: target ? uiText("sentences.assigned.to", { value1: (taskTitle(task)), value2: (target.display_name), value3: (needJoin ? uiText("taskAssignModal.and.add.to.project.members") : '') }) : changingPerson ? uiText("sentences.removed.assignment.for", { value1: (taskTitle(task)) }) : uiText("sentences.updated.the.due.date.for", { value1: (taskTitle(task)) }) });
       onDone(t);
     } catch (e: any) {
       const msg = String(e.message ?? e);
-      if (msg.startsWith('409') || msg.includes('刚被别人改过')) { flash({ type: 'warning', content: msg }); onConflict(); }
+      if (e.status === 409) { flash({ type: 'warning', content: msg }); onConflict(); }
       else setErr(msg);
     } finally { setSaving(false); }
   };
@@ -115,36 +120,36 @@ export default function TaskAssignModal({ projectId, tasks, onDone, onConflict, 
     <Modal
       visible
       onDismiss={onDismiss}
-      header={bulk ? `分派 ${tasks.length} 项任务` : task.assignee ? `调整安排：${task.title}` : `分派：${task.title}`}
+      header={bulk ? uiText("sentences.assign.tasks", { value1: (tasks.length) }) : task.assignee ? uiText("sentences.update.assignment", { value1: (taskTitle(task)) }) : uiText("sentences.assign", { value1: (taskTitle(task)) })}
       footer={
         <Box float="right">
           <SpaceBetween direction="horizontal" size="xs">
-            <Button variant="link" onClick={onDismiss} disabled={saving}>取消</Button>
-            <Button variant="primary" loading={saving} disabled={nothing || !members} onClick={save}>{needJoin ? '加入项目并分派' : '保存分派'}</Button>
+            <Button variant="link" onClick={onDismiss} disabled={saving}>{uiText("fieldWithSource.cancel")}</Button>
+            <Button variant="primary" loading={saving} disabled={nothing || !members} onClick={save}>{needJoin ? uiText("taskAssignModal.add.member.and.assign") : uiText("taskAssignModal.save.assignment")}</Button>
           </SpaceBetween>
         </Box>
       }
     >
       <SpaceBetween size="m">
-        {loadErr && <Alert type="error">读不到项目成员：{loadErr}</Alert>}
-        {bulk && <Box fontSize="body-s" color="text-body-secondary">{tasks.map((t) => t.title).join('、')}。同一个负责人、同一截止日期；已有负责人的项会改派，要写原因。</Box>}
-        <FormField label="主要负责人" description="候选按项目成员分组；选择其他账号时，会先提示加入项目。">
-          <Select selectedOption={selected} options={options} onChange={({ detail }) => setWho(detail.selectedOption.value ?? UNASSIGN)} filteringType="auto" placeholder="选一个账号" statusType={members ? 'finished' : 'loading'} />
+        {loadErr && <Alert type="error">{uiText("taskAssignModal.cannot.load.project.members")}{loadErr}</Alert>}
+        {bulk && <Box fontSize="body-s" color="text-body-secondary">{tasks.map((t) => taskTitle(t)).join('、')}{uiText("taskAssignModal.the.same.assignee.and.due.date.apply.reassigning.existing")}</Box>}
+        <FormField label={uiText("projectPreplan.primary.assignee")} description={uiText("taskAssignModal.accounts.are.grouped.by.project.membership.selecting.another.account")}>
+          <Select selectedOption={selected} options={options} onChange={({ detail }) => setWho(detail.selectedOption.value ?? UNASSIGN)} filteringType="auto" placeholder={uiText("taskAssignModal.select.an.account")} statusType={members ? 'finished' : 'loading'} />
         </FormField>
         {target && <PersonAvatar user={target} />}
         {task.assignee && !bulk && (
-          <Box fontSize="body-s" color="text-body-secondary">原负责人：{task.assignee.display_name}（{task.assignee.role_code}）{isReassign && (task.step_key === 'purchase' ? '。接手现有采购进度，原负责人的记录保留。' : '。换人后进度回到「未开始」，原负责人的记录保留在活动记录里。')}</Box>
+          <Box fontSize="body-s" color="text-body-secondary">{uiText("taskAssignModal.previous.assignee")}{task.assignee.display_name}（{systemText(task.assignee.role_code)}）{isReassign && (task.step_key === 'purchase' ? uiText("taskAssignModal.the.new.assignee.takes.over.existing.procurement.progress.previous") : uiText("taskAssignModal.reassignment.resets.progress.to.not.started.the.previous.assignee"))}</Box>
         )}
-        {needJoin && <Alert type="info">{target!.display_name} 还不是本项目成员。保存时会加入项目，活动记录里会记一条「加入项目」。</Alert>}
-        <FormField label="截止日期" description="可以先空着，之后在任务摘要里补。">
+        {needJoin && <Alert type="info">{target!.display_name} {uiText("taskAssignModal.is.not.a.project.member.yet.saving.adds.them")}</Alert>}
+        <FormField label={uiText("projectPreplan.due.date")} description={uiText("taskAssignModal.you.may.leave.this.blank.and.set.it.later")}>
           <DatePicker value={due} onChange={({ detail }) => setDue(detail.value)} placeholder="YYYY/MM/DD" />
         </FormField>
-        <FormField label={isReassign ? '改派原因（必填）' : '说明（可选）'} description="会写进活动记录。">
-          <Textarea value={reason} rows={2} onChange={({ detail }) => setReason(detail.value)} placeholder={isReassign ? '例如：员工 A 休假，由 A2 接手' : ''} />
+        <FormField label={isReassign ? uiText("taskAssignModal.reassignment.reason.required") : uiText("taskAssignModal.explanation.optional")} description={uiText("taskAssignModal.saved.in.the.activity.history")}>
+          <Textarea value={reason} rows={2} onChange={({ detail }) => setReason(detail.value)} placeholder={isReassign ? uiText("taskAssignModal.for.example.employee.a.is.on.leave.a2.is") : ''} />
         </FormField>
-        <>{task.step_key !== 'purchase' && <Box fontSize="body-s" color="text-body-secondary">审核人：{task.reviewer?.display_name ?? '你自己'}。</Box>}</>
-        <HelpText>分派只调整负责人和截止日期；关键节点仍需单独确认。</HelpText>
-        {err && <Alert type="error">{err}</Alert>}
+        <>{task.step_key !== 'purchase' && <Box fontSize="body-s" color="text-body-secondary">{uiText("taskAssignModal.reviewer")}{task.reviewer?.display_name ?? uiText("taskAssignModal.you")}。</Box>}</>
+        <HelpText>{uiText("taskAssignModal.assignment.changes.only.the.assignee.and.due.date.milestones")}</HelpText>
+        {err && <Alert type="error">{systemText(err)}</Alert>}
       </SpaceBetween>
     </Modal>
   );

@@ -1,0 +1,34 @@
+{
+  "taskDetail.responsible.role": [
+    "负责角色",
+    "Responsible role"
+  ],
+  "taskDetail.task.purpose": [
+    "这件事是",
+    "Task purpose"
+  ],
+  "taskDetail.required.deliverable": [
+    "要交",
+    "Required deliverable"
+  ],
+  "taskDetail.completion.criteria": [
+    "怎么算完成",
+    "Completion criteria"
+  ],
+  "taskDetail.current.state": [
+    "现在",
+    "Current state"
+  ],
+  "taskDetail.action.restrictions": [
+    "操作限制",
+    "Action restrictions"
+  ],
+  "taskDetail.no.photos.or.files.are.linked.to.this.task": [
+    "还没有挂到这一项的照片或文件。",
+    "No photos or files are linked to this task yet."
+  ],
+  "taskDetail.matched.by.file.type.not.a.submission.for.this": [
+    "按资料类型匹配，不是这一项的提交记录。",
+    "Matched by file type; not a submission for this task."
+  ]
+}

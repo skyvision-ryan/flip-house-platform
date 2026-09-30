@@ -1,3 +1,4 @@
+import { systemText } from '../i18n/core.ts';
 import type { Option } from '../api/client';
 
 /**
@@ -21,8 +22,8 @@ export const BUILTIN_SOURCE_LABELS: Record<string, string> = {
 export function sourceLabel(value: string | null | undefined, metaSources?: Option[] | null): string {
   if (!value) return '—';
   const fromMeta = metaSources?.find((s) => s.value === value)?.label;
-  if (fromMeta) return fromMeta;
-  return BUILTIN_SOURCE_LABELS[value] ?? value;
+  if (fromMeta) return systemText(fromMeta);
+  return systemText(BUILTIN_SOURCE_LABELS[value] ?? value);
 }
 
 /** 演示与待核实都不是"真"来源——界面上要单独提醒的就这两档。 */

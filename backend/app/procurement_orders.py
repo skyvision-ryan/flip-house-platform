@@ -69,12 +69,14 @@ def order_material_projection(db, rows):
         active = any(line.quantity is None or line.quantity > line.cancelled_quantity for line in lines)
         complete = active and all(r['remaining'] == 0 for r in results)
         reason = ''
+        unit_mismatch = False
         if not active:
             reason = '关联购买已全部取消，待重新采购'
         elif row.required_quantity is not None:
             units = {line.unit.strip().casefold() for line in lines if line.quantity is None or line.quantity > line.cancelled_quantity}
             if not row.unit or units != {row.unit.strip().casefold()}:
                 complete = False
+                unit_mismatch = True
                 reason = '需求单位与商品单位需核对，不能自动换算'
             elif sum((r['usable'] for r in results), Decimal(0)) < Decimal(str(row.required_quantity)):
                 complete = False
@@ -84,14 +86,14 @@ def order_material_projection(db, rows):
         if not complete and (any(r['damaged'] > 0 and (r['remaining'] or 0) > 0 for r in results)
                              or any(d.website_status == 'exception' for d in batches) or any(l.website_status == 'exception' or l.issue_note for l in lines)):
             status = 'exception'
-        if not complete and '单位' not in reason:
+        if not complete and not unit_mismatch:
             damage_gaps = [f"{line.name}：破损待补齐 {result['remaining']:g} {line.unit}" for line, result in zip(lines, results)
                            if result['damaged'] > 0 and result['remaining'] is not None and result['remaining'] > 0]
             if damage_gaps: reason = '；'.join(damage_gaps)
         if any(l.issue_note for l in lines):
             status = 'exception'
             reason = '；'.join(l.issue_note for l in lines if l.issue_note)
-        if '单位' in reason:
+        if unit_mismatch:
             status = 'exception'
         def joined(values):
             return '；'.join(dict.fromkeys(str(v) for v in values if v)) or None

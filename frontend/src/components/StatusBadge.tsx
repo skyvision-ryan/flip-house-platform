@@ -1,3 +1,4 @@
+import { useLanguage } from '../i18n/LanguageProvider';
 import Box from '@cloudscape-design/components/box';
 import StatusIndicator, { StatusIndicatorProps } from '@cloudscape-design/components/status-indicator';
 import { useMeta } from '../lib/meta';
@@ -13,6 +14,7 @@ const KIND: Record<string, StatusIndicatorProps.Type> = {
 };
 
 export default function StatusBadge({ status }: { status: string; reason?: string }) {
+  useLanguage();
   const meta = useMeta();
   const label = meta?.statuses.find((s) => s.value === status)?.label ?? status;
   const kind = KIND[status];

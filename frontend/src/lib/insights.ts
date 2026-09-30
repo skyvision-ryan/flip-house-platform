@@ -1,3 +1,5 @@
+import { systemText } from '../i18n/core.ts';
+import { m as uiText } from '../i18n/core.ts';
 import { api, Project } from '../api/client';
 import { money } from './format';
 
@@ -57,16 +59,16 @@ async function loadInsightsAll(projects: Project[]): Promise<Insight[]> {
       const top = s?.categories.filter((c) => c.variance > 0).sort((a, b) => b.variance - a.variance)[0];
       const over = money((p.budget_spent ?? 0) - (p.budget_planned ?? 0));
       out.push({ ...base, level: 'error', tag: '超支', href: `/projects/${p.id}?tab=budget`,
-        text: top ? `${p.name} 已超预算 ${over}，主要来自“${top.category}”（超 ${money(top.variance)}）。` : `${p.name}：${p.status_reason}`,
-        headline: top ? `超预算 ${over}` : p.status_reason, detail: top ? `主要来自“${top.category}”，这一类超了 ${money(top.variance)}` : undefined });
+        get text() { return top ? uiText("sentences.is.over.budget.mainly.in.over", { value1: (p.name), value2: (over), value3: (top.category), value4: (money(top.variance)) }) : `${p.name}：${p.status_reason}`; },
+        get headline() { return top ? uiText("sentences.over.budget", { value1: (over) }) : p.status_reason; }, get detail() { return top ? uiText("sentences.mainly.in.which.is.over.budget", { value1: (top.category), value2: (money(top.variance)) }) : undefined; } });
     }
     if (p.status === 'off_track') {
-      out.push({ ...base, level: 'warning', tag: '落后', href: `/projects/${p.id}`, text: `${p.name}：${p.status_reason}。`, headline: p.status_reason });
+      out.push({ ...base, level: 'warning', tag: '落后', href: `/projects/${p.id}`, get text() { return `${p.name}：${p.status_reason}。`; }, get headline() { return p.status_reason; } });
     }
     if (p.stage === 'active' && p.status !== 'off_track') {
       const d = daysUntil(p.construction_end);
       if (d !== null && d >= 0 && d <= 14) {
-        out.push({ ...base, level: 'info', tag: '临近完工', href: `/projects/${p.id}`, text: `${p.name} 距计划完工还有 ${d} 天，可以准备挂牌了。`, headline: `距计划完工还有 ${d} 天`, detail: '可以准备挂牌了' });
+        out.push({ ...base, level: 'info', tag: '临近完工', href: `/projects/${p.id}`, get text() { return uiText("sentences.is.days.from.its.planned.finish.prepare.for.listing", { value1: (p.name), value2: (d) }); }, get headline() { return uiText("sentences.days.to.planned.finish", { value1: (d) }); }, get detail() { return uiText("insights.ready.to.prepare.the.listing"); } });
       }
     }
     if (p.stage === 'active' && ai >= 0) {
@@ -74,41 +76,41 @@ async function loadInsightsAll(projects: Project[]): Promise<Insight[]> {
       if (!hasPermit) {
         const waited = p.purchase_date ? -(daysUntil(p.purchase_date) ?? 0) : null;
         out.push({ ...base, level: 'warning', tag: '等 permit', href: `/projects/${p.id}?tab=files`,
-          text: `${p.name} 还没登记政府核发的 permit 文件${waited != null && waited > 30 ? `，close 到现在已经 ${waited} 天` : ''}。拿到文件才能开工。`,
-          headline: waited != null && waited > 30 ? `close 到现在 ${waited} 天，还没有 permit 文件` : '还没登记 permit 文件', detail: '拿到政府核发的文件才能开工' });
+          get text() { return uiText("sentences.has.no.issued.government.permit.file.the.issued.document.is", { value1: (p.name), value2: (waited != null && waited > 30 ? uiText("sentences.days.since.closing", { value1: (waited) }) : '') }); },
+          get headline() { return waited != null && waited > 30 ? uiText("sentences.days.since.closing.no.permit.file", { value1: (waited) }) : uiText("insights.no.issued.permit.file.recorded.yet"); }, get detail() { return uiText("insights.an.issued.government.permit.is.required.before.construction.can"); } });
       }
       fileLists[ai].forEach((f) => {
         const d = daysUntil(f.expires_at);
         if (d !== null && d <= 30) {
-          const when = d < 0 ? `已过期 ${-d} 天` : d === 0 ? '今天到期' : `${d} 天后到期`;
+          const when = d < 0 ? uiText("sentences.expired.days.ago", { value1: (-d) }) : d === 0 ? '今天到期' : uiText("sentences.expires.in.days", { value1: (d) });
           out.push({ ...base, level: d < 0 ? 'error' : 'warning', tag: '保险到期', href: `/projects/${p.id}?tab=files`,
-            text: `${p.name} 的${f.doc_type === 'insurance' ? '房屋保险' : '文件'}“${f.filename}”${when}，K 要续。`,
-            headline: `${f.doc_type === 'insurance' ? '房屋保险' : '文件'}${when}`, detail: `${f.filename} · K 要续` });
+            get text() { return uiText("sentences.k.needs.to.renew.it", { value1: (p.name), value2: (f.doc_type === 'insurance' ? uiText("insights.property.insurance") : uiText("updatesList.files")), value3: (f.filename), value4: (when) }); },
+            get headline() { return `${f.doc_type === 'insurance' ? uiText("insights.property.insurance") : uiText("updatesList.files")}${when}`; }, get detail() { return uiText("sentences.k.needs.to.renew", { value1: (f.filename) }); } });
         }
       });
       const failed = inspLists[ai].filter((i) => i.result === 'failed');
       failed.forEach((i) => {
-        out.push({ ...base, level: 'warning', tag: '检查没过', href: `/projects/${p.id}`, text: `${p.name} 的“${i.name}”没过${i.fixer ? `，${i.fixer} 整改中` : '，还没写谁整改'}${i.note ? `：${i.note}` : ''}。`,
-          headline: `“${i.name}”没过`, detail: `${i.fixer ? `${i.fixer} 整改中` : '还没写谁整改'}${i.note ? ` · ${i.note}` : ''}` });
+        out.push({ ...base, level: 'warning', tag: '检查没过', href: `/projects/${p.id}`, get text() { return uiText("sentences.failed", { value1: (p.name), value2: (i.name), value3: (i.fixer ? uiText("sentences.is.handling.corrections", { value1: (i.fixer) }) : uiText("insights.correction.assignee.not.entered")), value4: (i.note ? `：${i.note}` : '') }); },
+          get headline() { return uiText("sentences.failed.2", { value1: (i.name) }); }, get detail() { return `${i.fixer ? uiText("sentences.handling.corrections", { value1: (i.fixer) }) : uiText("insights.correction.assignee.not.entered.2")}${i.note ? ` · ${i.note}` : ''}`; } });
       });
       const stuck = utilLists[ai].filter((u) => u.status === 'pending' && u.blocker);
       stuck.forEach((u) => {
         const kind = u.kind === 'water' ? '水' : u.kind === 'electric' ? '电' : '瓦斯';
-        out.push({ ...base, level: 'info', tag: '水电卡住', href: `/projects/${p.id}?tab=data&section=utilities`, text: `${p.name} 的${kind}还没开通，卡在：${u.blocker}。`, headline: `${kind}还没开通`, detail: `卡在：${u.blocker}` });
+        out.push({ ...base, level: 'info', tag: '水电卡住', href: `/projects/${p.id}?tab=data&section=utilities`, get text() { return uiText("sentences.is.not.active.issue", { value1: (p.name), value2: (kind), value3: (u.blocker) }); }, get headline() { return uiText("sentences.is.not.active", { value1: (kind) }); }, get detail() { return uiText("sentences.issue", { value1: (u.blocker) }); } });
       });
     }
     if (p.stage === 'lead' && p.analysis_count === 0) {
-      out.push({ ...base, level: 'info', tag: '未算账', href: `/projects/${p.id}?tab=analysis`, text: `${p.name} 还没算过账，先跑一遍交易分析再谈价。`, headline: '还没算过账', detail: '先跑一遍交易分析再谈价' });
+      out.push({ ...base, level: 'info', tag: '未算账', href: `/projects/${p.id}?tab=analysis`, get text() { return uiText("sentences.has.no.analysis.yet.run.a.deal.analysis.before.discussing", { value1: (p.name) }); }, get headline() { return uiText("insights.no.deal.analysis.yet"); }, get detail() { return uiText("insights.run.a.deal.analysis.before.discussing.price"); } });
     }
     if (p.stage === 'lead' && p.lead_heat === 'hot_lead' && p.target_arv == null) {
-      out.push({ ...base, level: 'info', tag: '待定价', href: `/projects/${p.id}`, text: `${p.name} 是热线索，但还没定目标售价，出价前需要补上。`, headline: '热线索还没定目标售价', detail: '出价前需要补上' });
+      out.push({ ...base, level: 'info', tag: '待定价', href: `/projects/${p.id}`, get text() { return uiText("sentences.is.a.hot.lead.without.a.target.sale.price.add", { value1: (p.name) }); }, get headline() { return uiText("insights.hot.lead.has.no.target.sale.price"); }, get detail() { return uiText("insights.add.it.before.making.an.offer"); } });
     }
     if (p.stage === 'active' && p.next_up.length > 0) {
       const n = p.next_up[0];
-      out.push({ ...base, level: 'info', tag: '轮到', href: `/projects/${p.id}`, text: `${p.name} 在${p.current_stage?.label ?? ''}，轮到 ${n.owners.join('、')}：${n.title}。`, headline: `轮到 ${n.owners.join('、')}：${n.title}`, detail: p.current_stage?.label ?? undefined });
+      out.push({ ...base, level: 'info', tag: '轮到', href: `/projects/${p.id}`, get text() { return uiText("sentences.is.at.next.action.by", { value1: (p.name), value2: (p.current_stage?.label ?? ''), value3: (n.owners.join('、')), value4: (n.title) }); }, get headline() { return uiText("sentences.action.by", { value1: (n.owners.join('、')), value2: (n.title) }); }, get detail() { return p.current_stage?.label ?? undefined; } });
     }
     if (p.missing_fields.length > 0) {
-      out.push({ ...base, level: 'info', tag: '缺数据', href: `/projects/${p.id}?tab=data`, text: `${p.name} 还缺 ${p.missing_fields.length} 项关键数据：${p.missing_fields.slice(0, 3).join('、')}${p.missing_fields.length > 3 ? '…' : ''}。`, headline: `缺 ${p.missing_fields.length} 项关键数据`, detail: `${p.missing_fields.slice(0, 3).join('、')}${p.missing_fields.length > 3 ? '…' : ''}` });
+      out.push({ ...base, level: 'info', tag: '缺数据', href: `/projects/${p.id}?tab=data`, get text() { return uiText("sentences.is.missing.key.fields", { value1: (p.name), value2: (p.missing_fields.length), value3: (p.missing_fields.slice(0, 3).join('、')), value4: (p.missing_fields.length > 3 ? '…' : '') }); }, get headline() { return uiText("sentences.key.fields.missing", { value1: (p.missing_fields.length) }); }, get detail() { return `${p.missing_fields.slice(0, 3).join('、')}${p.missing_fields.length > 3 ? '…' : ''}`; } });
     }
   });
 
@@ -123,9 +125,9 @@ export function headline(insights: Insight[], projects: Project[]): { title: str
   const leads = projects.filter((p) => (gp(p) ? gp(p)!.sub_key === 'pre' : p.stage === 'lead')).length;
   const active = projects.filter((p) => (gp(p) ? gp(p)!.sub_key !== 'pre' && gp(p)!.group_key !== 'closeout' && !gp(p)!.complete : p.stage === 'active')).length;
   const done = projects.filter((p) => p.stage === 'portfolio').length;
-  const title = urgent.size > 0 ? `今天有 ${urgent.size} 套房子需要你关注` : projects.length ? '所有房子都在正轨上' : '从一个地址开始';
+  const title = urgent.size > 0 ? uiText("sentences.properties.need.your.attention.today", { value1: (urgent.size) }) : projects.length ? '所有房子都在正轨上' : '从一个地址开始';
   const subtitle = projects.length
-    ? `${active} 套在建，${leads} 套未购入，${done} 套收尾。${urgent.size > 0 ? '优先处理下面标红和标黄的。' : '有空可以补一补缺失的数据。'}`
+    ? uiText("sentences.active.unpurchased.in.closeout", { value1: (active), value2: (leads), value3: (done), value4: (urgent.size > 0 ? uiText("insights.prioritize.the.red.and.yellow.items.below") : uiText("insights.fill.in.missing.data.when.time.allows")) })
     : '输入地址，系统会自动补全房产数据并标注来源。';
   return { title, subtitle };
 }
@@ -136,21 +138,21 @@ export function answer(question: string, insights: Insight[]): { text: string; i
   if (!q) return null;
   const pick = (tags: InsightTag[], empty: string, lead: string) => {
     const items = insights.filter((i) => tags.includes(i.tag));
-    return { text: items.length ? lead.replace('{n}', String(items.length)) : empty, items };
+    return { get text() { return items.length ? systemText(lead).replace('{n}', String(items.length)) : systemText(empty); }, items };
   };
-  if (/超支|预算|花超|overbudget/i.test(q)) return pick(['超支'], '目前没有项目超预算。', '有 {n} 个项目超预算：');
-  if (/落后|延期|逾期|完工|工期/i.test(q)) return pick(['落后', '临近完工'], '没有落后或临近完工的项目。', '与工期有关的有 {n} 条：');
-  if (/缺|不完整|数据|字段/i.test(q)) return pick(['缺数据'], '所有项目的关键数据都齐了。', '有 {n} 个项目数据不完整：');
+  if (/超支|预算|花超|over.?budget|budget/i.test(q)) return pick(['超支'], '目前没有项目超预算。', '有 {n} 个项目超预算：');
+  if (/落后|延期|逾期|完工|工期|schedule|finish|due|delay/i.test(q)) return pick(['落后', '临近完工'], '没有落后或临近完工的项目。', '与工期有关的有 {n} 条：');
+  if (/缺|不完整|数据|字段|incomplete|missing data|fields/i.test(q)) return pick(['缺数据'], '所有项目的关键数据都齐了。', '有 {n} 个项目数据不完整：');
   if (/permit|许可|开工/i.test(q)) return pick(['等 permit'], '在建项目的 permit 都已登记。', '有 {n} 个项目还在等 permit：');
-  if (/保险|到期|续/i.test(q)) return pick(['保险到期'], '没有快到期的保险。', '有 {n} 份保险快到期：');
+  if (/保险|到期|续|insurance|expir/i.test(q)) return pick(['保险到期'], '没有快到期的保险。', '有 {n} 份保险快到期：');
   if (/检查|inspection|整改|没过/i.test(q)) return pick(['检查没过'], '没有没过的检查。', '有 {n} 次检查没过在整改：');
-  if (/水电|瓦斯|gas|开通/i.test(q)) return pick(['水电卡住'], '水电瓦斯都开通了。', '有 {n} 家还没开通：');
-  if (/文件|合同/i.test(q)) return pick(['缺文件', '等 permit'], '在建项目的文件都齐了。', '有 {n} 个项目缺文件：');
-  if (/线索|售价|出价|定价|算账|分析/i.test(q)) return pick(['待定价', '未算账'], '线索都已算过账并定了目标售价。', '有 {n} 条线索要先算账或定价：');
-  if (/轮到|谁做|下一步|该谁/i.test(q)) return pick(['轮到'], '在建的房子暂时没有等着谁做的事。', '有 {n} 套房在等人做事：');
-  if (/关注|今天|重要|优先/i.test(q)) {
+  if (/水电|瓦斯|gas|开通|water|electric|utilit/i.test(q)) return pick(['水电卡住'], '水电瓦斯都开通了。', '有 {n} 家还没开通：');
+  if (/文件|合同|files|documents|contract/i.test(q)) return pick(['缺文件', '等 permit'], '在建项目的文件都齐了。', '有 {n} 个项目缺文件：');
+  if (/线索|售价|出价|定价|算账|分析|pricing|analysis|leads/i.test(q)) return pick(['待定价', '未算账'], '线索都已算过账并定了目标售价。', '有 {n} 条线索要先算账或定价：');
+  if (/轮到|谁做|下一步|该谁|next action|who/i.test(q)) return pick(['轮到'], '在建的房子暂时没有等着谁做的事。', '有 {n} 套房在等人做事：');
+  if (/关注|今天|重要|优先|attention|today|priorit/i.test(q)) {
     const items = insights.filter((i) => i.level !== 'info');
-    return { text: items.length ? `今天优先看这 ${items.length} 条：` : '今天没有需要紧急处理的事。', items };
+    return { get text() { return items.length ? uiText("sentences.prioritize.these.items.today", { value1: (items.length) }) : uiText("insights.no.urgent.actions.today"); }, items };
   }
   return null;
 }

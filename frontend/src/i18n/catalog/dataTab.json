@@ -1,0 +1,50 @@
+{
+  "dataTab.property.specifications": [
+    "房产规格",
+    "Property specifications"
+  ],
+  "dataTab.select.a.field.s.source.label.to.view.retrieval": [
+    "点击字段旁的来源标签，查看获取时间与把握度。",
+    "Select a field's source label to view retrieval time and confidence."
+  ],
+  "dataTab.property.building.and.parcel": [
+    "房产、结构与地块",
+    "Property, building, and parcel"
+  ],
+  "dataTab.utilities": [
+    "水电瓦斯",
+    "Utilities"
+  ],
+  "dataTab.record.providers.account.details.and.current.status.separately.credentials": [
+    "分别记录服务公司、开户信息和当前状态。账号凭证仍按现有权限显示。",
+    "Record providers, account details, and current status separately. Credentials follow existing permissions."
+  ],
+  "dataTab.water.electricity.and.gas.accounts": [
+    "水、电、瓦斯账户",
+    "Water, electricity, and gas accounts"
+  ],
+  "dataTab.phone": [
+    "电话",
+    "Phone"
+  ],
+  "dataTab.type": [
+    "类型",
+    "Type"
+  ],
+  "dataTab.term.months": [
+    "期限（月）",
+    "Term (months)"
+  ],
+  "dataTab.monthly.payment": [
+    "月供",
+    "Monthly payment"
+  ],
+  "dataTab.history": [
+    "历史",
+    "History"
+  ],
+  "dataTab.deed.type": [
+    "契约类型",
+    "Deed type"
+  ]
+}

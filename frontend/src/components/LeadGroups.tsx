@@ -1,3 +1,6 @@
+import { systemText } from '../i18n/core.ts';
+import { useLanguage } from '../i18n/LanguageProvider';
+import { m as uiText } from '../i18n/core.ts';
 import Badge from '@cloudscape-design/components/badge';
 import Box from '@cloudscape-design/components/box';
 import ButtonDropdown from '@cloudscape-design/components/button-dropdown';
@@ -28,21 +31,22 @@ export default function LeadGroups({
   canEdit: boolean;
   onPatched: (p: Project) => void;
 }) {
+  useLanguage();
   if (projects === null) {
-    return <Box padding="xxl" textAlign="center"><Spinner size="large" /> 正在读取线索</Box>;
+    return <Box padding="xxl" textAlign="center"><Spinner size="large" /> {uiText("leadGroups.loading.leads")}</Box>;
   }
   const groups = groupBySubstage(projects, meta);
   if (groups.length === 0) {
-    return <Box padding="l" color="text-body-secondary">读不到子阶段字典，先刷新一次页面。</Box>;
+    return <Box padding="l" color="text-body-secondary">{uiText("leadGroups.cannot.load.follow.up.stages.refresh.the.page")}</Box>;
   }
 
   return (
     <SpaceBetween size="l">
       {groups.map((g) => (g.projects.length === 0 ? (
         // 空组：只留一行计数，说明这一档现在没有房子
-        <Box key={g.value} color="text-body-secondary" fontSize="body-s">{g.label}　0 套</Box>
+        <Box key={g.value} color="text-body-secondary" fontSize="body-s">{systemText(g.label)}　{uiText("leadGroups.0.properties")}</Box>
       ) : (
-        <Container cardId="lead-group" cardContext={g.label} key={g.value} header={<Header variant="h2" counter={`(${g.projects.length})`}>{g.label}</Header>}>
+        <Container cardId="lead-group" cardContext={systemText(g.label)} key={g.value} header={<Header variant="h2" counter={`(${g.projects.length})`}>{systemText(g.label)}</Header>}>
           <SpaceBetween size="m">
             {g.projects.map((p) => (
               <LeadRow key={p.id} p={p} meta={meta} canEdit={canEdit} onPatched={onPatched} />
@@ -58,6 +62,7 @@ export default function LeadGroups({
 function LeadRow({ p, meta, canEdit, onPatched }: {
   p: Project; meta: Meta | null | undefined; canEdit: boolean; onPatched: (p: Project) => void;
 }) {
+  useLanguage();
   const navigate = useNavigate();
   const flash = useFlash();
   const [saving, setSaving] = useState(false);
@@ -75,14 +80,14 @@ function LeadRow({ p, meta, canEdit, onPatched }: {
       // 会把这套房推进到下一段——那时它已经不是线索了，不能假装保存成功还留在原组。
       onPatched(updated);
       if (!isLead(updated)) {
-        flash({ type: 'info', content: `${p.name} 已经过了 Open escrow，不再是线索；子阶段没有保存。` });
+        flash({ type: 'info', content: uiText("sentences.has.passed.open.escrow.and.is.no.longer.a.lead", { value1: (p.name) }) });
       } else {
         const label = subOptions.find((o) => o.id === updated.substage)?.text ?? updated.substage;
-        flash({ type: 'success', content: `${p.name} 移到「${label}」` });
+        flash({ type: 'success', content: uiText("sentences.moved.to", { value1: (p.name), value2: (label) }) });
       }
     } catch (e: unknown) {
       // 保存失败：不动本地状态，这一条留在原组
-      flash({ type: 'error', content: `没能修改「${p.name}」的子阶段：${e instanceof Error ? e.message : String(e)}` });
+      flash({ type: 'error', content: uiText("sentences.could.not.change.the.follow.up.stage.of", { value1: (p.name), value2: (e instanceof Error ? e.message : String(e)) }) });
     } finally {
       setSaving(false);
     }
@@ -100,15 +105,15 @@ function LeadRow({ p, meta, canEdit, onPatched }: {
 
           {/* 两个金额并排很容易被读成「低买高卖的价差」，所以各自写全名、标清是参考数据。 */}
           <Box fontSize="body-s">
-            挂牌价 {p.property.list_price == null ? '未提供' : money(p.property.list_price)}
-            <Box variant="span" color="text-body-secondary">　·　自动估值 {p.property.avm_value == null ? '未提供' : money(p.property.avm_value)}</Box>
+            {uiText("leadGroups.list.price")} {p.property.list_price == null ? uiText("leadGroups.not.provided") : money(p.property.list_price)}
+            <Box variant="span" color="text-body-secondary">　{uiText("leadGroups.automated.valuation")} {p.property.avm_value == null ? uiText("leadGroups.not.provided") : money(p.property.avm_value)}</Box>
           </Box>
 
           {/* 「待办参考」不是「轮到谁」：next_up 按模板顺序取，判定看证据规则，
               已出价的房子也可能因为没传照片而显示「看房」。角色不是具体的人。 */}
           {next && (
             <Box fontSize="body-s" color="text-body-secondary">
-              待办参考：{next.task}{next.roles ? `　负责角色 ${next.roles}` : ''}
+              {uiText("leadGroups.suggested.next.task")}{next.task}{next.roles ? uiText("sentences.responsible.roles", { value1: (next.roles) }) : ''}
             </Box>
           )}
         </SpaceBetween>
@@ -123,8 +128,7 @@ function LeadRow({ p, meta, canEdit, onPatched }: {
             disabled={saving || subOptions.length === 0}
             onItemClick={({ detail }) => { void setSubstage(detail.id); }}
           >
-            改子阶段
-          </ButtonDropdown>
+            {uiText("leadGroups.change.follow.up.stage")} </ButtonDropdown>
         </div>
       )}
     </div>

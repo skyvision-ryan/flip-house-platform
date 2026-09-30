@@ -1,0 +1,422 @@
+{
+  "directorDesign.all.topics": [
+    "全部议题",
+    "All topics"
+  ],
+  "directorDesign.records.and.estimate.inputs": [
+    "资料与估算依据",
+    "Records and estimate inputs"
+  ],
+  "directorDesign.progress.and.milestones": [
+    "进度与关键节点",
+    "Progress and milestones"
+  ],
+  "directorDesign.sale.and.closing.records": [
+    "成交与结算资料",
+    "Sale and closing records"
+  ],
+  "directorDesign.all.properties": [
+    "全部房屋",
+    "All properties"
+  ],
+  "directorDesign.not.purchased": [
+    "未购入",
+    "Not purchased"
+  ],
+  "directorDesign.in.progress": [
+    "进行中",
+    "In progress"
+  ],
+  "directorDesign.sold": [
+    "已售出",
+    "Sold"
+  ],
+  "directorDesign.acquisition.and.additional.costs": [
+    "购入及附加成本",
+    "Acquisition and additional costs"
+  ],
+  "directorDesign.purchase.price.plus.acquisition.charges.in.this.analysis.version": [
+    "分析版本中的买入价与购入附加费用之和。与项目已登记买入价分开核对。",
+    "Purchase price plus acquisition charges in this analysis version. Reconcile separately against the project's recorded purchase price."
+  ],
+  "directorDesign.renovation.cost.assumptions": [
+    "装修成本假设",
+    "Renovation cost assumptions"
+  ],
+  "directorDesign.sum.of.renovation.line.items.in.this.analysis.version": [
+    "分析版本中的装修明细之和。不是实时支出台账，也不与已登记支出重复相加。",
+    "Sum of renovation line items in this analysis version. This is not a live expense ledger and is not added again to recorded expenses."
+  ],
+  "directorDesign.holding.and.financing.costs": [
+    "持有与融资成本",
+    "Holding and financing costs"
+  ],
+  "directorDesign.estimated.holding.months.times.monthly.costs.plus.financing.interest": [
+    "估算持有月数乘每月费用，加融资利息。偿还本金不作为利润成本；持有月数是版本假设。",
+    "Estimated holding months times monthly costs, plus financing interest. Principal repayment is not a profit expense; holding months are a version assumption."
+  ],
+  "directorDesign.selling.cost.assumptions": [
+    "卖出费用假设",
+    "Selling cost assumptions"
+  ],
+  "directorDesign.assumed.sale.price.times.the.selling.cost.percentage.plus": [
+    "分析售价乘卖出费用比例，再加其他卖出费用。它不是已确认的最终结算费用。",
+    "Assumed sale price times the selling-cost percentage, plus other selling costs. These are not verified final closing expenses."
+  ],
+  "directorDesign.operating.evidence": [
+    "经营依据",
+    "Operating evidence"
+  ],
+  "directorDesign.no.properties.match.this.filter.does.not.expand.access": [
+    "没有符合条件的房屋。当前筛选没有扩大到其他项目。",
+    "No properties match. This filter does not expand access to other projects."
+  ],
+  "directorDesign.clear.filters": [
+    "清除筛选",
+    "Clear filters"
+  ],
+  "directorDesign.closing.reconciliation.pending": [
+    "结算待核",
+    "Closing reconciliation pending"
+  ],
+  "directorDesign.historical.estimates.are.available.in.option.c.they.are": [
+    "历史测算可在方案 C 查看，非实际净利润",
+    "Historical estimates are available in option C; they are not actual net profit"
+  ],
+  "directorDesign.no.unique.current.analysis.version": [
+    "没有唯一的当前分析版本",
+    "No unique current analysis version"
+  ],
+  "directorDesign.lead.analysis.assumptions.not.purchased": [
+    "线索分析假设 · 尚未购入",
+    "Lead analysis assumptions · Not purchased"
+  ],
+  "directorDesign.current.model.estimate.not.final.net.profit": [
+    "当前模型估算 · 非最终净利润",
+    "Current model estimate · Not final net profit"
+  ],
+  "directorDesign.check.the.process.position.estimate.basis.and.open.questions": [
+    "同一行核对位置、估算口径与尚待理解的问题，再打开对应房屋资料。",
+    "Check the process position, estimate basis, and open questions in each row, then open the property's records."
+  ],
+  "directorDesign.director.s.project.review": [
+    "董事项目观察表",
+    "Director's project review"
+  ],
+  "directorDesign.synthetic.property.review.visible.to.the.director": [
+    "董事可查看的合成项目观察表",
+    "Synthetic property review visible to the director"
+  ],
+  "directorDesign.property.stage": [
+    "房屋 / 阶段",
+    "Property / stage"
+  ],
+  "directorDesign.analysis.version.profit.estimate": [
+    "分析版本利润估算",
+    "Analysis-version profit estimate"
+  ],
+  "directorDesign.budget.recorded.expenses": [
+    "预算 / 已登记支出",
+    "Budget / recorded expenses"
+  ],
+  "directorDesign.current.milestone.facts": [
+    "关键节点现况",
+    "Current milestone facts"
+  ],
+  "directorDesign.needs.verification": [
+    "需要核对",
+    "Needs verification"
+  ],
+  "directorDesign.recorded": [
+    "已登记",
+    "Recorded"
+  ],
+  "directorDesign.prerequisites": [
+    "前提",
+    "Prerequisites"
+  ],
+  "directorDesign.unconfirmed": [
+    "未确认",
+    "Unconfirmed"
+  ],
+  "directorDesign.financial.record.timestamp": [
+    "· 财务资料记录时间",
+    "· Financial record timestamp"
+  ],
+  "directorDesign.recent.project.updates": [
+    "近期项目更新",
+    "Recent project updates"
+  ],
+  "directorDesign.read.the.issue.records.and.next.step.first.each": [
+    "先读问题、现有记录和下一步；每套房按主要议题列一次，其他议题保留标签，也可在上方筛选。不自动新增董事审批事项。",
+    "Read the issue, records, and next step first. Each property appears once under its primary topic, with other topics retained as tags and filters. No director approval tasks are added automatically."
+  ],
+  "directorDesign.topics.and.recent.updates": [
+    "议题与近期更新",
+    "Topics and recent updates"
+  ],
+  "directorDesign.properties": [
+    "套",
+    "properties"
+  ],
+  "directorDesign.progress.and.milestones.2": [
+    "推进与节点",
+    "Progress and milestones"
+  ],
+  "directorDesign.records.and.documents": [
+    "资料与记录",
+    "Records and documents"
+  ],
+  "directorDesign.next.step": [
+    "下一步：",
+    "Next step:"
+  ],
+  "directorDesign.also.review": [
+    "同时关注：",
+    "Also review:"
+  ],
+  "directorDesign.latest.record": [
+    "最近记录",
+    "Latest record"
+  ],
+  "directorDesign.no.project.updates.yet": [
+    "尚无项目更新记录",
+    "No project updates yet"
+  ],
+  "directorDesign.coordinator": [
+    "统筹：",
+    "Coordinator:"
+  ],
+  "directorDesign.tasks.past.due": [
+    "项已过截止",
+    "tasks past due"
+  ],
+  "directorDesign.select.a.property.and.analysis.version.then.inspect.its": [
+    "先选房屋与估算版本，再逐项查看成本构成。数值来自现有确定性分析公式。",
+    "Select a property and analysis version, then inspect its costs. Values come from the existing deterministic analysis formulas."
+  ],
+  "directorDesign.estimate.review.workspace": [
+    "估算依据工作台",
+    "Estimate review workspace"
+  ],
+  "directorDesign.director.s.estimate.property.navigation": [
+    "董事估算房屋导航",
+    "Director's estimate property navigation"
+  ],
+  "directorDesign.holding.days": [
+    "持有天数：",
+    "Holding days:"
+  ],
+  "directorDesign.incomplete.dates.or.not.yet.purchased": [
+    "日期未齐或尚未购入",
+    "Incomplete dates or not yet purchased"
+  ],
+  "directorDesign.actual.dates.and.assumed.holding.months.are.shown.separately": [
+    "。实际日期与分析持有月数分别显示。",
+    ". Actual dates and assumed holding months are shown separately."
+  ],
+  "directorDesign.current.analysis.version.is.ambiguous": [
+    "当前分析版本不明确：",
+    "Current analysis version is ambiguous:"
+  ],
+  "directorDesign.multiple.versions.are.marked.current": [
+    "有多个版本被标记为当前。",
+    "Multiple versions are marked current."
+  ],
+  "directorDesign.no.version.is.marked.current": [
+    "没有版本被标记为当前。",
+    "No version is marked current."
+  ],
+  "directorDesign.the.version.below.is.the.one.you.selected.to": [
+    "以下展示你主动选择的版本，不将其设为当前版本。",
+    "The version below is the one you selected to read; it is not set as current."
+  ],
+  "directorDesign.select.a.version.to.read.the.first.version.is": [
+    "请主动选择要阅读的版本；不会默认使用第一版。",
+    "Select a version to read. The first version is not selected automatically."
+  ],
+  "directorDesign.view.analysis.version": [
+    "查看估算版本",
+    "View analysis version"
+  ],
+  "directorDesign.director.s.analysis.version": [
+    "董事分析版本",
+    "Director's analysis version"
+  ],
+  "directorDesign.select.a.version.to.read": [
+    "请选择要阅读的版本",
+    "Select a version to read"
+  ],
+  "directorDesign.current.version": [
+    "· 当前版本",
+    "· Current version"
+  ],
+  "directorDesign.current.designation.needs.review": [
+    "· 当前标记待核",
+    "· Current designation needs review"
+  ],
+  "directorDesign.compare.another.version": [
+    "对照另一版本",
+    "Compare another version"
+  ],
+  "directorDesign.director.s.comparison.version": [
+    "董事对照版本",
+    "Director's comparison version"
+  ],
+  "directorDesign.no.comparison": [
+    "不对照",
+    "No comparison"
+  ],
+  "directorDesign.this.version.has.no.calculated.results.to.display": [
+    "这个版本暂不显示计算结果。",
+    "This version has no calculated results to display."
+  ],
+  "directorDesign.complete.outputs.are.not.available": [
+    "尚无完整输出。",
+    "Complete outputs are not available."
+  ],
+  "directorDesign.missing.amounts.have.not.been.treated.as.zero": [
+    "未把缺失金额按零处理。",
+    "Missing amounts have not been treated as zero."
+  ],
+  "directorDesign.comparison.version.is.incomplete": [
+    "对照版本资料未齐：",
+    "Comparison version is incomplete:"
+  ],
+  "directorDesign.no.complete.calculation.results": [
+    "没有完整计算结果",
+    "No complete calculation results"
+  ],
+  "directorDesign.version.differences.are.not.calculated": [
+    "。不计算版本差额。",
+    ". Version differences are not calculated."
+  ],
+  "directorDesign.assumed.sale.price": [
+    "模型售价假设",
+    "Assumed sale price"
+  ],
+  "directorDesign.modeled.total.cost": [
+    "模型总成本",
+    "Modeled total cost"
+  ],
+  "directorDesign.modeled.profit.estimate": [
+    "模型利润估算",
+    "Modeled profit estimate"
+  ],
+  "directorDesign.cost.breakdown.for.this.version.select.a.cost.to": [
+    "估算版本成本构成，点击成本项查看依据",
+    "Cost breakdown for this version; select a cost to inspect its basis"
+  ],
+  "directorDesign.cost.item": [
+    "成本项",
+    "Cost item"
+  ],
+  "directorDesign.selected.minus.comparison": [
+    "本版本减对照",
+    "Selected minus comparison"
+  ],
+  "directorDesign.compared.with": [
+    "相对「",
+    "Compared with “"
+  ],
+  "directorDesign.sale.price.assumption.difference": [
+    "」：售价假设差额",
+    "”: sale-price assumption difference"
+  ],
+  "directorDesign.total.cost.difference": [
+    "，总成本差额",
+    ", total-cost difference"
+  ],
+  "directorDesign.profit.estimate.difference": [
+    "，利润估算差额",
+    ", profit-estimate difference"
+  ],
+  "directorDesign.the.comparison.version.s.estimated.profit.is": [
+    "。对照版本利润估算为",
+    ". The comparison version's estimated profit is"
+  ],
+  "directorDesign.modeled.profit.assumed.sale.price.modeled.total.cost.it": [
+    "模型利润 = 模型售价 − 模型总成本；不等于最终净利润，不与其他口径的利润相加。版本差额仅解释假设差异，不代表期间实际盈亏。",
+    "Modeled profit = assumed sale price − modeled total cost. It is not final net profit or additive to other profit measures. Version differences explain assumptions, not realized profit or loss over time."
+  ],
+  "directorDesign.view.selected.cost.inputs.and.property.records": [
+    "查看所选成本依据与房屋资料",
+    "View selected cost inputs and property records"
+  ],
+  "directorDesign.this.property.has.no.analysis.version.estimates.remain.unknown": [
+    "这套房还没有分析版本，保留未知；仍可查看项目事实与资料。",
+    "This property has no analysis version. Estimates remain unknown; project facts and documents are still available."
+  ],
+  "directorDesign.select.a.property.that.matches.the.filters": [
+    "请选择一套符合筛选的房屋。",
+    "Select a property that matches the filters."
+  ],
+  "directorDesign.selected.version": [
+    "所选版本",
+    "Selected version"
+  ],
+  "directorDesign.no.analysis.version.selected": [
+    "尚未选择可阅读的分析版本",
+    "No analysis version selected"
+  ],
+  "directorDesign.version.recorded.at": [
+    "版本记录时间",
+    "Version recorded at"
+  ],
+  "directorDesign.not.recorded": [
+    "未记录",
+    "Not recorded"
+  ],
+  "directorDesign.estimate.for.this.item": [
+    "这一项估算",
+    "Estimate for this item"
+  ],
+  "directorDesign.complete.inputs.for.the.selected.version.source.descriptions.are": [
+    "以下是所选版本完整输入依据；没有把来源说明冒充业务凭证。",
+    "Complete inputs for the selected version. Source descriptions are not business receipts."
+  ],
+  "directorDesign.version.assumptions.and.sources": [
+    "版本假设与来源",
+    "Version assumptions and sources"
+  ],
+  "directorDesign.view.source": [
+    "查看来源",
+    "View source"
+  ],
+  "directorDesign.no.assumption.sources.available": [
+    "没有可查看的假设来源。",
+    "No assumption sources available."
+  ],
+  "directorDesign.view.comparison.assumptions": [
+    "查看对照版本假设 ·",
+    "View comparison assumptions ·"
+  ],
+  "directorDesign.the.selected.property.is.outside.the.current.filter.select": [
+    "选中的房屋不在当前筛选结果中，请从列表重新选择。",
+    "The selected property is outside the current filter. Select a property from the list."
+  ],
+  "directorDesign.search.director.s.projects": [
+    "搜索董事项目",
+    "Search director's projects"
+  ],
+  "directorDesign.search.property.issue.or.next.step": [
+    "搜索房屋、问题或下一步",
+    "Search property, issue, or next step"
+  ],
+  "directorDesign.director.s.project.scope": [
+    "董事项目范围",
+    "Director's project scope"
+  ],
+  "directorDesign.director.s.topic.filter": [
+    "董事议题筛选",
+    "Director's topic filter"
+  ],
+  "directorDesign.synthetic.properties.observation.date": [
+    "套合成房屋 · 观察日期",
+    "synthetic properties · Observation date"
+  ],
+  "directorDesign.this.page.does.not.execute.pricing.signing.or.d": [
+    "· 本页不执行定价、签署或 D/J 审批。",
+    "· This page does not execute pricing, signing, or D/J confirmations."
+  ]
+}

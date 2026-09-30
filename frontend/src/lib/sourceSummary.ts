@@ -1,3 +1,5 @@
+import { systemText } from '../i18n/core.ts';
+import { m as uiText } from '../i18n/core.ts';
 /**
  * 「补全情况」的真实统计（KAN-71）。纯函数，可单测。
  *
@@ -29,8 +31,8 @@ export function summarizeSources(fields: SourceField[], threshold = LOW_CONFIDEN
 
 /** 「已补全 12 项，来源：演示数据 12 项。」没填任何项就说没填，不说「正常」。 */
 export function summaryText(s: SourceSummary, labelOf: (source: string) => string = (x) => x): string {
-  if (s.filled === 0) return '还没有任何房产数据。';
-  const parts = s.bySource.map((b) => `${labelOf(b.source)} ${b.count} 项`).join('、');
-  const low = s.lowConf.length ? `其中 ${s.lowConf.length} 项把握度低（${s.lowConf.map((f) => f.label).join('、')}），建议核对。` : '';
-  return `已补全 ${s.filled} 项，来源：${parts}。${low}`;
+  if (s.filled === 0) return uiText("sourceSummary.no.property.data.yet");
+  const parts = s.bySource.map((b) => uiText("sentences.items", { value1: (labelOf(b.source)), value2: (b.count) })).join('、');
+  const low = s.lowConf.length ? uiText("sentences.fields.have.low.confidence.verify.them", { value1: (s.lowConf.length), value2: (s.lowConf.map((f) => systemText(f.label)).join('、')) }) : '';
+  return uiText("sentences.fields.supplied.sources", { value1: (s.filled), value2: (parts), value3: (low) });
 }

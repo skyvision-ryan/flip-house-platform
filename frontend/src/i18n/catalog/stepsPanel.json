@@ -1,0 +1,74 @@
+{
+  "stepsPanel.confirmed": [
+    "已确认",
+    "Confirmed"
+  ],
+  "stepsPanel.confirmation.withdrawn": [
+    "取消了确认",
+    "Confirmation withdrawn"
+  ],
+  "stepsPanel.marked.done": [
+    "已勾",
+    "Marked done"
+  ],
+  "stepsPanel.canceled": [
+    "已取消",
+    "Canceled"
+  ],
+  "stepsPanel.prerequisites.changed.review.required.prior.confirmations.are.retained": [
+    "前置资料变化，待复核；历史确认保留",
+    "Prerequisites changed; review required. Prior confirmations are retained."
+  ],
+  "stepsPanel.conditions.confirmed": [
+    "已确认满足",
+    "Conditions confirmed"
+  ],
+  "stepsPanel.responsible.roles": [
+    "负责角色：",
+    "Responsible roles:"
+  ],
+  "stepsPanel.evidence": [
+    "依据：",
+    "Evidence:"
+  ],
+  "stepsPanel.required.deliverable": [
+    "要交：",
+    "Required deliverable:"
+  ],
+  "stepsPanel.this.property.s.process.is.complete": [
+    "这套房全流程走完了",
+    "This property's process is complete"
+  ],
+  "stepsPanel.schedule": [
+    "工期",
+    "Schedule"
+  ],
+  "stepsPanel.finish": [
+    "完工",
+    "Finish"
+  ],
+  "stepsPanel.stage.requirements.met": [
+    "本段齐",
+    "Stage requirements met"
+  ],
+  "stepsPanel.in.this.stage": [
+    "在这一段",
+    "In this stage"
+  ],
+  "stepsPanel.before.entry.needs.verification": [
+    "录入前 · 待核验",
+    "Before entry · Needs verification"
+  ],
+  "stepsPanel.passed": [
+    "已过",
+    "Passed"
+  ],
+  "stepsPanel.not.reached": [
+    "还没到",
+    "Not reached"
+  ],
+  "stepsPanel.assigned.to.me": [
+    "我负责的（",
+    "Assigned to me ("
+  ]
+}

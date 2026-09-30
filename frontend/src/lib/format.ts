@@ -1,11 +1,12 @@
+import { m as uiText, language } from '../i18n/core.ts';
 export function money(v: number | null | undefined, digits = 0): string {
   if (v === null || v === undefined || Number.isNaN(v)) return '—';
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: digits }).format(v);
+  return new Intl.NumberFormat(language() === 'en' ? 'en-US' : 'zh-CN', { style: 'currency', currency: 'USD', maximumFractionDigits: digits }).format(v);
 }
 
 export function num(v: number | null | undefined): string {
   if (v === null || v === undefined) return '—';
-  return new Intl.NumberFormat('en-US').format(v);
+  return new Intl.NumberFormat(language() === 'en' ? 'en-US' : 'zh-CN').format(v);
 }
 
 export function pct(v: number | null | undefined, digits = 1): string {
@@ -15,12 +16,23 @@ export function pct(v: number | null | undefined, digits = 1): string {
 
 export function dateStr(v: string | null | undefined): string {
   if (!v) return '—';
-  return v.slice(0, 10).replace(/-/g, '/');
+  const day = /^(\d{4})-(\d{2})-(\d{2})/.exec(v);
+  if (!day) return v;
+  if (language() !== 'en') return v.slice(0, 10).replace(/-/g, '/');
+  // Date-only business facts are calendar dates, never instants converted to LA.
+  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
+    .format(new Date(Date.UTC(Number(day[1]), Number(day[2]) - 1, Number(day[3]))));
 }
 
 export function dateTime(v: string | null | undefined): string {
   if (!v) return '—';
-  return v.slice(0, 16).replace('T', ' ');
+  // Historical naive timestamps retain their recorded wall-clock time.
+  if (!/(Z|[+-]\d{2}:\d{2})$/.test(v)) return `${dateStr(v)} ${v.slice(11, 16)}`.trim();
+  const instant = new Date(v);
+  if (!Number.isFinite(instant.getTime())) return v;
+  return new Intl.DateTimeFormat(language() === 'en' ? 'en-US' : 'zh-CN', {
+    timeZone: 'America/Los_Angeles', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false,
+  }).format(instant);
 }
 
 export function text(v: string | number | null | undefined): string {
@@ -36,6 +48,6 @@ export function daysBetween(a: string | null | undefined, b: string | null | und
 
 /** Required amount input: blank is unknown; zero remains an explicit amount. */
 export function requiredNumberError(value: string): string | undefined {
-  if (!value.trim()) return '请填写金额；真实零金额请填 0。';
-  if (!Number.isFinite(Number(value))) return '请填写有效数字。';
+  if (!value.trim()) return uiText("format.enter.an.amount.enter.0.only.for.a.known");
+  if (!Number.isFinite(Number(value))) return uiText("format.enter.a.valid.number");
 }

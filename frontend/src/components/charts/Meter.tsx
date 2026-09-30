@@ -1,3 +1,4 @@
+import { useLanguage } from '../../i18n/LanguageProvider';
 import BudgetBar, { ExtraMarker } from './BudgetBar';
 import { FONT, TEXT, TEXT_2, TEXT_BAD } from './palette';
 
@@ -19,6 +20,7 @@ interface Props {
 
 /** 一个比例离上限多远：灰底 = 上限，彩条 = 实际，超出的那段画红。条永远按真实比例，不截断。 */
 export default function Meter({ value, max, label, reading, markers = [], warnAt = 0.9, height = 10, note, targetLabel }: Props) {
+  useLanguage();
   const over = max > 0 && value > max;
   const tl = targetLabel ?? markers.find((m) => Math.abs(m.at - max) < 1e-6)?.label ?? '目标';
   const extra = markers.filter((m) => Math.abs(m.at - max) >= 1e-6);

@@ -1,0 +1,34 @@
+{
+  "leadGroups.loading.leads": [
+    "正在读取线索",
+    "Loading leads"
+  ],
+  "leadGroups.cannot.load.follow.up.stages.refresh.the.page": [
+    "读不到子阶段字典，先刷新一次页面。",
+    "Cannot load follow-up stages. Refresh the page."
+  ],
+  "leadGroups.0.properties": [
+    "0 套",
+    "0 properties"
+  ],
+  "leadGroups.list.price": [
+    "挂牌价",
+    "List price"
+  ],
+  "leadGroups.not.provided": [
+    "未提供",
+    "Not provided"
+  ],
+  "leadGroups.automated.valuation": [
+    "·　自动估值",
+    "· Automated valuation"
+  ],
+  "leadGroups.suggested.next.task": [
+    "待办参考：",
+    "Suggested next task:"
+  ],
+  "leadGroups.change.follow.up.stage": [
+    "改子阶段",
+    "Change follow-up stage"
+  ]
+}

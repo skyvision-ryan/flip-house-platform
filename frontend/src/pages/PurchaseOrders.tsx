@@ -1,3 +1,7 @@
+import { orderLineName } from '../i18n/templateNames.ts';
+import { systemText } from '../i18n/core.ts';
+import { useLanguage } from '../i18n/LanguageProvider';
+import { m as uiText } from '../i18n/core.ts';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Navigate, useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import Alert from '@cloudscape-design/components/alert';
@@ -25,6 +29,7 @@ import { orderFormErrors, receiptFormErrors, procurementReturnTo, procurementSav
 import { orderStages } from '../lib/orderStages';
 
 export default function PurchaseOrders() {
+  useLanguage();
   const [params] = useSearchParams();
   const route = useParams();
   const navigate = useNavigate(); const flash = useFlash(); const meta = useMeta(); const { me } = useActor(); const canWrite = userCan(meta, me, 'procurement');
@@ -61,6 +66,7 @@ export default function PurchaseOrders() {
   const project = workspace?.projects.find(p => p.id === Number(projectId));
   const materials = workspace?.items.filter(i => i.project_id === Number(projectId)) ?? [];
   const today = todayLA();
+  const lineName = (line: { name: string; material_id?: number | null } | undefined) => orderLineName(line, materials);
   useEffect(() => {
     if (!error) return;
     requestAnimationFrame(() => {
@@ -91,7 +97,7 @@ export default function PurchaseOrders() {
     setEditing(true); setDetailsOpen(false); setAttempted(false); setReceiptAttempted(false); setSource(''); setPreview(null); setEventNote(''); setReceiving(null); setAdjustment(null); setVoidId(''); setError('');
   };
   const open = async (id: number, keepSource = false) => {
-    if (dirty && !keepSource) { setError('请先保存或放弃当前草稿，再打开其他订单。'); return; }
+    if (dirty && !keepSource) { setError(uiText("purchaseOrders.save.or.discard.this.draft.before.opening.another.order")); return; }
     setBusy(true); setError('');
     try { const order = await api.purchaseOrder(id); const text = source; adopt(order); if (keepSource) setSource(text); navigate(`/procurement/orders?project=${order.project_id}&order=${order.id}${routeSuffix}`, { replace: true }); }
     catch (e) { setError(procurementSaveError(e)); } finally { setBusy(false); }
@@ -105,7 +111,7 @@ export default function PurchaseOrders() {
   const reset = () => { setEditing(false); setSelected(null); setSource(''); setPreview(null); setEventNote(''); setReceiving(null); setAdjustment(null); setVoidId(''); setError(''); };
   const start = (targetProjectId = Number(projectId), targetNode = entryNode, targetMaterialId = initialMaterial) => {
     const targetProject = workspace?.projects.find(p => p.id === targetProjectId);
-    if (!targetProject) { setError('先选择这笔订单所属房屋。每个订单只能归属一套房。'); return; }
+    if (!targetProject) { setError(uiText("purchaseOrders.select.the.property.s.order.destination.first.each.order")); return; }
     const next = newOrder(); next.ordered_on = today;
     const material = workspace?.items.find(m => m.project_id === targetProject.id && m.id === targetMaterialId && (!targetNode || m.wave === targetNode));
     setProjectId(String(targetProject.id)); setEntryNode(material?.wave || targetNode);
@@ -122,7 +128,7 @@ export default function PurchaseOrders() {
     catch (e) { setError(procurementSaveError(e)); } finally { setBusy(false); }
   };
   const addMaterial = async (name: string, wave: string): Promise<ProcurementItem> => {
-    if (!project || !workspace) throw new Error('请先选择房屋');
+    if (!project || !workspace) throw new Error(uiText("purchaseOrders.select.a.property.first"));
     setBusy(true);
     try {
       // Re-read before adding so an interrupted request can reuse the already-created item.
@@ -148,7 +154,7 @@ export default function PurchaseOrders() {
       const saved = selected ? await api.savePurchaseOrder(selected.id, body) : await api.createPurchaseOrder(project.id, body);
       adopt(saved); await load();
       if (!selected) navigate(`/procurement/orders?project=${project.id}&order=${saved.id}${routeSuffix}`, { replace: true });
-      flash({ type: 'success', content: '订单已保存，关联采购项可查看商品与收货进展。' });
+      flash({ type: 'success', content: uiText("purchaseOrders.order.saved.linked.procurement.items.show.purchase.and.receipt") });
     } catch (e) { setError(procurementSaveError(e)); } finally { setBusy(false); }
   };
   const receive = async () => {
@@ -161,7 +167,7 @@ export default function PurchaseOrders() {
     const receipt = { ...receiving, lines: receiving.lines.filter(l => Number(l.quantity) > 0) };
     const payload = { receipt, expected_version: selected.version };
     try { adopt(await api.receivePurchaseOrder(selected.id, { ...payload, request_key: requestKey({ id: selected.id, ...payload }) })); await load();
-      flash({ type: 'success', content: '本次实际收货已记录。' });
+      flash({ type: 'success', content: uiText("purchaseOrders.actual.receipt.recorded") });
     } catch (e) { setError(procurementSaveError(e)); } finally { setBusy(false); }
   };
   const voidReceipt = async () => {
@@ -177,114 +183,114 @@ export default function PurchaseOrders() {
     return <Navigate replace to={`/procurement?${target}`} />;
   }
   if (workspace && !editing) return error
-    ? <Alert type="error" action={<Button onClick={() => navigate(projectId ? `/procurement?project=${projectId}` : '/procurement')}>返回采购工作台</Button>}>{error}</Alert>
+    ? <Alert type="error" action={<Button onClick={() => navigate(projectId ? `/procurement?project=${projectId}` : '/procurement')}>{uiText("purchaseOrders.back.to.procurement.workspace")}</Button>}>{systemText(error)}</Alert>
     : <Spinner />;
-  if (!workspace) return error ? <Alert type="error" action={<Button onClick={() => { setError(''); void load().catch(e => setError(e.message)); }}>重试</Button>}>{error}</Alert> : <Spinner />;
+  if (!workspace) return error ? <Alert type="error" action={<Button onClick={() => { setError(''); void load().catch(e => setError(e.message)); }}>{uiText("addProject.retry")}</Button>}>{systemText(error)}</Alert> : <Spinner />;
   const purposes = orderStages(doc.lines, Number(projectId), workspace.items, nodes).filter(stage => stage.value !== 'unmapped');
   const purposeTitle = purposes.length ? purposes.map(s => s.label).join(' / ') : nodes.find(n => n.value === entryNode)?.label;
   return <div className="procurement-surface procurement-order" ref={surface}><SpaceBetween size="l">
     <Header variant="h1" description={`${project?.name ?? ''}${purposeTitle ? ' · ' + purposeTitle : ''}`}
       actions={<SpaceBetween direction="horizontal" size="s">
-        <Button disabled={busy} onClick={() => { if (dirty || receiving || adjustment) setError('请先保存或放弃当前内容。'); else navigate(returnTo); }}>返回本房采购</Button>
+        <Button disabled={busy} onClick={() => { if (dirty || receiving || adjustment) setError(uiText("purchaseOrders.save.or.discard.the.current.content.first")); else navigate(returnTo); }}>{uiText("purchaseOrders.back.to.property.procurement")}</Button>
 
-      </SpaceBetween>}>{selected ? `${selected.document.vendor} · ${selected.document.order_number}` : '创建订单'}</Header>
-    {error && <div data-form-error tabIndex={-1}><Alert type="error" dismissible onDismiss={() => setError('')}>{error}</Alert></div>}
-    {!canWrite && <Box>只读采购记录 · 金额为采购登记，未经财务核款。</Box>}
-    {selected && <div className="proc-order-facts"><span>下单日期 <strong>{selected.document.ordered_on || '未填'}</strong></span><span>登记实付（USD） <strong>{moneyValue(selected.document.total)}</strong></span><span>累计退款 <strong>{moneyValue(selected.summary.refund)}</strong></span><span>收货地址 <strong>{selected.document.delivery_address || '未填'}</strong></span>{canWrite && <Button disabled={busy || !!receiving || !!adjustment || !!voidId} onClick={() => { if (dirty) setError('先保存或取消订单修改。'); else setDetailsOpen(!detailsOpen); }}>{detailsOpen ? '收起订单修改' : '修改订单'}</Button>}</div>}
+      </SpaceBetween>}>{selected ? `${selected.document.vendor} · ${selected.document.order_number}` : uiText("procurementWorkspace.create.order")}</Header>
+    {error && <div data-form-error tabIndex={-1}><Alert type="error" dismissible onDismiss={() => setError('')}>{systemText(error)}</Alert></div>}
+    {!canWrite && <Box>{uiText("procurementWorkspace.read.only.procurement.records.amounts.are.procurement.entries.not")}</Box>}
+    {selected && <div className="proc-order-facts"><span>{uiText("procurementItemRow.order.date")} <strong>{selected.document.ordered_on || uiText("procurementItemRow.not.entered.2")}</strong></span><span>{uiText("procurementWorkspace.recorded.payment.usd")} <strong>{moneyValue(selected.document.total)}</strong></span><span>{uiText("purchaseOrders.total.refunds")} <strong>{moneyValue(selected.summary.refund)}</strong></span><span>{uiText("procurementItemRow.delivery.address")} <strong>{selected.document.delivery_address || uiText("procurementItemRow.not.entered.2")}</strong></span>{canWrite && <Button disabled={busy || !!receiving || !!adjustment || !!voidId} onClick={() => { if (dirty) setError(uiText("purchaseOrders.save.or.cancel.order.changes.first")); else setDetailsOpen(!detailsOpen); }}>{detailsOpen ? uiText("purchaseOrders.collapse.order.editor") : uiText("purchaseOrders.edit.order")}</Button>}</div>}
       {selected && <>
-        {!!selected.summary.missing.length && <ExpandableSection headerText="查看待补资料"><Box>{selected.summary.missing.join('；')}</Box></ExpandableSection>}
-        {(selected.document.follow_up || selected.document.note) && <section className="proc-order-notes"><h2>跟进与说明</h2>{selected.document.follow_up && <p><strong>待处理：</strong>{selected.document.follow_up}{selected.document.follow_up_on ? ` · 下次跟进 ${selected.document.follow_up_on}` : ''}</p>}{selected.document.note && <p>{selected.document.note}</p>}{selected.document.checked_on && <p className="proc-detail-note">最近人工核对 {selected.document.checked_on}</p>}</section>}
-        <section className="proc-receiving"><Header variant="h2">商品与收货缺口</Header>
+        {!!selected.summary.missing.length && <ExpandableSection headerText={uiText("purchaseOrders.view.missing.information")}><Box>{selected.summary.missing.join('；')}</Box></ExpandableSection>}
+        {(selected.document.follow_up || selected.document.note) && <section className="proc-order-notes"><h2>{uiText("purchaseOrders.follow.up.and.notes")}</h2>{selected.document.follow_up && <p><strong>{uiText("purchaseOrders.pending")}</strong>{selected.document.follow_up}{selected.document.follow_up_on ? uiText("sentences.next.follow.up", { value1: (selected.document.follow_up_on) }) : ''}</p>}{selected.document.note && <p>{selected.document.note}</p>}{selected.document.checked_on && <p className="proc-detail-note">{uiText("purchaseOrders.last.manual.verification")} {selected.document.checked_on}</p>}</section>}
+        <section className="proc-receiving"><Header variant="h2">{uiText("purchaseOrders.items.and.receiving.gaps")}</Header>
           <div className="proc-receipt-list">{selected.summary.lines.map(l => {
             const item = selected.document.lines.find(line => line.id === l.id);
-            const unit = item?.unit || '';
-            const differences = [item?.brand && `品牌 ${item.brand}`, item?.vendor && `卖家 ${item.vendor}`, item?.expected_on && `预计 ${item.expected_on}`, item?.delivery_address && item.delivery_address !== selected.document.delivery_address && `本项送至 ${item.delivery_address}`].filter(Boolean).join(' · ');
-            return <div className="proc-receipt-row" key={l.id}><div><strong>{l.name}</strong>{item?.specification && <p className="proc-line-differences">{item.specification}</p>}<p className="proc-line-differences">商品金额 {moneyValue(l.amount)}</p>{differences && <p className="proc-line-differences">{differences}</p>}{item?.issue_note && <p className="proc-item-issue">需处理：{item.issue_note}</p>}{websiteStatusLabel(item?.website_status) && <p className="proc-line-differences">网站物流：{websiteStatusLabel(item?.website_status)}（不代表实收）</p>}<div className="proc-detail-links">{item?.product_url && <Link external href={item.product_url}>商品链接</Link>}{item?.tracking_url && <Link external href={item.tracking_url}>物流链接</Link>}{item?.image_url && <Link external href={item.image_url}>商品图片</Link>}</div></div><dl><div><dt>订购</dt><dd>{l.quantity ?? '未填'} {unit}</dd></div><div><dt>完好实收</dt><dd>{l.usable} {unit}</dd></div><div><dt>仍需补齐</dt><dd className={l.remaining == null || Number(l.remaining) > 0 ? 'proc-shortage' : ''}>{l.remaining ?? '待核对'} {unit}</dd></div></dl>{Number(l.damaged) > 0 && <span>累计实收 {l.received}，其中破损 {l.damaged} {unit}</span>}</div>;
+            const unit = systemText(item?.unit || '');
+            const differences = [item?.brand && uiText("sentences.brand", { value1: (item.brand) }), item?.vendor && uiText("sentences.seller", { value1: (item.vendor) }), item?.expected_on && uiText("sentences.estimated.2", { value1: (item.expected_on) }), item?.delivery_address && item.delivery_address !== selected.document.delivery_address && uiText("sentences.deliver.item.to", { value1: (item.delivery_address) })].filter(Boolean).join(' · ');
+            return <div className="proc-receipt-row" key={l.id}><div><strong>{lineName(l)}</strong>{item?.specification && <p className="proc-line-differences">{item.specification}</p>}<p className="proc-line-differences">{uiText("purchaseOrderCoverage.item.amount")} {moneyValue(l.amount)}</p>{differences && <p className="proc-line-differences">{differences}</p>}{item?.issue_note && <p className="proc-item-issue">{uiText("procurementItemRow.action.needed")}{item.issue_note}</p>}{websiteStatusLabel(item?.website_status) && <p className="proc-line-differences">{uiText("purchaseOrders.carrier.status")}{websiteStatusLabel(item?.website_status)}{uiText("purchaseOrders.not.proof.of.receipt")}</p>}<div className="proc-detail-links">{item?.product_url && <Link external href={item.product_url}>{uiText("procurementItemRow.product.link")}</Link>}{item?.tracking_url && <Link external href={item.tracking_url}>{uiText("procurementItemRow.tracking.link")}</Link>}{item?.image_url && <Link external href={item.image_url}>{uiText("purchaseOrders.product.image")}</Link>}</div></div><dl><div><dt>{uiText("purchaseOrders.ordered")}</dt><dd>{l.quantity ?? uiText("procurementItemRow.not.entered.2")} {unit}</dd></div><div><dt>{uiText("purchaseOrders.received.in.good.condition")}</dt><dd>{l.usable} {unit}</dd></div><div><dt>{uiText("purchaseOrderCoverage.still.needed")}</dt><dd className={l.remaining == null || Number(l.remaining) > 0 ? 'proc-shortage' : ''}>{l.remaining ?? uiText("procurementItemRow.needs.verification")} {unit}</dd></div></dl>{Number(l.damaged) > 0 && <span>{uiText("purchaseOrders.total.received")} {l.received}{uiText("purchaseOrders.including.damaged")} {l.damaged} {unit}</span>}</div>;
           })}</div>
-          <Box color="text-body-secondary">采购确认实际收货后，相关采购项自动更新。分次到货只填本次实收。</Box>
+          <Box color="text-body-secondary">{uiText("purchaseOrders.confirming.actual.receipt.updates.linked.procurement.items.for.partial")}</Box>
           {canWrite && <SpaceBetween direction="horizontal" size="s"><Button variant="primary" disabled={!canWrite || busy || dirty || !!receiving || !!adjustment || !!voidId || !selected.summary.lines.some(l => l.remaining == null || Number(l.remaining) > 0)} onClick={() => { setError(''); setReceiptAttempted(false); setReceiving({
             id: crypto.randomUUID(), delivery_id: null, received_on: today, location: doc.delivery_address || project?.address || '',
             lines: selected.summary.lines.filter(l => l.remaining == null || Number(l.remaining) > 0).map(l => ({ line_id: l.id, quantity: '0', damaged_quantity: '0' })),
             note: '', confirmed_by: 0, confirmed_name: '', recorded_at: '', void_reason: '',
-          }); }}>登记到货</Button></SpaceBetween>}
-          {canWrite && <ExpandableSection headerText="退货 / 退款（发生时填写）"><SpaceBetween size="s">
-            <TextField label="累计已退款（USD）" numeric value={doc.refunded ?? selected.summary.refund} disabled={!canWrite || busy || !!receiving || !!adjustment} onChange={v => setDoc({ ...doc, refunded: v || null })} />
+          }); }}>{uiText("purchaseOrders.record.receipt")}</Button></SpaceBetween>}
+          {canWrite && <ExpandableSection headerText={uiText("purchaseOrders.returns.refunds.when.applicable")}><SpaceBetween size="s">
+            <TextField label={uiText("purchaseOrders.total.refunded.usd")} numeric value={doc.refunded ?? selected.summary.refund} disabled={!canWrite || busy || !!receiving || !!adjustment} onChange={v => setDoc({ ...doc, refunded: v || null })} />
             <Button disabled={!canWrite || busy || dirty || !!receiving || !!adjustment || !!voidId} onClick={() => setAdjustment({ id: crypto.randomUUID(), line_id: doc.lines[0].id,
-              returned_quantity: '0', returned_usable_quantity: '0', refund: null, occurred_on: today, reason: '' })}>登记已退回商品</Button>
+              returned_quantity: '0', returned_usable_quantity: '0', refund: null, occurred_on: today, reason: '' })}>{uiText("purchaseOrders.record.returned.items")}</Button>
           </SpaceBetween></ExpandableSection>}
-          {dirty && <Box color="text-status-warning">请先保存订单修改，再登记收货或退货。</Box>}
-          {receiving && <div className="proc-receipt-form"><SpaceBetween size="m"><Header variant="h3">本次收货</Header><div className="ui-order-grid">
-            <TextField disabled={busy} error={receiptErrors.date} label="实际收货日期" date value={receiving.received_on} onChange={v => setReceiving({ ...receiving, received_on: v })} />
-            <TextField disabled={busy} error={receiptErrors.location} label="实际收货地点" value={receiving.location} onChange={v => setReceiving({ ...receiving, location: v })} />
-            {receiving.lines.map(line => <div className="proc-receipt-input" key={line.line_id}><strong>{doc.lines.find(l => l.id === line.line_id)?.name}</strong><p>此前完好实收 {selected.summary.lines.find(l => l.id === line.line_id)?.usable} · 仍需 {selected.summary.lines.find(l => l.id === line.line_id)?.remaining ?? '核对'} {doc.lines.find(l => l.id === line.line_id)?.unit}</p>
-              <TextField disabled={busy} error={receiptErrors[`${line.line_id}.quantity`]} label={`${doc.lines.find(l => l.id === line.line_id)?.name} 本次实收数量`} numeric value={line.quantity} onChange={v => setReceiving({ ...receiving, lines: receiving.lines.map(l => l.line_id === line.line_id ? { ...l, quantity: v } : l) })} />
-              <TextField disabled={busy} error={receiptErrors[`${line.line_id}.damaged`]} label={`${doc.lines.find(l => l.id === line.line_id)?.name} 其中破损数量`} numeric value={line.damaged_quantity} onChange={v => setReceiving({ ...receiving, lines: receiving.lines.map(l => l.line_id === line.line_id ? { ...l, damaged_quantity: v || '0' } : l) })} />
+          {dirty && <Box color="text-status-warning">{uiText("purchaseOrders.save.order.changes.before.recording.receipts.or.returns")}</Box>}
+          {receiving && <div className="proc-receipt-form"><SpaceBetween size="m"><Header variant="h3">{uiText("purchaseOrders.this.receipt")}</Header><div className="ui-order-grid">
+            <TextField disabled={busy} error={receiptErrors.date} label={uiText("purchaseOrders.actual.receipt.date")} date value={receiving.received_on} onChange={v => setReceiving({ ...receiving, received_on: v })} />
+            <TextField disabled={busy} error={receiptErrors.location} label={uiText("purchaseOrders.actual.receiving.location")} value={receiving.location} onChange={v => setReceiving({ ...receiving, location: v })} />
+            {receiving.lines.map(line => <div className="proc-receipt-input" key={line.line_id}><strong>{lineName(doc.lines.find(l => l.id === line.line_id))}</strong><p>{uiText("purchaseOrders.previously.received.in.good.condition")} {selected.summary.lines.find(l => l.id === line.line_id)?.usable} {uiText("purchaseOrders.still.needed")} {selected.summary.lines.find(l => l.id === line.line_id)?.remaining ?? uiText("purchaseOrders.verify")} {systemText(doc.lines.find(l => l.id === line.line_id)?.unit)}</p>
+              <TextField disabled={busy} error={receiptErrors[`${line.line_id}.quantity`]} label={uiText("sentences.quantity.received.this.time", { value1: (lineName(doc.lines.find(l => l.id === line.line_id))) })} numeric value={line.quantity} onChange={v => setReceiving({ ...receiving, lines: receiving.lines.map(l => l.line_id === line.line_id ? { ...l, quantity: v } : l) })} />
+              <TextField disabled={busy} error={receiptErrors[`${line.line_id}.damaged`]} label={uiText("sentences.damaged.quantity.this.time", { value1: (lineName(doc.lines.find(l => l.id === line.line_id))) })} numeric value={line.damaged_quantity} onChange={v => setReceiving({ ...receiving, lines: receiving.lines.map(l => l.line_id === line.line_id ? { ...l, damaged_quantity: v || '0' } : l) })} />
             </div>)}
-          </div>{receiptErrors.lines && <Alert type="error">{receiptErrors.lines}</Alert>}<TextField disabled={busy} label="收货说明 / 缺件破损情况" value={receiving.note} onChange={v => setReceiving({ ...receiving, note: v })} />
-            <SpaceBetween direction="horizontal" size="s"><Button variant="primary" loading={busy} onClick={receive}>确认本次实际收货</Button><Button disabled={busy} onClick={() => { setReceiving(null); setReceiptAttempted(false); setError(''); }}>取消登记</Button></SpaceBetween>
+          </div>{receiptErrors.lines && <Alert type="error">{receiptErrors.lines}</Alert>}<TextField disabled={busy} label={uiText("purchaseOrders.receipt.notes.missing.or.damaged.items")} value={receiving.note} onChange={v => setReceiving({ ...receiving, note: v })} />
+            <SpaceBetween direction="horizontal" size="s"><Button variant="primary" loading={busy} onClick={receive}>{uiText("purchaseOrders.confirm.actual.receipt")}</Button><Button disabled={busy} onClick={() => { setReceiving(null); setReceiptAttempted(false); setError(''); }}>{uiText("purchaseOrders.cancel.entry")}</Button></SpaceBetween>
           </SpaceBetween></div>}
-          {adjustment && <SpaceBetween size="m"><Header variant="h3" description="先记录退回商品，再保存订单；退款金额在累计已退款中登记。">登记退回商品</Header>
-            <Choice label="退货退款对应商品" value={adjustment.line_id} options={doc.lines.map(l => ({ value: l.id, label: l.name }))} onChange={v => setAdjustment({ ...adjustment, line_id: v })} />
+          {adjustment && <SpaceBetween size="m"><Header variant="h3" description={uiText("purchaseOrders.record.returned.items.then.save.the.order.enter.refund")}>{uiText("purchaseOrders.record.returned.items.2")}</Header>
+            <Choice label={uiText("purchaseOrders.item.for.return.refund")} value={adjustment.line_id} options={doc.lines.map(l => ({ value: l.id, label: lineName(l) }))} onChange={v => setAdjustment({ ...adjustment, line_id: v })} />
             <div className="ui-order-grid">
-              <TextField label="实际退货数量" numeric value={adjustment.returned_quantity} onChange={v => setAdjustment({ ...adjustment, returned_quantity: v || '0' })} />
-              <TextField label="其中原本完好的数量" numeric value={adjustment.returned_usable_quantity} onChange={v => setAdjustment({ ...adjustment, returned_usable_quantity: v || '0' })} />
-              <TextField label="实际发生日期" date value={adjustment.occurred_on} onChange={v => setAdjustment({ ...adjustment, occurred_on: v })} />
-            </div><TextField label="退货退款原因 / 凭据说明" value={adjustment.reason} onChange={v => setAdjustment({ ...adjustment, reason: v })} />
-            <SpaceBetween direction="horizontal" size="s"><Button disabled={!adjustment.reason.trim()} onClick={() => { setDoc({ ...doc, adjustments: [...doc.adjustments, adjustment] }); setAdjustment(null); }}>加入订单待保存</Button><Button onClick={() => setAdjustment(null)}>取消登记</Button></SpaceBetween>
+              <TextField label={uiText("purchaseOrders.actual.return.quantity")} numeric value={adjustment.returned_quantity} onChange={v => setAdjustment({ ...adjustment, returned_quantity: v || '0' })} />
+              <TextField label={uiText("purchaseOrders.quantity.previously.in.good.condition")} numeric value={adjustment.returned_usable_quantity} onChange={v => setAdjustment({ ...adjustment, returned_usable_quantity: v || '0' })} />
+              <TextField label={uiText("purchaseOrders.actual.event.date")} date value={adjustment.occurred_on} onChange={v => setAdjustment({ ...adjustment, occurred_on: v })} />
+            </div><TextField label={uiText("purchaseOrders.return.refund.reason.and.receipt.notes")} value={adjustment.reason} onChange={v => setAdjustment({ ...adjustment, reason: v })} />
+            <SpaceBetween direction="horizontal" size="s"><Button disabled={!adjustment.reason.trim()} onClick={() => { setDoc({ ...doc, adjustments: [...doc.adjustments, adjustment] }); setAdjustment(null); }}>{uiText("purchaseOrders.add.to.order.draft")}</Button><Button onClick={() => setAdjustment(null)}>{uiText("purchaseOrders.cancel.entry")}</Button></SpaceBetween>
           </SpaceBetween>}
-          <ExpandableSection headerText={`收货记录 · ${doc.receipts.length} 次`}>{!doc.receipts.length && <Box>尚未登记实际收货。</Box>}{doc.receipts.map(r => <div className="proc-history-entry" key={r.id}>
-            <strong>{r.received_on} · {r.confirmed_name || '采购登记'}</strong><p>{r.location || '收货地点未填写'}</p>
-            <dl className="proc-detail-facts">{r.lines.map(l=><div key={l.line_id}><dt>{doc.lines.find(item=>item.id===l.line_id)?.name}</dt><dd>实收 {l.quantity} · 破损 {l.damaged_quantity} {doc.lines.find(item=>item.id===l.line_id)?.unit}</dd></div>)}</dl>{r.note && <p>{r.note}</p>}
-            {r.void_reason ? <Box color="text-status-warning">已撤销：{r.void_reason}</Box> : canWrite ? <Button variant="inline-link" disabled={busy || dirty || !!receiving || !!adjustment || !!voidId} onClick={() => { setVoidId(r.id); setVoidReason(''); }}>更正错误收货登记</Button> : null}
+          <ExpandableSection headerText={uiText("sentences.receipt.records", { value1: (doc.receipts.length) })}>{!doc.receipts.length && <Box>{uiText("purchaseOrders.no.actual.receipts.recorded.yet")}</Box>}{doc.receipts.map(r => <div className="proc-history-entry" key={r.id}>
+            <strong>{r.received_on} · {r.confirmed_name || uiText("purchaseOrders.procurement.entry")}</strong><p>{r.location || uiText("purchaseOrders.receiving.location.not.entered")}</p>
+            <dl className="proc-detail-facts">{r.lines.map(l=><div key={l.line_id}><dt>{lineName(doc.lines.find(item=>item.id===l.line_id))}</dt><dd>{uiText("procurementItemRow.received")} {l.quantity} {uiText("purchaseOrders.damaged")} {l.damaged_quantity} {systemText(doc.lines.find(item=>item.id===l.line_id)?.unit)}</dd></div>)}</dl>{r.note && <p>{r.note}</p>}
+            {r.void_reason ? <Box color="text-status-warning">{uiText("purchaseOrders.reversed")}{r.void_reason}</Box> : canWrite ? <Button variant="inline-link" disabled={busy || dirty || !!receiving || !!adjustment || !!voidId} onClick={() => { setVoidId(r.id); setVoidReason(''); }}>{uiText("purchaseOrders.correct.an.erroneous.receipt")}</Button> : null}
           </div>)}</ExpandableSection>
-          {voidId && <SpaceBetween size="s"><TextField label="撤销原因（保留原记录，可重新登记）" value={voidReason} onChange={setVoidReason} /><SpaceBetween direction="horizontal" size="s"><Button disabled={busy || !voidReason.trim()} onClick={voidReceipt}>撤销本次收货登记</Button><Button onClick={() => setVoidId('')}>取消更正</Button></SpaceBetween></SpaceBetween>}
-          {!!doc.adjustments.length && <ExpandableSection headerText={`退货记录 · ${doc.adjustments.length} 条`}>{doc.adjustments.map(a => <div className="proc-history-entry" key={a.id}><strong>{a.occurred_on} · {doc.lines.find(l=>l.id===a.line_id)?.name}</strong><p>退货 {a.returned_quantity} {doc.lines.find(l=>l.id===a.line_id)?.unit}{a.refund!=null ? ` · 退款记录 ${moneyValue(a.refund)}` : ''}</p><p>{a.reason}</p></div>)}</ExpandableSection>}
+          {voidId && <SpaceBetween size="s"><TextField label={uiText("purchaseOrders.reversal.reason.original.record.retained.a.new.receipt.can")} value={voidReason} onChange={setVoidReason} /><SpaceBetween direction="horizontal" size="s"><Button disabled={busy || !voidReason.trim()} onClick={voidReceipt}>{uiText("purchaseOrders.reverse.this.receipt")}</Button><Button onClick={() => setVoidId('')}>{uiText("purchaseOrders.cancel.correction")}</Button></SpaceBetween></SpaceBetween>}
+          {!!doc.adjustments.length && <ExpandableSection headerText={uiText("sentences.return.records", { value1: (doc.adjustments.length) })}>{doc.adjustments.map(a => <div className="proc-history-entry" key={a.id}><strong>{a.occurred_on} · {lineName(doc.lines.find(l=>l.id===a.line_id))}</strong><p>{uiText("procurementItemRow.return")} {a.returned_quantity} {systemText(doc.lines.find(l=>l.id===a.line_id)?.unit)}{a.refund!=null ? uiText("sentences.refund.recorded", { value1: (moneyValue(a.refund)) }) : ''}</p><p>{a.reason}</p></div>)}</ExpandableSection>}
         </section>
-        <ExpandableSection headerText={`操作与原文历史 · ${selected.events?.length ?? 0} 条`}>
-          <SpaceBetween size="m">{selected.events?.map(e => <ExpandableSection key={e.version} headerText={`${e.kind} · ${e.actor} · ${e.created_at.replace('T', ' ')}`}>
-            <Box>{e.note || '无补充说明'}</Box>{e.source_text && <pre className="ui-order-source">{e.source_text}</pre>}
-            <Box>当时订单总额 {moneyValue(e.document.total)} · 商品 {e.document.lines.length} 项 · 跟进：{e.document.follow_up || '无'}</Box>
+        <ExpandableSection headerText={uiText("sentences.actions.and.original.text.history", { value1: (selected.events?.length ?? 0) })}>
+          <SpaceBetween size="m">{selected.events?.map(e => <ExpandableSection key={e.version} headerText={`${systemText(e.kind)} · ${e.actor} · ${e.created_at.replace('T', ' ')}`}>
+            <Box>{e.note || uiText("purchaseOrders.no.additional.notes")}</Box>{e.source_text && <pre className="ui-order-source">{e.source_text}</pre>}
+            <Box>{uiText("purchaseOrders.order.total.at.the.time")} {moneyValue(e.document.total)} {uiText("purchaseOrders.items")} {e.document.lines.length} {uiText("purchaseOrders.follow.up")}{e.document.follow_up || uiText("procurementWorkspace.none")}</Box>
             <Box>{e.document.note}</Box>
           </ExpandableSection>)}</SpaceBetween>
         </ExpandableSection>
-        <SpaceBetween direction="horizontal" size="s">{doc.order_url && <Link href={doc.order_url} external>打开商家订单</Link>}{doc.voucher_url && <Link href={doc.voucher_url} external>查看购买凭据</Link>}
-          {doc.deliveries.filter(d => d.tracking_url).map(d => <Link key={d.id} href={d.tracking_url!} external>{d.label} 物流</Link>)}
+        <SpaceBetween direction="horizontal" size="s">{doc.order_url && <Link href={doc.order_url} external>{uiText("purchaseOrders.open.merchant.order")}</Link>}{doc.voucher_url && <Link href={doc.voucher_url} external>{uiText("purchaseOrders.view.proof.of.purchase")}</Link>}
+          {doc.deliveries.filter(d => d.tracking_url).map(d => <Link key={d.id} href={d.tracking_url!} external>{systemText(d.label)} {uiText("procurementItemRow.tracking")}</Link>)}
         </SpaceBetween>
       </>}
       <div className="proc-order-edit" hidden={!canWrite || (!!selected && !detailsOpen)}>
       {selected ? <PurchaseOrderFields errors={fieldErrors} key={selected.id} nodes={nodes} defaultNode={entryNode} doc={doc} onChange={setDoc} materials={materials} busy={busy || !!receiving || !!adjustment || !!voidId} /> : <PurchaseOrderEntry errors={fieldErrors} key={`new-${projectId}`} nodes={nodes} defaultNode={entryNode} onStageChange={setEntryNode} onAddMaterial={addMaterial} onCustomizing={setCustomizing} doc={doc} onChange={setDoc} materials={materials} orders={orders} expectedOn={entryExpected} onExpectedChange={setEntryExpected} busy={busy} />}
-      <ExpandableSection headerText={selected ? '粘贴后续订单邮件 / 保留跟进原文' : '粘贴订单导入'} defaultExpanded={false}>
+      <ExpandableSection headerText={selected ? uiText("purchaseOrders.paste.a.follow.up.order.email.preserve.original.text") : uiText("purchaseOrders.import.pasted.order")} defaultExpanded={false}>
         <SpaceBetween size="m">
-          <FormField label="订单原文">
-            <Textarea value={source} rows={4} disabled={busy || !!receiving || !!adjustment || !!voidId} onChange={({ detail }) => { setSource(detail.value); setPreview(null); }} placeholder="从订单页面或确认邮件复制商品、数量、金额等内容…" />
+          <FormField label={uiText("purchaseOrders.original.order.text")}>
+            <Textarea value={source} rows={4} disabled={busy || !!receiving || !!adjustment || !!voidId} onChange={({ detail }) => { setSource(detail.value); setPreview(null); }} placeholder={uiText("purchaseOrders.copy.items.quantities.and.amounts.from.the.order.page")} />
           </FormField>
-          <Button disabled={busy || !!receiving || !!adjustment || !!voidId || !source.trim()} loading={busy} onClick={runPreview}>识别订单</Button>
+          <Button disabled={busy || !!receiving || !!adjustment || !!voidId || !source.trim()} loading={busy} onClick={runPreview}>{uiText("purchaseOrders.recognize.order")}</Button>
           {preview && <>
             <Alert type="info">{preview.warnings.join(' ')}</Alert>
-            {preview.existing_order_id && preview.existing_order_id !== selected?.id && <Alert type="warning" action={<Button onClick={() => void open(preview.existing_order_id!, true)}>打开已有订单并保留原文</Button>}>这个订单已登记，请核对已有记录。</Alert>}
-            <Box>识别商家：{preview.draft.vendor || '未识别'} · 订单号：{preview.draft.order_number || '未识别'} · 商品候选 {preview.draft.lines.length} 条</Box>
-            <Table variant="embedded" items={preview.draft.lines} columnDefinitions={[{ id: 'name', header: '识别商品（待核对）', cell: l => l.name }, { id: 'qty', header: '数量', cell: l => l.quantity ?? '未识别' }, { id: 'price', header: '单价', cell: l => moneyValue(l.unit_price ?? null) }]} />
-            <ExpandableSection headerText="查看提取依据"><ul>{preview.evidence.map((e, i) => <li key={i}>{e.text}</li>)}</ul></ExpandableSection>
+            {preview.existing_order_id && preview.existing_order_id !== selected?.id && <Alert type="warning" action={<Button onClick={() => void open(preview.existing_order_id!, true)}>{uiText("purchaseOrders.open.existing.order.and.retain.original.text")}</Button>}>{uiText("purchaseOrders.this.order.is.already.recorded.check.the.existing.record")}</Alert>}
+            <Box>{uiText("purchaseOrders.detected.merchant")}{preview.draft.vendor || uiText("purchaseOrders.not.detected")} {uiText("purchaseOrders.order.number")}{preview.draft.order_number || uiText("purchaseOrders.not.detected")} {uiText("purchaseOrders.candidate.items")} {preview.draft.lines.length} {uiText("purchaseOrders.records")}</Box>
+            <Table variant="embedded" items={preview.draft.lines} columnDefinitions={[{ id: 'name', header: uiText("purchaseOrders.detected.items.verify.before.use"), cell: l => l.name }, { id: 'qty', header: uiText("procurementItemRow.quantity"), cell: l => l.quantity ?? uiText("purchaseOrders.not.detected") }, { id: 'price', header: uiText("procurementItemRow.unit.price"), cell: l => moneyValue(l.unit_price ?? null) }]} />
+            <ExpandableSection headerText={uiText("purchaseOrders.view.extraction.evidence")}><ul>{preview.evidence.map((e, i) => <li key={i}>{e.text}</li>)}</ul></ExpandableSection>
             {!selected ? <Button disabled={!!preview.existing_order_id || busy} onClick={() => {
               const next = importDocument(preview);
               next.delivery_address = project?.address || '';
               setDoc(next);
-            }}>填入订单</Button> : <>
-              <Box>仅勾选需要更新的订单信息；商品、配送和实际收货保留。原文随本次保存进入历史。</Box>
+            }}>{uiText("purchaseOrders.fill.order")}</Button> : <>
+              <Box>{uiText("purchaseOrders.select.only.the.order.information.to.update.items.deliveries")}</Box>
               {(['ordered_on', 'tax', 'shipping', 'discount', 'total'] as const).filter(k => preview.draft[k] != null).map(k => <Checkbox key={k} checked={appliedFields.includes(k)} onChange={({ detail }) => setAppliedFields(detail.checked ? [...appliedFields, k] : appliedFields.filter(f => f !== k))}>
-                {({ ordered_on: '下单日期', tax: '税费', shipping: '运费', discount: '折扣', total: '订单总额' })[k]}：{String(doc[k] ?? '未填')} → {String(preview.draft[k])}
+                {systemText(({ ordered_on: '下单日期', tax: '税费', shipping: '运费', discount: '折扣', total: '订单总额' })[k])}：{String(doc[k] ?? uiText("procurementItemRow.not.entered.2"))} → {String(preview.draft[k])}
               </Checkbox>)}
-              <Button disabled={busy || !appliedFields.length || (!!preview.draft.order_number && preview.draft.order_number !== doc.order_number)} onClick={() => { setDoc({ ...doc, ...Object.fromEntries(appliedFields.map(k => [k, preview.draft[k as keyof typeof preview.draft]])) }); setAppliedFields([]); }}>采用勾选变更</Button>
+              <Button disabled={busy || !appliedFields.length || (!!preview.draft.order_number && preview.draft.order_number !== doc.order_number)} onClick={() => { setDoc({ ...doc, ...Object.fromEntries(appliedFields.map(k => [k, preview.draft[k as keyof typeof preview.draft]])) }); setAppliedFields([]); }}>{uiText("purchaseOrders.apply.selected.changes")}</Button>
             </>}
           </>}
         </SpaceBetween>
       </ExpandableSection>
-      {selected && <ExpandableSection headerText="补充本次操作说明"><FormField label="本次跟进记录（保留到历史）"><Textarea value={eventNote} disabled={busy || !!receiving || !!adjustment || !!voidId} onChange={({ detail }) => setEventNote(detail.value)} placeholder="例如已联系商家，剩余两件预计周四到货…" /></FormField></ExpandableSection>}
+      {selected && <ExpandableSection headerText={uiText("purchaseOrders.add.action.notes")}><FormField label={uiText("purchaseOrders.follow.up.record.retained.in.history")}><Textarea value={eventNote} disabled={busy || !!receiving || !!adjustment || !!voidId} onChange={({ detail }) => setEventNote(detail.value)} placeholder={uiText("purchaseOrders.for.example.contacted.the.merchant.the.remaining.two.items")} /></FormField></ExpandableSection>}
       </div>
       {canWrite && (detailsOpen || !selected || dirty) && <div className="ui-order-actions proc-savebar"><SpaceBetween direction="horizontal" size="s">
-        <Button variant="primary" loading={busy} disabled={!!selected && !dirty || busy || customizing || !!receiving || !!adjustment || !!voidId} onClick={save}>保存订单</Button>
-        <Button disabled={busy} onClick={() => { if (selected) adopt(selected); else { reset(); setCustomizing(false); navigate(returnTo); } }}>{selected ? '取消修改' : '取消创建'}</Button>
-        {selected && <Button disabled={!canWrite || busy || dirty || !!receiving || !!adjustment || !!voidId} onClick={() => void open(selected.id)}>重新载入</Button>}
+        <Button variant="primary" loading={busy} disabled={!!selected && !dirty || busy || customizing || !!receiving || !!adjustment || !!voidId} onClick={save}>{uiText("purchaseOrders.save.order")}</Button>
+        <Button disabled={busy} onClick={() => { if (selected) adopt(selected); else { reset(); setCustomizing(false); navigate(returnTo); } }}>{selected ? uiText("purchaseOrders.cancel.changes") : uiText("purchaseOrders.cancel.creation")}</Button>
+        {selected && <Button disabled={!canWrite || busy || dirty || !!receiving || !!adjustment || !!voidId} onClick={() => void open(selected.id)}>{uiText("procurementItemPage.reload")}</Button>}
       </SpaceBetween></div>}
 
   </SpaceBetween></div>;

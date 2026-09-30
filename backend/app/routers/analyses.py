@@ -80,6 +80,13 @@ def new_analysis(project_id: int, body: schemas.AnalysisCreate | None = None, db
     p = _project(db, project_id)
     body = body or schemas.AnalysisCreate()
     rec = create_analysis(db, p, body.name, body.inputs, body.tier)
+    if body.use_default_name and body.name is None:
+        count = len(list(db.scalars(select(models.DealAnalysis).where(models.DealAnalysis.project_id == p.id))))
+        tier_label = {"light": "轻装", "medium": "中装", "heavy": "重装"}.get(body.tier, "中装")
+        rec.name = f"{tier_label} · 版本 {count}"
+        inputs = json.loads(rec.inputs_json)
+        inputs["name_template"] = {"snapshot": rec.name, "tier": body.tier, "version": count}
+        rec.inputs_json = json.dumps(inputs, ensure_ascii=False)
     db.commit()
     db.refresh(rec)
     return _out(rec)

@@ -1,0 +1,134 @@
+{
+  "app.procurement": [
+    "采购",
+    "Procurement"
+  ],
+  "app.loading.account.and.permissions": [
+    "正在加载账号与权限…",
+    "Loading account and permissions…"
+  ],
+  "app.display.settings": [
+    "显示设置",
+    "Display settings"
+  ],
+  "app.demo.mode.administrators.can.preview.another.role": [
+    "演示模式：管理员可以临时切换身份看别人看到的",
+    "Demo mode: administrators can preview another role"
+  ],
+  "app.user.management": [
+    "用户管理",
+    "User management"
+  ],
+  "app.sign.out": [
+    "退出登录",
+    "Sign out"
+  ],
+  "app.project.lead": [
+    "负责人",
+    "Project lead"
+  ],
+  "app.sign.in.with.an.account": [
+    "用账号登录",
+    "Sign in with an account"
+  ],
+  "app.back.to.workspace": [
+    "返回工作台",
+    "Back to workspace"
+  ],
+  "app.enter.an.address.to.create.a.project": [
+    "输入地址新建项目",
+    "Enter an address to create a project"
+  ],
+  "app.create.a.project.by.address": [
+    "按地址新建项目",
+    "Create a project by address"
+  ],
+  "app.searching": [
+    "查找中",
+    "Searching"
+  ],
+  "app.no.address.found": [
+    "没有找到地址",
+    "No address found"
+  ],
+  "app.address.search.failed.you.can.enter.the.address.manually": [
+    "地址查找失败。可以在新建项目中手动填写地址。",
+    "Address search failed. You can enter the address manually when creating a project."
+  ],
+  "app.assistant": [
+    "助手",
+    "Assistant"
+  ],
+  "app.close.assistant": [
+    "关闭助手",
+    "Close assistant"
+  ],
+  "app.open.assistant": [
+    "打开助手",
+    "Open assistant"
+  ],
+  "app.workspace": [
+    "工作台",
+    "Workspace"
+  ],
+  "app.projects": [
+    "项目",
+    "Projects"
+  ],
+  "app.procurement.workspace": [
+    "采购工作台",
+    "Procurement workspace"
+  ],
+  "app.my.tasks": [
+    "我的事项",
+    "My tasks"
+  ],
+  "app.design.directions": [
+    "设计方向",
+    "Design directions"
+  ],
+  "app.new.project": [
+    "新建项目",
+    "New project"
+  ],
+  "app.users": [
+    "用户",
+    "Users"
+  ],
+  "app.help.text.is.on": [
+    "辅助说明已开启",
+    "Help text is on"
+  ],
+  "app.card.numbers.are.on": [
+    "卡片编号已开启",
+    "Card numbers are on"
+  ],
+  "app.click.a.number.to.copy.the.feedback.location": [
+    "· 点击编号复制反馈位置",
+    "· Click a number to copy the feedback location"
+  ],
+  "app.cannot.create.project": [
+    "无法新建项目",
+    "Cannot create project"
+  ],
+  "app.your.account.cannot.create.projects.contact.the.project.lead": [
+    "当前账号没有新建项目权限，请联系项目负责人。",
+    "Your account cannot create projects. Contact the project lead."
+  ],
+  "app.cannot.access.user.management": [
+    "无法访问用户管理",
+    "Cannot access user management"
+  ],
+  "app.this.page.is.for.administrators.only.your.project.permissions": [
+    "此页面仅供管理员使用。当前账号的项目权限没有变化。",
+    "This page is for administrators only. Your project permissions have not changed."
+  ],
+  "app.page.not.found": [
+    "找不到这个页面",
+    "Page not found"
+  ],
+  "app.this.link.may.have.expired.open.the.property.or": [
+    "链接可能已失效，请从工作台重新进入房屋或事项。",
+    "This link may have expired. Open the property or task from the workspace."
+  ]
+}

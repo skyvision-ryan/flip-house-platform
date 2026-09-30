@@ -1,0 +1,102 @@
+{
+  "filesTab.upload.and.register.files": [
+    "上传并登记文件",
+    "Upload and register files"
+  ],
+  "filesTab.find.this.property.s.records.zoom.images.directly.other": [
+    "查找本房已有资料；图片可直接放大查看，其他文件保留原文件入口。",
+    "Find this property's records. Zoom images directly; other files retain their original-file links."
+  ],
+  "filesTab.file.register": [
+    "文件登记表",
+    "File register"
+  ],
+  "filesTab.loading.files": [
+    "正在读取文件",
+    "Loading files"
+  ],
+  "filesTab.find.files": [
+    "查找文件",
+    "Find files"
+  ],
+  "filesTab.filename.counterparty.step.or.date": [
+    "文件名、对方、步骤或日期",
+    "Filename, counterparty, step, or date"
+  ],
+  "filesTab.filter.file.type": [
+    "筛选文件类型",
+    "Filter file type"
+  ],
+  "filesTab.all.types": [
+    "全部类型",
+    "All types"
+  ],
+  "filesTab.filter.uploader": [
+    "筛选上传人",
+    "Filter uploader"
+  ],
+  "filesTab.all.uploaders": [
+    "全部上传人",
+    "All uploaders"
+  ],
+  "filesTab.files.have.not.loaded.successfully": [
+    "文件尚未读取成功",
+    "Files have not loaded successfully"
+  ],
+  "filesTab.no.matching.files": [
+    "没有匹配的文件",
+    "No matching files"
+  ],
+  "filesTab.no.files.for.this.property": [
+    "本房尚无文件",
+    "No files for this property"
+  ],
+  "filesTab.filename": [
+    "文件名",
+    "Filename"
+  ],
+  "filesTab.edit.registration": [
+    "编辑登记",
+    "Edit registration"
+  ],
+  "filesTab.linked.step": [
+    "挂到哪一步",
+    "Linked step"
+  ],
+  "filesTab.uploaded.by": [
+    "谁传的",
+    "Uploaded by"
+  ],
+  "filesTab.counterparty": [
+    "对方",
+    "Counterparty"
+  ],
+  "filesTab.imported.from.lark": [
+    "Lark 迁入",
+    "Imported from Lark"
+  ],
+  "filesTab.uploaded": [
+    "上传",
+    "Uploaded"
+  ],
+  "filesTab.size": [
+    "大小",
+    "Size"
+  ],
+  "filesTab.actions": [
+    "操作",
+    "Actions"
+  ],
+  "filesTab.file.deleted": [
+    "文件已删除",
+    "File deleted"
+  ],
+  "filesTab.registration.updated": [
+    "登记信息已更新",
+    "Registration updated"
+  ],
+  "filesTab.expiration.date.for.insurance.and.other.time.limited.documents": [
+    "到期日（保险这类有时限的文件）",
+    "Expiration date (for insurance and other time-limited documents)"
+  ]
+}

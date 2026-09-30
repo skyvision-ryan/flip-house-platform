@@ -1,3 +1,6 @@
+import { systemText } from '../i18n/core.ts';
+import { useLanguage } from '../i18n/LanguageProvider';
+import { m as uiText } from '../i18n/core.ts';
 import Alert from '@cloudscape-design/components/alert';
 import Board, { BoardProps } from '@cloudscape-design/board-components/board';
 import BoardItem from '@cloudscape-design/board-components/board-item';
@@ -46,31 +49,31 @@ type ItemData = { title: string };
 type Item = BoardProps.Item<ItemData>;
 
 const WIDGETS: Record<WidgetId, ItemData & { cols: number; rows: number }> = {
-  attention: { title: '需要关注', cols: 2, rows: 4 },
-  money: { title: '在建项目：花了多少（灰底 = 预算）', cols: 2, rows: 4 },
-  stages: { title: '阶段分布', cols: 1, rows: 4 },
-  recent: { title: '最近更新', cols: 3, rows: 4 },
-  list: { title: '项目列表', cols: 4, rows: 6 },
-  upcoming: { title: '未来 30 天', cols: 2, rows: 4 },
-  capital: { title: '资金占用', cols: 2, rows: 4 },
-  retro: { title: '估算准不准（已完成项目）', cols: 4, rows: 3 },
-  weekly: { title: '近 12 周支出', cols: 2, rows: 4 },
-  vendors: { title: '供应商支出前五', cols: 2, rows: 4 },
-  funnel: { title: '未购入房子的跟进档位', cols: 1, rows: 4 },
-  updates: { title: '谁更新了什么', cols: 2, rows: 4 },
-  turns: { title: '每套房轮到谁', cols: 4, rows: 7 },
-  gates: { title: '待我确认的门', cols: 2, rows: 4 },
-  mytodo: { title: '我的待办', cols: 4, rows: 6 },
-  procurement: { title: '采购订单跟进', cols: 4, rows: 6 },
-  site: { title: '施工现场', cols: 4, rows: 4 },
-  utilities: { title: '水电瓦斯与保险', cols: 3, rows: 4 },
-  permits: { title: 'permit 与检查', cols: 3, rows: 4 },
-  design: { title: '设计交付', cols: 2, rows: 4 },
-  saledocs: { title: '卖出文件', cols: 3, rows: 4 },
-  boss: { title: '老板总览', cols: 4, rows: 2 },
+  attention: { get title() { return uiText("cardRegistry.needs.attention"); }, cols: 2, rows: 4 },
+  money: { get title() { return uiText("cardRegistry.active.projects.spending.gray.background.budget"); }, cols: 2, rows: 4 },
+  stages: { get title() { return uiText("founderDesign.stage.distribution"); }, cols: 1, rows: 4 },
+  recent: { get title() { return uiText("cardRegistry.recent.updates"); }, cols: 3, rows: 4 },
+  list: { get title() { return uiText("cardRegistry.project.list"); }, cols: 4, rows: 6 },
+  upcoming: { get title() { return uiText("cardRegistry.next.30.days"); }, cols: 2, rows: 4 },
+  capital: { get title() { return uiText("cardRegistry.capital.committed"); }, cols: 2, rows: 4 },
+  retro: { get title() { return uiText("cardRegistry.estimate.accuracy.completed.projects"); }, cols: 4, rows: 3 },
+  weekly: { get title() { return uiText("cardRegistry.expenses.over.the.last.12.weeks"); }, cols: 2, rows: 4 },
+  vendors: { get title() { return uiText("cardRegistry.top.five.suppliers.by.spending"); }, cols: 2, rows: 4 },
+  funnel: { get title() { return uiText("cardRegistry.follow.up.stages.for.unpurchased.properties"); }, cols: 1, rows: 4 },
+  updates: { get title() { return uiText("cardRegistry.who.updated.what"); }, cols: 2, rows: 4 },
+  turns: { get title() { return uiText("cardRegistry.next.action.for.each.property"); }, cols: 4, rows: 7 },
+  gates: { get title() { return uiText("cardRegistry.milestones.awaiting.my.confirmation"); }, cols: 2, rows: 4 },
+  mytodo: { get title() { return uiText("cardRegistry.my.tasks.2"); }, cols: 4, rows: 6 },
+  procurement: { get title() { return uiText("cardRegistry.procurement.order.follow.up"); }, cols: 4, rows: 6 },
+  site: { get title() { return uiText("cardRegistry.construction.site"); }, cols: 4, rows: 4 },
+  utilities: { get title() { return uiText("cardRegistry.utilities.and.insurance"); }, cols: 3, rows: 4 },
+  permits: { get title() { return uiText("cardRegistry.permits.and.inspections"); }, cols: 3, rows: 4 },
+  design: { get title() { return uiText("cardRegistry.design.deliverables"); }, cols: 2, rows: 4 },
+  saledocs: { get title() { return uiText("cardRegistry.sale.documents"); }, cols: 3, rows: 4 },
+  boss: { get title() { return uiText("cardRegistry.leadership.overview"); }, cols: 4, rows: 2 },
 };
 /** KAN-71：买入价或目标售价缺一项的项目没算进预计利润，汇总要说出来，不能把「未知」表达成 0。 */
-const incompleteNote = (n: number | null | undefined) => (n ? `${n} 套买入价或目标售价未齐，未计入` : null);
+const incompleteNote = (n: number | null | undefined) => (n ? uiText("sentences.properties.lack.purchase.or.target.sale.prices.and.are.excluded", { value1: (n) }) : null);
 
 const MONEY_WIDGETS: WidgetId[] = ['money', 'capital', 'weekly', 'retro', 'vendors', 'boss'];
 // v8：项目表不再是看板的一项，而是页面固定的一块，所以旧存档里的 list 必须丢掉，
@@ -79,7 +82,7 @@ const layoutKey = (actor: string) => `boardLayout.v8.${actor}`;
 
 function mkItem(id: WidgetId, extra?: Partial<Item>): Item {
   const w = WIDGETS[id];
-  return { id, columnSpan: w.cols, rowSpan: w.rows, data: { title: w.title }, ...extra };
+  return { id, columnSpan: w.cols, rowSpan: w.rows, data: { get title() { return w.title; } }, ...extra };
 }
 function loadLayout(actor: string, defaults: WidgetId[]): Item[] {
   try {
@@ -99,25 +102,27 @@ function saveLayout(actor: string, items: ReadonlyArray<Item>) {
 }
 
 const boardI18n: BoardProps.I18nStrings<ItemData> = {
-  liveAnnouncementDndStarted: (t) => (t === 'resize' ? '开始调整大小' : '开始拖动'),
-  liveAnnouncementDndItemReordered: () => '已移动',
-  liveAnnouncementDndItemResized: () => '已调整大小',
-  liveAnnouncementDndItemInserted: () => '已插入',
-  liveAnnouncementDndCommitted: (t) => (t === 'resize' ? '大小已确定' : '位置已确定'),
-  liveAnnouncementDndDiscarded: () => '已取消',
-  liveAnnouncementItemRemoved: (op) => `已移除 ${op.item.data.title}`,
-  navigationAriaLabel: '看板导航',
-  navigationItemAriaLabel: (item) => (item ? item.data.title : '空'),
+  liveAnnouncementDndStarted: (t) => (systemText(t === 'resize' ? '开始调整大小' : '开始拖动')),
+  liveAnnouncementDndItemReordered: () => uiText("dashboard.moved"),
+  liveAnnouncementDndItemResized: () => uiText("dashboard.resized"),
+  liveAnnouncementDndItemInserted: () => uiText("dashboard.inserted"),
+  liveAnnouncementDndCommitted: (t) => (systemText(t === 'resize' ? '大小已确定' : '位置已确定')),
+  liveAnnouncementDndDiscarded: () => uiText("stepsPanel.canceled"),
+  liveAnnouncementItemRemoved: (op) => uiText("sentences.removed", { value1: (op.item.data.title) }),
+  get navigationAriaLabel() { return uiText("dashboard.board.navigation"); },
+  navigationItemAriaLabel: (item) => (item ? item.data.title : systemText('空')),
 };
-const itemI18n = { dragHandleAriaLabel: '拖动', resizeHandleAriaLabel: '调整大小', dragHandleTooltipText: '拖动改变位置', resizeHandleTooltipText: '拖动改变大小' };
+const itemI18n = { get dragHandleAriaLabel() { return uiText("dashboard.drag"); }, get resizeHandleAriaLabel() { return uiText("dashboard.resize"); }, get dragHandleTooltipText() { return uiText("dashboard.drag.to.move"); }, get resizeHandleTooltipText() { return uiText("dashboard.drag.to.resize"); } };
 
 function Stat({ label, value, sub, help }: { label: string; value: string; sub?: string; help?: string }) {
+  useLanguage();
   return <StatTile label={label} value={value} sub={sub} help={help} />;
 }
 
 const shortDate = (d: string) => d.slice(5).replace('-', '/');
 
 export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) {
+  useLanguage();
   const navigate = useNavigate();
   const meta = useMeta();
   const role = useRole();
@@ -163,8 +168,8 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
     filtering: {
       defaultFilteringText: params.get('q') ?? '',
       filteringFunction: (item, s) => { const t = s.toLowerCase(); return item.name.toLowerCase().includes(t) || item.property.address_std.toLowerCase().includes(t); },
-      empty: <Box textAlign="center" color="inherit"><b>还没有项目</b><Box padding={{ bottom: 's' }} variant="p" color="inherit">输入一个地址，系统会自动补全房产数据。</Box><span>{role.can('create_project') ? <Button variant="primary" onClick={() => navigate('/projects/new')}>新建项目</Button> : '请联系项目负责人安排房屋。'}</span></Box>,
-      noMatch: <Box textAlign="center" color="inherit"><b>没有匹配的项目</b></Box>,
+      empty: <Box textAlign="center" color="inherit"><b>{uiText("dashboard.no.projects.yet")}</b><Box padding={{ bottom: 's' }} variant="p" color="inherit">{uiText("dashboard.enter.an.address.to.look.up.property.data")}</Box><span>{role.can('create_project') ? <Button variant="primary" onClick={() => navigate('/projects/new')}>{uiText("app.new.project")}</Button> : uiText("dashboard.contact.the.project.lead.to.assign.a.property")}</span></Box>,
+      noMatch: <Box textAlign="center" color="inherit"><b>{uiText("dashboard.no.matching.projects")}</b></Box>,
     },
     pagination: { pageSize: 10 },
     sorting: { defaultState: { sortingColumn: { sortingField: 'updated_at' }, isDescending: true } },
@@ -181,7 +186,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
   const projLink = (id: number, name: string) => <Link href={`/projects/${id}`} onFollow={(e) => { e.preventDefault(); go(`/projects/${id}`); }}>{name}</Link>;
 
   const projectColumns = [
-    { id: 'name', header: '项目', sortingField: 'name', width: '34%', minWidth: 260, cell: (p: Project) => (
+    { id: 'name', header: uiText("app.projects"), sortingField: 'name', width: '34%', minWidth: 260, cell: (p: Project) => (
       <div className="ui-row-spaced">
         <CoverImage propertyId={p.property.id} width={56} height={40} radius={6} showLabel={false} />
         <div className="ui-stack-min">
@@ -192,28 +197,28 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
     ) },
     // KAN-65：阶段只认六阶段清单算出来的 current_stage。旧的 stage/substage 是派生缓存，
     // 「② 买房与过户」会被 STAGE_TO_LEGACY 映射成「在建 · 施工中」，在列表上读起来是错的。
-    { id: 'stage', header: '位置 / 状态', sortingField: 'stage', width: '20%', minWidth: 130, cell: (p: Project) => <SpaceBetween size="xs"><span>{stageText(p, meta)}</span><StatusBadge status={p.status} /></SpaceBetween> },
+    { id: 'stage', header: uiText("dashboard.position.status"), sortingField: 'stage', width: '20%', minWidth: 130, cell: (p: Project) => <SpaceBetween size="xs"><span>{stageText(p, meta)}</span><StatusBadge status={p.status} /></SpaceBetween> },
     // 百分比一行、金额一行。原先「99.0%（$81,660 / $82,500）」塞在一格里，
     // 把最后一列挤成「更」，表底出现横向滚动条。
-    { id: 'budget', header: '预算已用', width: '19%', sortingField: 'budget_used_pct', cell: (p: Project) => ((p.budget_planned ?? 0) > 0 ? (
+    { id: 'budget', header: uiText("dashboard.budget.used"), width: '19%', sortingField: 'budget_used_pct', cell: (p: Project) => ((p.budget_planned ?? 0) > 0 ? (
       <div>
         <div>{pct(p.budget_used_pct)}</div>
         <Box variant="small" color="text-body-secondary">{money(p.budget_spent)} / {money(p.budget_planned)}</Box>
       </div>
     ) : '—') },
-    { id: 'arv', header: '目标售价', width: '14%', sortingField: 'target_arv', cell: (p: Project) => money(p.target_arv) },
-    { id: 'updated', header: '更新', width: '13%', sortingField: 'updated_at', cell: (p: Project) => dateStr(p.updated_at) },
+    { id: 'arv', header: uiText("dashboard.target.sale.price"), width: '14%', sortingField: 'target_arv', cell: (p: Project) => money(p.target_arv) },
+    { id: 'updated', header: uiText("dashboard.updated"), width: '13%', sortingField: 'updated_at', cell: (p: Project) => dateStr(p.updated_at) },
   ];
 
-  const groupSelect = <Select selectedOption={groupSelected} options={groupOptions} onChange={({ detail }) => setGroupFilter(detail.selectedOption.value ?? '')} ariaLabel="按位置筛选" />;
+  const groupSelect = <Select selectedOption={groupSelected} options={groupOptions} onChange={({ detail }) => setGroupFilter(detail.selectedOption.value ?? '')} ariaLabel={uiText("dashboard.filter.by.position")} />;
   const onLeadPatched = (updated: Project) => setProjects((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
   // KAN-75 块 2：筛到「买房 · 未购入」时按跟进档位分组（原线索页的形态，复用 LeadGroups）；其余位置用表。
   const leadView = (
     <SpaceBetween size="m">
-      <Header variant="h2" counter={`(${filtered.length})`} help="还没确认 Open escrow 的房子，按跟进档位分组；确认后它会进入「买房 · escrow 中」。" actions={<SpaceBetween direction="horizontal" size="xs">{groupSelect}{listOnly && role.can('create_project') && <Button variant="primary" onClick={() => go('/projects/new')}>新建项目</Button>}</SpaceBetween>}>买房 · 未购入</Header>
-      <HelpText>「待办参考」按清单顺序显示，负责角色不等于已分派的员工。</HelpText>
+      <Header variant="h2" counter={`(${filtered.length})`} help={uiText("dashboard.properties.without.confirmed.open.escrow.are.grouped.by.follow")} actions={<SpaceBetween direction="horizontal" size="xs">{groupSelect}{listOnly && role.can('create_project') && <Button variant="primary" onClick={() => go('/projects/new')}>{uiText("app.new.project")}</Button>}</SpaceBetween>}>{uiText("projectPreplan.acquisition.not.purchased")}</Header>
+      <HelpText>{uiText("dashboard.suggested.tasks.follow.checklist.order.a.responsible.role.is")}</HelpText>
       <LeadGroups projects={loading ? null : filtered} meta={meta} canEdit={role.can('edit_project')} onPatched={onLeadPatched} />
-      <Box variant="small" color="text-body-secondary">挂牌价与自动估值仅供参考，不代表可成交价格。</Box>
+      <Box variant="small" color="text-body-secondary">{uiText("dashboard.list.price.and.automated.valuation.are.references.not.confirmed")}</Box>
     </SpaceBetween>
   );
 
@@ -222,14 +227,14 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
       {...collectionProps}
       items={rows}
       loading={loading}
-      loadingText="加载中"
+      loadingText={uiText("dashboard.loading")}
       variant={listOnly ? 'container' : 'embedded'}
       resizableColumns
 
-      header={listOnly ? <Header variant="h2" counter={`(${filtered.length})`} actions={role.can('create_project') ? <Button variant="primary" onClick={() => go('/projects/new')}>新建项目</Button> : undefined}>项目列表</Header> : undefined}
+      header={listOnly ? <Header variant="h2" counter={`(${filtered.length})`} actions={role.can('create_project') ? <Button variant="primary" onClick={() => go('/projects/new')}>{uiText("app.new.project")}</Button> : undefined}>{uiText("cardRegistry.project.list")}</Header> : undefined}
       filter={
         <SpaceBetween direction="horizontal" size="xs">
-          <TextFilter {...searchProps} filteringPlaceholder="按项目名或地址查找" countText={`${rows.length} 个匹配`} />
+          <TextFilter {...searchProps} filteringPlaceholder={uiText("dashboard.search.by.project.name.or.address")} countText={uiText("sentences.matches", { value1: (rows.length) })} />
           {groupSelect}
         </SpaceBetween>
       }
@@ -241,16 +246,16 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
   if (listOnly) {
     return (
       <ContentLayout
-        breadcrumbs={<BreadcrumbGroup items={[{ text: '工作台', href: '/' }, { text: '项目', href: '/projects' }]} onFollow={(e) => { e.preventDefault(); go(e.detail.href); }} />}
-        header={<Header variant="h1" description="按房屋名称进入项目，查看进展与负责事项。">所有项目</Header>}
+        breadcrumbs={<BreadcrumbGroup items={[{ text: uiText("app.workspace"), href: '/' }, { text: uiText("app.projects"), href: '/projects' }]} onFollow={(e) => { e.preventDefault(); go(e.detail.href); }} />}
+        header={<Header variant="h1" description={uiText("dashboard.open.a.property.to.view.progress.and.assigned.work")}>{uiText("dashboard.all.projects")}</Header>}
       >
-        {loadError && <Alert type="error" header="项目读取失败">{loadError}</Alert>}
+        {loadError && <Alert type="error" header={uiText("dashboard.could.not.load.projects")}>{systemText(loadError)}</Alert>}
         {table}
       </ContentLayout>
     );
   }
 
-  const empty = (t: string) => <Box textAlign="center" color="inherit" padding="l">{loading ? '正在读取…' : t}</Box>;
+  const empty = (t: string) => <Box textAlign="center" color="inherit" padding="l">{loading ? uiText("dashboard.loading.2") : systemText(t)}</Box>;
 
   const widget = (id: WidgetId) => {
     switch (id) {
@@ -267,16 +272,16 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
             wrapLines
             items={insights.slice(0, 8)}
             columnDefinitions={[
-              { id: 'level', header: '状态', cell: (i) => <StatusIndicator type={level[i.level] ?? 'info'}>{i.tag}</StatusIndicator> },
+              { id: 'level', header: uiText("taskSummaryPanel.status"), cell: (i) => <StatusIndicator type={level[i.level] ?? 'info'}>{i.tag}</StatusIndicator> },
               // 不设 minWidth：这块小组件在看板里只占 2 列（约 573px），
               // 硬给两列留 140 + 180 会把内容撑到 998px，卡片里就出现横滚。让它们自己换行。
-              { id: 'project', header: '项目', cell: (i) => projLink(i.projectId, i.projectName) },
-              { id: 'headline', header: '事项', cell: (i) => i.headline },
-              { id: 'detail', header: '说明', cell: (i) => (i.detail ? <Box variant="small" color="text-body-secondary">{i.detail}</Box> : '—') },
-              { id: 'act', header: '', cell: (i) => <Link href={i.href} onFollow={(e) => { e.preventDefault(); go(i.href); }}>去看看</Link> },
+              { id: 'project', header: uiText("app.projects"), cell: (i) => projLink(i.projectId, i.projectName) },
+              { id: 'headline', header: uiText("dashboard.item"), cell: (i) => i.headline },
+              { id: 'detail', header: uiText("dashboard.description"), cell: (i) => (i.detail ? <Box variant="small" color="text-body-secondary">{i.detail}</Box> : '—') },
+              { id: 'act', header: '', cell: (i) => <Link href={i.href} onFollow={(e) => { e.preventDefault(); go(i.href); }}>{uiText("assistantPanel.view")}</Link> },
             ]}
           />
-        ) : empty('所有项目都在正轨上，没有需要处理的事。');
+        ) : empty(uiText("dashboard.all.projects.are.on.track.no.action.is.needed"));
       }
       case 'money':
         return (
@@ -284,8 +289,8 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
             rows={active.map((p) => ({ key: String(p.id), label: projLink(p.id, p.name), actual: p.budget_spent ?? 0, target: p.budget_planned ?? 0 }))}
             format={compactMoney}
             overAt={1.0}
-            targetLabel="预算"
-            emptyText={loading ? '正在读取…' : '没有在建项目'}
+            targetLabel={uiText("updatesList.budget")}
+            emptyText={loading ? uiText("dashboard.loading.2") : uiText("dashboard.no.active.projects")}
           />
         );
       case 'stages':
@@ -294,12 +299,12 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
             /* KAN-63：三段是同一条流水线的前后阶段，属有序数据，用蓝色阶而不是分类色
                （原先默认取 SERIES 前三位，里面有品红和青）。页面只给有序位置，颜色由图表组件决定。 */
             segments={[
-              { label: '未购入', value: summary?.leads ?? 0, ordinalIndex: 1 },
-              { label: '在建', value: summary?.active ?? 0, ordinalIndex: 3 },
-              { label: '已完成', value: summary?.portfolio ?? 0, ordinalIndex: 5 },
+              { label: uiText("directorDesign.not.purchased"), value: summary?.leads ?? 0, ordinalIndex: 1 },
+              { label: uiText("dashboard.active"), value: summary?.active ?? 0, ordinalIndex: 3 },
+              { label: uiText("stagePositionBar.complete"), value: summary?.portfolio ?? 0, ordinalIndex: 5 },
             ]}
-            format={(n) => `${n} 套`}
-            emptyText={loading ? '正在读取…' : '还没有项目'}
+            format={(n) => uiText("sentences.properties", { value1: (n) })}
+            emptyText={loading ? uiText("dashboard.loading.2") : uiText("dashboard.no.projects.yet")}
           />
         );
       case 'recent':
@@ -313,7 +318,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
                   <SpaceBetween size="xxs">
                     <Box variant="small" color="text-body-secondary">{p.property.address_std}</Box>
                     <SpaceBetween direction="horizontal" size="xs"><StatusBadge status={p.status} /><Box variant="small">{stageText(p, meta)}</Box></SpaceBetween>
-                    {(p.budget_planned ?? 0) > 0 && <Meter value={p.budget_spent ?? 0} max={p.budget_planned ?? 0} label="预算已用" reading={`${compactMoney(p.budget_spent)} / ${compactMoney(p.budget_planned)}`} height={6} />}
+                    {(p.budget_planned ?? 0) > 0 && <Meter value={p.budget_spent ?? 0} max={p.budget_planned ?? 0} label={uiText("dashboard.budget.used")} reading={`${compactMoney(p.budget_spent)} / ${compactMoney(p.budget_planned)}`} height={6} />}
                   </SpaceBetween>
                 ) },
               ],
@@ -322,7 +327,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
       case 'list':
         return table;
       case 'updates':
-        return <UpdatesList items={updates} showProject onGo={go} emptyText={loading ? '正在读取…' : '还没有人更新过。'} />;
+        return <UpdatesList items={updates} showProject onGo={go} emptyText={loading ? uiText("dashboard.loading.2") : uiText("dashboard.no.updates.yet")} />;
       case 'turns': {
         const turns = projects.filter((p) => p.stage !== 'portfolio' && (p.stage_progress?.length ?? 0) > 0);
         const goProject = (p: Project) => {
@@ -340,7 +345,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
                     <Link fontSize="heading-s" href={`/projects/${p.id}`} onFollow={(e) => { e.preventDefault(); goProject(p); }}>{p.name}</Link>
                     <StatusBadge status={p.status} />
                   </span>
-                  <Box variant="small" color="text-body-secondary">{p.current_stage?.label}</Box>
+                  <Box variant="small" color="text-body-secondary">{systemText(p.current_stage?.label)}</Box>
                 </div></div>
               ),
               sections: [
@@ -350,24 +355,24 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
                   return (
                     <SpaceBetween size="xxs">
                       <Box variant="small" color="text-body-secondary">{p.property.address_std}</Box>
-                      <Box fontSize="body-s">{cur ? `${cur.label} · 这段做了 ${cur.done}/${cur.total}` : p.current_stage?.label}<Box variant="span" color="text-body-secondary">　大节点过了 {p.stage_progress.filter((s) => s.gate_done).length}/{p.stage_progress.length}</Box></Box>
+                      <Box fontSize="body-s">{cur ? uiText("sentences.requirements.met.in.this.stage", { value1: (systemText(cur.label)), value2: (cur.done), value3: (cur.total) }) : p.current_stage?.label}<Box variant="span" color="text-body-secondary">　{uiText("dashboard.milestone.passed")} {p.stage_progress.filter((s) => s.gate_done).length}/{p.stage_progress.length}</Box></Box>
                     </SpaceBetween>
                   );
                 } },
-                { id: 'next', header: '轮到', content: (p) => (
+                { id: 'next', header: uiText("insights.action.by"), content: (p) => (
                   p.next_up.length ? (
                     <SpaceBetween size="xxs">
                       {p.next_up.slice(0, 2).map((n) => (
                         <span key={n.key} className="ui-inline-tight">
                           {/* 审计 #A02：菱形原先用硬编码的旧 info 蓝，改中性边框；「是不是关键节点」靠字重表示 */}
                           {n.gate && <span className="ui-gate-symbol" />}
-                          {n.owners.map((o) => <RoleLabel key={o} code={o} />)}<span className={n.gate ? "ui-strong" : undefined}>{n.title}</span>
+                          {n.owners.map((o) => <RoleLabel key={o} code={o} />)}<span className={n.gate ? "ui-strong" : undefined}>{systemText(n.title)}</span>
                         </span>
                       ))}
                     </SpaceBetween>
-                  ) : <Box color="text-body-secondary">这段的事都做完了</Box>
+                  ) : <Box color="text-body-secondary">{uiText("dashboard.all.tasks.in.this.stage.are.done")}</Box>
                 ) },
-                { id: 'warn', content: (p) => (p.earlier_undone_count > 0 ? <StatusIndicator type="warning">前面 {p.earlier_undone_count} 项没确认</StatusIndicator> : <Box variant="small" color="text-status-success">前面的都确认了</Box>) },
+                { id: 'warn', content: (p) => (p.earlier_undone_count > 0 ? <StatusIndicator type="warning">{uiText("dashboard.earlier")} {p.earlier_undone_count} {uiText("dashboard.items.unconfirmed")}</StatusIndicator> : <Box variant="small" color="text-status-success">{uiText("dashboard.earlier.items.confirmed")}</Box>) },
               ],
             }} />
         ) : empty(loading ? '正在读取…' : '没有在进行中的房子。');
@@ -380,36 +385,36 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
               <div key={k} className="ui-row-baseline">
                 <Box fontWeight="bold" color="text-body-secondary"><span className="ui-date-column">{shortDate(u.date)}</span></Box>
                 <StatusIndicator type={u.days < 0 ? (u.overdue ? 'error' : 'stopped') : u.days <= 7 ? 'warning' : 'info'}>{u.kind}</StatusIndicator>
-                <span>{projLink(u.project_id, u.project_name)} <Box variant="span" color="text-body-secondary">{u.days < 0 ? `${-u.days} 天前` : u.days === 0 ? '今天' : `${u.days} 天后`}</Box></span>
+                <span>{projLink(u.project_id, u.project_name)} <Box variant="span" color="text-body-secondary">{u.days < 0 ? uiText("sentences.days.ago", { value1: (-u.days) }) : u.days === 0 ? uiText("updatesList.today") : uiText("sentences.in.days", { value1: (u.days) })}</Box></span>
               </div>
             ))}
           </SpaceBetween>
-        ) : empty('未来 30 天没有关键日期。');
+        ) : empty(uiText("dashboard.no.key.dates.in.the.next.30.days"));
       }
       case 'capital': {
         const caps = widgets?.capital ?? [];
         const total = caps.reduce((a, r) => a + r.total, 0);
         return caps.length ? (
           <SpaceBetween size="s">
-            <Box color="text-body-secondary">在建项目合计压着 <b>{fullMoney(total)}</b>（买入价 + 已支出）</Box>
+            <Box color="text-body-secondary">{uiText("dashboard.total.committed.to.active.projects")} <b>{fullMoney(total)}</b>{uiText("dashboard.purchase.price.recorded.expenses")}</Box>
             <HBars rows={caps.map((r) => ({ key: String(r.project_id), label: projLink(r.project_id, r.project_name), values: [r.purchase_price, r.spent], tooltipTitle: r.project_name }))} series={['买入价', '已支出']} format={compactMoney} />
           </SpaceBetween>
-        ) : empty('没有在建项目');
+        ) : empty(uiText("dashboard.no.active.projects"));
       }
       case 'retro': {
         const rs = widgets?.retrospectives ?? [];
         return (
-          <Table variant="embedded" items={rs} empty={empty('还没有带成交价的已完成项目')}
+          <Table variant="embedded" items={rs} empty={empty(uiText("dashboard.no.completed.projects.with.sale.prices"))}
             columnDefinitions={[
-              { id: 'n', header: '项目', cell: (r) => projLink(r.project_id, r.project_name) },
-              { id: 't', header: '目标售价', cell: (r) => money(r.target_arv) },
-              { id: 's', header: '成交价', cell: (r) => money(r.sale_price) },
-              { id: 'se', header: '售价偏差', cell: (r) => <DeltaBadge pct={r.arv_error_pct} goodWhenPositive /> },
-              { id: 'b', header: '预算', cell: (r) => money(r.budget_planned) },
-              { id: 'a', header: '实际支出', cell: (r) => money(r.spent) },
-              { id: 'be', header: '预算偏差', cell: (r) => <DeltaBadge pct={r.budget_error_pct} goodWhenPositive={false} /> },
-              { id: 'p', header: '实际利润', cell: (r) => money(r.profit) },
-              { id: 'd', header: '工期', cell: (r) => (r.days == null ? '—' : `${r.days} 天`) },
+              { id: 'n', header: uiText("app.projects"), cell: (r) => projLink(r.project_id, r.project_name) },
+              { id: 't', header: uiText("dashboard.target.sale.price"), cell: (r) => money(r.target_arv) },
+              { id: 's', header: uiText("dashboard.sale.price"), cell: (r) => money(r.sale_price) },
+              { id: 'se', header: uiText("dashboard.sale.price.variance"), cell: (r) => <DeltaBadge pct={r.arv_error_pct} goodWhenPositive /> },
+              { id: 'b', header: uiText("updatesList.budget"), cell: (r) => money(r.budget_planned) },
+              { id: 'a', header: uiText("dashboard.actual.expenses"), cell: (r) => money(r.spent) },
+              { id: 'be', header: uiText("cardRegistry.budget.variance"), cell: (r) => <DeltaBadge pct={r.budget_error_pct} goodWhenPositive={false} /> },
+              { id: 'p', header: uiText("dashboard.actual.profit"), cell: (r) => money(r.profit) },
+              { id: 'd', header: uiText("stepsPanel.schedule"), cell: (r) => (r.days == null ? '—' : uiText("sentences.days", { value1: (r.days) })) },
             ]} />
         );
       }
@@ -418,21 +423,21 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
         const total = ws.reduce((a, r) => a + r.amount, 0);
         return ws.length ? (
           <SpaceBetween size="s">
-            <Box color="text-body-secondary">12 周共支出 <b>{fullMoney(total)}</b>，每周平均 {compactMoney(total / ws.length)}</Box>
+            <Box color="text-body-secondary">{uiText("dashboard.12.week.spending.total")} <b>{fullMoney(total)}</b>{uiText("dashboard.weekly.average")} {compactMoney(total / ws.length)}</Box>
             <Trend points={ws.map((r) => ({ x: shortDate(r.week_start), y: r.amount }))} format={compactMoney} height={170} />
           </SpaceBetween>
-        ) : empty('没有支出记录');
+        ) : empty(uiText("dashboard.no.expense.records"));
       }
       case 'vendors': {
         const vs = widgets?.vendors ?? [];
         const vmax = Math.max(...vs.map((v) => v.amount), 1);
         return (
-          <Table variant="embedded" items={vs} empty={empty('没有供应商支出')}
+          <Table variant="embedded" items={vs} empty={empty(uiText("dashboard.no.supplier.spending"))}
             columnDefinitions={[
-              { id: 'v', header: '供应商', cell: (r) => r.vendor },
-              { id: 'a', header: '金额', minWidth: 200, cell: (r) => <InlineBar value={r.amount} max={vmax} text={fullMoney(r.amount)} width={100} /> },
-              { id: 'c', header: '笔数', cell: (r) => r.count },
-              { id: 'p', header: '项目数', cell: (r) => r.projects },
+              { id: 'v', header: uiText("dashboard.supplier"), cell: (r) => r.vendor },
+              { id: 'a', header: uiText("procurementItemRow.amount"), minWidth: 200, cell: (r) => <InlineBar value={r.amount} max={vmax} text={fullMoney(r.amount)} width={100} /> },
+              { id: 'c', header: uiText("dashboard.record.count"), cell: (r) => r.count },
+              { id: 'p', header: uiText("dashboard.project.count"), cell: (r) => r.projects },
             ]} />
         );
       }
@@ -447,23 +452,23 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
                 <div className="ui-min-width">
                   {/* KAN-63：去掉行首的 ◆ 和粗体。一屏里主按钮只留页头那一个，
                       这里的「去确认」降成链接——它是导航，不是本屏的主操作。 */}
-                  <div>{g.title} <Box variant="span" color="text-body-secondary">· {g.project_name}</Box></div>
-                  {g.is_current && <StatusIndicator type="in-progress">当前阶段</StatusIndicator>}
-                  <Box variant="small" color="text-body-secondary">{g.stage}{g.evidence_hint ? ` · ${g.evidence_hint}` : ''}{g.confirmed.length ? ` · ${g.confirmed.join('、')} 已确认` : ''}</Box>
+                  <div>{systemText(g.title)} <Box variant="span" color="text-body-secondary">· {g.project_name}</Box></div>
+                  {g.is_current && <StatusIndicator type="in-progress">{uiText("projectPreplan.current.stage")}</StatusIndicator>}
+                  <Box variant="small" color="text-body-secondary">{g.stage}{g.evidence_hint ? ` · ${g.evidence_hint}` : ''}{g.confirmed.length ? uiText("sentences.confirmed", { value1: (g.confirmed.join('、')) }) : ''}</Box>
                 </div>
                 <Link
                   href={`/projects/${g.project_id}?tab=overview&step=${g.key}&action=confirm`}
                   onFollow={(e) => { e.preventDefault(); go(`/projects/${g.project_id}?tab=overview&step=${g.key}&action=confirm`); }}
-                >去确认</Link>
+                >{uiText("dashboard.confirm")}</Link>
               </div>
             ))}
           </SpaceBetween>
-        ) : empty('没有等你确认的大节点。');
+        ) : empty(uiText("dashboard.no.milestones.await.your.confirmation"));
       }
       case 'mytodo':
         return <MyTodoTable compact rows={roleData ? (roleData.my_todo ?? []) : null} onReload={reloadRole} />;
       case 'procurement':
-        return me ? <Button onClick={() => go('/procurement')}>进入采购工作台</Button> : empty('登录后查看项目采购。');
+        return me ? <Button onClick={() => go('/procurement')}>{uiText("dashboard.open.procurement.workspace")}</Button> : empty(uiText("dashboard.sign.in.to.view.project.procurement"));
       case 'site': {
         const rs = roleData?.site ?? [];
         return rs.length ? (
@@ -472,16 +477,16 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
               <div key={r.project_id}>
                 <Box fontWeight="bold">{projLink(r.project_id, r.project_name)}</Box>
                 <div className="ui-photo-strip">
-                  {r.photo_ids.length ? r.photo_ids.map((id) => <img key={id} src={`/api/files/${id}/download`} alt="" className="ui-thumbnail ui-thumbnail-progress" />) : <Box variant="small" color="text-body-secondary">还没有进度照片</Box>}
+                  {r.photo_ids.length ? r.photo_ids.map((id) => <img key={id} src={`/api/files/${id}/download`} alt="" className="ui-thumbnail ui-thumbnail-progress" />) : <Box variant="small" color="text-body-secondary">{uiText("dashboard.no.progress.photos.yet")}</Box>}
                 </div>
-                <Box variant="small" color="text-body-secondary">{r.photo_count} 张进度照片</Box>
-                {r.failed.length > 0 ? <StatusIndicator type="error">{r.failed.join('、')} 没过</StatusIndicator>
-                  : r.last_inspection ? <StatusIndicator type={r.last_inspection.result === 'passed' ? 'success' : 'pending'}>{r.last_inspection.name} · {r.last_inspection.result === 'passed' ? '通过' : '已约'}</StatusIndicator>
-                  : <Box variant="small" color="text-body-secondary">还没有检查</Box>}
+                <Box variant="small" color="text-body-secondary">{r.photo_count} {uiText("dashboard.progress.photos")}</Box>
+                {r.failed.length > 0 ? <StatusIndicator type="error">{r.failed.join('、')} {uiText("dashboard.failed")}</StatusIndicator>
+                  : r.last_inspection ? <StatusIndicator type={r.last_inspection.result === 'passed' ? 'success' : 'pending'}>{r.last_inspection.name} · {r.last_inspection.result === 'passed' ? uiText("dashboard.passed") : uiText("dashboard.scheduled")}</StatusIndicator>
+                  : <Box variant="small" color="text-body-secondary">{uiText("dashboard.no.inspections.yet")}</Box>}
               </div>
             ))}
           </ColumnLayout>
-        ) : empty('没有在建项目');
+        ) : empty(uiText("dashboard.no.active.projects"));
       }
       case 'utilities': {
         const rs = roleData?.utilities_insurance ?? [];
@@ -490,75 +495,75 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
         // 「color should never be the only visual means of conveying information」。
         // 改 StatusIndicator：图标 + 文字承担含义，颜色只做强化。
         const UTIL: Record<string, { type: 'success' | 'pending' | 'stopped' | 'info'; label: string }> = {
-          on: { type: 'success', label: '通' }, pending: { type: 'pending', label: '待' },
-          off: { type: 'stopped', label: '停' },
+          on: { type: 'success', label: uiText("dashboard.active.2") }, pending: { type: 'pending', label: uiText("dashboard.pending") },
+          off: { type: 'stopped', label: uiText("dashboard.closed") },
         };
-        const dot = (st: string) => { const u = UTIL[st] ?? { type: 'info' as const, label: '未知' };
-          return <Box variant="span" margin={{ right: 'xxs' }}><StatusIndicator type={u.type}>{u.label}</StatusIndicator></Box>; };
+        const dot = (st: string) => { const u = UTIL[st] ?? { type: 'info' as const, label: uiText("dashboard.unknown") };
+          return <Box variant="span" margin={{ right: 'xxs' }}><StatusIndicator type={u.type}>{systemText(u.label)}</StatusIndicator></Box>; };
         return rs.length ? (
           <Table variant="embedded" items={rs} columnDefinitions={[
-            { id: 'p', header: '房', cell: (r) => projLink(r.project_id, r.project_name) },
-            { id: 'u', header: '水 · 电 · 瓦斯', cell: (r) => <span>{dot(r.water)}{dot(r.electric)}{dot(r.gas)}{r.blocker && <Box variant="small" color="text-status-warning">{r.blocker}</Box>}</span> },
-            { id: 'i', header: '保险', cell: (r) => (r.insurance_days == null ? '—' : <StatusIndicator type={r.insurance_days < 0 ? 'error' : r.insurance_days <= 30 ? 'warning' : 'success'}>{r.insurance_days < 0 ? `过期 ${-r.insurance_days} 天` : `${r.insurance_days} 天后到期`}</StatusIndicator>) },
-            { id: 'a', header: '', cell: (r) => <Link href={`/projects/${r.project_id}?tab=data&section=utilities`} onFollow={(e) => { e.preventDefault(); go(`/projects/${r.project_id}?tab=data&section=utilities`); }}>去填</Link> },
+            { id: 'p', header: uiText("dashboard.properties"), cell: (r) => projLink(r.project_id, r.project_name) },
+            { id: 'u', header: uiText("dashboard.water.electricity.gas"), cell: (r) => <span>{dot(r.water)}{dot(r.electric)}{dot(r.gas)}{r.blocker && <Box variant="small" color="text-status-warning">{r.blocker}</Box>}</span> },
+            { id: 'i', header: uiText("roleDesigns.insurance"), cell: (r) => (r.insurance_days == null ? '—' : <StatusIndicator type={r.insurance_days < 0 ? 'error' : r.insurance_days <= 30 ? 'warning' : 'success'}>{r.insurance_days < 0 ? uiText("sentences.expired.days.ago.2", { value1: (-r.insurance_days) }) : uiText("sentences.expires.in.days", { value1: (r.insurance_days) })}</StatusIndicator>) },
+            { id: 'a', header: '', cell: (r) => <Link href={`/projects/${r.project_id}?tab=data&section=utilities`} onFollow={(e) => { e.preventDefault(); go(`/projects/${r.project_id}?tab=data&section=utilities`); }}>{uiText("dashboard.enter.details")}</Link> },
           ]} />
-        ) : empty('没有需要管水电的房子');
+        ) : empty(uiText("dashboard.no.properties.need.utility.management"));
       }
       case 'permits': {
         const rs = roleData?.permits ?? [];
         return rs.length ? (
           <Table variant="embedded" items={rs} columnDefinitions={[
-            { id: 'p', header: '房', cell: (r) => projLink(r.project_id, r.project_name) },
-            { id: 'pm', header: 'permit', cell: (r) => (r.permit === 'issued' ? <StatusIndicator type="success">已核发</StatusIndicator> : r.permit === 'applied' ? <StatusIndicator type="in-progress">已申请{r.applied_days != null ? ` ${r.applied_days} 天` : ''}</StatusIndicator> : <StatusIndicator type="pending">没申请</StatusIndicator>) },
-            { id: 'n', header: '下一次检查', cell: (r) => (r.final_passed ? <StatusIndicator type="success">final 已过</StatusIndicator> : r.next_inspection ? `${r.next_inspection.name}${r.next_inspection.date ? ` · ${shortDate(r.next_inspection.date)}` : ''}` : '—') },
-            { id: 'f', header: '没过', cell: (r) => (r.failed.length ? <StatusIndicator type="error">{r.failed.join('、')}</StatusIndicator> : '—') },
+            { id: 'p', header: uiText("dashboard.properties"), cell: (r) => projLink(r.project_id, r.project_name) },
+            { id: 'pm', header: uiText("terminology.permit"), cell: (r) => (r.permit === 'issued' ? <StatusIndicator type="success">{uiText("dashboard.issued")}</StatusIndicator> : r.permit === 'applied' ? <StatusIndicator type="in-progress">{uiText("dashboard.application.submitted")}{r.applied_days != null ? uiText("sentences.days.3", { value1: (r.applied_days) }) : ''}</StatusIndicator> : <StatusIndicator type="pending">{uiText("dashboard.not.applied")}</StatusIndicator>) },
+            { id: 'n', header: uiText("dashboard.next.inspection"), cell: (r) => (r.final_passed ? <StatusIndicator type="success">{uiText("dashboard.final.passed")}</StatusIndicator> : r.next_inspection ? `${r.next_inspection.name}${r.next_inspection.date ? ` · ${shortDate(r.next_inspection.date)}` : ''}` : '—') },
+            { id: 'f', header: uiText("dashboard.failed"), cell: (r) => (r.failed.length ? <StatusIndicator type="error">{r.failed.join('、')}</StatusIndicator> : '—') },
           ]} />
-        ) : empty('没有在建项目');
+        ) : empty(uiText("dashboard.no.active.projects"));
       }
       case 'design': {
         const rs = roleData?.design ?? [];
-        const ok = (b: boolean) => <StatusIndicator type={b ? 'success' : 'pending'}>{b ? '已交' : '没交'}</StatusIndicator>;
+        const ok = (b: boolean) => <StatusIndicator type={b ? 'success' : 'pending'}>{b ? uiText("dashboard.provided") : uiText("dashboard.not.provided")}</StatusIndicator>;
         return rs.length ? (
           <Table variant="embedded" items={rs} columnDefinitions={[
-            { id: 'p', header: '房', cell: (r) => projLink(r.project_id, r.project_name) },
-            { id: 'm', header: '量尺记录', cell: (r) => ok(r.measure_note) },
-            { id: 'd', header: '设计方案', cell: (r) => ok(r.drawing) },
-            { id: 'f', header: '定稿图纸', cell: (r) => ok(r.drawing_final) },
+            { id: 'p', header: uiText("dashboard.properties"), cell: (r) => projLink(r.project_id, r.project_name) },
+            { id: 'm', header: uiText("dashboard.measurement.notes"), cell: (r) => ok(r.measure_note) },
+            { id: 'd', header: uiText("dashboard.design.proposal"), cell: (r) => ok(r.drawing) },
+            { id: 'f', header: uiText("dashboard.final.drawings"), cell: (r) => ok(r.drawing_final) },
           ]} />
-        ) : empty('没有在进行的房子');
+        ) : empty(uiText("dashboard.no.active.properties.2"));
       }
       case 'saledocs': {
         const rs = roleData?.sale_docs ?? [];
         // 审计 #A05：符号本身已是第二通道，只把硬编码的旧色值换成令牌
-        const ok = (b: boolean) => <StatusIndicator type={b ? 'success' : 'not-started'}>{b ? '已齐全' : '待补'}</StatusIndicator>;
+        const ok = (b: boolean) => <StatusIndicator type={b ? 'success' : 'not-started'}>{b ? uiText("dashboard.complete") : uiText("dashboard.missing")}</StatusIndicator>;
         return rs.length ? (
           <Table variant="embedded" items={rs} columnDefinitions={[
-            { id: 'p', header: '房', cell: (r) => <span>{projLink(r.project_id, r.project_name)}<Box variant="small" color="text-body-secondary">挂牌 {r.list_date ? shortDate(r.list_date) : '—'}</Box></span> },
-            { id: 'o', header: 'offer', cell: (r) => ok(r.offer) },
-            { id: 's', header: '文件包', cell: (r) => ok(r.sale_docs) },
-            { id: 'd', header: '披露', cell: (r) => ok(r.disclosure) },
-            { id: 'g', header: '签署版', cell: (r) => ok(r.sale_signed) },
-            { id: 'c', header: '结算单', cell: (r) => ok(r.sale_closing) },
+            { id: 'p', header: uiText("dashboard.properties"), cell: (r) => <span>{projLink(r.project_id, r.project_name)}<Box variant="small" color="text-body-secondary">{uiText("dashboard.listing")} {r.list_date ? shortDate(r.list_date) : '—'}</Box></span> },
+            { id: 'o', header: uiText("terminology.offer"), cell: (r) => ok(r.offer) },
+            { id: 's', header: uiText("dashboard.document.package"), cell: (r) => ok(r.sale_docs) },
+            { id: 'd', header: uiText("dashboard.disclosures"), cell: (r) => ok(r.disclosure) },
+            { id: 'g', header: uiText("dashboard.signed.copy"), cell: (r) => ok(r.sale_signed) },
+            { id: 'c', header: uiText("dashboard.closing.statement"), cell: (r) => ok(r.sale_closing) },
           ]} />
-        ) : empty('没有在售的房子');
+        ) : empty(uiText("dashboard.no.properties.listed.for.sale"));
       }
       case 'boss': {
         const b = roleData?.boss;
         return b ? (
           <ColumnLayout columns={5} variant="text-grid">
-            <StatTile label="在手" value={`${b.active + b.leads}`} sub={`${b.active} 在建 · ${b.leads} 未购入`} />
-            <StatTile label="总投入" value={compactMoney(b.total_invested)} help="在建买入价 + 已支出" />
-            <StatTile label="预计利润" value={compactMoney(b.expected_profit)} sub={incompleteNote(b.profit_incomplete_count) ?? '在建'} />
-            <StatTile label="已实现利润" value={compactMoney(b.realized_profit)} sub={`${b.portfolio} 套已售`} />
-            <StatTile label="超预算" value={`${b.over_budget_count}`} sub="套" tone={b.over_budget_count > 0 ? 'bad' : undefined} />
+            <StatTile label={uiText("dashboard.held")} value={`${b.active + b.leads}`} sub={uiText("sentences.active.unpurchased", { value1: (b.active), value2: (b.leads) })} />
+            <StatTile label={uiText("dashboard.total.investment")} value={compactMoney(b.total_invested)} help={uiText("dashboard.active.purchase.prices.expenses")} />
+            <StatTile label={uiText("dashboard.estimated.profit")} value={compactMoney(b.expected_profit)} sub={incompleteNote(b.profit_incomplete_count) ?? uiText("dashboard.active")} />
+            <StatTile label={uiText("dashboard.realized.profit")} value={compactMoney(b.realized_profit)} sub={uiText("sentences.sold.properties", { value1: (b.portfolio) })} />
+            <StatTile label={uiText("dashboard.over.budget")} value={`${b.over_budget_count}`} sub={uiText("directorDesign.properties")} tone={b.over_budget_count > 0 ? 'bad' : undefined} />
           </ColumnLayout>
-        ) : empty('没有数据');
+        ) : empty(uiText("dashboard.no.data"));
       }
       case 'funnel': {
         const fs = widgets?.funnel ?? [];
         return fs.length ? (
-          <HBars rows={fs.map((r) => ({ key: r.substage, label: r.label, values: [r.count] }))} ordinal format={(n) => `${n} 条`} labelWidth={72} />
-        ) : empty('没有未购入的房子');
+          <HBars rows={fs.map((r) => ({ key: r.substage, label: r.label, values: [r.count] }))} ordinal format={(n) => uiText("sentences.records", { value1: (n) })} labelWidth={72} />
+        ) : empty(uiText("dashboard.no.unpurchased.properties"));
       }
     }
   };
@@ -570,8 +575,8 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
   // 页头写事实，不喊口号。紧急 = 有 error/warning 级洞察的房子数，按项目去重。
   const urgent = new Set(insights.filter((i) => i.level !== 'info').map((i) => i.projectId)).size;
   const pageDescription = [
-    urgent ? `今天有 ${urgent} 套需要处理。` : null,
-    `在建 ${summary?.active ?? '—'} 套，未购入 ${summary?.leads ?? '—'} 套，收尾 ${summary?.portfolio ?? '—'} 套。`,
+    urgent ? uiText("sentences.properties.need.action.today", { value1: (urgent) }) : null,
+    uiText("sentences.active.unpurchased.in.closeout.2", { value1: (summary?.active ?? '—'), value2: (summary?.leads ?? '—'), value3: (summary?.portfolio ?? '—') }),
   ].filter(Boolean).join('');
 
   return (
@@ -584,14 +589,14 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
           actions={
             <SpaceBetween direction="horizontal" size="xs">
               <ButtonDropdown
-                items={hidden.length ? hidden.map((id) => ({ id, text: WIDGETS[id].title })) : [{ id: 'none', text: '所有小组件都在看板上', disabled: true }]}
+                items={hidden.length ? hidden.map((id) => ({ id, text: WIDGETS[id].title })) : [{ id: 'none', text: uiText("dashboard.all.widgets.are.on.the.board"), disabled: true }]}
                 onItemClick={({ detail }) => { if (detail.id !== 'none') { const next = [...items, mkItem(detail.id as WidgetId)]; setItems(next); saveLayout(role.actor, next); } }}
-              >添加小组件</ButtonDropdown>
-              {role.can('create_project') && <Button variant="primary" onClick={() => go('/projects/new')}>新建项目</Button>}
+              >{uiText("dashboard.add.widget")}</ButtonDropdown>
+              {role.can('create_project') && <Button variant="primary" onClick={() => go('/projects/new')}>{uiText("app.new.project")}</Button>}
             </SpaceBetween>
           }
         >
-          {me ? `${me.display_name} 的工作台` : '项目'}
+          {me ? uiText("sentences.workspace", { value1: (me.display_name) }) : uiText("app.projects")}
         </Header>
       }
     >
@@ -602,17 +607,17 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
         {/* 四个数字直接跟在页头下面。原先套一层叫「今日概览」的 Container，
             等于给四个数字单独起了个栏目名——控制台里这层壳没有意义。 */}
         {!me && <CardFrame cardId="dashboard-metrics"><ColumnLayout columns={4} minColumnWidth={120} variant="text-grid">
-              <Stat label="买房 · 未购入" value={String(summary?.leads ?? '—')} sub={`${projects.filter((p) => isLead(p) && p.lead_heat === 'hot_lead').length} 套热线索`} />
-              <Stat label="在建" value={String(summary?.active ?? '—')} sub={summary?.money_hidden ? '正在施工或挂牌' : `${summary?.over_budget_count ?? 0} 个超预算`} />
+              <Stat label={uiText("projectPreplan.acquisition.not.purchased")} value={String(summary?.leads ?? '—')} sub={uiText("sentences.hot.leads", { value1: (projects.filter((p) => isLead(p) && p.lead_heat === 'hot_lead').length) })} />
+              <Stat label={uiText("dashboard.active")} value={String(summary?.active ?? '—')} sub={summary?.money_hidden ? uiText("dashboard.under.construction.or.listed") : uiText("sentences.over.budget.2", { value1: (summary?.over_budget_count ?? 0) })} />
               {summary?.money_hidden ? (
                 <>
-                  <Stat label="轮到我" value={String(roleData?.my_todo?.length ?? '—')} sub={`${roleData?.my_todo?.filter((r) => r.is_current).length ?? 0} 件是现在这段的`} />
-                  <Stat label="售出收尾" value={String(summary?.portfolio ?? '—')} help="已交割、在收尾或已走完" />
+                  <Stat label={uiText("dashboard.my.turn")} value={String(roleData?.my_todo?.length ?? '—')} sub={uiText("sentences.items.belong.to.the.current.stage", { value1: (roleData?.my_todo?.filter((r) => r.is_current).length ?? 0) })} />
+                  <Stat label={uiText("addProject.sold.closeout")} value={String(summary?.portfolio ?? '—')} help={uiText("dashboard.closed.in.closeout.or.process.complete")} />
                 </>
               ) : (
                 <>
-                  <Stat label="已投入" value={compactMoney(summary?.total_invested)} help="在建项目买入价 + 已支出" />
-                  <Stat label="预计利润" value={compactMoney(summary?.expected_profit)} sub={incompleteNote(summary?.profit_incomplete_count) ?? undefined} help="在建：目标售价 − 买入 − 装修" />
+                  <Stat label={uiText("dashboard.invested")} value={compactMoney(summary?.total_invested)} help={uiText("dashboard.active.project.purchase.prices.expenses")} />
+                  <Stat label={uiText("dashboard.estimated.profit")} value={compactMoney(summary?.expected_profit)} sub={incompleteNote(summary?.profit_incomplete_count) ?? undefined} help={uiText("dashboard.active.target.sale.price.purchase.renovation")} />
                 </>
               )}
         </ColumnLayout></CardFrame>}
@@ -623,14 +628,14 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
             {...collectionProps}
             items={rows}
             loading={loading}
-            loadingText="加载中"
+            loadingText={uiText("dashboard.loading")}
             variant="container"
             resizableColumns
 
-            header={<Header variant="h2" counter={`(${filtered.length})`}>全部项目</Header>}
+            header={<Header variant="h2" counter={`(${filtered.length})`}>{uiText("founderDesign.all.projects")}</Header>}
             filter={
               <SpaceBetween direction="horizontal" size="xs">
-                <TextFilter {...searchProps} filteringPlaceholder="按项目名或地址查找" countText={`${rows.length} 个匹配`} />
+                <TextFilter {...searchProps} filteringPlaceholder={uiText("dashboard.search.by.project.name.or.address")} countText={uiText("sentences.matches", { value1: (rows.length) })} />
                 {groupSelect}
               </SpaceBetween>
             }
@@ -648,7 +653,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
             <BoardItem
               header={<><ReviewTag cardId={`widget-${item.id as WidgetId}`} context={item.data.title} /><Header variant="h2">{item.data.title}</Header></>}
               i18nStrings={itemI18n}
-              settings={<Button variant="icon" iconName="close" ariaLabel="移除小组件" onClick={() => actions.removeItem()} />}
+              settings={<Button variant="icon" iconName="close" ariaLabel={uiText("dashboard.remove.widget")} onClick={() => actions.removeItem()} />}
             >
               {widget(item.id as WidgetId)}
             </BoardItem>

@@ -1,3 +1,6 @@
+import { systemText } from '../../i18n/core.ts';
+import { useLanguage } from '../../i18n/LanguageProvider';
+import { m as uiText } from '../../i18n/core.ts';
 import { FONT, ORDINAL_BLUE, SERIES, TEXT, TEXT_2, TEXT_INVERTED } from './palette';
 import { useTooltip } from './Tooltip';
 
@@ -17,6 +20,7 @@ interface Props {
 
 /** 部分对整体：一根横条，段间 2px 白隙，段内放得下才写数字；可加一条参考线。 */
 export default function StackedBar({ segments, format = (n) => String(n), marker, height = 22, legend = true, legendColumns = 1, emptyText = '暂无数据' }: Props) {
+  useLanguage();
   const tip = useTooltip();
   const segs = segments.filter((s) => s.value > 0).map((s, i) => ({ ...s, color: s.color ?? (s.ordinalIndex == null ? SERIES[i % SERIES.length] : ORDINAL_BLUE[s.ordinalIndex]) }));
   const total = segs.reduce((a, s) => a + s.value, 0);
@@ -34,7 +38,7 @@ export default function StackedBar({ segments, format = (n) => String(n), marker
               <div
                 key={s.label}
                 style={{ flex: `${s.value} 0 0`, background: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: TEXT_INVERTED, fontSize: 12, fontWeight: 700, overflow: 'hidden', whiteSpace: 'nowrap', minWidth: 0 }}
-                onMouseMove={(e) => tip.show(e, [{ label: s.label, value: format(s.value), color: s.color }, { label: '占比', value: `${pct.toFixed(1)}%` }])}
+                onMouseMove={(e) => tip.show(e, [{ label: s.label, value: format(s.value), color: s.color }, { label: uiText("stackedBar.share"), value: `${pct.toFixed(1)}%` }])}
                 onMouseLeave={tip.hide}
               >
                 {pct >= 12 ? <span style={{ padding: '0 6px' }}>{format(s.value)}</span> : null}
@@ -44,7 +48,7 @@ export default function StackedBar({ segments, format = (n) => String(n), marker
         </div>
         {marker && (
           <div style={{ position: 'absolute', left: `${(marker.value / scale) * 100}%`, top: 0, bottom: 0, transform: 'translateX(-1px)' }}>
-            <div style={{ position: 'absolute', top: 0, left: 0, transform: 'translateX(-50%)', fontSize: 12, color: TEXT_2, whiteSpace: 'nowrap' }}>{marker.label} {format(marker.value)}</div>
+            <div style={{ position: 'absolute', top: 0, left: 0, transform: 'translateX(-50%)', fontSize: 12, color: TEXT_2, whiteSpace: 'nowrap' }}>{systemText(marker.label)} {format(marker.value)}</div>
             <div style={{ position: 'absolute', top: 16, bottom: -4, width: 2, background: TEXT, borderRadius: 1 }} />
           </div>
         )}
@@ -54,7 +58,7 @@ export default function StackedBar({ segments, format = (n) => String(n), marker
           {segs.map((s) => (
             <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ width: 10, height: 10, borderRadius: 2, background: s.color, flexShrink: 0 }} />
-              <span style={{ color: TEXT, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.label}</span>
+              <span style={{ color: TEXT, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{systemText(s.label)}</span>
               <span style={{ color: TEXT_2, fontVariantNumeric: 'tabular-nums' }}>{format(s.value)}</span>
               <span style={{ color: TEXT, fontWeight: 700, minWidth: 44, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{((s.value / total) * 100).toFixed(1)}%</span>
             </div>

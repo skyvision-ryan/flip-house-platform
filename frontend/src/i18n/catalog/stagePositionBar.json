@@ -1,0 +1,26 @@
+{
+  "stagePositionBar.complete": [
+    "已完成",
+    "Complete"
+  ],
+  "stagePositionBar.current.position": [
+    "当前位置",
+    "Current position"
+  ],
+  "stagePositionBar.not.reached": [
+    "未到达",
+    "Not reached"
+  ],
+  "stagePositionBar.earlier.history.needs.verification": [
+    "录入前历史待核验",
+    "Earlier history needs verification"
+  ],
+  "stagePositionBar.current": [
+    "当前",
+    "Current"
+  ],
+  "stagePositionBar.light.blue.marks.passed.stages.dark.blue.marks.the": [
+    "浅蓝表示已完成，深蓝表示当前位置，灰色表示未到达。位置由关键节点推进，不代表任务完成比例。",
+    "Light blue marks passed stages, dark blue marks the current position, and gray marks stages not reached. Milestones determine position; this is not task completion percentage."
+  ]
+}

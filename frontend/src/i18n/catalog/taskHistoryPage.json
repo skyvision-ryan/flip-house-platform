@@ -1,0 +1,74 @@
+{
+  "taskHistoryPage.task.activity.history": [
+    "任务活动记录",
+    "Task activity history"
+  ],
+  "taskHistoryPage.back.to.project.overview": [
+    "返回项目总览",
+    "Back to project overview"
+  ],
+  "taskHistoryPage.activity.history": [
+    "· 活动记录",
+    "· Activity history"
+  ],
+  "taskHistoryPage.who.did.what.and.when.read.only": [
+    "每一步是谁、什么时候、做了什么。只读。",
+    "Who did what and when. Read-only."
+  ],
+  "taskHistoryPage.requirement.scope.and.order.records": [
+    "需求范围与订单记录",
+    "Requirement scope and order records"
+  ],
+  "taskHistoryPage.no.procurement.scope.changes.recorded": [
+    "暂无采购范围调整记录。",
+    "No procurement scope changes recorded."
+  ],
+  "taskHistoryPage.procurement.activity.from.the.latest.200.project.records.detailed": [
+    "显示最近 200 条项目记录中的采购活动；具体订单与收货版本保留在订单详情。",
+    "Procurement activity from the latest 200 project records. Detailed order and receipt versions remain in order details."
+  ],
+  "taskHistoryPage.current.status": [
+    "当前状态",
+    "Current status"
+  ],
+  "taskHistoryPage.materials.ready.before.rough.in": [
+    "水电前材料齐备",
+    "Materials ready before rough-in"
+  ],
+  "taskHistoryPage.milestone.confirmation": [
+    "节点确认",
+    "Milestone confirmation"
+  ],
+  "taskHistoryPage.project.template": [
+    "项目模板",
+    "Project template"
+  ],
+  "taskHistoryPage.ad.hoc.task": [
+    "临时新增",
+    "Ad hoc task"
+  ],
+  "taskHistoryPage.requirement.change": [
+    "需求变更",
+    "Requirement change"
+  ],
+  "taskHistoryPage.handle.task.details.and.deliverables.in.my.tasks": [
+    "任务详情与交付在「我的事项」处理。",
+    "Handle task details and deliverables in My tasks."
+  ],
+  "taskHistoryPage.action.entry": [
+    "处理入口",
+    "Action entry"
+  ],
+  "taskHistoryPage.view.property.requirements.and.orders": [
+    "查看本房需求与订单",
+    "View property requirements and orders"
+  ],
+  "taskHistoryPage.open.my.tasks": [
+    "前往我的事项",
+    "Open My tasks"
+  ],
+  "taskHistoryPage.this.task.is.not.assigned.to.you.its.assignee": [
+    "这项任务不在你名下；负责人和审核人在「我的事项」处理。",
+    "This task is not assigned to you. Its assignee and reviewer handle it in My tasks."
+  ]
+}

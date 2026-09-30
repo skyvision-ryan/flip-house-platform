@@ -1,3 +1,6 @@
+import { systemText } from '../i18n/core.ts';
+import { useLanguage } from '../i18n/LanguageProvider';
+import { m as uiText } from '../i18n/core.ts';
 import Avatar from '@cloudscape-design/chat-components/avatar';
 import ChatBubble from '@cloudscape-design/chat-components/chat-bubble';
 import SupportPromptGroup from '@cloudscape-design/chat-components/support-prompt-group';
@@ -12,20 +15,21 @@ import { useNavigate } from 'react-router-dom';
 import { api, Project } from '../api/client';
 import { answer, headline, Insight, loadInsights } from '../lib/insights';
 
-type Msg = { id: number; from: 'ai' | 'me'; text: string; items?: Insight[] };
+type Msg = { id: number; from: 'ai' | 'me'; text: string; prompt?: string; items?: Insight[] };
 
-const AI = <Avatar color="gen-ai" iconName="gen-ai" ariaLabel="助手" tooltipText="助手" />;
-const ME = <Avatar initials="我" ariaLabel="我" />;
+const AI = () => <Avatar color="gen-ai" iconName="gen-ai" ariaLabel={uiText("app.assistant")} tooltipText={uiText("app.assistant")} />;
+const ME = () => <Avatar initials={uiText("assistantPanel.me")} ariaLabel={uiText("assistantPanel.me")} />;
 
 function InsightList({ items, onGo }: { items: Insight[]; onGo: (href: string) => void }) {
+  useLanguage();
   if (!items.length) return null;
   return (
     <SpaceBetween size="xs">
       {items.map((i, k) => (
         <SpaceBetween key={k} direction="horizontal" size="xs" alignItems="start">
-          <StatusIndicator type={i.level}>{i.tag}</StatusIndicator>
+          <StatusIndicator type={i.level}>{systemText(i.tag)}</StatusIndicator>
           <span>
-            {i.text} <Link href={i.href} onFollow={(e) => { e.preventDefault(); onGo(i.href); }}>去看看</Link>
+            {systemText(i.text)} <Link href={i.href} onFollow={(e) => { e.preventDefault(); onGo(i.href); }}>{uiText("assistantPanel.view")}</Link>
           </span>
         </SpaceBetween>
       ))}
@@ -34,6 +38,7 @@ function InsightList({ items, onGo }: { items: Insight[]; onGo: (href: string) =
 }
 
 export default function AssistantPanel() {
+  useLanguage();
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [insights, setInsights] = useState<Insight[]>([]);
@@ -50,7 +55,7 @@ export default function AssistantPanel() {
       const urgent = ins.filter((i) => i.level !== 'info');
       setMsgs([
         { id: 1, from: 'ai', text: `${h.title}。${h.subtitle}` },
-        ...(urgent.length ? [{ id: 2, from: 'ai' as const, text: '先看这几条：', items: urgent }] : []),
+        ...(urgent.length ? [{ id: 2, from: 'ai' as const, text: uiText("assistantPanel.start.with.these"), items: urgent }] : []),
       ]);
     }).finally(() => setLoading(false));
   }, []);
@@ -61,8 +66,8 @@ export default function AssistantPanel() {
     setMsgs((m) => [
       ...m,
       { id: Date.now(), from: 'me', text: q },
-      a ? { id: Date.now() + 1, from: 'ai', text: a.text, items: a.items }
-        : { id: Date.now() + 1, from: 'ai', text: '这个问题现在还答不了。目前我只会按规则读项目数据（超支、落后、缺数据、缺文件、待定价）。接入大模型后可以直接问。' },
+      a ? { id: Date.now() + 1, from: 'ai', text: a.text, prompt: q, items: a.items }
+        : { id: Date.now() + 1, from: 'ai', text: uiText("assistantPanel.i.cannot.answer.that.yet.this.assistant.reads.project") },
     ]);
     setInput('');
   };
@@ -70,16 +75,16 @@ export default function AssistantPanel() {
   const go = (href: string) => navigate(href);
 
   return (
-    <Drawer header={<span>助手</span>}>
+    <Drawer header={<span>{uiText("app.assistant")}</span>}>
       <SpaceBetween size="l">
-        <Box variant="small" color="text-body-secondary">当前为规则助手，根据已有项目数据提供提示。</Box>
+        <Box variant="small" color="text-body-secondary">{uiText("assistantPanel.this.rule.based.assistant.provides.guidance.from.existing.project")}</Box>
 
-        {loading && <ChatBubble type="incoming" avatar={AI} ariaLabel="助手正在读取" showLoadingBar>正在读取所有项目…</ChatBubble>}
+        {loading && <ChatBubble type="incoming" avatar={<AI />} ariaLabel={uiText("assistantPanel.assistant.is.loading")} showLoadingBar>{uiText("assistantPanel.reading.projects")}</ChatBubble>}
 
         {msgs.map((m) => (
-          <ChatBubble key={m.id} type={m.from === 'ai' ? 'incoming' : 'outgoing'} avatar={m.from === 'ai' ? AI : ME} ariaLabel={m.from === 'ai' ? '助手' : '我'}>
+          <ChatBubble key={m.id} type={m.from === 'ai' ? 'incoming' : 'outgoing'} avatar={m.from === 'ai' ? <AI /> : <ME />} ariaLabel={m.from === 'ai' ? uiText("app.assistant") : uiText("assistantPanel.me")}>
             <SpaceBetween size="xs">
-              <span>{m.text}</span>
+              <span>{m.from !== 'ai' ? m.text : m.id === 1 ? `${systemText(headline(insights, projects).title)}. ${systemText(headline(insights, projects).subtitle)}` : m.prompt ? answer(m.prompt, insights)?.text ?? systemText(m.text) : systemText(m.text)}</span>
               {m.items && <InsightList items={m.items} onGo={go} />}
             </SpaceBetween>
           </ChatBubble>
@@ -87,34 +92,34 @@ export default function AssistantPanel() {
 
         {!loading && (
           <div>
-          <Box margin={{ bottom: 'xs' }}>建议提问</Box>
+          <Box margin={{ bottom: 'xs' }}>{uiText("assistantPanel.suggested.questions")}</Box>
           <SupportPromptGroup
-            ariaLabel="建议的问题"
+            ariaLabel={uiText("assistantPanel.suggested.questions.2")}
             alignment="vertical"
             items={[
-              { id: 'over', text: '哪些项目超预算了？' },
-              { id: 'data', text: '哪些项目数据不完整？' },
-              { id: 'due', text: '最近要完工的是哪套？' },
+              { id: 'over', text: uiText("assistantPanel.which.projects.are.over.budget") },
+              { id: 'data', text: uiText("assistantPanel.which.projects.have.incomplete.data") },
+              { id: 'due', text: uiText("assistantPanel.which.property.is.due.to.finish.soon") },
             ]}
             onItemClick={({ detail }) => {
               const q = { over: '哪些项目超预算了？', data: '哪些项目数据不完整？', due: '最近要完工的是哪套？' }[detail.id] ?? '';
-              ask(q);
+              ask(systemText(q));
             }}
           />
           </div>
         )}
 
-        <Box>问一句</Box>
+        <Box>{uiText("assistantPanel.ask.a.question")}</Box>
         <PromptInput
           value={input}
           onChange={({ detail }) => setInput(detail.value)}
           onAction={() => ask(input)}
-          placeholder="问一句，比如“哪个项目落后了”"
+          placeholder={uiText("assistantPanel.ask.a.question.such.as.which.project.is.behind")}
           actionButtonIconName="send"
-          actionButtonAriaLabel="发送"
+          actionButtonAriaLabel={uiText("assistantPanel.send")}
           disableActionButton={!input.trim()}
         />
-        <Box variant="small" color="text-body-secondary">共 {projects.length} 个项目，{insights.length} 条洞察。</Box>
+        <Box variant="small" color="text-body-secondary">{uiText("assistantPanel.total")} {projects.length} {uiText("assistantPanel.projects")}{insights.length} {uiText("assistantPanel.insights")}</Box>
       </SpaceBetween>
     </Drawer>
   );

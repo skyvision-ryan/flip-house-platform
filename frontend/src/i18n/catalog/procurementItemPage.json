@@ -1,0 +1,94 @@
+{
+  "procurementItemPage.save.or.discard.your.current.changes.first": [
+    "请先保存或放弃当前修改。",
+    "Save or discard your current changes first."
+  ],
+  "procurementItemPage.select.a.property.you.can.manage.procurement.for": [
+    "请选择有采购权限的房屋",
+    "Select a property you can manage procurement for"
+  ],
+  "procurementItemPage.material.image.uploaded": [
+    "材料图片已上传",
+    "Material image uploaded"
+  ],
+  "procurementItemPage.procurement.list.could.not.be.loaded": [
+    "采购清单暂时无法加载",
+    "Procurement list could not be loaded"
+  ],
+  "procurementItemPage.loading.procurement.item": [
+    "正在加载采购项…",
+    "Loading procurement item…"
+  ],
+  "procurementItemPage.item.does.not.exist.or.access.is.denied": [
+    "采购项不存在或无权访问。",
+    "Item does not exist or access is denied."
+  ],
+  "procurementItemPage.back.to.procurement.list": [
+    "返回采购清单",
+    "Back to procurement list"
+  ],
+  "procurementItemPage.close.editor": [
+    "关闭编辑",
+    "Close editor"
+  ],
+  "procurementItemPage.select.a.property": [
+    "请选择房屋",
+    "Select a property"
+  ],
+  "procurementItemPage.procurement.group": [
+    "采购分组",
+    "Procurement group"
+  ],
+  "procurementItemPage.requirement.status": [
+    "需求状态",
+    "Requirement status"
+  ],
+  "procurementItemPage.linked.orders.exist.purchase.progress.updates.from.orders.and": [
+    "已有订单，购买进展按订单和实收自动更新。",
+    "Linked orders exist. Purchase progress updates from orders and actual receipts."
+  ],
+  "procurementItemPage.save.requirement": [
+    "保存需求",
+    "Save requirement"
+  ],
+  "procurementItemPage.discard.changes": [
+    "放弃修改",
+    "Discard changes"
+  ],
+  "procurementItemPage.reload": [
+    "重新载入",
+    "Reload"
+  ],
+  "procurementItemPage.material.details.last.edited": [
+    "材料资料最近编辑：",
+    "Material details last edited:"
+  ],
+  "procurementItemPage.select.an.image.to.zoom.and.browse.jpg.png": [
+    "点击图片放大核对，可连续查看。JPG / PNG / WebP，每张不超过 8 MB，最多 12 张。",
+    "Select an image to zoom and browse. JPG / PNG / WebP, up to 8 MB each and 12 images total."
+  ],
+  "procurementItemPage.no.material.images.uploaded.yet": [
+    "尚未上传材料图片。",
+    "No material images uploaded yet."
+  ],
+  "procurementItemPage.add.material.images": [
+    "添加材料图片",
+    "Add material images"
+  ],
+  "procurementItemPage.remove.material.image": [
+    "移除材料图片",
+    "Remove material image"
+  ],
+  "procurementItemPage.confirm.removal": [
+    "确认移除",
+    "Confirm removal"
+  ],
+  "procurementItemPage.remove": [
+    "移除「",
+    "Remove “"
+  ],
+  "procurementItemPage.restoring.it.will.require.another.upload": [
+    "」后，需要重新上传才能恢复。",
+    "”? Restoring it will require another upload."
+  ]
+}

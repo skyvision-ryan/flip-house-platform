@@ -50,7 +50,7 @@ def ensure_tasks(db: Session, project_id: int, *, commit: bool = True) -> list[m
     for stage_key, it in [(st["key"], it) for st in STAGE_CHECKLIST for it in st["items"] if not it.get("gate") or it["key"] in SINGLE_CONFIRM_KEYS]:
         if it["key"] in have:
             continue
-        db.add(models.Task(project_id=project_id, step_key=it["key"], source="node_confirmation" if it["key"] in SINGLE_CONFIRM_KEYS else "template", stage_key=stage_key, title=it["title"]))
+        db.add(models.Task(project_id=project_id, step_key=it["key"], source="node_confirmation" if it["key"] in SINGLE_CONFIRM_KEYS else "template", stage_key=stage_key, title=it["title"], template_key="task." + it["key"], template_name_snapshot=it["title"]))
         added = True
     if added:
         db.commit() if commit else db.flush()
@@ -133,6 +133,7 @@ def _event_out(ev: models.TaskEvent, users: dict[int, models.User]) -> dict:
         "before": json.loads(ev.before_json) if ev.before_json else None,
         "after": json.loads(ev.after_json) if ev.after_json else None,
         "reason": ev.reason, "created_at": ev.created_at, "text": _event_text(ev, names),
+        "participant_names": {uid: name for uid, name in names.items() if any(uid == data.get(key) for data in (json.loads(ev.before_json or "{}"), json.loads(ev.after_json or "{}")) for key in ("assignee_user_id", "user_id"))},
     }
 
 
@@ -184,6 +185,7 @@ def _task_out(t: models.Task, p: models.Project, steps: dict, users: dict[int, m
     return {
         "id": t.id, "project_id": t.project_id, "project_name": p.name, "project_address": p.property.address_std,
         "step_key": t.step_key, "source": t.source,
+        "template_key": t.template_key, "template_name_snapshot": t.template_name_snapshot,
         "stage_key": t.stage_key, "stage_label": STAGE_LABEL.get(t.stage_key, t.stage_key), "stage_short": STAGE_SHORT.get(t.stage_key, t.stage_key),
         "stage_index": STAGE_INDEX.get(t.stage_key, 0), "project_current_stage_index": cur_idx, "project_current_stage_label": cur["label"],
         "title": "房屋采购" if t.step_key == "purchase" and t.title == "分阶段采购" else t.title, "ws": it.get("ws"), "purpose": it.get("purpose"),
@@ -325,12 +327,14 @@ def focus_facts(p: models.Project, steps: dict, rows: list[dict]) -> list[dict]:
     unsatisfied = [r for r in cur if not r["satisfied"] and r["exec_status"] != "done"]
     nxt = next_action(rows, cur_key)
 
-    def fact(label, value, tone="normal"):
-        return {"label": label, "value": value, "tone": tone}
+    def fact(label, value, tone="normal", task=None, state=None):
+        return {"label": label, "value": value, "tone": tone,
+                "task_display": {k: task.get(k) for k in ("title", "template_key", "template_name_snapshot")} if task else None,
+                "task_state": state}
 
     g, sub = gp["group_key"], gp["sub_key"]
     if g == "buying" and sub == "pre":
-        return [fact("下一动作", nxt["title"] if nxt else "本段任务都已安排"),
+        return [fact("下一动作", nxt["title"] if nxt else "本段任务都已安排", task=nxt),
                 fact("当前阶段", gp["label"]),
                 fact("待安排", f"{len(unassigned)} 项", "warning" if unassigned else "normal")]
     if g == "buying":
@@ -339,7 +343,7 @@ def focus_facts(p: models.Project, steps: dict, rows: list[dict]) -> list[dict]:
                 fact("当前待协调", f"{len(waiting)} 项", "warning" if waiting else "normal")]
     if g == "renovation":
         focus = pending[0]["title"] + " 待审核" if pending else (running[0]["title"] + " 进行中" if running else (nxt["title"] if nxt else "本段任务都已安排"))
-        return [fact("当前重点", focus),
+        return [fact("当前重点", focus, task=pending[0] if pending else (running[0] if running else nxt), state="pending_review" if pending else ("in_progress" if running else None)),
                 fact("计划开工", _mmdd(p.construction_start)),
                 fact("待协调", f"{len(waiting)} 项等待", "warning" if waiting else "normal")]
     if g == "prelisting":
@@ -433,7 +437,7 @@ def my_workbench(db: Session = Depends(get_db), me: models.User = Depends(requir
         rows_out.append({
             "project_id": p.id, "project_name": p.name, "address": p.property.address_std,
             "group_position": steps["group_position"], "position_label": steps["group_position"]["label"],
-            "next_action": ({"task_id": nxt["id"], "title": nxt["title"], "exec_status": nxt["exec_status"], "exec_status_label": nxt["exec_status_label"],
+            "next_action": ({"task_id": nxt["id"], "title": nxt["title"], "template_key": nxt.get("template_key"), "template_name_snapshot": nxt.get("template_name_snapshot"), "exec_status": nxt["exec_status"], "exec_status_label": nxt["exec_status_label"],
                              "due_at": nxt["due_at"], "actor": actor_brief, "kind": "review" if nxt["exec_status"] == "pending_review" else ("assign" if not nxt["assignee"] else "do")} if nxt else None),
             "procurement": purchase_overview(db, p.id) if allowed(me.role_code, "procurement") else None,
             "waiting_count": sum(1 for r in payload if r["exec_status"] == "waiting"),

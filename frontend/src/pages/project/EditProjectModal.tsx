@@ -1,3 +1,6 @@
+import { systemText } from '../../i18n/core.ts';
+import { useLanguage } from '../../i18n/LanguageProvider';
+import { m as uiText } from '../../i18n/core.ts';
 import Alert from '@cloudscape-design/components/alert';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
@@ -20,6 +23,7 @@ const numOrNull = (s: string) => (s.trim() === '' ? null : Number(s));
 const str = (v: number | null | undefined) => (v == null ? '' : String(v));
 
 export default function EditProjectModal({ visible, project, onDismiss, onSaved }: Props) {
+  useLanguage();
   const meta = useMeta();
   const flash = useFlash();
   const [f, setF] = useState<any>({});
@@ -48,8 +52,8 @@ export default function EditProjectModal({ visible, project, onDismiss, onSaved 
   const set = (k: string, v: any) => { setDirty(true); setF((p: any) => ({ ...p, [k]: v })); };
   const close = () => { if (saving) return; if (dirty) setDiscard(true); else onDismiss(); };
   const substages = meta?.substages[f.stage] ?? [];
-  const statusOptions = [{ label: '不覆盖（自动计算）', value: '' }, ...(meta?.statuses.filter((s) => s.value !== 'done') ?? [])];
-  const heatOptions = [{ label: '热线索', value: 'hot_lead' }, { label: '温线索', value: 'warm_lead' }];
+  const statusOptions = [{ label: uiText("editProjectModal.no.override.calculated.automatically"), value: '' }, ...(meta?.statuses.filter((s) => s.value !== 'done') ?? [])];
+  const heatOptions = [{ label: uiText("leads.hot.lead"), value: 'hot_lead' }, { label: uiText("leads.warm.lead"), value: 'warm_lead' }];
 
   const save = async () => {
     if (saving) return;
@@ -64,10 +68,10 @@ export default function EditProjectModal({ visible, project, onDismiss, onSaved 
         clear_status_override: !f.status_override,
         risks: f.risks || null, notes: f.notes || null,
       });
-      flash({ type: 'success', content: '项目已更新' });
+      flash({ type: 'success', content: uiText("editProjectModal.project.updated") });
       onSaved();
     } catch (e: any) {
-      setError(`未保存：${e.message}`);
+      setError(uiText("sentences.not.saved", { value1: (e.message) }));
     } finally {
       setSaving(false);
     }
@@ -84,58 +88,58 @@ export default function EditProjectModal({ visible, project, onDismiss, onSaved 
       visible={visible}
       onDismiss={close}
       size="large"
-      header="编辑项目"
+      header={uiText("editProjectModal.edit.project")}
       footer={
         <Box float="right">
           <SpaceBetween direction="horizontal" size="xs">
-            <Button variant="link" disabled={saving} onClick={close}>取消</Button>
-            <Button variant="primary" loading={saving} onClick={save}>保存</Button>
+            <Button variant="link" disabled={saving} onClick={close}>{uiText("fieldWithSource.cancel")}</Button>
+            <Button variant="primary" loading={saving} onClick={save}>{uiText("fieldWithSource.save")}</Button>
           </SpaceBetween>
         </Box>
       }
     >
       <SpaceBetween size="l">
-        {error && <Alert type="error">{error}</Alert>}
-        {discard && <div ref={discardRef} tabIndex={-1}><Alert type="warning" header="修改尚未保存" action={<SpaceBetween direction="horizontal" size="xs"><Button onClick={() => setDiscard(false)}>继续编辑</Button><Button onClick={onDismiss}>放弃修改</Button></SpaceBetween>}>关闭会丢弃本次输入。</Alert></div>}
+        {error && <Alert type="error">{systemText(error)}</Alert>}
+        {discard && <div ref={discardRef} tabIndex={-1}><Alert type="warning" header={uiText("analysisTab.unsaved.changes")} action={<SpaceBetween direction="horizontal" size="xs"><Button onClick={() => setDiscard(false)}>{uiText("editProjectModal.continue.editing")}</Button><Button onClick={onDismiss}>{uiText("procurementItemPage.discard.changes")}</Button></SpaceBetween>}>{uiText("editProjectModal.closing.discards.these.inputs")}</Alert></div>}
         <ColumnLayout columns={3}>
-          <FormField label="项目名称"><Input value={f.name ?? ''} onChange={({ detail }) => set('name', detail.value)} /></FormField>
-          <FormField label="投资策略">
+          <FormField label={uiText("addProject.project.name")}><Input value={f.name ?? ''} onChange={({ detail }) => set('name', detail.value)} /></FormField>
+          <FormField label={uiText("addProject.investment.strategy")}>
             <Select selectedOption={meta?.strategies.find((s) => s.value === f.strategy) ?? null} options={meta?.strategies ?? []} onChange={({ detail }) => set('strategy', detail.selectedOption.value)} />
           </FormField>
-          <FormField label="阶段" description="由清单的大节点推进，不能手改">
+          <FormField label={uiText("myTodoTable.stage")} description={uiText("editProjectModal.advanced.by.checklist.milestones.cannot.be.edited.manually")}>
             <Select disabled selectedOption={meta?.stages.find((s) => s.value === f.stage) ?? null} options={meta?.stages ?? []} onChange={() => undefined} />
           </FormField>
-          <FormField label="子阶段" description="只有线索阶段可以手改热度与进展">
+          <FormField label={uiText("editProjectModal.substage")} description={uiText("editProjectModal.only.lead.follow.up.and.priority.can.be.edited")}>
             <Select disabled={f.stage !== 'lead'} selectedOption={substages.find((s) => s.value === f.substage) ?? null} options={substages} onChange={({ detail }) => set('substage', detail.selectedOption.value)} />
           </FormField>
           {f.stage === 'lead' && (
-            <FormField label="线索热度">
+            <FormField label={uiText("editProjectModal.lead.priority")}>
               <Select selectedOption={heatOptions.find((h) => h.value === f.lead_heat) ?? null} options={heatOptions} onChange={({ detail }) => set('lead_heat', detail.selectedOption.value)} />
             </FormField>
           )}
         </ColumnLayout>
         <ColumnLayout columns={3}>
-          <FormField label="买入价（美元）"><Input type="number" value={f.purchase_price ?? ''} onChange={({ detail }) => set('purchase_price', detail.value)} /></FormField>
-          <FormField label="目标售价 ARV（美元）"><Input type="number" value={f.target_arv ?? ''} onChange={({ detail }) => set('target_arv', detail.value)} /></FormField>
-          <FormField label="实际成交价（美元）"><Input type="number" value={f.sale_price ?? ''} onChange={({ detail }) => set('sale_price', detail.value)} /></FormField>
+          <FormField label={uiText("stepActions.purchase.price.usd")}><Input type="number" value={f.purchase_price ?? ''} onChange={({ detail }) => set('purchase_price', detail.value)} /></FormField>
+          <FormField label={uiText("addProject.after.repair.value.arv.usd")}><Input type="number" value={f.target_arv ?? ''} onChange={({ detail }) => set('target_arv', detail.value)} /></FormField>
+          <FormField label={uiText("editProjectModal.actual.sale.price.usd")}><Input type="number" value={f.sale_price ?? ''} onChange={({ detail }) => set('sale_price', detail.value)} /></FormField>
         </ColumnLayout>
         <ColumnLayout columns={3}>
-          {date('purchase_date', '买入日期')}
-          {date('construction_start', '开工日期')}
-          {date('construction_end', '计划完工日期')}
-          {date('list_date', '挂牌日期')}
-          {date('sale_date', '成交日期')}
+          {date('purchase_date', uiText("leadershipProjectDetail.purchase.date"))}
+          {date('construction_start', uiText("stepActions.construction.start.date"))}
+          {date('construction_end', uiText("leadershipProjectDetail.planned.finish.date"))}
+          {date('list_date', uiText("stepActions.listing.date"))}
+          {date('sale_date', uiText("stepActions.closing.date"))}
         </ColumnLayout>
         <ColumnLayout columns={2}>
-          <FormField label="状态覆盖" description="默认由预算与进度自动计算；需要人工判断时在此覆盖并写明理由。">
+          <FormField label={uiText("editProjectModal.status.override")} description={uiText("editProjectModal.calculated.from.budget.and.progress.by.default.override.with")}>
             <Select selectedOption={statusOptions.find((s) => s.value === f.status_override) ?? statusOptions[0]} options={statusOptions} onChange={({ detail }) => set('status_override', detail.selectedOption.value)} />
           </FormField>
-          <FormField label="覆盖理由">
+          <FormField label={uiText("editProjectModal.override.reason")}>
             <Input value={f.status_override_reason ?? ''} disabled={!f.status_override} onChange={({ detail }) => set('status_override_reason', detail.value)} />
           </FormField>
         </ColumnLayout>
-        <FormField label="风险" stretch><Textarea value={f.risks ?? ''} rows={3} onChange={({ detail }) => set('risks', detail.value)} /></FormField>
-        <FormField label="备注" stretch><Textarea value={f.notes ?? ''} rows={2} onChange={({ detail }) => set('notes', detail.value)} /></FormField>
+        <FormField label={uiText("cardRegistry.risk")} stretch><Textarea value={f.risks ?? ''} rows={3} onChange={({ detail }) => set('risks', detail.value)} /></FormField>
+        <FormField label={uiText("inspectionsPanel.notes")} stretch><Textarea value={f.notes ?? ''} rows={2} onChange={({ detail }) => set('notes', detail.value)} /></FormField>
       </SpaceBetween>
     </Modal>
   );

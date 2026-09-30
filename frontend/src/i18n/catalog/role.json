@@ -1,0 +1,18 @@
+{
+  "role.decision.making": [
+    "决策",
+    "Decision-making"
+  ],
+  "role.coordination": [
+    "统筹",
+    "Coordination"
+  ],
+  "role.execution": [
+    "执行",
+    "Execution"
+  ],
+  "role.external": [
+    "外部",
+    "External"
+  ]
+}

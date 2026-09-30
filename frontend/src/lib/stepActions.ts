@@ -1,3 +1,5 @@
+import { systemText } from '../i18n/core.ts';
+import { m as uiText } from '../i18n/core.ts';
 import type { StepItem, Steps } from '../api/client';
 
 export type ActionMode = 'upload' | 'field' | 'tick' | 'confirm' | 'navigate' | 'view';
@@ -52,27 +54,27 @@ export function actionMode(item: StepItem, opts?: { forConfirm?: boolean }): Act
 
 export function actionLabel(item: StepItem, opts: { actor: string; canDo: boolean; forConfirm?: boolean }): string {
   const mode = actionMode(item, { forConfirm: opts.forConfirm });
-  if (mode === 'confirm') return '确认节点';
-  if (!opts.canDo && mode !== 'navigate') return '查看';
+  if (mode === 'confirm') return uiText("stepActions.confirm.milestone");
+  if (!opts.canDo && mode !== 'navigate') return uiText("procurementItemRow.view");
   const dv = item.deliverable;
-  if (mode === 'upload') return dv?.kind === 'photo' ? '交照片' : '交文件';
+  if (mode === 'upload') return dv?.kind === 'photo' ? uiText("myTodoTable.provide.photos") : uiText("myTodoTable.provide.files");
   if (mode === 'field') {
     const f = dv?.field ?? '';
-    if (f.endsWith('_date')) return '填日期';
-    if (f === 'risks') return '写风险';
-    if (f === 'purchase_price') return '填价格';
-    return `填${FIELD_LABEL[f] ?? f}`;
+    if (f.endsWith('_date')) return uiText("stepActions.enter.date");
+    if (f === 'risks') return uiText("stepActions.record.risk");
+    if (f === 'purchase_price') return uiText("stepActions.enter.price");
+    return uiText("sentences.enter", { value1: (FIELD_LABEL[f] ?? f) });
   }
-  if (mode === 'tick') return '标完成';
+  if (mode === 'tick') return uiText("stepActions.mark.complete");
   if (mode === 'navigate') {
-    if (dv?.record === 'utilities') return '填水电账户';
-    if (dv?.record === 'expenses') return '记支出';
-    if (dv?.record === 'procurement') return '管采购';
-    if (dv?.record === 'inspections') return '记检查';
-    if (dv?.record === 'analyses') return '去算账';
-    return '去处理';
+    if (dv?.record === 'utilities') return uiText("stepActions.enter.utility.accounts");
+    if (dv?.record === 'expenses') return uiText("stepActions.record.expense");
+    if (dv?.record === 'procurement') return uiText("stepActions.manage.procurement");
+    if (dv?.record === 'inspections') return uiText("stepActions.record.inspection");
+    if (dv?.record === 'analyses') return uiText("stepActions.open.analysis");
+    return uiText("stepActions.take.action");
   }
-  return '查看';
+  return uiText("procurementItemRow.view");
 }
 
 /** 深链：打开项目并落到对应动作。 */
@@ -94,32 +96,32 @@ export function actionHref(projectId: number, item: StepItem, opts?: { forConfir
 export function statusHint(item: StepItem): string {
   if (item.gate && item.confirm.length > 0) {
     const waiting = item.confirm.filter((c) => !item.confirmed.includes(c));
-    if (item.done) return '已确认';
-    if (item.confirmed.length) return `等 ${waiting.join('、')} 确认`;
-    return `待 ${item.confirm.join('、')} 确认`;
+    if (item.done) return uiText("stepsPanel.confirmed");
+    if (item.confirmed.length) return uiText("sentences.awaiting.confirmation", { value1: (waiting.join('、')) });
+    return uiText("sentences.awaiting.confirmation.2", { value1: (item.confirm.join('、')) });
   }
   const dv = item.deliverable;
-  if (!dv) return '待处理';
-  if (dv.kind === 'file') return `待交：${dv.label}`;
-  if (dv.kind === 'photo') return `待交照片：${dv.label}`;
-  if (dv.kind === 'field') return `待填：${FIELD_LABEL[dv.field ?? ''] ?? dv.label}`;
+  if (!dv) return uiText("stepActions.pending.action");
+  if (dv.kind === 'file') return uiText("sentences.provide.2", { value1: (systemText(dv.label)) });
+  if (dv.kind === 'photo') return uiText("sentences.provide.photos", { value1: (systemText(dv.label)) });
+  if (dv.kind === 'field') return uiText("sentences.enter.2", { value1: (FIELD_LABEL[dv.field ?? ''] ?? dv.label) });
   if (dv.kind === 'record') {
-    if (dv.record === 'utilities') return '待填水电账户';
-    if (dv.record === 'expenses') return '待记支出';
-    if (dv.record === 'procurement') return '待处理采购';
-    if (dv.record === 'inspections') return '待记检查';
-    if (dv.record === 'analyses') return '待算账';
+    if (dv.record === 'utilities') return uiText("stepActions.utility.accounts.needed");
+    if (dv.record === 'expenses') return uiText("stepActions.expense.entry.needed");
+    if (dv.record === 'procurement') return uiText("stepActions.procurement.action.needed");
+    if (dv.record === 'inspections') return uiText("stepActions.inspection.entry.needed");
+    if (dv.record === 'analyses') return uiText("stepActions.analysis.needed");
   }
-  if (dv.kind === 'tick') return '待标完成';
+  if (dv.kind === 'tick') return uiText("stepActions.completion.entry.needed");
   return dv.label;
 }
 
 /** 完成后 Flashbar 文案。 */
 export function nextUpFlash(doneTitle: string, steps: Steps): string {
   const next = steps.next_up[0];
-  if (!next) return `已完成「${doneTitle}」。本段暂无下一项。`;
+  if (!next) return uiText("sentences.completed.no.next.item.in.this.stage", { value1: (doneTitle) });
   const who = next.owners.length ? next.owners.join('、') : '相关同事';
-  return `已完成「${doneTitle}」。下一位：${who} · ${next.title}`;
+  return uiText("sentences.completed.next", { value1: (doneTitle), value2: (who), value3: (next.title) });
 }
 
 /** 从 steps 里按 key 找完整 StepItem。 */

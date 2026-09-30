@@ -1,3 +1,5 @@
+import { systemText } from '../../i18n/core.ts';
+import { useLanguage } from '../../i18n/LanguageProvider';
 import { SERIES, STATUS, SURFACE, TEXT_2, TEXT } from './palette';
 
 export interface ExtraMarker { at: number; label?: string }
@@ -18,6 +20,7 @@ interface Props {
 export const TRACK_GREY = `color-mix(in srgb, ${STATUS.neutral} 22%, ${SURFACE})`;
 
 export default function BudgetBar({ actual, target, scaleMax, height = 10, warnAt = 0.9, targetLabel, markers = [] }: Props) {
+  useLanguage();
   const S = scaleMax > 0 ? scaleMax : Math.max(actual, target, 1);
   const pct = (v: number) => `${Math.max(0, Math.min(100, (v / S) * 100))}%`;
   const ratio = target > 0 ? actual / target : null;
@@ -59,7 +62,7 @@ export default function BudgetBar({ actual, target, scaleMax, height = 10, warnA
       {markers.map((m, i) => (
         <div key={i} style={{ position: 'absolute', left: pct(m.at), top: 0, transform: 'translateX(-1px)', textAlign: 'center' }}>
           <div style={{ width: 2, height, background: TEXT_2, opacity: 0.7, borderRadius: 1 }} />
-          {m.label && <div style={{ fontSize: 10, color: TEXT_2, whiteSpace: 'nowrap', transform: labelShift(m.at), marginLeft: 1, marginTop: 3 }}>{m.label}</div>}
+          {m.label && <div style={{ fontSize: 10, color: TEXT_2, whiteSpace: 'nowrap', transform: labelShift(m.at), marginLeft: 1, marginTop: 3 }}>{systemText(m.label)}</div>}
         </div>
       ))}
     </div>

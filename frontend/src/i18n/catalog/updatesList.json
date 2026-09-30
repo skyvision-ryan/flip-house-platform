@@ -1,0 +1,50 @@
+{
+  "updatesList.files": [
+    "文件",
+    "Files"
+  ],
+  "updatesList.data": [
+    "数据",
+    "Data"
+  ],
+  "updatesList.expenses": [
+    "支出",
+    "Expenses"
+  ],
+  "updatesList.budget": [
+    "预算",
+    "Budget"
+  ],
+  "updatesList.analysis": [
+    "分析",
+    "Analysis"
+  ],
+  "updatesList.checklist": [
+    "清单",
+    "Checklist"
+  ],
+  "updatesList.utilities": [
+    "水电",
+    "Utilities"
+  ],
+  "updatesList.inspections": [
+    "检查",
+    "Inspections"
+  ],
+  "updatesList.today": [
+    "今天",
+    "Today"
+  ],
+  "updatesList.yesterday": [
+    "昨天",
+    "Yesterday"
+  ],
+  "updatesList.no.updates.yet": [
+    "还没有更新记录。",
+    "No updates yet."
+  ],
+  "updatesList.view": [
+    "去看",
+    "View"
+  ]
+}

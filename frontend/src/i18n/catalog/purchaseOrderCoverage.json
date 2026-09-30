@@ -1,0 +1,102 @@
+{
+  "purchaseOrderCoverage.view.purchase.records": [
+    "查看购买记录",
+    "View purchase records"
+  ],
+  "purchaseOrderCoverage.purchases.and.receipts.for.this.item": [
+    "本项实际购买与收货",
+    "Purchases and receipts for this item"
+  ],
+  "purchaseOrderCoverage.property.order.summary": [
+    "本房订单汇总",
+    "Property order summary"
+  ],
+  "purchaseOrderCoverage.item.procurement.budget": [
+    "本项采购预算",
+    "Item procurement budget"
+  ],
+  "purchaseOrderCoverage.recorded.item.amount": [
+    "· 已登记商品金额",
+    "· Recorded item amount"
+  ],
+  "purchaseOrderCoverage.incomplete.amount.records": [
+    "待完整登记",
+    "Incomplete amount records"
+  ],
+  "purchaseOrderCoverage.order.tax.shipping.and.discounts.are.separate.and.are": [
+    "（订单税费、运费、折扣另列，不自动分摊）",
+    "(Order tax, shipping, and discounts are separate and are not allocated automatically.)"
+  ],
+  "purchaseOrderCoverage.order.count": [
+    "订单数量",
+    "Order count"
+  ],
+  "purchaseOrderCoverage.no.orders": [
+    "暂无订单",
+    "No orders"
+  ],
+  "purchaseOrderCoverage.recorded.net.order.amount": [
+    "已登记订单净额",
+    "Recorded net order amount"
+  ],
+  "purchaseOrderCoverage.amount.scope": [
+    "金额范围",
+    "Amount scope"
+  ],
+  "purchaseOrderCoverage.sum.of.recorded.order.payments.less.refunds.excludes.legacy": [
+    "仅累计订单实付减退款，不含材料旧记录；采购登记金额，不代表财务核款。",
+    "Sum of recorded order payments less refunds. Excludes legacy material records; procurement entries do not represent financial verification."
+  ],
+  "purchaseOrderCoverage.close.amount.explanation": [
+    "关闭金额范围",
+    "Close amount explanation"
+  ],
+  "purchaseOrderCoverage.view.net.order.amount.scope": [
+    "查看订单净额范围",
+    "View net order amount scope"
+  ],
+  "purchaseOrderCoverage.orders.have.no.payment.amount.the.total.is.incomplete": [
+    "笔实付未填，汇总不完整。",
+    "orders have no payment amount; the total is incomplete."
+  ],
+  "purchaseOrderCoverage.refunds.deducted": [
+    "已扣退款",
+    "Refunds deducted"
+  ],
+  "purchaseOrderCoverage.no.linked.purchase.records.requirements.and.original.information.are": [
+    "尚未关联购买记录。采购项及原有资料保留。",
+    "No linked purchase records. Requirements and original information are retained."
+  ],
+  "purchaseOrderCoverage.order.item": [
+    "订单 / 商品",
+    "Order / item"
+  ],
+  "purchaseOrderCoverage.ordered.received.damaged": [
+    "订购 / 实收 / 破损",
+    "Ordered / received / damaged"
+  ],
+  "purchaseOrderCoverage.not.entered": [
+    "待填",
+    "Not entered"
+  ],
+  "purchaseOrderCoverage.still.needed": [
+    "仍需补齐",
+    "Still needed"
+  ],
+  "purchaseOrderCoverage.item.amount": [
+    "商品金额",
+    "Item amount"
+  ],
+  "purchaseOrderCoverage.latest.order.update": [
+    "最近订单更新：",
+    "Latest order update:"
+  ],
+  "purchaseOrderCoverage.orders.incomplete.or.quantities.unverified": [
+    "笔尚未收齐或数量待核对 ·",
+    "orders incomplete or quantities unverified ·"
+  ],
+  "purchaseOrderCoverage.orders.need.action.information": [
+    "笔待处理 / 待补资料",
+    "orders need action / information"
+  ]
+}

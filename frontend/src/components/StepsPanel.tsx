@@ -1,3 +1,6 @@
+import { systemText } from '../i18n/core.ts';
+import { useLanguage } from '../i18n/LanguageProvider';
+import { m as uiText } from '../i18n/core.ts';
 import Alert from '@cloudscape-design/components/alert';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
@@ -64,6 +67,7 @@ export default function StepsPanel({
   deepLink?: StepsDeepLink;
   schedule?: StepsSchedule;
 }) {
+  useLanguage();
   const flash = useFlash();
   const navigate = useNavigate();
   const role = useRole();
@@ -171,9 +175,9 @@ export default function StepsPanel({
   /** 关键节点的确认框：D、J 各一个，后端仍会再校验一次。 */
   const confirmBoxes = (it: StepItem) => it.confirmation_mode === 'any' ? (
     <SpaceBetween size="xs">
-      {it.needs_review && <StatusIndicator type="warning">前置资料变化，待复核；历史确认保留</StatusIndicator>}
-      {it.done ? <StatusIndicator type="success">{it.done_by} 已确认满足</StatusIndicator> : <Button variant="primary" loading={busy === it.key} disabled={!it.ready || !(it.confirm.includes(role.actor) || role.can('confirm_for_others'))} onClick={() => toggle(it.key, true, undefined, it.title)}>确认满足</Button>}
-      <Box variant="small" color="text-body-secondary">{it.evidence_hint}</Box>
+      {it.needs_review && <StatusIndicator type="warning">{uiText("stepsPanel.prerequisites.changed.review.required.prior.confirmations.are.retained")}</StatusIndicator>}
+      {it.done ? <StatusIndicator type="success">{it.done_by} {uiText("stepsPanel.conditions.confirmed")}</StatusIndicator> : <Button variant="primary" loading={busy === it.key} disabled={!it.ready || !(it.confirm.includes(role.actor) || role.can('confirm_for_others'))} onClick={() => toggle(it.key, true, undefined, it.title)}>{uiText("myTodoTable.confirm.conditions.met")}</Button>}
+      <Box variant="small" color="text-body-secondary">{systemText(it.evidence_hint)}</Box>
     </SpaceBetween>
   ) : (
     <SpaceBetween direction="horizontal" size="s">
@@ -187,7 +191,7 @@ export default function StepsPanel({
             disabled={!allowed || busy === `${it.key}:${c}`}
             onChange={({ detail: d }) => toggle(it.key, d.checked, c, it.title)}
           >
-            <Box variant="span"><RoleLabel code={c} />{on ? '已确认' : '确认'}</Box>
+            <Box variant="span"><RoleLabel code={c} />{on ? uiText("stepsPanel.confirmed") : uiText("myTodoTable.confirm")}</Box>
           </Checkbox>
         );
       })}
@@ -221,14 +225,14 @@ export default function StepsPanel({
       empty={<Box color="text-body-secondary" padding="s">{empty}</Box>}
       cardDefinition={{
         header: (it: StepItem) => (
-          <><ReviewTag cardId="step-card" context={`${it.key} · ${it.title}`} /><Link href="#" onFollow={(e) => { e.preventDefault(); setDetail(it); }}>{it.title}</Link></>
+          <><ReviewTag cardId="step-card" context={`${it.key} · ${systemText(it.title)}`} /><Link href="#" onFollow={(e) => { e.preventDefault(); setDetail(it); }}>{systemText(it.title)}</Link></>
         ),
         sections: [
           {
             id: 'who',
             content: (it: StepItem) => (
               <SpaceBetween size="xxs">
-                <RoleNames codes={it.owners} prefix="负责角色：" />
+                <RoleNames codes={it.owners} prefix={uiText("stepsPanel.responsible.roles")} />
                 {it.ws && <Box fontSize="body-s" color="text-body-secondary">{it.ws}</Box>}
               </SpaceBetween>
             ),
@@ -239,9 +243,9 @@ export default function StepsPanel({
               const fact = factOf(it);
               return (
                 <SpaceBetween size="xxs">
-                  <StatusIndicator type={fact.indicator}>{fact.label}</StatusIndicator>
+                  <StatusIndicator type={fact.indicator}>{systemText(fact.label)}</StatusIndicator>
                   {fact.basis.map((b) => (
-                    <Box key={b} fontSize="body-s" color="text-body-secondary">依据：{b}</Box>
+                    <Box key={b} fontSize="body-s" color="text-body-secondary">{uiText("stepsPanel.evidence")}{systemText(b)}</Box>
                   ))}
                   {fact.hint && <Box fontSize="body-s" color="text-body-secondary">{fact.hint}</Box>}
                 </SpaceBetween>
@@ -258,7 +262,7 @@ export default function StepsPanel({
               return (
                 <SpaceBetween size="xs">
                   {it.deliverable && !it.done && it.deliverable.kind !== 'confirm' && (
-                    <Box fontSize="body-s" color="text-body-secondary">要交：{it.deliverable.label}</Box>
+                    <Box fontSize="body-s" color="text-body-secondary">{uiText("stepsPanel.required.deliverable")}{systemText(it.deliverable.label)}</Box>
                   )}
                   {btn}
                   {limits.map((l) => (
@@ -284,26 +288,26 @@ export default function StepsPanel({
       {/* ① 当前阶段：两条同形制横条，时间和事实分开读 */}
       <SpaceBetween size="s">
         <Box fontSize="heading-s" fontWeight="bold">
-          {complete ? '这套房全流程走完了' : `这套房在${cur.label}`}
+          {complete ? uiText("stepsPanel.this.property.s.process.is.complete") : uiText("sentences.property.position", { value1: (systemText(cur.label)) })}
         </Box>
         <ColumnLayout columns={2} minColumnWidth={240}>
           {days && (
             <Meter
               value={Math.max(0, days.elapsed)}
               max={days.total}
-              label="工期"
-              reading={`第 ${Math.max(0, days.elapsed)} / ${days.total} 天`}
-              targetLabel="完工"
+              label={uiText("stepsPanel.schedule")}
+              reading={uiText("sentences.day.of", { value1: (Math.max(0, days.elapsed)), value2: (days.total) })}
+              targetLabel={uiText("stepsPanel.finish")}
               height={6}
-              note={days.elapsed > days.total ? `已超期 ${days.elapsed - days.total} 天` : undefined}
+              note={days.elapsed > days.total ? uiText("sentences.days.overdue", { value1: (days.elapsed - days.total) }) : undefined}
             />
           )}
           <Meter
             value={stage.done_count}
             max={stage.total}
-            label={`${stage.label}事项`}
-            reading={`${stage.done_count} / ${stage.total} 项满足`}
-            targetLabel="本段齐"
+            label={uiText("sentences.tasks", { value1: (systemText(stage.label)) })}
+            reading={uiText("sentences.requirements.met", { value1: (stage.done_count), value2: (stage.total) })}
+            targetLabel={uiText("stepsPanel.stage.requirements.met")}
             height={6}
           />
         </ColumnLayout>
@@ -314,14 +318,14 @@ export default function StepsPanel({
             return (
               <SpaceBetween size="xxs" key={st.key}>
                 <Box fontWeight={on ? 'bold' : 'normal'}>
-                  <Link href="#" onFollow={(e) => { e.preventDefault(); setSelected(st.key); }}>{st.short}</Link>
+                  <Link href="#" onFollow={(e) => { e.preventDefault(); setSelected(st.key); }}>{systemText(st.short)}</Link>
                 </Box>
                 {/* 只有「当前」用状态色。六段里已过的段本来就配着已过的门，
                     两层绿色叠在一起，反而看不出现在走到哪。 */}
                 {state === 'current'
-                  ? <StatusIndicator type="in-progress">在这一段</StatusIndicator>
-                  : <Box fontSize="body-s" color="text-body-secondary">{st.history_pending ? '录入前 · 待核验' : state === 'done' ? '已过' : '还没到'}</Box>}
-                <Box fontSize="body-s" color="text-body-secondary">{st.done_count} / {st.total} 项</Box>
+                  ? <StatusIndicator type="in-progress">{uiText("stepsPanel.in.this.stage")}</StatusIndicator>
+                  : <Box fontSize="body-s" color="text-body-secondary">{st.history_pending ? uiText("stepsPanel.before.entry.needs.verification") : state === 'done' ? uiText("stepsPanel.passed") : uiText("stepsPanel.not.reached")}</Box>}
+                <Box fontSize="body-s" color="text-body-secondary">{st.done_count} / {st.total} {uiText("projectPreplan.items")}</Box>
                 {/* 这里不再放门名。宽屏每段只占 2/12（约 150px），而门的全称像
                     「Open escrow（决定买）」「final（City 验收通过）」都不换行，会伸进邻格。
                     门在下面的「关键节点」卡片上有完整呈现，那里宽度够。 */}
@@ -334,7 +338,7 @@ export default function StepsPanel({
       {/* ② 我负责的 */}
       {mine.length > 0 && (
         <SpaceBetween size="xs">
-          <Box fontSize="heading-xs" fontWeight="bold">我负责的（{mine.length}）</Box>
+          <Box fontSize="heading-xs" fontWeight="bold">{uiText("stepsPanel.assigned.to.me")}{mine.length}）</Box>
           {taskCards(mine, '')}
         </SpaceBetween>
       )}
@@ -342,7 +346,7 @@ export default function StepsPanel({
       {/* ③ 关键节点 */}
       {gates.length > 0 && (
         <SpaceBetween size="xs">
-          <Box fontSize="heading-xs" fontWeight="bold">关键节点</Box>
+          <Box fontSize="heading-xs" fontWeight="bold">{uiText("projectPreplan.milestones")}</Box>
           <div ref={gateRef}>{taskCards(gates, '')}</div>
         </SpaceBetween>
       )}
@@ -351,7 +355,7 @@ export default function StepsPanel({
       {rest.length > 0 && (
         <ExpandableSection
           variant="footer"
-          headerText={`${stage.label}其余事项（${rest.length}）`}
+          headerText={uiText("sentences.other.tasks", { value1: (systemText(stage.label)), value2: (rest.length) })}
           defaultExpanded={Boolean(deepLink?.step)}
         >
           {taskCards(rest, '')}
@@ -369,7 +373,7 @@ export default function StepsPanel({
 
       <TaskDetail
         item={detail}
-        stageLabel={stage.label}
+        stageLabel={systemText(systemText(stage.label))}
         files={files}
         onPrimary={(it) => openPrimary(it)}
         onDismiss={() => setDetail(null)}
@@ -378,7 +382,7 @@ export default function StepsPanel({
       <Modal
         visible={modal?.kind === 'upload'}
         onDismiss={() => setModal(null)}
-        header={modal?.kind === 'upload' ? `${modal.it.deliverable?.kind === 'photo' ? '交照片' : '交文件'}：${modal.it.title}` : ''}
+        header={modal?.kind === 'upload' ? `${modal.it.deliverable?.kind === 'photo' ? uiText("myTodoTable.provide.photos") : uiText("myTodoTable.provide.files")}：${modal.it.title}` : ''}
       >
         {modal?.kind === 'upload' && (
           <UploadForm
@@ -408,8 +412,8 @@ export default function StepsPanel({
         footer={
           <Box float="right">
             <SpaceBetween direction="horizontal" size="xs">
-              <Button variant="link" onClick={() => setModal(null)}>取消</Button>
-              <Button variant="primary" loading={saving} disabled={!fieldVal} onClick={saveField}>保存</Button>
+              <Button variant="link" onClick={() => setModal(null)}>{uiText("fieldWithSource.cancel")}</Button>
+              <Button variant="primary" loading={saving} disabled={!fieldVal} onClick={saveField}>{uiText("fieldWithSource.save")}</Button>
             </SpaceBetween>
           </Box>
         }
@@ -419,7 +423,7 @@ export default function StepsPanel({
             {modal.it.deliverable?.field?.endsWith('_date')
               ? <DatePicker value={fieldVal} onChange={({ detail: d }) => setFieldVal(d.value)} placeholder="YYYY/MM/DD" />
               : modal.it.deliverable?.field === 'risks'
-                ? <Textarea value={fieldVal} rows={3} onChange={({ detail: d }) => setFieldVal(d.value)} placeholder="死亡记录、unpermitted sqft、其他常见风险" />
+                ? <Textarea value={fieldVal} rows={3} onChange={({ detail: d }) => setFieldVal(d.value)} placeholder={uiText("myTodoTable.death.disclosures.unpermitted.square.footage.and.other.known.risks")} />
                 : <Input type="number" value={fieldVal} onChange={({ detail: d }) => setFieldVal(d.value)} />}
           </FormField>
         )}

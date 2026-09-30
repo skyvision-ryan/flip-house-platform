@@ -1,3 +1,6 @@
+import { systemText } from '../i18n/core.ts';
+import { useLanguage } from '../i18n/LanguageProvider';
+import { m as uiText } from '../i18n/core.ts';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
 import ColumnLayout from '@cloudscape-design/components/column-layout';
@@ -38,6 +41,7 @@ function withControls(input: ReactNode, controls: ReactNode) {
 
 /** 数据页里的“水、电、瓦斯账户”：三行固定，行内直接改，改完点保存。密码默认打码，点“看”才显示。 */
 export default function UtilitiesPanel({ projectId, onChanged }: { projectId: number; onChanged?: () => void }) {
+  useLanguage();
   const meta = useMeta();
   const flash = useFlash();
   const { actor } = useActor();
@@ -60,31 +64,31 @@ export default function UtilitiesPanel({ projectId, onChanged }: { projectId: nu
   const copy = async (value: string, label: string) => {
     try {
       await navigator.clipboard.writeText(value);
-      flash({ type: 'success', content: `${label}已复制` });
+      flash({ type: 'success', content: uiText("sentences.copied", { value1: (label) }) });
     } catch {
-      flash({ type: 'error', content: '复制失败，请手动复制，或检查浏览器的剪贴板权限。' });
+      flash({ type: 'error', content: uiText("utilitiesPanel.copy.failed.copy.manually.or.check.clipboard.permissions") });
     }
   };
 
   const copyButton = (value: string | null, label: string) => (
-    <Button iconName="copy" ariaLabel={`复制${label}`} disabled={!value} onClick={() => { if (value) void copy(value, label); }} />
+    <Button iconName="copy" ariaLabel={uiText("sentences.copy", { value1: (label) })} disabled={!value} onClick={() => { if (value) void copy(value, label); }} />
   );
 
   const save = async (u: Utility) => {
     const value = get(u);
     const website = websiteHref(value.website);
     if (value.website?.trim() && !website) {
-      flash({ type: 'error', content: '请输入有效的 http:// 或 https:// 网址，且不要包含账号密码。' });
+      flash({ type: 'error', content: uiText("utilitiesPanel.enter.a.valid.http.or.https.url.without.account") });
       return;
     }
     setSaving(u.kind);
     try {
       setRows(await api.saveUtility(projectId, u.kind, { ...value, website }));
       setDraft((d) => { const n = { ...d }; delete n[u.kind]; return n; });
-      flash({ type: 'success', content: `${labelOf(meta?.utility_kinds, u.kind)}的账户已保存（${actor}）` });
+      flash({ type: 'success', content: uiText("sentences.account.saved", { value1: (labelOf(meta?.utility_kinds, u.kind)), value2: (actor) }) });
       onChanged?.();
     } catch (e: any) {
-      flash({ type: 'error', content: `没保存上：${e.message}` });
+      flash({ type: 'error', content: uiText("sentences.could.not.save", { value1: (e.message) }) });
     } finally {
       setSaving(null);
     }
@@ -94,10 +98,10 @@ export default function UtilitiesPanel({ projectId, onChanged }: { projectId: nu
   return (
     <SpaceBetween size="s">
       <Box color="text-body-secondary">
-        {onCount === 3 ? <StatusIndicator type="success">三家都已开通</StatusIndicator>
-          : rows.every((r) => r.status === 'off') ? <StatusIndicator type="stopped">三家都已关闭</StatusIndicator>
-          : <StatusIndicator type={onCount ? 'in-progress' : 'pending'}>{onCount} / 3 已开通{rows.some((r) => r.status === 'pending' && r.blocker) ? '，有一家卡住了' : ''}</StatusIndicator>}
-        　<HelpText>三家都开通后，总览清单里“开通水电瓦斯”会自动打勾；都关闭后“关水电瓦斯”自动打勾。</HelpText>
+        {onCount === 3 ? <StatusIndicator type="success">{uiText("utilitiesPanel.all.three.utilities.active")}</StatusIndicator>
+          : rows.every((r) => r.status === 'off') ? <StatusIndicator type="stopped">{uiText("utilitiesPanel.all.three.utilities.closed")}</StatusIndicator>
+          : <StatusIndicator type={onCount ? 'in-progress' : 'pending'}>{onCount} {uiText("utilitiesPanel.3.active")}{rows.some((r) => r.status === 'pending' && r.blocker) ? uiText("utilitiesPanel.one.is.blocked") : ''}</StatusIndicator>}
+        　<HelpText>{uiText("utilitiesPanel.the.utility.activation.checklist.item.is.satisfied.when.all")}</HelpText>
       </Box>
       <ColumnLayout columns={3}>
         {rows.map((u) => {
@@ -106,36 +110,36 @@ export default function UtilitiesPanel({ projectId, onChanged }: { projectId: nu
           return (
             <Container cardId="utility-account" cardContext={u.kind}
               key={u.kind}
-              header={<Header variant="h3" actions={<Button variant={dirty(u) ? 'primary' : 'normal'} disabled={!dirty(u)} loading={saving === u.kind} onClick={() => save(u)}>保存</Button>}
-                description={u.updated_by ? <span><RoleLabel code={u.updated_by} />{shortTime(u.updated_at)} 填的</span> : '还没人填'}>
+              header={<Header variant="h3" actions={<Button variant={dirty(u) ? 'primary' : 'normal'} disabled={!dirty(u)} loading={saving === u.kind} onClick={() => save(u)}>{uiText("fieldWithSource.save")}</Button>}
+                description={u.updated_by ? <span><RoleLabel code={u.updated_by} />{shortTime(u.updated_at)} {uiText("utilitiesPanel.entered.by")}</span> : uiText("utilitiesPanel.no.entry.yet")}>
                 <StatusIndicator type={STATUS_KIND[v.status] ?? 'pending'}>{labelOf(meta?.utility_kinds, u.kind)}</StatusIndicator>
               </Header>}
             >
               <SpaceBetween size="s">
-                <FormField label="状态">
+                <FormField label={uiText("taskSummaryPanel.status")}>
                   <Select selectedOption={statusOptions.find((o) => o.value === v.status) ?? null} options={statusOptions} onChange={({ detail }) => set(u, { status: detail.selectedOption.value! })} />
                 </FormField>
-                <FormField label="公司"><Input value={v.company ?? ''} placeholder="比如 Evergy" onChange={({ detail }) => set(u, { company: detail.value || null })} /></FormField>
-                <FormField label="网址" description="可填写公司官网或登录页；省略协议时使用 https://。"
-                  errorText={v.website?.trim() && !href ? '请输入有效的 http:// 或 https:// 网址，且不要包含账号密码。' : undefined}
-                  secondaryControl={href ? <Link href={href} target="_blank" rel="noopener noreferrer" external externalIconAriaLabel="在新标签页打开">打开网站</Link> : undefined}>
+                <FormField label={uiText("procurementItemRow.company")}><Input value={v.company ?? ''} placeholder={uiText("utilitiesPanel.for.example.evergy")} onChange={({ detail }) => set(u, { company: detail.value || null })} /></FormField>
+                <FormField label={uiText("utilitiesPanel.website")} description={uiText("utilitiesPanel.company.website.or.sign.in.page.omitted.protocols.default")}
+                  errorText={systemText(v.website?.trim() && !href ? uiText("utilitiesPanel.enter.a.valid.http.or.https.url.without.account") : undefined)}
+                  secondaryControl={href ? <Link href={href} target="_blank" rel="noopener noreferrer" external externalIconAriaLabel={uiText("utilitiesPanel.open.in.new.tab")}>{uiText("utilitiesPanel.open.website")}</Link> : undefined}>
                   <Input value={v.website ?? ''} placeholder="https://…" onChange={({ detail }) => set(u, { website: detail.value || null })} />
                 </FormField>
-                <FormField label="账号">{withControls(
-                  <Input value={v.account_no ?? ''} onChange={({ detail }) => set(u, { account_no: detail.value || null })} />, copyButton(v.account_no, '账号'))}</FormField>
-                <FormField label="登录名">{withControls(
-                  <Input value={v.login ?? ''} onChange={({ detail }) => set(u, { login: detail.value || null })} />, copyButton(v.login, '登录名'))}</FormField>
-                <FormField label="密码">{withControls(
+                <FormField label={uiText("utilitiesPanel.account")}>{withControls(
+                  <Input value={v.account_no ?? ''} onChange={({ detail }) => set(u, { account_no: detail.value || null })} />, copyButton(v.account_no, uiText("utilitiesPanel.account")))}</FormField>
+                <FormField label={uiText("utilitiesPanel.username")}>{withControls(
+                  <Input value={v.login ?? ''} onChange={({ detail }) => set(u, { login: detail.value || null })} />, copyButton(v.login, uiText("utilitiesPanel.username")))}</FormField>
+                <FormField label={uiText("utilitiesPanel.password")}>{withControls(
                   <Input type={showPw[u.kind] ? 'text' : 'password'} value={v.password ?? ''} onChange={({ detail }) => set(u, { password: detail.value || null })} />,
                   <SpaceBetween direction="horizontal" size="xxs">
-                    {copyButton(v.password, '密码')}
-                    <Button iconName={showPw[u.kind] ? 'lock-private' : 'unlocked'} ariaLabel="显示或隐藏密码" onClick={() => setShowPw((s) => ({ ...s, [u.kind]: !s[u.kind] }))} />
+                    {copyButton(v.password, uiText("utilitiesPanel.password"))}
+                    <Button iconName={showPw[u.kind] ? 'lock-private' : 'unlocked'} ariaLabel={uiText("utilitiesPanel.show.or.hide.password")} onClick={() => setShowPw((s) => ({ ...s, [u.kind]: !s[u.kind] }))} />
                   </SpaceBetween>)}
                 </FormField>
-                <FormField label="用谁的名字开的" description="有的房用 A 的名字，有的用别人的，写清楚防混淆">
+                <FormField label={uiText("utilitiesPanel.account.holder")} description={uiText("utilitiesPanel.some.properties.use.a.s.name.and.others.use")}>
                   <Input value={v.opened_under ?? ''} onChange={({ detail }) => set(u, { opened_under: detail.value || null })} />
                 </FormField>
-                <FormField label="卡在哪" description="在等什么、谁没回">
+                <FormField label={uiText("utilitiesPanel.issue")} description={uiText("utilitiesPanel.what.is.pending.or.who.has.not.replied")}>
                   <Input value={v.blocker ?? ''} onChange={({ detail }) => set(u, { blocker: detail.value || null })} />
                 </FormField>
               </SpaceBetween>
@@ -143,7 +147,7 @@ export default function UtilitiesPanel({ projectId, onChanged }: { projectId: nu
           );
         })}
       </ColumnLayout>
-      <HelpText>账号凭证按现有角色权限显示；保存前请确认信息准确。</HelpText>
+      <HelpText>{uiText("utilitiesPanel.credentials.follow.existing.role.permissions.verify.the.information.before")}</HelpText>
     </SpaceBetween>
   );
 }

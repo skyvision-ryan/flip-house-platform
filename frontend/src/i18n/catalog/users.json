@@ -1,0 +1,134 @@
+{
+  "users.select.a.role.first": [
+    "先选一个角色",
+    "Select a role first"
+  ],
+  "users.account.is.required": [
+    "账号不能为空",
+    "Account is required"
+  ],
+  "users.password.must.contain.at.least.6.characters": [
+    "密码至少 6 位",
+    "Password must contain at least 6 characters"
+  ],
+  "users.disable": [
+    "停用",
+    "Disable"
+  ],
+  "users.enable": [
+    "启用",
+    "Enable"
+  ],
+  "users.each.person.has.an.account.its.role.code.determines": [
+    "一个人一个账号。账号绑定的角色代号决定能看什么、能改什么；管理员能管账号。",
+    "Each person has an account. Its role code determines access and actions; administrators manage accounts."
+  ],
+  "users.loading": [
+    "读取中",
+    "Loading"
+  ],
+  "users.select.an.account": [
+    "选择一个账号",
+    "Select an account"
+  ],
+  "users.select.an.account.before.editing.details.or.managing.access": [
+    "先选择一个账号，再修改资料或管理访问。不能停用当前登录账号。",
+    "Select an account before editing details or managing access. You cannot disable the signed-in account."
+  ],
+  "users.edit.role.name": [
+    "改角色 / 名字",
+    "Edit role / name"
+  ],
+  "users.reset.password": [
+    "重置密码",
+    "Reset password"
+  ],
+  "users.new.account": [
+    "新建账号",
+    "New account"
+  ],
+  "users.name": [
+    "姓名",
+    "Name"
+  ],
+  "users.role": [
+    "角色",
+    "Role"
+  ],
+  "users.no.email.cannot.receive.reminders": [
+    "无邮箱 · 收不到提醒",
+    "No email · Cannot receive reminders"
+  ],
+  "users.tier": [
+    "级别",
+    "Tier"
+  ],
+  "users.administrator": [
+    "管理员",
+    "Administrator"
+  ],
+  "users.yes": [
+    "是",
+    "Yes"
+  ],
+  "users.active": [
+    "在用",
+    "Active"
+  ],
+  "users.disabled": [
+    "已停用",
+    "Disabled"
+  ],
+  "users.last.sign.in": [
+    "上次登录",
+    "Last sign-in"
+  ],
+  "users.never.signed.in": [
+    "还没登录过",
+    "Never signed in"
+  ],
+  "users.no.accounts.yet.select.new.account.at.the.top": [
+    "还没有账号。点右上角“新建账号”。",
+    "No accounts yet. Select New account at the top right."
+  ],
+  "users.create.account": [
+    "建账号",
+    "Create account"
+  ],
+  "users.lowercase.sign.in.name.such.as.jessie": [
+    "登录用，英文小写，例如 jessie",
+    "Lowercase sign-in name, such as jessie"
+  ],
+  "users.name.displayed.in.the.interface": [
+    "页面上显示的名字",
+    "Name displayed in the interface"
+  ],
+  "users.the.role.determines.access.and.actions.project.membership.is": [
+    "角色决定可见范围与操作权限；项目成员关系另行管理。",
+    "The role determines access and actions. Project membership is managed separately."
+  ],
+  "users.select.a.role": [
+    "选一个角色",
+    "Select a role"
+  ],
+  "users.for.future.task.reminders.email.is.not.currently.connected": [
+    "用于后续任务提醒；当前邮件通道尚未接通。",
+    "For future task reminders; email is not currently connected."
+  ],
+  "users.can.create.accounts.change.roles.and.reset.passwords": [
+    "能建账号、改角色、重置密码",
+    "Can create accounts, change roles, and reset passwords"
+  ],
+  "users.initial.password": [
+    "初始密码",
+    "Initial password"
+  ],
+  "users.new.password": [
+    "新密码",
+    "New password"
+  ],
+  "users.at.least.6.characters": [
+    "至少 6 位",
+    "At least 6 characters"
+  ]
+}

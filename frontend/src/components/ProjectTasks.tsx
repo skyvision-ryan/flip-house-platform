@@ -1,3 +1,6 @@
+import { systemText } from '../i18n/core.ts';
+import { useLanguage } from '../i18n/LanguageProvider';
+import { m as uiText } from '../i18n/core.ts';
 import { useSearchParams } from 'react-router-dom';
 import { useState } from 'react';
 import Alert from '@cloudscape-design/components/alert';
@@ -18,6 +21,7 @@ import TaskTable from './TaskTable';
  * 保存成功后用服务器返回的那条替换本地，不做乐观更新；409 整体重读。
  */
 export default function ProjectTasks({ project, data, error, reload, onChanged, onGotoGates }: { project: Project; data: TaskList | null; error: string | null; reload: () => Promise<any>; onChanged?: () => void; onGotoGates: () => void }) {
+  useLanguage();
   const meta = useMeta();
   const { me } = useActor();
   const [params, setParams] = useSearchParams();
@@ -38,12 +42,12 @@ export default function ProjectTasks({ project, data, error, reload, onChanged, 
     onChanged?.();
   };
 
-  if (err) return <Alert type="error" header="读不到任务">{err}</Alert>;
+  if (err) return <Alert type="error" header={uiText("projectTasks.cannot.load.tasks")}>{systemText(err)}</Alert>;
   if (!data) return <Box textAlign="center" padding="m"><Spinner /></Box>;
 
   return (
     <>
-      {!me && <Alert type="info">现在没有登录：任务表只能看。分派、开始、等待都要用真实账号登录后做。</Alert>}
+      {!me && <Alert type="info">{uiText("projectTasks.you.are.not.signed.in.tasks.are.read.only")}</Alert>}
       <CollaborationWorkspace detailOpen={!!selected} onBack={() => setSelectedId(null)} main={
           <TaskTable data={data} selectedId={selectedId} onSelect={(t) => setSelectedId(t.id)} canAssign={canAssign} onAssign={(ts) => setAssigning(ts)} />
         } detail={<TaskSummaryPanel task={selected} project={project} canAssign={canAssign} onAssign={(t) => setAssigning([t])} onChanged={replace} onGotoGates={onGotoGates} refreshKey={refreshKey} />

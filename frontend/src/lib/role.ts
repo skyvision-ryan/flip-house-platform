@@ -1,9 +1,10 @@
+import { m as uiText } from '../i18n/core.ts';
 import { useActor } from './actor';
 import { useMeta } from './meta';
 
 export type Tier = 'purple' | 'blue' | 'teal' | 'grey';
 export const TIER_FALLBACK: Record<Tier, { label: string }> = {
-  purple: { label: '决策' }, blue: { label: '统筹' }, teal: { label: '执行' }, grey: { label: '外部' },
+  purple: { get label() { return uiText("role.decision.making"); } }, blue: { get label() { return uiText("role.coordination"); } }, teal: { get label() { return uiText("role.execution"); } }, grey: { get label() { return uiText("role.external"); } },
 };
 
 /** 当前身份是谁、哪一级、能做什么。没登录，全靠顶栏“我是”。 */

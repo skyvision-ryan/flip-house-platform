@@ -46,7 +46,7 @@ def ensure_procurement(db: Session, project_id: int, *, commit: bool = True, sel
     if rows:
         return rows
     for i, t in enumerate(PROCUREMENT_TEMPLATE):
-        db.add(models.ProcurementItem(project_id=project_id, wave=t["wave"], name=t["name"], status="pending_spec", sort_order=i,
+        db.add(models.ProcurementItem(project_id=project_id, wave=t["wave"], name=t["name"], template_key=t.get("template_key"), template_name_snapshot=t["name"] if t.get("template_key") else None, status="pending_spec", sort_order=i,
                                       worklist_selected=True if select_all else None))
     db.commit() if commit else db.flush()
     return list(db.scalars(select(models.ProcurementItem).where(models.ProcurementItem.project_id == project_id).order_by(models.ProcurementItem.sort_order, models.ProcurementItem.id)).all())
@@ -234,6 +234,8 @@ def patch_procurement(item_id: int, body: schemas.ProcurementPatchIn, db: Sessio
         data["worklist_selected"] = True  # Restoring an excluded need makes it actionable again.
     data.update(updated_by=me.display_name, updated_by_user_id=me.id,
                 updated_at=datetime.now().isoformat(timespec="microseconds"))
+    if "name" in data and data["name"] != row.name:
+        data.update(template_key=None, template_name_snapshot=None)
     statement = update(models.ProcurementItem).where(models.ProcurementItem.id == item_id)
     if expected is not None:
         statement = statement.where(models.ProcurementItem.updated_at == expected)

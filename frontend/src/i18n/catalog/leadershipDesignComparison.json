@@ -1,0 +1,102 @@
+{
+  "leadershipDesignComparison.your.selection.and.feedback.are.saved.in.this.browser": [
+    "选择与意见已保存在当前账号的此浏览器中。",
+    "Your selection and feedback are saved in this browser for the current account."
+  ],
+  "leadershipDesignComparison.browser.storage.is.unavailable.copy.your.selection.and.feedback": [
+    "浏览器未允许保存；可复制选择与意见发给我。",
+    "Browser storage is unavailable. Copy your selection and feedback to share them."
+  ],
+  "leadershipDesignComparison.copied.you.can.paste.it.now": [
+    "已复制，可直接粘贴给我。",
+    "Copied. You can paste it now."
+  ],
+  "leadershipDesignComparison.copy.failed.send.the.option.letter.and.your.requested": [
+    "复制未成功，请把方案字母和想改的地方直接发给我。",
+    "Copy failed. Send the option letter and your requested changes directly."
+  ],
+  "leadershipDesignComparison.compare.ways.to.organize.information.for.your.role.then": [
+    "比较职责所需的信息组织方式，选择更顺手的一种。",
+    "Compare ways to organize information for your role, then select the one that works best."
+  ],
+  "leadershipDesignComparison.design.comparison": [
+    "· 设计比较",
+    "· Design comparison"
+  ],
+  "leadershipDesignComparison.what.workspace.works.best.for.you": [
+    "需要怎样的工作界面？",
+    "What workspace works best for you?"
+  ],
+  "leadershipDesignComparison.select.a.reference.design": [
+    "选择参考设计",
+    "Select a reference design"
+  ],
+  "leadershipDesignComparison.option": [
+    "方案",
+    "Option"
+  ],
+  "leadershipDesignComparison.suggested.starting.point": [
+    "· 建议先看",
+    "· Suggested starting point"
+  ],
+  "leadershipDesignComparison.reference": [
+    "借鉴",
+    "Reference"
+  ],
+  "leadershipDesignComparison.features.to.adopt": [
+    "的什么？",
+    "features to adopt"
+  ],
+  "leadershipDesignComparison.how.does.it.support.this.role": [
+    "怎样适配这份工作？",
+    "How does it support this role?"
+  ],
+  "leadershipDesignComparison.benefits.and.tradeoffs": [
+    "适合与取舍",
+    "Benefits and tradeoffs"
+  ],
+  "leadershipDesignComparison.official.reference": [
+    "官方参考：",
+    "Official reference:"
+  ],
+  "leadershipDesignComparison.interactive.workspace": [
+    "· 可点击工作界面",
+    "· Interactive workspace"
+  ],
+  "leadershipDesignComparison.all.three.options.use.the.same.synthetic.records.figures": [
+    "三个方案共用同一批合成记录；数字可追溯，问题可展开；模型、业务日期与当前任务状态分别呈现。",
+    "All three options use the same synthetic records. Figures are traceable and issues expandable; model estimates, actual dates, and task status remain separate."
+  ],
+  "leadershipDesignComparison.record.design.preference": [
+    "记录设计选择",
+    "Record design preference"
+  ],
+  "leadershipDesignComparison.which.organization.works.best": [
+    "哪种组织方式更顺手？",
+    "Which organization works best?"
+  ],
+  "leadershipDesignComparison.preferences.stay.in.this.browser.per.account.copy.them": [
+    "偏好按登录账号分别保存在此浏览器；复制后发给 Ryan。工作界面中的示例修改仅保留在本次预览，刷新后恢复。",
+    "Preferences stay in this browser per account; copy them to Ryan. Changes in the sample workspace last only for this preview and reset on refresh."
+  ],
+  "leadershipDesignComparison.recorded.option": [
+    "已记录：方案",
+    "Recorded: option"
+  ],
+  "leadershipDesignComparison.what.information.or.actions.should.be.more.prominent": [
+    "哪些信息或操作应该更靠前？",
+    "What information or actions should be more prominent?"
+  ],
+  "leadershipDesignComparison.describe.frequently.needed.records.easily.missed.tasks.or.changes": [
+    "写下最常找的资料、容易漏的事项或希望调整的地方",
+    "Describe frequently needed records, easily missed tasks, or changes you want"
+  ],
+  "leadershipDesignComparison.i.prefer": [
+    "我倾向",
+    "I prefer"
+  ],
+  "leadershipDesignComparison.copy.preference.and.feedback": [
+    "复制选择与意见",
+    "Copy preference and feedback"
+  ]
+}

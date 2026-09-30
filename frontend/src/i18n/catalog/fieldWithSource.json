@@ -1,0 +1,46 @@
+{
+  "fieldWithSource.sources.disagree.on.this.value": [
+    "多个来源的值不一致",
+    "Sources disagree on this value"
+  ],
+  "fieldWithSource.value": [
+    "值",
+    "Value"
+  ],
+  "fieldWithSource.source": [
+    "来源",
+    "Source"
+  ],
+  "fieldWithSource.time": [
+    "时间",
+    "Time"
+  ],
+  "fieldWithSource.confidence": [
+    "把握度",
+    "Confidence"
+  ],
+  "fieldWithSource.primary.value": [
+    "主值",
+    "Primary value"
+  ],
+  "fieldWithSource.use.as.primary": [
+    "设为主值",
+    "Use as primary"
+  ],
+  "fieldWithSource.conflicting.values": [
+    "有冲突",
+    "Conflicting values"
+  ],
+  "fieldWithSource.cancel": [
+    "取消",
+    "Cancel"
+  ],
+  "fieldWithSource.save": [
+    "保存",
+    "Save"
+  ],
+  "fieldWithSource.an.edited.value.becomes.the.primary.value.with.a": [
+    "人工修改后，该值成为主值，来源标记为“人工”。原有来源记录保留，可随时切换回去。",
+    "An edited value becomes the primary value with a manual source. Previous source records remain available to restore."
+  ]
+}

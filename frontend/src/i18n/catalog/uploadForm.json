@@ -1,0 +1,102 @@
+{
+  "uploadForm.select.photos": [
+    "选择照片",
+    "Select photos"
+  ],
+  "uploadForm.select.files": [
+    "选择文件",
+    "Select files"
+  ],
+  "uploadForm.drop.photos.here": [
+    "拖拽照片到这里",
+    "Drop photos here"
+  ],
+  "uploadForm.drop.files.here": [
+    "拖拽文件到这里",
+    "Drop files here"
+  ],
+  "uploadForm.more": [
+    "更多",
+    "More"
+  ],
+  "uploadForm.error": [
+    "错误",
+    "Error"
+  ],
+  "uploadForm.upload.multiple.photos.directly.from.your.phone": [
+    "手机拍的照片直接传，可以多张",
+    "Upload multiple photos directly from your phone"
+  ],
+  "uploadForm.supports.pdf.word.excel.xml.and.images": [
+    "支持 PDF、Word、Excel、XML、图片",
+    "Supports PDF, Word, Excel, XML, and images"
+  ],
+  "uploadForm.file.type": [
+    "文件类型",
+    "File type"
+  ],
+  "uploadForm.linked.step": [
+    "关联步骤",
+    "Linked step"
+  ],
+  "uploadForm.selected.from.the.checklist": [
+    "从清单进来的，已定",
+    "Selected from the checklist"
+  ],
+  "uploadForm.linked.photos.count.toward.evidence.the.task.still.requires": [
+    "照片关联步骤后参与证据判定；任务仍需提交确认。",
+    "Linked photos count toward evidence. The task still requires submission and confirmation."
+  ],
+  "uploadForm.no.linked.step": [
+    "不挂",
+    "No linked step"
+  ],
+  "uploadForm.select.a.step": [
+    "选一步",
+    "Select a step"
+  ],
+  "uploadForm.uploaded.by": [
+    "上传人（谁传的）",
+    "Uploaded by"
+  ],
+  "uploadForm.defaulted.by.file.type.editable": [
+    "按类型给了默认值，可改",
+    "Defaulted by file type; editable"
+  ],
+  "uploadForm.you": [
+    "就是你",
+    "You"
+  ],
+  "uploadForm.document.date": [
+    "文件日期",
+    "Document date"
+  ],
+  "uploadForm.counterparty.contractor.seller.agency": [
+    "对方（承包商 / 卖方 / 机构）",
+    "Counterparty (contractor / seller / agency)"
+  ],
+  "uploadForm.amount.usd": [
+    "涉及金额（美元）",
+    "Amount (USD)"
+  ],
+  "uploadForm.expiration.date": [
+    "到期日",
+    "Expiration date"
+  ],
+  "uploadForm.the.workspace.flags.insurance.within.30.days.of.expiration": [
+    "保险有时限，到期前 30 天工作台会提醒",
+    "The workspace flags insurance within 30 days of expiration"
+  ],
+  "uploadForm.only.for.time.limited.documents": [
+    "有时限的文件才填",
+    "Only for time-limited documents"
+  ],
+  "uploadForm.upload.photos": [
+    "上传照片",
+    "Upload photos"
+  ],
+  "uploadForm.upload.and.record": [
+    "上传并登记",
+    "Upload and record"
+  ]
+}

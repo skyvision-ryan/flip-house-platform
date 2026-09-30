@@ -1,3 +1,5 @@
+import { useLanguage } from '../../i18n/LanguageProvider';
+import { m as uiText } from '../../i18n/core.ts';
 import { type ReactNode, useEffect, useRef } from 'react';
 import Button from '@cloudscape-design/components/button';
 
@@ -5,6 +7,7 @@ import Button from '@cloudscape-design/components/button';
 export default function CollaborationWorkspace({ main, detail, processing = false, wide = false, detailOpen, onBack, backLabel = '返回任务列表' }: {
   main: ReactNode; detail: ReactNode; processing?: boolean; wide?: boolean; detailOpen?: boolean; onBack?: () => void; backLabel?: string;
 }) {
+  useLanguage();
   const detailRef = useRef<HTMLElement>(null);
   const mainRef = useRef<HTMLDivElement>(null);
   const lastFocus = useRef<HTMLElement | null>(null);
@@ -23,7 +26,7 @@ export default function CollaborationWorkspace({ main, detail, processing = fals
   const back = () => { onBack?.(); requestAnimationFrame(() => lastFocus.current?.focus()); };
   return <div className="ui-workspace-scope"><div className={`ui-workspace${processing ? ' ui-workspace-processing' : ''}${wide ? ' ui-workspace-wide' : ''}`} data-detail-open={!!detailOpen} data-mobile-detail={!!onBack}>
     <div className="ui-workspace-main" ref={mainRef}>{main}</div>
-    <aside className="ui-workspace-detail" ref={detailRef} tabIndex={-1} aria-label={processing ? '事项处理' : '摘要'}>
+    <aside className="ui-workspace-detail" ref={detailRef} tabIndex={-1} aria-label={processing ? uiText("collaborationWorkspace.task.actions") : uiText("collaborationWorkspace.summary")}>
       {onBack && <div className="ui-workspace-back"><Button iconName="arrow-left" onClick={back}>{backLabel}</Button></div>}
       {detail}
     </aside>

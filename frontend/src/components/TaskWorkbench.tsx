@@ -1,3 +1,7 @@
+import { taskTitle } from '../i18n/templateNames.ts';
+import { systemText } from '../i18n/core.ts';
+import { useLanguage } from '../i18n/LanguageProvider';
+import { m as uiText } from '../i18n/core.ts';
 import Alert from '@cloudscape-design/components/alert';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
@@ -38,6 +42,7 @@ const kb = (n: number) => (n >= 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} M
  * 三个入口（我的事项、总览、活动记录页）共用同一条任务，不复制状态。
  */
 export default function TaskWorkbench({ task, meId, onChanged, onConflict }: { task: Task; meId: number | null; onChanged: (t: Task) => void; onConflict: () => void }) {
+  useLanguage();
   const meta = useMeta();
   const flash = useFlash();
   const navigate = useNavigate();
@@ -66,43 +71,43 @@ export default function TaskWorkbench({ task, meId, onChanged, onConflict }: { t
   if (task.node_confirmation) {
     const node = task.node_confirmation;
     return <SpaceBetween size="m">
-      <StatusIndicator type={task.satisfied ? 'success' : node.ready ? 'pending' : 'warning'}>{task.exec_status_label}</StatusIndicator>
-      {node.needs_review && <Alert type="warning">此前已确认，前置资料发生变化，请复核。原确认记录保留在活动记录中。</Alert>}
-      <Box>{node.evidence_hint}</Box>
-      {node.history_pending && <Alert type="info">录入前历史，待补资料及核验；不视为平台内完成。</Alert>}
-      {node.confirmation && <Box color="text-body-secondary">{node.confirmation.name} · {dateTime(node.confirmation.at)} 确认</Box>}
-      {!task.satisfied && <Button variant="primary" loading={busy} disabled={!node.ready || !node.can_confirm} onClick={() => handle(() => api.confirmTask(task.project_id, task.id, { version: task.version }), `已确认满足：${task.title}`)}>确认满足</Button>}
-      {!node.can_confirm && <Box color="text-body-secondary">由 {node.confirm.join(' / ')} 或项目负责人账号确认。</Box>}
-      <Button variant="link" onClick={() => navigate(`/projects/${task.project_id}?tab=overview&step=${task.step_key}&action=confirm`)}>查看房屋与前置资料</Button>
+      <StatusIndicator type={task.satisfied ? 'success' : node.ready ? 'pending' : 'warning'}>{systemText(task.exec_status_label)}</StatusIndicator>
+      {node.needs_review && <Alert type="warning">{uiText("taskWorkbench.previously.confirmed.but.prerequisites.have.changed.review.them.again")}</Alert>}
+      <Box>{systemText(node.evidence_hint)}</Box>
+      {node.history_pending && <Alert type="info">{uiText("taskWorkbench.history.from.before.entry.requires.supporting.records.and.verification")}</Alert>}
+      {node.confirmation && <Box color="text-body-secondary">{node.confirmation.name} · {dateTime(node.confirmation.at)} {uiText("myTodoTable.confirm")}</Box>}
+      {!task.satisfied && <Button variant="primary" loading={busy} disabled={!node.ready || !node.can_confirm} onClick={() => handle(() => api.confirmTask(task.project_id, task.id, { version: task.version }), uiText("sentences.conditions.confirmed", { value1: (taskTitle(task)) }))}>{uiText("myTodoTable.confirm.conditions.met")}</Button>}
+      {!node.can_confirm && <Box color="text-body-secondary">{uiText("taskWorkbench.by")} {node.confirm.join(' / ')} {uiText("taskWorkbench.or.a.project.lead.account")}</Box>}
+      <Button variant="link" onClick={() => navigate(`/projects/${task.project_id}?tab=overview&step=${task.step_key}&action=confirm`)}>{uiText("taskWorkbench.view.property.and.prerequisites")}</Button>
       <TaskTimeline projectId={task.project_id} taskId={task.id} refreshKey={task.version + refreshKey} />
     </SpaceBetween>;
   }
 
-  if (task.step_key === 'purchase') return <SpaceBetween size="m"><Alert type="info" action={<Button onClick={() => navigate(`/procurement?project=${task.project_id}`)}>进入本房采购</Button>}>采购负责人：{task.assignee?.display_name || '待分派'} · {task.procurement_progress?.ready ?? 0} / {task.procurement_progress?.total ?? 0} 项已备齐。采购进度由清单自动更新，无需提交审核。</Alert><TaskTimeline projectId={task.project_id} taskId={task.id} refreshKey={task.version} /></SpaceBetween>;
+  if (task.step_key === 'purchase') return <SpaceBetween size="m"><Alert type="info" action={<Button onClick={() => navigate(`/procurement?project=${task.project_id}`)}>{uiText("taskWorkbench.open.property.procurement")}</Button>}>{uiText("taskWorkbench.procurement.lead")}{task.assignee?.display_name || uiText("personAvatar.unassigned")} · {task.procurement_progress?.ready ?? 0} / {task.procurement_progress?.total ?? 0} {uiText("taskWorkbench.items.ready.procurement.progress.updates.from.the.list.automatically")}</Alert><TaskTimeline projectId={task.project_id} taskId={task.id} refreshKey={task.version} /></SpaceBetween>;
 
   const detail = (
     <SpaceBetween size="m">
       <KeyValuePairs columns={2} items={[
-        { label: '状态', value: <div><StatusIndicator type={statusIndicator(task.exec_status)}>{task.exec_status_label}</StatusIndicator>{task.exec_status === 'waiting' && <Box variant="small" color="text-body-secondary">等 {task.wait_for || '—'}：{task.wait_reason}{task.wait_until ? `，预计 ${dueText(task.wait_until)}` : ''}</Box>}{task.exec_status === 'done' && task.done_at && <Box variant="small" color="text-body-secondary">确认于 {dateTime(task.done_at)}</Box>}</div> },
-        { label: '截止', value: task.due_at ? dueText(task.due_at) : <Box color="text-body-secondary">未设定</Box> },
-        { label: '负责人', value: <PersonAvatar user={task.assignee} /> },
-        { label: '审核人', value: task.reviewer ? <PersonAvatar user={task.reviewer} /> : '—' },
-        { label: '所属位置', value: `${stageKeyLabel(meta?.stage_groups, task.stage_key, task.stage_label)}${task.stage_index > task.project_current_stage_index ? '，项目还没走到这里，可提前准备' : ''}` },
-        { label: '证据判定', value: task.satisfied ? <div><StatusIndicator type="success">已满足</StatusIndicator>{task.satisfied_evidence && <Box variant="small" color="text-body-secondary">{task.satisfied_evidence}</Box>}</div> : <Box color="text-body-secondary">未满足</Box> },
+        { label: uiText("taskSummaryPanel.status"), value: <div><StatusIndicator type={statusIndicator(task.exec_status)}>{systemText(task.exec_status_label)}</StatusIndicator>{task.exec_status === 'waiting' && <Box variant="small" color="text-body-secondary">{uiText("taskSummaryPanel.waiting.for")} {task.wait_for || '—'}：{task.wait_reason}{task.wait_until ? uiText("sentences.expected.2", { value1: (dueText(task.wait_until)) }) : ''}</Box>}{task.exec_status === 'done' && task.done_at && <Box variant="small" color="text-body-secondary">{uiText("taskWorkbench.confirmed.on")} {dateTime(task.done_at)}</Box>}</div> },
+        { label: uiText("taskTable.due"), value: task.due_at ? dueText(task.due_at) : <Box color="text-body-secondary">{uiText("projectPreplan.not.set")}</Box> },
+        { label: uiText('task.assignee'), value: <PersonAvatar user={task.assignee} /> },
+        { label: uiText("taskSummaryPanel.reviewer"), value: task.reviewer ? <PersonAvatar user={task.reviewer} /> : '—' },
+        { label: uiText("taskWorkbench.process.position"), value: `${stageKeyLabel(meta?.stage_groups, task.stage_key, task.stage_label)}${task.stage_index > task.project_current_stage_index ? uiText("taskWorkbench.the.project.has.not.reached.this.point.yet.but") : ''}` },
+        { label: uiText("taskSummaryPanel.evidence.assessment"), value: task.satisfied ? <div><StatusIndicator type="success">{uiText("taskSummaryPanel.requirements.met")}</StatusIndicator>{task.satisfied_evidence && <Box variant="small" color="text-body-secondary">{systemText(task.satisfied_evidence)}</Box>}</div> : <Box color="text-body-secondary">{uiText("taskSummaryPanel.requirements.not.met")}</Box> },
       ]} />
-      {task.purpose && <div><Box fontWeight="bold">这件事是</Box><Box>{task.purpose}</Box></div>}
-      {task.deliverable && <div><Box fontWeight="bold">要交</Box><Box>{task.deliverable.label}{task.requires_file ? '' : '（交说明即可）'}</Box></div>}
-      {task.done_when && <div><Box fontWeight="bold">怎么算满足</Box><Box>{task.done_when}</Box></div>}
+      {task.purpose && <div><Box fontWeight="bold">{uiText("taskDetail.task.purpose")}</Box><Box>{systemText(task.purpose)}</Box></div>}
+      {task.deliverable && <div><Box fontWeight="bold">{uiText("taskDetail.required.deliverable")}</Box><Box>{systemText(task.deliverable.label)}{task.requires_file ? '' : uiText("taskWorkbench.explanation.only")}</Box></div>}
+      {task.done_when && <div><Box fontWeight="bold">{uiText("taskWorkbench.requirements.to.satisfy")}</Box><Box>{systemText(task.done_when)}</Box></div>}
       <SpaceBetween direction="horizontal" size="xs">
         {statusActions(task, meId).map((a) => (
-          a === 'start' ? <Button key={a} variant="primary" loading={busy} onClick={() => handle(() => api.taskStatus(task.project_id, task.id, { version: task.version, action: 'start' }), `已开始「${task.title}」`)}>开始处理</Button>
-            : a === 'resume' ? <Button key={a} variant="primary" loading={busy} onClick={() => handle(() => api.taskStatus(task.project_id, task.id, { version: task.version, action: 'resume' }), `已恢复「${task.title}」`)}>恢复处理</Button>
-              : <Button key={a} onClick={() => setWaiting(true)}>记录等待</Button>
+          a === 'start' ? <Button key={a} variant="primary" loading={busy} onClick={() => handle(() => api.taskStatus(task.project_id, task.id, { version: task.version, action: 'start' }), uiText("sentences.started", { value1: (taskTitle(task)) }))}>{uiText("taskWorkbench.start.work")}</Button>
+            : a === 'resume' ? <Button key={a} variant="primary" loading={busy} onClick={() => handle(() => api.taskStatus(task.project_id, task.id, { version: task.version, action: 'resume' }), uiText("sentences.resumed", { value1: (taskTitle(task)) }))}>{uiText("taskWorkbench.resume.work")}</Button>
+              : <Button key={a} onClick={() => setWaiting(true)}>{uiText("taskWorkbench.record.waiting")}</Button>
         ))}
-        {canSubmit && <Button onClick={() => setTab('deliver')}>去交付</Button>}
-        <Button variant="link" onClick={() => navigate(`/projects/${task.project_id}?tab=overview`)}>项目总览</Button>
+        {canSubmit && <Button onClick={() => setTab('deliver')}>{uiText("taskWorkbench.provide.deliverables")}</Button>}
+        <Button variant="link" onClick={() => navigate(`/projects/${task.project_id}?tab=overview`)}>{uiText("taskWorkbench.project.overview")}</Button>
       </SpaceBetween>
-      {task.exec_status === 'done' && task.satisfied === false && <Alert type="warning">审核人已确认完成，但项目里还没有对应证据（{task.deliverable?.label ?? '交付物'}）。两者并列显示，不互相替代。</Alert>}
+      {task.exec_status === 'done' && task.satisfied === false && <Alert type="warning">{uiText("taskWorkbench.the.reviewer.confirmed.completion.but.corresponding.project.evidence.is")}{task.deliverable?.label ?? uiText("taskWorkbench.deliverable")}{uiText("taskWorkbench.these.are.shown.separately.neither.replaces.the.other")}</Alert>}
     </SpaceBetween>
   );
 
@@ -112,24 +117,25 @@ export default function TaskWorkbench({ task, meId, onChanged, onConflict }: { t
         activeTabId={tab}
         onChange={({ detail }) => setTab(detail.activeTabId)}
         tabs={[
-          { id: 'detail', label: '详情', content: detail },
-          { id: 'deliver', label: canReview ? '审核' : '交付', content: <DeliverTab key={`${task.project_id}:${task.id}`} task={task} meId={meId} canSubmit={canSubmit} canReview={canReview} busy={busy} onAction={handle} /> },
-          { id: 'history', label: '活动记录', content: <TaskTimeline projectId={task.project_id} taskId={task.id} refreshKey={refreshKey} /> },
+          { id: 'detail', label: uiText("taskWorkbench.details"), content: detail },
+          { id: 'deliver', label: canReview ? uiText("taskWorkbench.review") : uiText("taskWorkbench.delivery"), content: <DeliverTab key={`${task.project_id}:${task.id}`} task={task} meId={meId} canSubmit={canSubmit} canReview={canReview} busy={busy} onAction={handle} /> },
+          { id: 'history', label: uiText("taskSummaryPanel.activity.history"), content: <TaskTimeline projectId={task.project_id} taskId={task.id} refreshKey={refreshKey} /> },
         ]}
       />
-      {waiting && <TaskWaitModal key={`${task.project_id}:${task.id}`} task={task} onDone={(t) => { setWaiting(false); bump(t); flash({ type: 'success', content: `已记录等待：${t.title}` }); }} onConflict={() => { setWaiting(false); onConflict(); }} onDismiss={() => setWaiting(false)} />}
+      {waiting && <TaskWaitModal key={`${task.project_id}:${task.id}`} task={task} onDone={(t) => { setWaiting(false); bump(t); flash({ type: 'success', content: uiText("sentences.waiting.recorded", { value1: (taskTitle(t)) }) }); }} onConflict={() => { setWaiting(false); onConflict(); }} onDismiss={() => setWaiting(false)} />}
     </SpaceBetween>
   );
 }
 
 function SubmissionList({ subs }: { subs: Submission[] }) {
+  useLanguage();
   if (!subs.length) return null;
   return (
-    <ExpandableSection headerText={`提交记录（${subs.length}）`} variant="footer" defaultExpanded={subs.length <= 2}>
+    <ExpandableSection headerText={uiText("sentences.submissions", { value1: (subs.length) })} variant="footer" defaultExpanded={subs.length <= 2}>
       <SpaceBetween size="s">
         {subs.map((s) => (
           <div key={s.id} className="ui-submission">
-            <div><Box variant="span" fontWeight="bold">第 {s.seq} 次</Box>　<StatusIndicator type={s.decision === 'confirmed' ? 'success' : s.decision === 'returned' ? 'error' : 'pending'}>{s.decision_label}</StatusIndicator></div>
+            <div><Box variant="span" fontWeight="bold">{uiText("taskWorkbench.number")} {s.seq} {uiText("taskWorkbench.attempts")}</Box>　<StatusIndicator type={s.decision === 'confirmed' ? 'success' : s.decision === 'returned' ? 'error' : 'pending'}>{systemText(s.decision_label)}</StatusIndicator></div>
             <Box variant="small" color="text-body-secondary">{s.submitted_by?.display_name ?? '—'} · {dateTime(s.submitted_at)}{s.note ? ` · ${s.note}` : ''}</Box>
             {s.files.length > 0 && <Box variant="small">{s.files.map((f) => <span key={f.id} className="ui-file-link"><Link href={`/api/files/${f.id}/download`} external>{f.filename}</Link></span>)}</Box>}
             {s.decision !== 'pending' && <Box variant="small" color="text-body-secondary">{s.decided_by?.display_name ?? '—'} · {dateTime(s.decided_at)}{s.decision_reason ? `：${s.decision_reason}` : ''}</Box>}
@@ -141,6 +147,7 @@ function SubmissionList({ subs }: { subs: Submission[] }) {
 }
 
 function DeliverTab({ task, meId, canSubmit, canReview, busy, onAction }: { task: Task; meId: number | null; canSubmit: boolean; canReview: boolean; busy: boolean; onAction: (fn: () => Promise<Task>, ok: string) => Promise<void> }) {
+  useLanguage();
   const [files, setFiles] = useState<FileRow[] | null>(null);
   const [preview, setPreview] = useState<number | null>(null);
   const draftKey = `${meId}:${task.project_id}:${task.id}`;
@@ -170,10 +177,10 @@ function DeliverTab({ task, meId, canSubmit, canReview, busy, onAction }: { task
   const candidates = (files ?? []).filter((f) => f.step_key === task.step_key || (docType && f.doc_type === docType));
   const others = (files ?? []).filter((f) => !candidates.includes(f));
   const requirement = (
-    <Container embedded cardId="task-requirement" cardContext={task.title} header={<Header variant="h3">当前生效要求</Header>}>
+    <Container embedded cardId="task-requirement" cardContext={taskTitle(task)} header={<Header variant="h3">{uiText("taskWorkbench.current.requirements")}</Header>}>
       <SpaceBetween size="xs">
-        <Box>{task.deliverable ? task.deliverable.label : '按任务说明处理'}{task.requires_file ? '' : '（交说明即可）'}</Box>
-        {task.done_when && <Box variant="small" color="text-body-secondary">{task.done_when}</Box>}
+        <Box>{task.deliverable ? task.deliverable.label : uiText("taskWorkbench.follow.the.task.instructions")}{task.requires_file ? '' : uiText("taskWorkbench.explanation.only")}</Box>
+        {task.done_when && <Box variant="small" color="text-body-secondary">{systemText(task.done_when)}</Box>}
       </SpaceBetween>
     </Container>
   );
@@ -181,27 +188,27 @@ function DeliverTab({ task, meId, canSubmit, canReview, busy, onAction }: { task
   if (canReview && latest) {
     return (
       <SpaceBetween size="m">
-        <Container embedded cardId="task-submission" cardContext={task.title} header={<Header variant="h2" description={`${latest.submitted_by?.display_name ?? '—'} · ${dateTime(latest.submitted_at)}`}>第 {latest.seq} 次提交</Header>}>
+        <Container embedded cardId="task-submission" cardContext={taskTitle(task)} header={<Header variant="h2" description={`${latest.submitted_by?.display_name ?? '—'} · ${dateTime(latest.submitted_at)}`}>{uiText("taskWorkbench.number")} {latest.seq} {uiText("taskWorkbench.submission")}</Header>}>
           <SpaceBetween size="s">
             {latest.note && <Box>{latest.note}</Box>}
             {latest.files.length ? latest.files.map((f) => (
               <div key={f.id} className="ui-file-choice">
                 {(f.mime ?? '').startsWith('image/') && <img src={`/api/files/${f.id}/download`} alt="" className="ui-thumbnail ui-thumbnail-delivery" />}
-                <div>{f.mime?.startsWith('image/') ? <Button variant="inline-link" onClick={() => setPreview(f.id)}>{f.filename} · 查看图片</Button> : <Link href={`/api/files/${f.id}/download`} external>{f.filename}</Link>}<Box variant="small" color="text-body-secondary">{kb(f.size)}{f.uploaded_at ? ` · ${dateTime(f.uploaded_at)}` : ''}</Box></div>
+                <div>{f.mime?.startsWith('image/') ? <Button variant="inline-link" onClick={() => setPreview(f.id)}>{f.filename} {uiText("taskWorkbench.view.image")}</Button> : <Link href={`/api/files/${f.id}/download`} external>{f.filename}</Link>}<Box variant="small" color="text-body-secondary">{kb(f.size)}{f.uploaded_at ? ` · ${dateTime(f.uploaded_at)}` : ''}</Box></div>
               </div>
-            )) : <Box color="text-body-secondary">没有文件，只交了说明。</Box>}
+            )) : <Box color="text-body-secondary">{uiText("taskWorkbench.no.files.explanation.only")}</Box>}
           </SpaceBetween>
         </Container>
         {preview != null && <ImageViewer images={latest.files.filter(f => f.mime?.startsWith('image/')).map(f => ({ id: f.id, src: `/api/files/${f.id}/download`, label: f.filename }))} selectedId={preview} onClose={() => setPreview(null)} />}
         {requirement}
-        <FormField label="审核意见（退回时必填）" description="写清修改要求，确认通过时可不填。" stretch>
+        <FormField label={uiText("taskWorkbench.review.notes.required.when.returning")} description={uiText("taskWorkbench.describe.the.changes.needed.optional.when.accepting")} stretch>
           <Textarea value={reason} rows={3} onChange={({ detail }) => setReason(detail.value)} />
         </FormField>
         <SpaceBetween direction="horizontal" size="xs">
-          <Button loading={busy} onClick={() => { if (!reason.trim()) { return; } onAction(() => api.returnTask(task.project_id, task.id, { version: task.version, reason: reason.trim() }), `已退回「${task.title}」`); }} disabled={!reason.trim()}>退回修改</Button>
-          <Button variant="primary" loading={busy} onClick={() => onAction(() => api.confirmTask(task.project_id, task.id, { version: task.version, reason: reason.trim() || null }), `已确认「${task.title}」完成`)}>确认本次交付</Button>
+          <Button loading={busy} onClick={() => { if (!reason.trim()) { return; } onAction(() => api.returnTask(task.project_id, task.id, { version: task.version, reason: reason.trim() }), uiText("sentences.returned.for.changes", { value1: (taskTitle(task)) })); }} disabled={!reason.trim()}>{uiText("taskWorkbench.return.for.changes")}</Button>
+          <Button variant="primary" loading={busy} onClick={() => onAction(() => api.confirmTask(task.project_id, task.id, { version: task.version, reason: reason.trim() || null }), uiText("sentences.confirmed.completion.of", { value1: (taskTitle(task)) }))}>{uiText("taskWorkbench.accept.this.submission")}</Button>
         </SpaceBetween>
-        <HelpText>确认后任务完成，工作台、项目总览、负责人的我的事项一起更新；节点仍按各自前置条件和权限确认。</HelpText>
+        <HelpText>{uiText("taskWorkbench.acceptance.completes.the.task.and.updates.the.workspace.project")}</HelpText>
         <SubmissionList subs={task.submissions.slice(1)} />
       </SpaceBetween>
     );
@@ -211,31 +218,31 @@ function DeliverTab({ task, meId, canSubmit, canReview, busy, onAction }: { task
     return (
       <SpaceBetween size="m">
         {requirement}
-        {latest?.decision === 'returned' && <Alert type="warning" header={`第 ${latest.seq} 次提交被退回`}>{latest.decision_reason}</Alert>}
-        {fileError && <Alert type="error" header="文件读取失败">{fileError}</Alert>}
-        <FormField label={task.requires_file ? '本次交付的文件（至少一个）' : '附文件（可选）'} description="从这套房已上传的文件里勾，或现在上传。">
-          {files === null ? <Box color="text-body-secondary">读取文件中…</Box> : (
+        {latest?.decision === 'returned' && <Alert type="warning" header={uiText("sentences.submission.was.returned", { value1: (latest.seq) })}>{latest.decision_reason}</Alert>}
+        {fileError && <Alert type="error" header={uiText("taskWorkbench.could.not.load.files")}>{fileError}</Alert>}
+        <FormField label={task.requires_file ? uiText("taskWorkbench.files.for.this.submission.at.least.one") : uiText("taskWorkbench.attach.files.optional")} description={uiText("taskWorkbench.select.files.already.uploaded.to.this.property.or.upload")}>
+          {files === null ? <Box color="text-body-secondary">{uiText("taskWorkbench.loading.files")}</Box> : (
             <SpaceBetween size="xs">
-              {candidates.length === 0 && others.length === 0 && <Box color="text-body-secondary">这套房还没有文件。</Box>}
+              {candidates.length === 0 && others.length === 0 && <Box color="text-body-secondary">{uiText("taskWorkbench.this.property.has.no.files.yet")}</Box>}
               {candidates.map((f) => <Checkbox key={f.id} checked={picked.includes(f.id)} onChange={({ detail }) => setPicked((p) => detail.checked ? [...p, f.id] : p.filter((x) => x !== f.id))}>{f.filename}<Box variant="span" color="text-body-secondary" fontSize="body-s">　{f.uploaded_by ?? '—'} · {dateTime(f.uploaded_at)}</Box></Checkbox>)}
               {others.length > 0 && (
-                <ExpandableSection headerText={`这套房的其他文件（${others.length}）`} variant="footer">
+                <ExpandableSection headerText={uiText("sentences.other.files.for.this.property", { value1: (others.length) })} variant="footer">
                   <SpaceBetween size="xxs">
                     {others.map((f) => <Checkbox key={f.id} checked={picked.includes(f.id)} onChange={({ detail }) => setPicked((p) => detail.checked ? [...p, f.id] : p.filter((x) => x !== f.id))}>{f.filename}<Box variant="span" color="text-body-secondary" fontSize="body-s">　{f.doc_type ?? ''} · {dateTime(f.uploaded_at)}</Box></Checkbox>)}
                   </SpaceBetween>
                 </ExpandableSection>
               )}
-              <Button variant="normal" iconName="upload" onClick={() => setShowUpload((v) => !v)}>{showUpload ? '收起上传' : '上传新文件'}</Button>
-              {showUpload && <Container embedded cardId="task-upload" cardContext={task.title}><UploadForm projectId={task.project_id} docType={docType ?? 'other'} lockType={!!docType} stepKey={task.step_key} photoOnly={task.deliverable?.kind === 'photo'} compact onDone={async () => { const before = new Set((files ?? []).map((f) => f.id)); const after = await api.files(task.project_id); setFiles(after); setPicked((p) => [...p, ...after.filter((f) => !before.has(f.id)).map((f) => f.id)]); setShowUpload(false); }} /></Container>}
+              <Button variant="normal" iconName="upload" onClick={() => setShowUpload((v) => !v)}>{showUpload ? uiText("taskWorkbench.collapse.upload") : uiText("taskWorkbench.upload.new.file")}</Button>
+              {showUpload && <Container embedded cardId="task-upload" cardContext={taskTitle(task)}><UploadForm projectId={task.project_id} docType={docType ?? 'other'} lockType={!!docType} stepKey={task.step_key} photoOnly={task.deliverable?.kind === 'photo'} compact onDone={async () => { const before = new Set((files ?? []).map((f) => f.id)); const after = await api.files(task.project_id); setFiles(after); setPicked((p) => [...p, ...after.filter((f) => !before.has(f.id)).map((f) => f.id)]); setShowUpload(false); }} /></Container>}
             </SpaceBetween>
           )}
         </FormField>
-        <FormField label={task.requires_file ? '交付说明（可选）' : '交付说明（必填）'} constraintText="尚未提交的内容仅在当前页面会话保留；提交审核后才会交给审核人。" stretch>
-          <Textarea value={note} rows={3} onChange={({ detail }) => setNote(detail.value)} placeholder={task.requires_file ? '例如：已补齐入口尺寸' : '写清做了什么、结果是什么'} />
+        <FormField label={task.requires_file ? uiText("taskWorkbench.delivery.notes.optional") : uiText("taskWorkbench.delivery.notes.required")} constraintText={uiText("taskWorkbench.unsubmitted.content.stays.in.this.page.session.only.it")} stretch>
+          <Textarea value={note} rows={3} onChange={({ detail }) => setNote(detail.value)} placeholder={task.requires_file ? uiText("taskWorkbench.for.example.entrance.dimensions.have.been.added") : uiText("taskWorkbench.describe.what.you.did.and.the.result")} />
         </FormField>
         <SpaceBetween direction="horizontal" size="xs">
-          <Button variant="primary" loading={busy} disabled={(task.requires_file && !picked.length) || (!task.requires_file && !note.trim() && !picked.length)} onClick={() => onAction(() => api.submitTask(task.project_id, task.id, { version: task.version, note: note.trim() || null, file_ids: picked }), `已提交「${task.title}」，等 ${task.reviewer?.display_name ?? '审核人'} 确认`)}>提交审核</Button>
-          <HelpText>上传不等于提交；提交后进入待确认，由 {task.reviewer?.display_name ?? '审核人'} 退回或确认。</HelpText>
+          <Button variant="primary" loading={busy} disabled={(task.requires_file && !picked.length) || (!task.requires_file && !note.trim() && !picked.length)} onClick={() => onAction(() => api.submitTask(task.project_id, task.id, { version: task.version, note: note.trim() || null, file_ids: picked }), uiText("sentences.submitted.awaiting.confirmation", { value1: (taskTitle(task)), value2: (task.reviewer?.display_name ?? uiText("taskSummaryPanel.reviewer")) }))}>{uiText("taskWorkbench.submit.for.review")}</Button>
+          <HelpText>{uiText("taskWorkbench.uploading.does.not.submit.the.task.after.submission.it")} {task.reviewer?.display_name ?? uiText("taskSummaryPanel.reviewer")} {uiText("taskWorkbench.who.can.return.or.accept.it")}</HelpText>
         </SpaceBetween>
         <SubmissionList subs={task.submissions} />
       </SpaceBetween>
@@ -245,9 +252,9 @@ function DeliverTab({ task, meId, canSubmit, canReview, busy, onAction }: { task
   return (
     <SpaceBetween size="m">
       {requirement}
-      {task.exec_status === 'pending_review' && <Alert type="info">已提交，等 {task.reviewer?.display_name ?? '审核人'} 确认。</Alert>}
-      {task.exec_status === 'done' && <Alert type="success">已由 {latest?.decided_by?.display_name ?? '审核人'} 确认完成{task.done_at ? `（${dateTime(task.done_at)}）` : ''}。</Alert>}
-      {meId != null && !canSubmit && !canReview && task.exec_status !== 'done' && task.exec_status !== 'pending_review' && <Box color="text-body-secondary">这项任务由 {task.assignee?.display_name ?? '待分派'} 负责、{task.reviewer?.display_name ?? '未指定'} 审核；你只能看。</Box>}
+      {task.exec_status === 'pending_review' && <Alert type="info">{uiText("taskWorkbench.submitted.awaiting")} {task.reviewer?.display_name ?? uiText("taskSummaryPanel.reviewer")} {uiText("taskWorkbench.confirmation")}</Alert>}
+      {task.exec_status === 'done' && <Alert type="success">{uiText("taskWorkbench.handled.by")} {latest?.decided_by?.display_name ?? uiText("taskSummaryPanel.reviewer")} {uiText("myTodoTable.confirm.completion")}{task.done_at ? `（${dateTime(task.done_at)}）` : ''}。</Alert>}
+      {meId != null && !canSubmit && !canReview && task.exec_status !== 'done' && task.exec_status !== 'pending_review' && <Box color="text-body-secondary">{uiText("taskWorkbench.this.task.is.assigned.to")} {task.assignee?.display_name ?? uiText("personAvatar.unassigned")} {uiText("taskWorkbench.and.reviewed.by")}{task.reviewer?.display_name ?? uiText("taskSummaryPanel.not.specified")} {uiText("taskWorkbench.you.have.read.only.access")}</Box>}
       <SubmissionList subs={task.submissions} />
     </SpaceBetween>
   );

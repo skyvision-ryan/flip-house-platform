@@ -1,3 +1,7 @@
+import { focusValue } from '../../i18n/taskDisplay.ts';
+import { systemText } from '../../i18n/core.ts';
+import { useLanguage } from '../../i18n/LanguageProvider';
+import { m as uiText } from '../../i18n/core.ts';
 import Alert from '@cloudscape-design/components/alert';
 import Box from '@cloudscape-design/components/box';
 import BreadcrumbGroup from '@cloudscape-design/components/breadcrumb-group';
@@ -47,21 +51,21 @@ const short = (d: string | null) => (d ? d.slice(5).replace('-', '/') : '—');
 function dealFields(p: Project): { label: string; value: string }[] {
   const dash = '—';
   if (p.money_hidden) {
-    return [{ label: '交易', value: '金额对你的身份不显示' }];
+    return [{ label: uiText("projectPage.transaction"), value: systemText('金额对你的身份不显示') }];
   }
   if (p.stage === 'lead') {
     return [
-      { label: '挂牌价', value: money(p.property.list_price) },
-      { label: '目标售价', value: money(p.target_arv) },
-      { label: '估值', value: money(p.property.avm_value) },
+      { label: uiText("leadGroups.list.price"), value: money(p.property.list_price) },
+      { label: uiText("dashboard.target.sale.price"), value: money(p.target_arv) },
+      { label: uiText("projectPage.valuation"), value: money(p.property.avm_value) },
     ];
   }
   if (p.stage === 'portfolio') {
     const profit = p.sale_price != null && p.purchase_price != null ? p.sale_price - p.purchase_price - (p.budget_spent ?? 0) : null;
     return [
-      { label: '买入价', value: money(p.purchase_price) },
-      { label: '成交价', value: money(p.sale_price) },
-      { label: '实际利润', value: profit == null ? dash : money(profit) },
+      { label: uiText("founderDesign.purchase.price"), value: money(p.purchase_price) },
+      { label: uiText("dashboard.sale.price"), value: money(p.sale_price) },
+      { label: uiText("dashboard.actual.profit"), value: profit == null ? dash : money(profit) },
     ];
   }
   // 在建：预计利润 = 目标售价 − 买入 − 装修（预算和已支出里取大的那个，别低估成本）
@@ -69,9 +73,9 @@ function dealFields(p: Project): { label: string; value: string }[] {
     ? p.target_arv - p.purchase_price - Math.max(p.budget_planned ?? 0, p.budget_spent ?? 0)
     : null;
   return [
-    { label: '买入价', value: money(p.purchase_price) },
-    { label: '目标售价', value: money(p.target_arv) },
-    { label: '预计利润', value: profit == null ? dash : money(profit) },
+    { label: uiText("founderDesign.purchase.price"), value: money(p.purchase_price) },
+    { label: uiText("dashboard.target.sale.price"), value: money(p.target_arv) },
+    { label: uiText("dashboard.estimated.profit"), value: profit == null ? dash : money(profit) },
   ];
 }
 
@@ -103,6 +107,7 @@ function keyDates(p: Project) {
 }
 
 export default function ProjectPage() {
+  useLanguage();
   const { id } = useParams();
   const pid = Number(id);
   const navigate = useNavigate();
@@ -123,7 +128,7 @@ export default function ProjectPage() {
   const reload = useCallback(() => api.project(pid).then(p => { setProject(p); setLoadError(null); }).then(() => reloadTasks()).catch(e => setLoadError(e.message)), [pid, reloadTasks]);
   useEffect(() => { reload(); }, [reload]);
 
-  if (loadError) return <Alert type="error" header="无法打开这套房" action={<Button onClick={reload}>重试</Button>}>{loadError} <Button variant="inline-link" onClick={() => navigate('/')}>返回工作台</Button></Alert>;
+  if (loadError) return <Alert type="error" header={uiText("projectPage.cannot.open.this.property")} action={<Button onClick={reload}>{uiText("addProject.retry")}</Button>}>{systemText(loadError)} <Button variant="inline-link" onClick={() => navigate('/')}>{uiText("app.back.to.workspace")}</Button></Alert>;
   if (!project) return <Box padding="xxl" textAlign="center"><Spinner size="large" /></Box>;
 
   const canAnalyze = !!meta && role.can('analysis');
@@ -133,11 +138,11 @@ export default function ProjectPage() {
   const section = params.get('section');
   const focus = params.get('focus');
   const prop = project.property;
-  const specParts = [prop.year_built ? `${prop.year_built} 年` : null, prop.sqft ? `${num(prop.sqft)} sqft` : null, prop.beds != null ? `${prop.beds} 卧 ${prop.baths_full ?? 0} 卫` : null, prop.style].filter(Boolean) as string[];
+  const specParts = [prop.year_built ? uiText("sentences.year", { value1: (prop.year_built) }) : null, prop.sqft ? `${num(prop.sqft)} sqft` : null, prop.beds != null ? uiText("sentences.beds.baths.2", { value1: (prop.beds), value2: (prop.baths_full ?? 0) }) : null, prop.style].filter(Boolean) as string[];
 
   return (
     <ContentLayout maxContentWidth={1440}
-      breadcrumbs={<BreadcrumbGroup items={[{ text: '工作台', href: '/' }, { text: '项目', href: '/projects' }, { text: project.name, href: `/projects/${pid}` }]} onFollow={(e) => { e.preventDefault(); navigate(e.detail.href); }} />}
+      breadcrumbs={<BreadcrumbGroup items={[{ text: uiText("app.workspace"), href: '/' }, { text: uiText("app.projects"), href: '/projects' }, { text: project.name, href: `/projects/${pid}` }]} onFollow={(e) => { e.preventDefault(); navigate(e.detail.href); }} />}
       header={
         <Container embedded cardId="project-header" cardContext={project.name}>
           <SpaceBetween size="l">
@@ -146,8 +151,8 @@ export default function ProjectPage() {
               <SpaceBetween size="s">
                 <Header variant="h1" actions={
                   <SpaceBetween direction="horizontal" size="xs">
-                    {role.can('edit_project') && <Button iconName="edit" onClick={() => setEditing(true)}>编辑</Button>}
-                    {role.can('delete_project') && <ButtonDropdown items={[{ id: 'delete', text: '删除项目' }]} onItemClick={({ detail }) => { if (detail.id === 'delete') setConfirmDelete(true); }}>操作</ButtonDropdown>}
+                    {role.can('edit_project') && <Button iconName="edit" onClick={() => setEditing(true)}>{uiText("projectPage.edit")}</Button>}
+                    {role.can('delete_project') && <ButtonDropdown items={[{ id: 'delete', text: uiText("projectPage.delete.project") }]} onItemClick={({ detail }) => { if (detail.id === 'delete') setConfirmDelete(true); }}>{uiText("filesTab.actions")}</ButtonDropdown>}
                   </SpaceBetween>
                 }>
                   <div className="ui-row-wrap">
@@ -159,12 +164,12 @@ export default function ProjectPage() {
             </div>
             {/* 当前事实与房屋身份分层；仍只陈述任务、日期和关键节点已有的数据。 */}
             {tasks && tasks.focus.length > 0 && (
-              <div className="ui-project-focus"><KeyValuePairs columns={3} items={tasks.focus.map((f) => ({ label: f.label, value: f.tone === 'warning' ? <Box color="text-status-warning" fontWeight="bold">{f.value}</Box> : <Box fontWeight="bold">{f.value}</Box> }))} /></div>
+              <div className="ui-project-focus"><KeyValuePairs columns={3} items={tasks.focus.map((f) => ({ label: systemText(f.label), value: f.tone === 'warning' ? <Box color="text-status-warning" fontWeight="bold">{focusValue(f)}</Box> : <Box fontWeight="bold">{focusValue(f)}</Box> }))} /></div>
             )}
             <StagePositionBar position={project.group_position} />
-            {project.group_position?.history_pending && <Alert type="info">本房从中途阶段录入。此前任务与节点不视为完成，历史资料待补、待核验。</Alert>}
-            <ExpandableSection headerText="房屋与交易资料">
-              <KeyValuePairs columns={4} items={[{ label: '策略', value: labelOf(meta?.strategies, project.strategy) }, ...dealFields(project), { label: '关键日期', value: keyDates(project) }]} />
+            {project.group_position?.history_pending && <Alert type="info">{uiText("projectPage.this.property.was.entered.mid.process.earlier.tasks.and")}</Alert>}
+            <ExpandableSection headerText={uiText("projectPage.property.and.transaction.details")}>
+              <KeyValuePairs columns={4} items={[{ label: uiText("projectPage.strategy"), value: labelOf(meta?.strategies, project.strategy) }, ...dealFields(project), { label: uiText("projectPage.key.dates"), value: keyDates(project) }]} />
             </ExpandableSection>
           </SpaceBetween>
         </Container>
@@ -175,12 +180,12 @@ export default function ProjectPage() {
           activeTabId={tab}
           onChange={({ detail }) => setParams((prev) => { const n = new URLSearchParams(prev); n.set('tab', detail.activeTabId); n.delete('section'); return n; })}
           tabs={[
-            { id: 'overview', label: '总览', content: <OverviewTab project={project} reload={reload} deepLink={{ step, action }} focus={focus} tasks={tasks} tasksErr={tasksErr} reloadTasks={reloadTasks} /> },
-            ...(canAnalyze ? [{ id: 'analysis', label: '分析', content: <AnalysisTab project={project} reload={reload} /> }] : []),
-            ...(role.tier !== 'grey' ? [{ id: 'data', label: '数据', content: <DataTab projectId={pid} reload={reload} section={section} /> }] : []),
-            { id: 'files', label: '文件', content: <FilesTab projectId={pid} /> },
-            ...(role.can('procurement_read') ? [{ id: 'procurement', label: '项目采购', content: <ProcurementTab key={pid} project={project} initialItemId={Number(params.get('item')) || undefined} /> }] : []),
-            ...(role.canReadMoney ? [{ id: 'budget', label: '预算', content: <BudgetTab projectId={pid} reload={reload} /> }] : []),
+            { id: 'overview', label: uiText("designCollaboration.overview"), content: <OverviewTab project={project} reload={reload} deepLink={{ step, action }} focus={focus} tasks={tasks} tasksErr={systemText(tasksErr)} reloadTasks={reloadTasks} /> },
+            ...(canAnalyze ? [{ id: 'analysis', label: uiText("updatesList.analysis"), content: <AnalysisTab project={project} reload={reload} /> }] : []),
+            ...(role.tier !== 'grey' ? [{ id: 'data', label: uiText("updatesList.data"), content: <DataTab projectId={pid} reload={reload} section={section} /> }] : []),
+            { id: 'files', label: uiText("updatesList.files"), content: <FilesTab projectId={pid} /> },
+            ...(role.can('procurement_read') ? [{ id: 'procurement', label: uiText("projectPage.project.procurement"), content: <ProcurementTab key={pid} project={project} initialItemId={Number(params.get('item')) || undefined} /> }] : []),
+            ...(role.canReadMoney ? [{ id: 'budget', label: uiText("updatesList.budget"), content: <BudgetTab projectId={pid} reload={reload} /> }] : []),
           ]}
         />
       </SpaceBetween>
@@ -188,18 +193,17 @@ export default function ProjectPage() {
       <Modal
         visible={confirmDelete}
         onDismiss={() => setConfirmDelete(false)}
-        header="删除项目"
+        header={uiText("projectPage.delete.project")}
         footer={
           <Box float="right">
             <SpaceBetween direction="horizontal" size="xs">
-              <Button variant="link" onClick={() => setConfirmDelete(false)}>取消</Button>
-              <Button variant="primary" onClick={async () => { await api.deleteProject(pid); flash({ type: 'success', content: `已删除“${project.name}”` }); navigate('/'); }}>删除</Button>
+              <Button variant="link" onClick={() => setConfirmDelete(false)}>{uiText("fieldWithSource.cancel")}</Button>
+              <Button variant="primary" onClick={async () => { await api.deleteProject(pid); flash({ type: 'success', content: uiText("sentences.deleted", { value1: (project.name) }) }); navigate('/'); }}>{uiText("analysisTab.delete")}</Button>
             </SpaceBetween>
           </Box>
         }
       >
-        确定删除“{project.name}”？项目下的预算、支出、文件登记和分析会一起删除，房产记录保留。
-      </Modal>
+        {uiText("projectPage.delete")}{project.name}{uiText("projectPage.its.budgets.expenses.file.registrations.and.analyses.will.also")} </Modal>
     </ContentLayout>
   );
 }

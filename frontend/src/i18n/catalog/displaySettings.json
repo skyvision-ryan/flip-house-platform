@@ -1,0 +1,34 @@
+{
+  "displaySettings.done": [
+    "完成",
+    "Done"
+  ],
+  "displaySettings.show.the.help.and.feedback.numbers.you.need.settings": [
+    "按需要展开说明和反馈编号。设置会保留在这台设备。",
+    "Show the help and feedback numbers you need. Settings stay on this device."
+  ],
+  "displaySettings.help.text": [
+    "辅助说明",
+    "Help text"
+  ],
+  "displaySettings.show.instructions.for.cards.and.forms.essential.status.risk": [
+    "显示卡片和表单的使用说明。关闭后，重要状态、风险和必填提示仍保留。",
+    "Show instructions for cards and forms. Essential status, risk, and required-field messages remain visible when off."
+  ],
+  "displaySettings.card.numbers": [
+    "卡片编号",
+    "Card numbers"
+  ],
+  "displaySettings.show.fixed.numbers.from.1.99.click.a.number": [
+    "显示固定的 1–99 编号。点击编号可复制反馈位置，再附上问题截图。",
+    "Show fixed numbers from 1–99. Click a number to copy the feedback location, then attach a screenshot of the issue."
+  ],
+  "displaySettings.feedback.example": [
+    "反馈示例",
+    "Feedback example"
+  ],
+  "displaySettings.project.overview.card.08.the.due.date.is.cut": [
+    "“项目总览 · 卡片 #08：截止日期显示不完整”",
+    "“Project overview · Card #08: the due date is cut off”"
+  ]
+}

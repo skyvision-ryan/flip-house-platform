@@ -1,3 +1,4 @@
+import { m as uiText } from '../i18n/core.ts';
 import type { Meta, Project } from '../api/client';
 
 /**
@@ -35,7 +36,7 @@ export interface LeadGroup {
 }
 
 /** 认不出的子阶段单独一组。**不并进「新线索」**——那会把「不知道在哪一档」说成「刚进来」。 */
-export const UNKNOWN_GROUP = { value: '__unknown__', label: '待核实' };
+export const UNKNOWN_GROUP = { value: '__unknown__', get label() { return uiText("leads.unverified"); } };
 
 /**
  * 按六个子阶段分组，顺序跟着 `meta.substages.lead` 走。
@@ -77,7 +78,7 @@ export function nextUpText(p: Pick<Project, 'next_up'>): { task: string; roles: 
 
 /** 热度标签。取值只有 hot_lead / warm_lead（`backend/app/dictionaries.py:38-39`），认不出就不显示。 */
 export function heatLabel(p: Pick<Project, 'lead_heat'>): string | null {
-  if (p.lead_heat === 'hot_lead') return '热线索';
-  if (p.lead_heat === 'warm_lead') return '温线索';
+  if (p.lead_heat === 'hot_lead') return uiText("leads.hot.lead");
+  if (p.lead_heat === 'warm_lead') return uiText("leads.warm.lead");
   return null;
 }

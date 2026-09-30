@@ -1,0 +1,242 @@
+{
+  "designChoices.continuous.workspace": [
+    "连续工作区",
+    "Continuous workspace"
+  ],
+  "designChoices.a.shared.plane.for.list.and.summary.with.whitespace": [
+    "列表与摘要共用一块连续平面，用留白和分隔线建立层次。",
+    "A shared plane for list and summary, with whitespace and dividers for hierarchy."
+  ],
+  "designChoices.keep.tasks.and.context.within.the.same.reading.flow": [
+    "看任务、看背景时视线不中断。",
+    "Keep tasks and context within the same reading flow."
+  ],
+  "designChoices.subtle.section.boundaries.require.a.clear.selected.state": [
+    "区块边界更轻，需要明确选中状态。",
+    "Subtle section boundaries require a clear selected state."
+  ],
+  "designChoices.group.by.status": [
+    "按状态分组",
+    "Group by status"
+  ],
+  "designChoices.review.in.progress.waiting.and.awaiting.confirmation.then.open": [
+    "先看进行中、等待和待确认，再展开具体任务。",
+    "Review In progress, Waiting, and Awaiting confirmation, then open a task."
+  ],
+  "designChoices.quickly.identify.issues.in.team.meetings": [
+    "例会能很快找到卡在哪里。",
+    "Quickly identify issues in team meetings."
+  ],
+  "designChoices.comparing.assignees.or.due.dates.across.statuses.requires.changing": [
+    "跨状态比较负责人或截止日期要切换分组。",
+    "Comparing assignees or due dates across statuses requires changing groups."
+  ],
+  "designChoices.simple.task.list": [
+    "简洁任务清单",
+    "Simple task list"
+  ],
+  "designChoices.a.compact.toolbar.keeps.search.status.and.tasks.in": [
+    "压缩工具栏，把搜索、状态与每项任务放在同一条阅读线上。",
+    "A compact toolbar keeps search, status, and tasks in one reading path."
+  ],
+  "designChoices.direct.for.individuals.handling.a.few.tasks.each.day": [
+    "个人每天处理少量任务更直接。",
+    "Direct for individuals handling a few tasks each day."
+  ],
+  "designChoices.less.information.than.a.table.for.comparing.many.projects": [
+    "大批量项目对照时，信息比表格少。",
+    "Less information than a table for comparing many projects."
+  ],
+  "designChoices.structured.table": [
+    "结构化表格",
+    "Structured table"
+  ],
+  "designChoices.fixed.columns.aligned.content.and.compact.rows.show.status": [
+    "强调固定列、对齐和紧凑行距，把状态、证据、截止直接列出。",
+    "Fixed columns, aligned content, and compact rows show status, evidence, and due dates directly."
+  ],
+  "designChoices.useful.for.checking.and.comparing.many.tasks": [
+    "适合大量事项的核对与比较。",
+    "Useful for checking and comparing many tasks."
+  ],
+  "designChoices.more.efficient.on.desktop.mobile.requires.expanding.each.item": [
+    "桌面更有效率，手机要逐项展开。",
+    "More efficient on desktop; mobile requires expanding each item."
+  ],
+  "designChoices.people.and.handoffs": [
+    "人员与交接",
+    "People and handoffs"
+  ],
+  "designChoices.keep.the.assignee.waiting.party.and.latest.activity.near": [
+    "把负责人、等待对象和最近动态放在任务附近，用分区底色强调协作。",
+    "Keep the assignee, waiting party, and latest activity near each task; section surfaces highlight collaboration."
+  ],
+  "designChoices.see.who.to.contact.or.wait.for.making.handoffs": [
+    "先知道找谁、等谁，便于接手工作。",
+    "See who to contact or wait for, making handoffs easier."
+  ],
+  "designChoices.taller.rows.show.fewer.tasks.at.once": [
+    "每行更高，同屏能看到的任务较少。",
+    "Taller rows show fewer tasks at once."
+  ],
+  "designChoices.compact.filtering.tools": [
+    "紧凑筛选工具",
+    "Compact filtering tools"
+  ],
+  "designChoices.clear.filters.and.a.summary.sidebar.help.narrow.the": [
+    "用清楚的筛选按钮和侧栏摘要组织任务，适合快速缩小范围。",
+    "Clear filters and a summary sidebar help narrow the task list quickly."
+  ],
+  "designChoices.filters.and.choices.are.easy.to.find": [
+    "筛选和选项容易发现。",
+    "Filters and choices are easy to find."
+  ],
+  "designChoices.more.controls.require.restraint.in.the.number.of.actions": [
+    "控件更多，要克制页面上的操作数量。",
+    "More controls require restraint in the number of actions shown."
+  ],
+  "designChoices.activate.water.electricity.and.gas": [
+    "开通水电与燃气",
+    "Activate water, electricity, and gas"
+  ],
+  "designChoices.water.and.electricity.are.active.awaiting.the.gas.company": [
+    "水、电已开通；等待燃气公司确认到场时间。",
+    "Water and electricity are active; awaiting the gas company's visit confirmation."
+  ],
+  "designChoices.today.10.20.alex.updated.progress": [
+    "今天 10:20 · Alex 更新了办理进展",
+    "Today 10:20 · Alex updated progress"
+  ],
+  "designChoices.provide.complete.property.insurance.policy": [
+    "补齐房屋保险单",
+    "Provide complete property insurance policy"
+  ],
+  "designChoices.awaiting.a.replacement.policy.with.an.expiration.date.from": [
+    "等待保险经纪人补发带到期日的保险单。",
+    "Awaiting a replacement policy with an expiration date from the insurance broker."
+  ],
+  "designChoices.today.09.45.morgan.recorded.waiting": [
+    "今天 09:45 · Morgan 记录等待回复",
+    "Today 09:45 · Morgan recorded waiting"
+  ],
+  "designChoices.verify.permit.documents": [
+    "核对 Permit 资料",
+    "Verify Permit documents"
+  ],
+  "designChoices.permit.documents.submitted.awaiting.the.reviewer.s.acceptance": [
+    "Permit 资料已提交，等待审核人确认本次交付。",
+    "Permit documents submitted; awaiting the reviewer's acceptance."
+  ],
+  "designChoices.yesterday.16.30.taylor.submitted.permit.documents": [
+    "昨天 16:30 · Taylor 提交了 Permit 资料",
+    "Yesterday 16:30 · Taylor submitted Permit documents"
+  ],
+  "designChoices.prepare.permit.application.documents": [
+    "整理 Permit 申请资料",
+    "Prepare Permit application documents"
+  ],
+  "designChoices.final.drawings.are.ready.application.documents.are.being.assembled": [
+    "设计定稿已备齐，正在整理申请文件。",
+    "Final drawings are ready; application documents are being assembled."
+  ],
+  "designChoices.yesterday.15.10.jordan.started.work": [
+    "昨天 15:10 · Jordan 开始处理",
+    "Yesterday 15:10 · Jordan started work"
+  ],
+  "designChoices.compare.layouts.using.the.same.sample.tasks.option.b": [
+    "同一组示例任务，比较不同的信息组织方式。B 已用于实际页面；下面的选择仅记录你的偏好。",
+    "Compare layouts using the same sample tasks. Option B is used in actual pages; selections below record preferences only."
+  ],
+  "designChoices.general.interface.references": [
+    "通用界面参考",
+    "General interface references"
+  ],
+  "designChoices.select.design.direction": [
+    "选择参考方向",
+    "Select design direction"
+  ],
+  "designChoices.applied": [
+    "已应用",
+    "Applied"
+  ],
+  "designChoices.suitable.for": [
+    "适合：",
+    "Suitable for:"
+  ],
+  "designChoices.tradeoff": [
+    "取舍：",
+    "Tradeoff:"
+  ],
+  "designChoices.view.reference.source": [
+    "查看参考来源 ↗",
+    "View reference source ↗"
+  ],
+  "designChoices.sample.property.renovation.stage": [
+    "示例房屋 · 装修阶段",
+    "Sample property · Renovation stage"
+  ],
+  "designChoices.4.tasks.1.awaiting.confirmation": [
+    "4 项任务 · 1 项待确认",
+    "4 tasks · 1 awaiting confirmation"
+  ],
+  "designChoices.search.sample.tasks": [
+    "搜索示例任务",
+    "Search sample tasks"
+  ],
+  "designChoices.search.tasks.or.assignees": [
+    "搜索任务或负责人",
+    "Search tasks or assignees"
+  ],
+  "designChoices.filter.sample.statuses": [
+    "筛选示例状态",
+    "Filter sample statuses"
+  ],
+  "designChoices.evidence": [
+    "证据",
+    "Evidence"
+  ],
+  "designChoices.no.matching.tasks.try.another.search.or.select.all": [
+    "没有匹配的任务。试试其他关键词或选择“全部”。",
+    "No matching tasks. Try another search or select All."
+  ],
+  "designChoices.back.to.sample.list": [
+    "返回示例列表",
+    "Back to sample list"
+  ],
+  "designChoices.sample.summary": [
+    "示例摘要内容",
+    "Sample summary"
+  ],
+  "designChoices.work.status": [
+    "执行状态",
+    "Work status"
+  ],
+  "designChoices.evidence.satisfaction.and.task.confirmation.are.recorded.separately": [
+    "证据满足与任务确认分开记录。",
+    "Evidence satisfaction and task confirmation are recorded separately."
+  ],
+  "designChoices.view.latest.progress": [
+    "查看最新进展",
+    "View latest progress"
+  ],
+  "designChoices.back.to.task.details": [
+    "返回任务详情",
+    "Back to task details"
+  ],
+  "designChoices.try.filters.and.open.tasks.before.choosing": [
+    "先试着筛选、点任务，再选偏好",
+    "Try filters and open tasks before choosing"
+  ],
+  "designChoices.adapted.reference.sketches.retain.the.project.font.and.avatars": [
+    "参考方向的适配草图，沿用项目字体和头像；未切换组件库。偏好仅保存在本机。",
+    "Adapted reference sketches retain the project font and avatars; the component library is unchanged. Preferences stay on this device."
+  ],
+  "designChoices.browser.storage.is.unavailable.record.and.share.your.choice": [
+    "浏览器未允许保存偏好，请直接记录选择并反馈。",
+    "Browser storage is unavailable. Record and share your choice directly."
+  ],
+  "designChoices.save.device.preference": [
+    "保存本机偏好 ·",
+    "Save device preference ·"
+  ]
+}

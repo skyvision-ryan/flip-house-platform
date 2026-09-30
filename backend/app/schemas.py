@@ -367,6 +367,7 @@ class AnalysisOut(BaseModel):
 
 
 class AnalysisCreate(BaseModel):
+    use_default_name: bool = False
     name: Optional[str] = None
     inputs: Optional[dict] = None
     tier: str = "medium"
@@ -535,6 +536,8 @@ class ProcurementFields(BaseModel):
 
 
 class ProcurementItemOut(ORM):
+    template_key: Optional[str] = None
+    template_name_snapshot: Optional[str] = None
     in_worklist: bool = False
     attention_reasons: list[str] = Field(default_factory=list)
     order_managed: bool = False
@@ -659,6 +662,7 @@ class UserBrief(BaseModel):
 
 
 class TaskEventOut(BaseModel):
+    participant_names: dict[int, str] = {}
     id: int
     task_id: Optional[int] = None
     project_id: int
@@ -698,6 +702,8 @@ class SubmissionOut(BaseModel):
 
 
 class TaskOut(BaseModel):
+    template_key: Optional[str] = None
+    template_name_snapshot: Optional[str] = None
     node_confirmation: Optional[dict] = None
     procurement_progress: Optional[ProcurementProgress] = None
     id: int

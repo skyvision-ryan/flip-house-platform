@@ -54,6 +54,10 @@ jobs:
         working-directory: frontend
         run: npm ci
 
+      - name: Native bilingual contracts and state regressions
+        working-directory: frontend
+        run: npm run check:i18n
+
       - name: Frontend build
         working-directory: frontend
         run: npm run build

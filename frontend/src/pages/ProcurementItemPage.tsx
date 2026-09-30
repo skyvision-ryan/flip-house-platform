@@ -1,3 +1,7 @@
+import { materialName } from '../i18n/templateNames.ts';
+import { systemText } from '../i18n/core.ts';
+import { useLanguage } from '../i18n/LanguageProvider';
+import { m as uiText } from '../i18n/core.ts';
 import Alert from '@cloudscape-design/components/alert';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
@@ -19,6 +23,7 @@ import { useMeta } from '../lib/meta';
 import { procurementChanges, procurementDraft, procurementError, type ProcurementDraft } from '../lib/procurement';
 
 export function ProcurementItemEditor({ materialId, houseId, onClose, onSaved, onDirty }: { materialId: number; houseId: number; onClose: () => void; onSaved: () => Promise<void>; onDirty: (dirty: boolean) => void }) {
+  useLanguage();
   const selectedId = materialId;
   const meta = useMeta();
   const flash = useFlash();
@@ -55,7 +60,7 @@ export function ProcurementItemEditor({ materialId, houseId, onClose, onSaved, o
   }, [data, materialId]);
   const close = () => {
     if (busy) return;
-    if (dirty) { setError('请先保存或放弃当前修改。'); return; }
+    if (dirty) { setError(uiText("procurementItemPage.save.or.discard.your.current.changes.first")); return; }
     onClose();
   };
   useEffect(() => {
@@ -66,7 +71,7 @@ export function ProcurementItemEditor({ materialId, houseId, onClose, onSaved, o
   }, [dirty]);
   useEffect(() => { onDirty(dirty); }, [dirty, onDirty]);
   const save = async () => {
-    if (!project) { setError('请选择有采购权限的房屋'); return; }
+    if (!project) { setError(uiText("procurementItemPage.select.a.property.you.can.manage.procurement.for")); return; }
     const invalid = procurementError(draft);
     if (invalid) { setError(invalid); return; }
     setBusy(true); setError('');
@@ -76,7 +81,7 @@ export function ProcurementItemEditor({ materialId, houseId, onClose, onSaved, o
       const saved = next.items.find(row => row.id === selectedId)!;
       await load(); setDraft(procurementDraft(saved)); setOriginal(procurementDraft(saved)); setRevision(saved.updated_at);
       await onSaved();
-      flash({ type: 'success', content: `「${saved.name}」已保存` });
+      flash({ type: 'success', content: uiText("sentences.saved", { value1: (materialName(saved)) }) });
     } catch (e) { setError(procurementSaveError(e)); }
     finally { setBusy(false); }
   };
@@ -92,51 +97,51 @@ export function ProcurementItemEditor({ materialId, houseId, onClose, onSaved, o
   };
   const upload = async (file: File) => {
     setBusy(true); setError('');
-    try { await api.uploadProcurementImage(Number(selectedId), file); await load(); flash({ type: 'success', content: '材料图片已上传' }); }
+    try { await api.uploadProcurementImage(Number(selectedId), file); await load(); flash({ type: 'success', content: uiText("procurementItemPage.material.image.uploaded") }); }
     catch (e) { setError(procurementSaveError(e)); }
     finally { setBusy(false); }
   };
-  if (loadError) return <Alert type="error" header="采购清单暂时无法加载" action={<Button onClick={load}>重试</Button>}>{loadError}</Alert>;
-  if (!data) return <Box padding="l"><Spinner /> 正在加载采购项…</Box>;
-  if (materialId && (!selected || selected.project_id !== houseId)) return <Alert type="error">采购项不存在或无权访问。<Button onClick={close}>返回采购清单</Button></Alert>;
+  if (loadError) return <Alert type="error" header={uiText("procurementItemPage.procurement.list.could.not.be.loaded")} action={<Button onClick={load}>{uiText("addProject.retry")}</Button>}>{systemText(loadError)}</Alert>;
+  if (!data) return <Box padding="l"><Spinner /> {uiText("procurementItemPage.loading.procurement.item")}</Box>;
+  if (materialId && (!selected || selected.project_id !== houseId)) return <Alert type="error">{uiText("procurementItemPage.item.does.not.exist.or.access.is.denied")}<Button onClick={close}>{uiText("procurementItemPage.back.to.procurement.list")}</Button></Alert>;
   const editor = selectedId !== null ? <SpaceBetween size="m">
-    <Header variant="h3" actions={<Button disabled={busy} onClick={close}>关闭编辑</Button>}>修改需求</Header>
-    <Box color="text-body-secondary">{project?.name ?? '请选择房屋'} · {`${waveOptions.find(w => w.value === selected?.wave)?.label || ''} · ${label(selected?.status || '')}`}</Box>
-    {error && <Alert type="error">{error}</Alert>}
+    <Header variant="h3" actions={<Button disabled={busy} onClick={close}>{uiText("procurementItemPage.close.editor")}</Button>}>{uiText("procurementItemRow.edit.requirement")}</Header>
+    <Box color="text-body-secondary">{project?.name ?? uiText("procurementItemPage.select.a.property")} · {`${waveOptions.find(w => w.value === selected?.wave)?.label || ''} · ${label(selected?.status || '')}`}</Box>
+    {error && <Alert type="error">{systemText(error)}</Alert>}
     <div className="proc-requirement-fields" ref={editorRef}>
       <SpaceBetween size="m">
-    <div className="proc-requirement-basics"><FormField label="材料名称"><Input disabled={busy} value={draft.name} onChange={({ detail }) => setDraft({ ...draft, name: detail.value })} /></FormField>
-    <FormField label="采购分组"><Select disabled={busy} selectedOption={waveOptions.find(w => w.value === draft.wave) ?? null} options={waveOptions} onChange={({ detail }) => setDraft({ ...draft, wave: detail.selectedOption.value! })} /></FormField>
-    <FormField label="需求状态" constraintText={selected?.order_managed ? "已有订单，购买进展按订单和实收自动更新。" : undefined}><Select disabled={busy || !!selected?.order_managed} options={statusOptions.filter(s => ['pending_spec', 'pending_order', 'exception', 'na'].includes(s.value))} selectedOption={statusOptions.find(s => s.value === draft.status) ?? null} onChange={({ detail }) => setDraft({ ...draft, status: detail.selectedOption.value! })} /></FormField>
+    <div className="proc-requirement-basics"><FormField label={uiText("procurementItemRow.material.name")}><Input disabled={busy} value={draft.name} onChange={({ detail }) => setDraft({ ...draft, name: detail.value })} /></FormField>
+    <FormField label={uiText("procurementItemPage.procurement.group")}><Select disabled={busy} selectedOption={waveOptions.find(w => w.value === draft.wave) ?? null} options={waveOptions} onChange={({ detail }) => setDraft({ ...draft, wave: detail.selectedOption.value! })} /></FormField>
+    <FormField label={uiText("procurementItemPage.requirement.status")} constraintText={selected?.order_managed ? uiText("procurementItemPage.linked.orders.exist.purchase.progress.updates.from.orders.and") : undefined}><Select disabled={busy || !!selected?.order_managed} options={statusOptions.filter(s => ['pending_spec', 'pending_order', 'exception', 'na'].includes(s.value))} selectedOption={statusOptions.find(s => s.value === draft.status) ?? null} onChange={({ detail }) => setDraft({ ...draft, status: detail.selectedOption.value! })} /></FormField>
     </div><ProcurementFields draft={draft} onChange={setDraft} disabled={busy} />
     <SpaceBetween direction="horizontal" size="s">
-      <Button variant="primary" loading={busy} disabled={!dirty} onClick={() => save()}>保存需求</Button>
-      <Button disabled={busy} onClick={discard}>{dirty ? '放弃修改' : '重新载入'}</Button>
+      <Button variant="primary" loading={busy} disabled={!dirty} onClick={() => save()}>{uiText("procurementItemPage.save.requirement")}</Button>
+      <Button disabled={busy} onClick={discard}>{dirty ? uiText("procurementItemPage.discard.changes") : uiText("procurementItemPage.reload")}</Button>
     </SpaceBetween>
       </SpaceBetween>
     </div>
     {selected && <>
-      <Box color="text-body-secondary">材料资料最近编辑：{selected.updated_by ?? '未记录'} · {selected.updated_at.replace('T', ' ').slice(0, 16)}</Box>
-      <section className="ui-proc-images"><Header variant="h3" description="点击图片放大核对，可连续查看。JPG / PNG / WebP，每张不超过 8 MB，最多 12 张。">材料图片</Header>
-        {selected.images.length === 0 && <Box color="text-body-secondary">尚未上传材料图片。</Box>}
+      <Box color="text-body-secondary">{uiText("procurementItemPage.material.details.last.edited")}{selected.updated_by ?? uiText("directorDesign.not.recorded")} · {selected.updated_at.replace('T', ' ').slice(0, 16)}</Box>
+      <section className="ui-proc-images"><Header variant="h3" description={uiText("procurementItemPage.select.an.image.to.zoom.and.browse.jpg.png")}>{uiText("procurementDesign.material.images")}</Header>
+        {selected.images.length === 0 && <Box color="text-body-secondary">{uiText("procurementItemPage.no.material.images.uploaded.yet")}</Box>}
         <div className="ui-proc-image-grid">{selected.images.map(img => <div key={img.id}>
-          <button type="button" className="ui-proc-image-button" onClick={() => setImage(img)} aria-label={`查看完整图片：${img.filename}`}><img src={`/api/procurement-images/${img.id}`} alt={img.filename} loading="lazy" /></button>
-          <Button variant="inline-link" disabled={busy} onClick={() => setRemoveImage(img)}>移除 {img.filename}</Button>
+          <button type="button" className="ui-proc-image-button" onClick={() => setImage(img)} aria-label={uiText("sentences.view.full.image", { value1: (img.filename) })}><img src={`/api/procurement-images/${img.id}`} alt={img.filename} loading="lazy" /></button>
+          <Button variant="inline-link" disabled={busy} onClick={() => setRemoveImage(img)}>{uiText("purchaseOrderEntry.remove")} {img.filename}</Button>
         </div>)}</div>
-        <label className="ui-proc-upload">添加材料图片<input type="file" aria-label="添加材料图片" accept="image/jpeg,image/png,image/webp" disabled={busy || selected.images.length >= 12} onChange={e => { const file = e.target.files?.[0]; e.target.value = ''; if (file) void upload(file); }} /></label>
+        <label className="ui-proc-upload">{uiText("procurementItemPage.add.material.images")}<input type="file" aria-label={uiText("procurementItemPage.add.material.images")} accept="image/jpeg,image/png,image/webp" disabled={busy || selected.images.length >= 12} onChange={e => { const file = e.target.files?.[0]; e.target.value = ''; if (file) void upload(file); }} /></label>
       </section>
     </>}
   </SpaceBetween> : null;
   return <div className="ui-proc-item-page"><SpaceBetween size="m">
     {editor}
     {image && selected && <ImageViewer images={selected.images.map(img => ({ id: img.id, src: `/api/procurement-images/${img.id}`, label: img.filename }))} selectedId={image.id} onClose={() => setImage(null)} />}
-    <Modal visible={!!removeImage} header="移除材料图片" onDismiss={() => setRemoveImage(null)} footer={<SpaceBetween direction="horizontal" size="s"><Button onClick={() => setRemoveImage(null)}>取消</Button><Button loading={busy} onClick={async () => { if (!removeImage) return; setBusy(true); try { await api.deleteProcurementImage(removeImage.id); setRemoveImage(null); await load(); } catch (e) { setError(procurementSaveError(e)); } finally { setBusy(false); } }}>确认移除</Button></SpaceBetween>}>
-      移除「{removeImage?.filename}」后，需要重新上传才能恢复。
-    </Modal>
+    <Modal visible={!!removeImage} header={uiText("procurementItemPage.remove.material.image")} onDismiss={() => setRemoveImage(null)} footer={<SpaceBetween direction="horizontal" size="s"><Button onClick={() => setRemoveImage(null)}>{uiText("fieldWithSource.cancel")}</Button><Button loading={busy} onClick={async () => { if (!removeImage) return; setBusy(true); try { await api.deleteProcurementImage(removeImage.id); setRemoveImage(null); await load(); } catch (e) { setError(procurementSaveError(e)); } finally { setBusy(false); } }}>{uiText("procurementItemPage.confirm.removal")}</Button></SpaceBetween>}>
+      {uiText("procurementItemPage.remove")}{removeImage?.filename}{uiText("procurementItemPage.restoring.it.will.require.another.upload")} </Modal>
   </SpaceBetween></div>;
 }
 
 export default function ProcurementItemPage() {
+  useLanguage();
   const { itemId, projectId } = useParams();
   const [params] = useSearchParams();
   const houseId = projectId || params.get('project') || '';
