@@ -32,7 +32,7 @@ export default function ProcurementItemRow({ row, orders, waves, expanded, statu
   const orderedText = purchase.linked.length > 1 ? `${purchase.orderedDates[0] || '未填写'} 起 · ${purchase.linked.length} 笔` : purchase.ordered;
   const images = row.images ?? [];
   return <article className="ui-proc-item" data-expanded={expanded}>
-    <div id={`proc-item-${row.id}`} className="ui-proc-item-main">
+    <div id={`proc-item-${row.id}`} tabIndex={-1} className="ui-proc-item-main">
       <div className="proc-material-main"><div className="ui-proc-item-name"><strong>{row.name}</strong>{row.specification && <span className="proc-material-secondary">{row.specification}</span>}</div><StatusIndicator type={tone}>{purchase.progress ?? statusLabel}</StatusIndicator></div>
       <dl className="proc-material-facts">
         <div className="proc-material-cell"><dt>需求数量</dt><dd>{row.required_quantity ?? '未填写'} {unit}</dd></div>
@@ -48,9 +48,10 @@ export default function ProcurementItemRow({ row, orders, waves, expanded, statu
       </div>
     </div>
     {expanded && <section id={`proc-summary-${row.id}`} aria-label={`采购详情：${row.name}`} className="ui-proc-item-summary">
-      <div className="ui-proc-item-summary-heading"><h4>需求</h4>{!readOnly && <Button variant="inline-link" onClick={onEdit}>{children ? '收起需求编辑' : '修改需求'}</Button>}</div>
-      {!row.in_worklist && <p className="proc-detail-note">此需求未纳入本次采购清单。</p>}
-      <Facts facts={[['使用节点', waves.find(w=>w.value===row.wave)?.label || row.wave], ['使用位置', row.use_location], ['需要到场', row.needed_on], ['需求预算（非实付）', row.budget_amount != null ? moneyValue(row.budget_amount) : null], ['备注', row.note]]} wide={['备注']} />
+      <div className="ui-proc-item-summary-heading"><h4>需求</h4>{!readOnly && <Button variant="inline-link" onClick={onEdit}>{children ? '收起需求编辑' : row.status === 'na' ? '恢复需求 / 修改' : '修改需求'}</Button>}</div>
+      {row.status === 'na' && <p className="proc-detail-note">本房不需要 · 已排除进度；恢复时将需求状态改为待选型或待下单，原备注保留。</p>}
+      {row.status !== 'na' && !row.in_worklist && <p className="proc-detail-note">此需求未纳入本次采购清单。</p>}
+      <Facts facts={[['材料名称', row.name], ['规格', row.specification], ['需求数量', row.required_quantity != null ? `${row.required_quantity} ${unit}` : null], ['使用节点', waves.find(w=>w.value===row.wave)?.label || row.wave], ['使用位置', row.use_location], ['需要到场', row.needed_on], ['需求预算（非实付）', row.budget_amount != null ? moneyValue(row.budget_amount) : null], ['备注', row.note]]} wide={['备注']} />
       {row.product_url && <div className="proc-detail-links"><Link href={row.product_url} external>商品参考</Link></div>}
       {images.length > 0 && <div className="proc-detail-images">{images.map(i=><button type="button" key={i.id} aria-label={`查看材料图片：${i.filename}`} onClick={()=>setImage(i.id)}><img src={`/api/procurement-images/${i.id}`} alt={i.filename} loading="lazy" /><span>{i.filename}</span></button>)}</div>}
       {children}
@@ -65,6 +66,7 @@ export default function ProcurementItemRow({ row, orders, waves, expanded, statu
           <div className="ui-proc-order-heading"><h5>{doc.vendor} · {doc.order_number || '订单号未填写'}</h5><Button variant="inline-link" onClick={()=>onOrder(order.id)}>打开订单{readOnly ? '' : ' / 收货'}</Button></div>
           {lines.map(line => { const fact = order.summary.lines.find(r=>r.id===line.id); const status = websiteStatusLabel(line.website_status); return <div className="proc-order-line" key={line.id}>
             <p>{lines.length > 1 ? `${line.name} · ` : ''}下单 {doc.ordered_on || '未填写'} · 订购 {line.quantity ?? '未填'} / 完好实收 {fact?.usable ?? '待核对'} / 待补 {fact?.remaining ?? '待核对'} {line.unit} · 商品金额 {moneyValue(fact?.amount ?? null)}{line.expected_on ? ` · 预计 ${line.expected_on}` : ''}{status ? ` · 网站${status}（不代表实收）` : ''}</p>
+            <Facts facts={[["规格", line.specification], ["品牌", line.brand], ["型号", line.model], ["颜色", line.color], ["使用位置", line.location], ["需要到场", line.needed_on], ["卖家", line.vendor], ["单价", line.unit_price != null ? moneyValue(line.unit_price) : null], ["收货地址", line.delivery_address || doc.delivery_address], ["备注", line.selection_note]]} wide={['备注']} />
             {line.issue_note && <p className="proc-item-issue">需处理：{line.issue_note}</p>}
             {(line.product_url || line.tracking_url) && <div className="proc-detail-links">{line.product_url && <Link external href={line.product_url}>商品链接</Link>}{line.tracking_url && <Link external href={line.tracking_url}>物流链接</Link>}</div>}
           </div>; })}
@@ -76,7 +78,7 @@ export default function ProcurementItemRow({ row, orders, waves, expanded, statu
         </section>;
       })}
       {hasLegacy && legacy && <section className="ui-proc-order-summary"><h5>旧购买记录（不计入订单汇总）</h5>
-        <Facts facts={[['商家', legacy.retailer], ['订单号', legacy.order_number], ['金额', legacy.amount!=null ? moneyValue(legacy.amount) : null], ['数量', legacy.quantity], ['下单', legacy.ordered_on], ['预计到货', legacy.expected_on], ['实际到货', legacy.received_on], ['跟进', legacy.follow_up]]} wide={['跟进']} />
+        <Facts facts={[['商家', legacy.retailer], ['订单号', legacy.order_number], ['金额', legacy.amount!=null ? moneyValue(legacy.amount) : null], ['数量', legacy.quantity], ['下单', legacy.ordered_on], ['预计到货', legacy.expected_on], ['实际到货', legacy.received_on], ['跟进', legacy.follow_up], ['承运商', legacy.carrier], ['运单号', legacy.tracking_number], ['物流状态', legacy.shipment_status], ['收货地点', legacy.delivery_address || (legacy.delivery_type === 'company' ? '公司' : legacy.delivery_type === 'project' ? '房屋地址' : null)]]} wide={['跟进']} />
         {(legacy.order_url || legacy.tracking_url) && <div className="proc-detail-links">{legacy.order_url && <Link external href={legacy.order_url}>原订单</Link>}{legacy.tracking_url && <Link external href={legacy.tracking_url}>原物流</Link>}</div>}
       </section>}
     </section>}

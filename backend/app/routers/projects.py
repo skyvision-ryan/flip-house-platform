@@ -85,7 +85,10 @@ def create_project(body: schemas.ProjectCreate, request: Request, db: Session = 
             target = db.get(models.User, uid)
             if target is None or not target.active:
                 raise HTTPException(400, "安排中的账号不存在或已停用，请重新选择负责人")
-            if uid != creator.id and not body.join_assignees:
+            # Selecting the purchase owner also authorizes their project membership.
+            # Other task assignment flows keep their existing explicit confirmation.
+            purchase_owner = any(p.step_key == "purchase" and p.assignee_user_id == uid for p in body.task_plan)
+            if uid != creator.id and not body.join_assignees and not purchase_owner:
                 raise HTTPException(400, "请确认将所选负责人加入新项目并分派任务")
             targets[uid] = target
     for plan in body.task_plan:
@@ -147,7 +150,7 @@ def _create_with_plan(body, db, actor, creator, targets, receipt):
         from .analyses import create_analysis
         create_analysis(db, project, None, None)
     from .procurement import ensure_procurement
-    ensure_procurement(db, project.id, commit=False)
+    ensure_procurement(db, project.id, commit=False, select_all=True)
     # KAN-75：所有普通模板任务都建成实例（未分派也建），创建者自动成为项目成员。
     from .tasks import ensure_member, ensure_tasks
     tasks = ensure_tasks(db, project.id, commit=False)

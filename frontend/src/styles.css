@@ -673,7 +673,7 @@ table, .ui-facts, .ui-metrics { font-variant-numeric: tabular-nums; }
 .proc-attention-filter:disabled { cursor:not-allowed; opacity:.55; }
 .proc-scope-bar { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:8px 16px; border-bottom:1px solid var(--ui-border); }
 .proc-scope-search { flex:0 1 360px; min-width:220px; padding-bottom:6px; }
-.procurement-surface .proc-scope-bar .proc-view-switch { border-bottom:0; }
+.procurement-surface .proc-scope-bar .proc-view-switch { border-bottom:0; flex-wrap:wrap; }
 .procurement-workspace .proc-house { margin:0; padding:24px; }
 .proc-material-group h3 { margin:0; font-size:1rem; }
 .proc-material-group h3 button { display:flex; align-items:center; gap:10px; width:100%; min-height:48px; padding:12px; color:var(--ui-text); font:inherit; font-weight:600; text-align:left; border:0; background:var(--ui-panel); cursor:pointer; }
@@ -731,6 +731,8 @@ table, .ui-facts, .ui-metrics { font-variant-numeric: tabular-nums; }
   .proc-status-strip dt { white-space:normal; }
   .proc-status-manage { grid-column:1 / -1; margin-left:0; }
   .proc-scope-search { flex-basis:100%; }
+  .procurement-workspace .proc-view-switch { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); width:100%; }
+  .procurement-workspace .proc-view-switch button { padding-inline:8px; }
   .proc-material-main { flex-wrap:wrap; gap:8px; }
   .proc-material-progress { width:100%; text-align:left; }
   .proc-material-facts { grid-template-columns:minmax(0,1fr); margin-left:0; gap:8px; }
