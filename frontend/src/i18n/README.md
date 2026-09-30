@@ -22,6 +22,7 @@ Review every reachable route, not just navigation: login/settings; workspace and
 
 | 中文 / term | English display | Meaning / boundary |
 |---|---|---|
+| 修改密码 / 重置密码 | Change password / Reset password | Self-service requires the current password; admin reset sets a replacement. Existing passwords cannot be viewed. Both revoke other sessions. |
 | 开始托管 | Open Escrow | Purchase-decision milestone; not transfer of title |
 | 完成购入过户 | Close of Escrow | Purchase closing; distinguish sale closing by context |
 | 挂牌 | Listing / Listed for sale | Marketing/listing status; not sold |

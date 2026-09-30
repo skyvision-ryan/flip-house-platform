@@ -603,5 +603,11 @@
   "server.fileDeleteDenied": "{{actor}} 不能删别人的文件",
   "server.unsupportedImage": "unsupported image",
   "server.unknownSpecialist": "Unknown specialist workspace",
-  "server.unknownLeadership": "Unknown leadership workspace"
+  "server.unknownLeadership": "Unknown leadership workspace",
+  "server.password.length": "密码需为 6 至 256 个字符。",
+  "server.password.signIn": "请先登录，再修改密码。",
+  "server.password.currentIncorrect": "当前密码不正确。",
+  "server.password.mismatch": "两次输入的新密码不一致。",
+  "server.password.unchanged": "新密码不能与当前密码相同。",
+  "server.password.changedElsewhere": "密码已在其他会话中更改，请重新登录。"
 }

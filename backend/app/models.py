@@ -387,6 +387,8 @@ class User(Base):
     role_code: Mapped[str] = mapped_column(String)  # 对应 ROLES 里的代号：老板 / 负责人 / D / J / K ...
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
     password_hash: Mapped[str] = mapped_column(String)
+    # NULL in legacy databases means version 0; never rewrite existing credentials.
+    session_version: Mapped[Optional[int]] = mapped_column(Integer, default=0)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     email: Mapped[Optional[str]] = mapped_column(String)  # KAN-75：邮件提醒的收件地址；管理员在用户页维护，可空
     created_at: Mapped[str] = mapped_column(String, default=now_iso)
