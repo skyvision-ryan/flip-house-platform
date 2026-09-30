@@ -85,7 +85,8 @@ export default function AddProject() {
   };
   useEffect(() => { if (me && userCan(meta, me, 'assign_tasks')) loadUsers(); }, [me?.id, meta]);
   const planSummary = summarizePlan(meta?.stage_checklist ?? [], plan, initialStage);
-  const joining = planSummary.people.filter((id) => id !== me?.id);
+  const purchaseOwner = plan.purchase?.assignee_user_id;
+  const joining = planSummary.people.filter((id) => id !== me?.id && id !== purchaseOwner);
   const updatePlan = (value: TaskPlan) => { setPlan(value); setJoinAssignees(false); };
 
 
@@ -422,6 +423,7 @@ export default function AddProject() {
         {houseCard}<PlanReview meta={meta} plan={plan} />
         <Container cardId="intake-start" header={<Header variant="h2">创建后如何开始</Header>}><SpaceBetween size="m">
           <KeyValuePairs columns={2} items={[{ label: '起始位置', value: stageOptions.find((s) => s.value === initialStage)?.label }, { label: '任务状态', value: '普通任务待处理；采购分派后即可录单' }, { label: '本次分派审核人', value: planSummary.assigned ? me.display_name : '分派时确定' }, { label: '关键节点', value: '必要条件齐备后，由有权限的账号确认满足' }]} />
+          {purchaseOwner && purchaseOwner !== me?.id && <Box>采购负责人 {users.find(u => u.id === purchaseOwner)?.display_name} 将在创建时自动加入本房，保留分派记录。</Box>}
           {joining.length > 0 && <Checkbox checked={joinAssignees} onChange={({ detail }) => setJoinAssignees(detail.checked)}>将 {joining.map((id) => users.find((u) => u.id === id)?.display_name ?? `账号 ${id}`).join('、')} 加入项目并分派任务</Checkbox>}
           <Box color="text-body-secondary">未安排的 {planSummary.unassigned} 项任务保留为待分派，可稍后补充。</Box>
         </SpaceBetween></Container>

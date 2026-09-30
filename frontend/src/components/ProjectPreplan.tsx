@@ -1,3 +1,4 @@
+import { userCan } from '../lib/role';
 import Alert from '@cloudscape-design/components/alert';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
@@ -34,7 +35,7 @@ export default function ProjectPreplan({ meta, plan, onChange, users, loading, c
   const open = (item: { key: string; title: string }) => {
     setEditing(item); setWho(plan[item.key]?.assignee_user_id ?? null); setDue(plan[item.key]?.due_at ?? ''); setInvalidDate(false);
   };
-  const options = [{ value: '', label: '待分派' }, ...users.map((u) => ({ value: String(u.id), label: `${initialsOf(u)} · ${u.display_name}`, description: `${u.role_code} · ${u.username}` }))];
+  const options = [{ value: '', label: '待分派' }, ...users.filter(u => editing?.key !== 'purchase' || userCan(meta, u, 'procurement')).map((u) => ({ value: String(u.id), label: `${initialsOf(u)} · ${u.display_name}`, description: `${u.role_code} · ${u.username}` }))];
   const renderStage = (stage: PlanStage) => {
     const ordinary = stage.items.filter((i) => !i.gate);
     const gates = stage.items.filter((i) => i.gate);
@@ -62,7 +63,7 @@ export default function ProjectPreplan({ meta, plan, onChange, users, loading, c
       onChange({ ...plan, [editing.key]: { assignee_user_id: who, due_at: due } }); setEditing(null);
     }}>保存到安排</Button></SpaceBetween></Box>}>
       <SpaceBetween size="l">
-        <FormField label="主要负责人" description="新项目尚无成员，选择真实账号；创建前统一确认加入项目。"><Select filteringType="auto" options={options} selectedOption={options.find((o) => o.value === (who == null ? '' : String(who))) ?? null} onChange={({ detail }) => setWho(detail.selectedOption.value ? Number(detail.selectedOption.value) : null)} /></FormField>
+        <FormField label="主要负责人" description={editing.key === 'purchase' ? "创建时自动加入本房并分派采购，无需再次确认。" : "新项目尚无成员，选择真实账号；创建前统一确认加入项目。"}><Select filteringType="auto" options={options} selectedOption={options.find((o) => o.value === (who == null ? '' : String(who))) ?? null} onChange={({ detail }) => setWho(detail.selectedOption.value ? Number(detail.selectedOption.value) : null)} /></FormField>
         {who != null && who !== creatorId && <Alert type="info">创建时将所选负责人加入项目，保留分派记录。</Alert>}
         <FormField label="截止日期（可选）" errorText={invalidDate ? '请填写有效日期，例如 2026/09/25' : undefined}><DatePicker value={due} onChange={({ detail }) => { setDue(detail.value); setInvalidDate(false); }} placeholder="YYYY/MM/DD" /></FormField>
         <HelpText>这里只保存草稿。创建后任务为“未开始”，审核人沿用现有规则，默认为创建者。</HelpText>

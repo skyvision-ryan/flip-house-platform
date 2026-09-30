@@ -40,13 +40,14 @@ def _rows(db: Session, project_id: int) -> list[models.ProcurementItem]:
     return list(db.scalars(select(models.ProcurementItem).where(models.ProcurementItem.project_id == project_id).order_by(models.ProcurementItem.sort_order, models.ProcurementItem.id)).all())
 
 
-def ensure_procurement(db: Session, project_id: int, *, commit: bool = True) -> list[models.ProcurementItem]:
+def ensure_procurement(db: Session, project_id: int, *, commit: bool = True, select_all: bool = False) -> list[models.ProcurementItem]:
     """按模板灌入行（建项目 / 初始化接口 / seed 用）；已有则原样返回。不在 GET 里调。"""
     rows = list(db.scalars(select(models.ProcurementItem).where(models.ProcurementItem.project_id == project_id).order_by(models.ProcurementItem.sort_order, models.ProcurementItem.id)).all())
     if rows:
         return rows
     for i, t in enumerate(PROCUREMENT_TEMPLATE):
-        db.add(models.ProcurementItem(project_id=project_id, wave=t["wave"], name=t["name"], status="pending_spec", sort_order=i))
+        db.add(models.ProcurementItem(project_id=project_id, wave=t["wave"], name=t["name"], status="pending_spec", sort_order=i,
+                                      worklist_selected=True if select_all else None))
     db.commit() if commit else db.flush()
     return list(db.scalars(select(models.ProcurementItem).where(models.ProcurementItem.project_id == project_id).order_by(models.ProcurementItem.sort_order, models.ProcurementItem.id)).all())
 
@@ -128,7 +129,7 @@ def procurement_tracking(db: Session = Depends(get_db), me: models.User = Depend
     if not me.is_admin and not allowed(me.role_code, "workbench_all_projects"):
         projects = projects.where(models.Project.id.in_(select(models.ProjectMember.project_id).where(
             models.ProjectMember.user_id == me.id, models.ProjectMember.active.is_(True))))
-    scoped_projects = db.scalars(projects.order_by(models.Project.id)).all()
+    scoped_projects = db.scalars(projects.order_by(models.Project.created_at.desc(), models.Project.id.desc())).all()
     visible = {p.id: p.name for p in scoped_projects}
     rows = db.scalars(select(models.ProcurementItem).where(models.ProcurementItem.project_id.in_(visible))
                       .order_by(models.ProcurementItem.project_id, models.ProcurementItem.sort_order, models.ProcurementItem.id)).all()
@@ -229,6 +230,8 @@ def patch_procurement(item_id: int, body: schemas.ProcurementPatchIn, db: Sessio
     data = _validated(data)
     if not data:
         return _payload(db, row.project_id)
+    if row.status == "na" and data.get("status") in {"pending_spec", "pending_order"}:
+        data["worklist_selected"] = True  # Restoring an excluded need makes it actionable again.
     data.update(updated_by=me.display_name, updated_by_user_id=me.id,
                 updated_at=datetime.now().isoformat(timespec="microseconds"))
     statement = update(models.ProcurementItem).where(models.ProcurementItem.id == item_id)

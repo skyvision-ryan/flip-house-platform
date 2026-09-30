@@ -703,3 +703,35 @@ class PurchaseOrderTests(unittest.TestCase):
             response = self.client.post(base + suffix, json=body)
             self.assertEqual(response.status_code, 422, response.text)
             self.assertEqual(self.material(), row)
+
+    def test_collaborator_edits_receives_without_handover_and_unauthorized_writes_fail(self):
+        order = self.create().json()
+        original_owner = self.clients['manager'].get(f'/api/projects/{self.pid}/tasks/{self.task_id}').json()['assignee']['id']
+        collaborator = self.clients['second']
+        row = collaborator.get(f'/api/projects/{self.pid}/procurement').json()['items'][0]
+        changed = collaborator.patch(f'/api/procurement/{row["id"]}', json={'note':'共同采购需求核对','expected_updated_at':row['updated_at']})
+        self.assertEqual(changed.status_code,200,changed.text)
+        document = deepcopy(order['document']); document['note'] = 'Collaborator followup'
+        response = collaborator.put(f'/api/purchase-orders/{order["id"]}', json={'request_key':str(uuid4()),'expected_version':order['version'],'document':document})
+        self.assertEqual(response.status_code,200,response.text); order=response.json()
+        body = {'request_key':str(uuid4()),'expected_version':order['version'],
+                'receipt':{'id':str(uuid4()),'received_on':date.today().isoformat(),'location':'Synthetic site','lines':[{'line_id':'lamp','quantity':'1','damaged_quantity':'0'}]}}
+        for name in ('outsider','finance'):
+            denied=self.clients[name].post(f'/api/purchase-orders/{order["id"]}/receipts',json=body)
+            self.assertEqual(denied.status_code,403,denied.text)
+        received=collaborator.post(f'/api/purchase-orders/{order["id"]}/receipts',json=body)
+        self.assertEqual(received.status_code,200,received.text)
+        self.assertEqual(received.json()['summary']['lines'][0]['usable'],1)
+        self.assertEqual(self.clients['manager'].get(f'/api/projects/{self.pid}/tasks/{self.task_id}').json()['assignee']['id'],original_owner)
+        self.assertEqual(self.clients['buyer'].get(f'/api/purchase-orders/{order["id"]}').json()['document'],received.json()['document'])
+
+    def test_default_initialization_preserves_existing_orders_receipts_and_events(self):
+        from app.routers import projects
+        self.app.include_router(projects.router)
+        order = self.create().json(); self.assertEqual(self.receive(order,'first','2').status_code,200)
+        before = self.client.get(f'/api/purchase-orders/{order["id"]}').json()
+        rows = self.client.get(f'/api/projects/{self.pid}/procurement').json()
+        response = self.clients['manager'].post('/api/projects',json={'name':'New unrelated house', 'address':{'label':'Synthetic New Road','street':'Synthetic New Road','city':'','state':'CA','zip':''},'create_analysis':False})
+        self.assertEqual(response.status_code,201,response.text)
+        self.assertEqual(self.client.post(f'/api/projects/{self.pid}/procurement/init').json(),rows)
+        self.assertEqual(self.client.get(f'/api/purchase-orders/{order["id"]}').json(),before)
