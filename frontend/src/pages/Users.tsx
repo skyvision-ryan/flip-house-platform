@@ -147,7 +147,7 @@ export default function Users() {
             </>
           )}
           {modal !== 'edit' && (
-            <FormField label={modal === 'create' ? uiText("users.initial.password") : uiText("users.new.password")} constraintText={uiText("users.at.least.6.characters")}>
+            <FormField label={modal === 'create' ? uiText("users.initial.password") : uiText("users.new.password")} constraintText={uiText("users.at.least.6.characters")} description={modal === 'password' ? uiText("password.adminHint") : undefined}>
               <Input type="password" value={draft.password} onChange={({ detail }) => setDraft({ ...draft, password: detail.value })} autoFocus={modal === 'password'} />
             </FormField>
           )}

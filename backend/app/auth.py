@@ -1,7 +1,7 @@
 """账号密码与会话：只用标准库，不加依赖。
 
 密码：pbkdf2_hmac(sha256) + 随机盐，存成 "pbkdf2$迭代$盐$哈希"。
-会话：cookie 里放 "用户id.过期时间戳.签名"，签名 = hmac(SECRET_KEY)。服务端不存会话表，改密码 / 停用靠查用户表。
+会话：签名 cookie 含用户、有效期及会话版本；改密递增版本，撤销旧会话。旧三段 cookie 仅兼容版本 0。
 """
 
 import hashlib
@@ -53,33 +53,38 @@ def _sign(payload: str) -> str:
     return hmac.new(SECRET_KEY.encode(), payload.encode(), hashlib.sha256).hexdigest()
 
 
-def make_token(user_id: int) -> str:
-    payload = f"{user_id}.{int(time.time()) + SESSION_DAYS * 86400}"
+def make_token(user_id: int, session_version: int = 0) -> str:
+    payload = f"{user_id}.{int(time.time()) + SESSION_DAYS * 86400}.{session_version}"
     return f"{payload}.{_sign(payload)}"
 
 
-def parse_token(token: Optional[str]) -> Optional[int]:
-    """签名对且没过期就返回用户 id。"""
+def _session_claims(token: Optional[str]) -> Optional[tuple[int, int]]:
     if not token:
         return None
     try:
-        uid, exp, sig = token.split(".")
-        payload = f"{uid}.{exp}"
-        if not hmac.compare_digest(_sign(payload), sig):
+        parts = token.split(".")
+        if len(parts) not in (3, 4):
             return None
-        if int(exp) < time.time():
+        payload, sig = token.rsplit(".", 1)
+        if not hmac.compare_digest(_sign(payload), sig) or int(parts[1]) < time.time():
             return None
-        return int(uid)
-    except Exception:
+        return int(parts[0]), int(parts[2]) if len(parts) == 4 else 0
+    except (ValueError, TypeError):
         return None
+
+
+def parse_token(token: Optional[str]) -> Optional[int]:
+    claims = _session_claims(token)
+    return claims[0] if claims else None
 
 
 def current_user(request: Request, db: Session) -> Optional[models.User]:
-    uid = parse_token(request.cookies.get(COOKIE_NAME))
-    if uid is None:
+    claims = _session_claims(request.cookies.get(COOKIE_NAME))
+    if claims is None:
         return None
+    uid, version = claims
     u = db.get(models.User, uid)
-    if u is None or not u.active:
+    if u is None or not u.active or (u.session_version or 0) != version:
         return None
     expected = request.headers.get("X-Session-User")
     if expected and expected != str(u.id) and request.url.path != "/api/auth/me":
@@ -87,9 +92,9 @@ def current_user(request: Request, db: Session) -> Optional[models.User]:
     return u
 
 
-def set_session(response: Response, user_id: int) -> None:
+def set_session(response: Response, user_id: int, session_version: int = 0) -> None:
     response.set_cookie(
-        COOKIE_NAME, make_token(user_id), max_age=SESSION_DAYS * 86400,
+        COOKIE_NAME, make_token(user_id, session_version), max_age=SESSION_DAYS * 86400,
         httponly=True, samesite="lax", secure=COOKIE_SECURE, path="/",
     )
 

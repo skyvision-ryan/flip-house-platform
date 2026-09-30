@@ -266,7 +266,7 @@ export function setSessionIdentity(id: number | null) { sessionUserId = id; }
 export function broadcastSession() { localStorage.setItem('session-updated', String(Date.now())); }
 
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(path, { credentials: 'same-origin', headers: { ...(init?.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }), ...actorHeader(), ...(!path.startsWith("/api/auth/") && sessionUserId != null ? { "X-Session-User": String(sessionUserId) } : {}) }, ...init }).catch(() => { throw new Error(uiText("client.cannot.connect.check.your.connection.and.try.again")); });
+  const res = await fetch(path, { credentials: 'same-origin', headers: { ...(init?.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }), ...actorHeader(), ...((!path.startsWith("/api/auth/") || path === "/api/auth/password") && sessionUserId != null ? { "X-Session-User": String(sessionUserId) } : {}) }, ...init }).catch(() => { throw new Error(uiText("client.cannot.connect.check.your.connection.and.try.again")); });
   if (res.status === 401 && !path.startsWith('/api/auth/')) window.dispatchEvent(new Event(AUTH_EVENT));
   if (!res.ok) {
     let msg = `${res.status} ${res.statusText}`;
@@ -297,6 +297,7 @@ export const api = {
   me: () => req<Me>('/api/auth/me'),
   authMode: () => req<{ demo_mode: boolean; has_users: boolean }>('/api/auth/mode'),
   login: (username: string, password: string) => req<Me>('/api/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) }),
+  changePassword: (body: { current_password: string; new_password: string; confirm_password: string }) => req<{ ok: boolean }>('/api/auth/password', { method: 'POST', body: JSON.stringify(body) }),
   logout: () => req<{ ok: boolean }>('/api/auth/logout', { method: 'POST' }),
   users: () => req<UserRow[]>('/api/users'),
   createUser: (body: { username: string; display_name: string; role_code: string; password: string; is_admin: boolean; email?: string | null }) => req<UserRow>('/api/users', { method: 'POST', body: JSON.stringify(body) }),

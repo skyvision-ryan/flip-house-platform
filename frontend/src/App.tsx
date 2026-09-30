@@ -20,6 +20,7 @@ import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-
 import { AddressCandidate, api, AUTH_EVENT, SESSION_EVENT, setSessionIdentity, broadcastSession, Me } from './api/client';
 import AssistantPanel from './components/AssistantPanel';
 import DisplaySettings from './components/DisplaySettings';
+import ChangePasswordModal from './components/ChangePasswordModal';
 import { HelpContext } from './components/HelpText';
 import { ReviewContext } from './components/ReviewTag';
 import { ActorContext, clearActor, getActor, getOverride, setActor as persistActor } from './lib/actor';
@@ -93,6 +94,8 @@ export default function App() {
   const [reviewOn, setReviewOn] = useState<boolean>(() => readReviewPref(deviceStorage()));
   const toggleReview = (v: boolean) => { setReviewOn(v); writeReviewPref(deviceStorage(), v); };
   const [helpOn, setHelpOn] = useState(() => readHelpPref(deviceStorage()));
+  const [passwordOpen, setPasswordOpen] = useState(false);
+  useEffect(() => { setPasswordOpen(false); }, [me?.id]);
   const [displayOpen, setDisplayOpen] = useState(false);
   const toggleHelp = (v: boolean) => { setHelpOn(v); writeHelpPref(deviceStorage(), v); };
 
@@ -133,11 +136,13 @@ export default function App() {
         items: [
           ...(canSwitch ? [...roleGroups, ...(override ? [{ id: '__reset', text: uiText("sentences.return.to.my.role", { value1: (me.role_code) }) }] : [])] : []),
           ...(me.is_admin ? [{ id: '__users', text: uiText("app.user.management"), iconName: 'group' as const }] : []),
+          { id: '__password', text: uiText('password.title'), iconName: 'lock-private' as const },
           { id: '__logout', text: uiText("app.sign.out"), iconName: 'unlocked' as const },
         ],
         onItemClick: ({ detail }: { detail: { id: string } }) => {
           if (detail.id === '__logout') logout();
           else if (detail.id === '__reset') resetActor();
+          else if (detail.id === '__password') setPasswordOpen(true);
           else if (detail.id === '__users') navigate('/users');
           else setActor(detail.id);
         },
@@ -252,6 +257,7 @@ export default function App() {
         </>}
       />
       <DisplaySettings visible={displayOpen} helpOn={helpOn} reviewOn={reviewOn} onHelp={toggleHelp} onReview={toggleReview} onDismiss={() => setDisplayOpen(false)} />
+      {me && passwordOpen && <ChangePasswordModal key={me.id} onDismiss={() => setPasswordOpen(false)} />}
     </ActorContext.Provider>
     </HelpContext.Provider>
     </ReviewContext.Provider>

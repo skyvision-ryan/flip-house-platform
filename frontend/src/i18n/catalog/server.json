@@ -346,5 +346,29 @@
   "server.unknownLeadership": [
     "管理工作区不存在",
     "Unknown leadership workspace"
+  ],
+  "server.password.length": [
+    "密码需为 6 至 256 个字符。",
+    "Use 6 to 256 characters for your password."
+  ],
+  "server.password.signIn": [
+    "请先登录，再修改密码。",
+    "Sign in before changing your password."
+  ],
+  "server.password.currentIncorrect": [
+    "当前密码不正确。",
+    "The current password is incorrect."
+  ],
+  "server.password.mismatch": [
+    "两次输入的新密码不一致。",
+    "The new passwords do not match."
+  ],
+  "server.password.unchanged": [
+    "新密码不能与当前密码相同。",
+    "Choose a password different from your current password."
+  ],
+  "server.password.changedElsewhere": [
+    "密码已在其他会话中更改，请重新登录。",
+    "Your password changed in another session. Sign in again."
   ]
 }

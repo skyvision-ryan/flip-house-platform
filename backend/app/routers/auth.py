@@ -4,7 +4,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import AliasChoices, BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import select, update, func
 from sqlalchemy.orm import Session
 
 from .. import models
@@ -12,6 +12,7 @@ from ..auth import clear_session, current_user, email_users, hash_password, norm
 from ..db import get_db
 from ..dictionaries import ROLE_BY_CODE, TIERS, tier_of
 from ..models import now_iso
+from ..message_codes import system_error
 from ..settings import DEMO_MODE
 
 router = APIRouter(prefix="/api", tags=["auth"])
@@ -20,6 +21,44 @@ router = APIRouter(prefix="/api", tags=["auth"])
 class LoginIn(BaseModel):
     username: str = Field(validation_alias=AliasChoices("email", "username"))
     password: str
+
+
+class PasswordChangeIn(BaseModel):
+    current_password: str
+    new_password: str
+    confirm_password: str
+
+
+def _validate_new_password(password: str) -> None:
+    if not 6 <= len(password) <= 256:
+        raise system_error(400, "server.password.length")
+
+
+@router.post("/auth/password")
+def change_password(body: PasswordChangeIn, request: Request, response: Response, db: Session = Depends(get_db)):
+    u = current_user(request, db)
+    if u is None:
+        raise system_error(401, "server.password.signIn")
+    if not verify_password(body.current_password, u.password_hash):
+        raise system_error(400, "server.password.currentIncorrect")
+    _validate_new_password(body.new_password)
+    if body.new_password != body.confirm_password:
+        raise system_error(400, "server.password.mismatch")
+    if verify_password(body.new_password, u.password_hash):
+        raise system_error(400, "server.password.unchanged")
+    # Compare-and-swap prevents a stale request from overwriting a concurrent reset.
+    result = db.execute(update(models.User).where(
+        models.User.id == u.id, models.User.password_hash == u.password_hash,
+    ).values(password_hash=hash_password(body.new_password),
+             session_version=func.coalesce(models.User.session_version, 0) + 1),
+        execution_options={"synchronize_session": False})
+    if result.rowcount != 1:
+        db.rollback()
+        raise system_error(409, "server.password.changedElsewhere")
+    db.commit()
+    db.refresh(u)
+    set_session(response, u.id, u.session_version or 0)
+    return {"ok": True}
 
 
 class UserOut(BaseModel):
@@ -102,7 +141,7 @@ def login(body: LoginIn, response: Response, db: Session = Depends(get_db)):
         raise HTTPException(401, "账号或密码不对")
     u.last_login_at = now_iso()
     db.commit()
-    set_session(response, u.id)
+    set_session(response, u.id, u.session_version or 0)
     return {**_out(u), "demo_mode": DEMO_MODE}
 
 
@@ -165,7 +204,7 @@ def create_user(body: UserIn, db: Session = Depends(get_db), _: models.User = De
 
 
 @router.patch("/users/{user_id}", response_model=UserOut)
-def patch_user(user_id: int, body: UserPatch, db: Session = Depends(get_db), me_: models.User = Depends(admin_user)):
+def patch_user(user_id: int, body: UserPatch, response: Response, db: Session = Depends(get_db), me_: models.User = Depends(admin_user)):
     u = db.get(models.User, user_id)
     if u is None:
         raise HTTPException(404, "用户不存在")
@@ -183,13 +222,15 @@ def patch_user(user_id: int, body: UserPatch, db: Session = Depends(get_db), me_
             raise HTTPException(400, "不能停用自己")
         u.active = body.active
     if body.password:
-        if len(body.password) < 6:
-            raise HTTPException(400, "密码至少 6 位")
+        _validate_new_password(body.password)
         u.password_hash = hash_password(body.password)
+        u.session_version = func.coalesce(models.User.session_version, 0) + 1
     if "email" in body.model_fields_set:
         email = _clean_email(body.email)
         _check_email_available(db, email, u.id)
         u.email = email
     db.commit()
     db.refresh(u)
+    if body.password and u.id == me_.id:
+        set_session(response, u.id, u.session_version or 0)
     return _out(u)

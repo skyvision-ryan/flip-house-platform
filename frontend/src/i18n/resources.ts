@@ -1,3 +1,4 @@
+import password from './catalog/password.json' with { type: 'json' };
 import events from './catalog/events.json' with { type: 'json' };
 import server from './catalog/server.json' with { type: 'json' };
 import previews from './catalog/previews.json' with { type: 'json' };
@@ -94,6 +95,7 @@ import catalog86 from './catalog/workbenchFocus.json' with { type: 'json' };
 import catalog87 from './catalog/zoeyDesign.json' with { type: 'json' };
 /** Reviewed application copy. Business codes and user content are never resource keys. */
 export const messages = {
+  ...password,
   ...events,
   ...server,
   ...previews,
