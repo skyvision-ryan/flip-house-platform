@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { canActOn, actionMode, actionHref, nextUpFlash } from './stepActions.ts';
 import { setLanguage } from '../i18n/core.ts';
+import { factOf } from './stepDisplay.ts';
 import { eventText } from '../i18n/taskDisplay.ts';
 import type { StepItem, Steps, TaskEvent } from '../api/client.ts';
 const item = (key: string, kind: string, owners: string[], detail: object = {}) => ({ key, owners, confirm: [], confirmed: [], deliverable: { kind, ...detail } }) as StepItem;
@@ -14,6 +15,18 @@ test('photo, typed-document, field and record ports remain distinct stable actio
   assert.equal(actionHref(9,permit),'/projects/9?tab=overview&step=permit_apply&action=upload');
   assert.equal(actionHref(9,item('screen','field',['J'],{field:'risks'})),'/projects/9?tab=overview&step=screen&action=field');
   assert.equal(actionHref(9,item('utilities_on','record',['K'],{record:'utilities'})),'/projects/9?tab=data&section=utilities');
+});
+
+test('roadmap describes one-authorized-person gates without changing their facts', () => {
+  setLanguage('en');
+  const gate={key:'open_escrow',confirmation_mode:'any',confirm:['D','J'],confirmed:[],done:false,ready:false,missing:['购房合同'],evidence_hint:'缺少：购房合同'} as StepItem;
+  const before=JSON.stringify(gate);
+  assert.equal(factOf(gate).basis.length,0);
+  assert.equal(factOf(gate).hint,'Missing: The purchase contract');
+  assert.match(factOf({...gate,ready:true,missing:[]}).label,/one authorized/);
+  assert.equal(factOf({...gate,done:true}).kind,'gate-confirmed');
+  assert.equal(factOf({...gate,needs_review:true}).kind,'gate-void');
+  assert.equal(JSON.stringify(gate),before);setLanguage('zh-CN');
 });
 test('Permit and assistant aliases mirror existing file duties, without financial or gate rights', () => {
   assert.equal(canActOn(item('permit_apply','file',['Z'],{doc_type:'permit_application'}),role('Permit/设计')),true);

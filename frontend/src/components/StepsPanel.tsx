@@ -179,7 +179,7 @@ export default function StepsPanel({
     <SpaceBetween size="xs">
       {it.needs_review && <StatusIndicator type="warning">{uiText("stepsPanel.prerequisites.changed.review.required.prior.confirmations.are.retained")}</StatusIndicator>}
       {it.done ? <StatusIndicator type="success">{it.done_by} {uiText("stepsPanel.conditions.confirmed")}</StatusIndicator> : <Button variant="primary" loading={busy === it.key} disabled={!it.ready || !(it.confirm.includes(role.actor) || role.can('confirm_for_others'))} onClick={() => toggle(it.key, true, undefined, it.title)}>{uiText("myTodoTable.confirm.conditions.met")}</Button>}
-      <Box variant="small" color="text-body-secondary">{systemText(it.evidence_hint)}</Box>
+      <Box variant="small" color="text-body-secondary">{it.confirmation_mode === 'any' && it.missing?.length ? uiText('sentences.missing', { value1: it.missing.map(value => systemText(value)).join(' / ') }) : systemText(it.evidence_hint)}</Box>
     </SpaceBetween>
   ) : (
     <SpaceBetween direction="horizontal" size="s">
@@ -235,7 +235,7 @@ export default function StepsPanel({
             content: (it: StepItem) => (
               <SpaceBetween size="xxs">
                 <RoleNames codes={it.owners} prefix={uiText("stepsPanel.responsible.roles")} />
-                {it.ws && <Box fontSize="body-s" color="text-body-secondary">{it.ws}</Box>}
+                {it.ws && <Box fontSize="body-s" color="text-body-secondary">{systemText(it.ws)}</Box>}
               </SpaceBetween>
             ),
           },

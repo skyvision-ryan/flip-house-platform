@@ -46,6 +46,7 @@ export default function EvidenceTaskWorkbench({ task, onChanged }: { task: Task;
       { label: m('taskTable.due'), value: dateStr(task.due_at) },
       { label: m('taskWorkflow.criterion'), value: systemText(task.done_when) || '—' },
       ...(task.exec_status === 'waiting' ? [{ label: m('taskSummaryPanel.waiting.for'), value: `${task.wait_for || '—'} · ${task.wait_reason || '—'}` }] : []),
+      ...(task.exec_status === 'waiting' && task.wait_until ? [{ label: m('taskWaitModal.expected.response.date.optional'), value: dateStr(task.wait_until) }] : []),
       { label: m('taskWorkflow.currentEvidence'), value: currentEvidence },
     ]} />
     {task.step_key === 'loan_insurance' && <Box color="text-body-secondary">{m('taskWorkflow.insuranceScope')}</Box>}
