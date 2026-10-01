@@ -51,8 +51,10 @@ def backup(data_dir, destination):
             source.backup(target)
             if target.execute("PRAGMA integrity_check").fetchall() != [("ok",)]:
                 raise ValueError("SQLite integrity check failed")
-            if target.execute("PRAGMA foreign_key_check").fetchone():
-                raise ValueError("SQLite foreign key check failed")
+            # A faithful recovery snapshot must also preserve pre-existing orphan
+            # records. Report them separately from physical SQLite corruption;
+            # never delete history or rewrite relationships to make a backup pass.
+            foreign_key_violations = target.execute("PRAGMA foreign_key_check").fetchall()
             tables = [row[0] for row in target.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")]
             counts = {name: target.execute('SELECT count(*) FROM "' + name.replace('"', '""') + '"').fetchone()[0] for name in tables}
     shutil.copytree(uploads, bundle / "uploads")
@@ -60,7 +62,10 @@ def backup(data_dir, destination):
         raise ValueError("Uploads changed during backup; pause writes and retry")
     manifest = {"created_at": datetime.now(timezone.utc).isoformat(), "data_dir": str(data),
                 "database_sha256": digest(bundle / "app.db"), "table_counts": counts, "uploads": before,
-                "sqlite_integrity_verified": True, "restore_rehearsal_verified": False,
+                "sqlite_integrity_verified": True,
+                "foreign_keys_verified": not foreign_key_violations,
+                "foreign_key_violations": foreign_key_violations,
+                "restore_rehearsal_verified": False,
                 "requires_writes_paused": True, "environment_secrets_included": False}
     (bundle / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2))
     for path in bundle.rglob("*"):
