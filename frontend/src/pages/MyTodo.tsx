@@ -1,3 +1,5 @@
+import TaskProjectRoadmap from '../components/TaskProjectRoadmap';
+import TaskSignals from '../components/TaskSignals';
 import { taskTitle } from '../i18n/templateNames.ts';
 import { systemText } from '../i18n/core.ts';
 import { useLanguage } from '../i18n/LanguageProvider';
@@ -12,7 +14,7 @@ import Spinner from '@cloudscape-design/components/spinner';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
 import Tabs from '@cloudscape-design/components/tabs';
 import TextFilter from '@cloudscape-design/components/text-filter';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api, MyTasks, Task } from '../api/client';
 import css from '../components/ui/CollaborationLayout.module.css';
@@ -48,11 +50,16 @@ export default function MyTodo() {
   const projectFilter = params.get('project') ?? 'all';
   const setProjectFilter = (value: string) => setParams(prev => { const n = new URLSearchParams(prev); value === 'all' ? n.delete('project') : n.set('project', value); return n; }, { replace: true });
 
+  const requestSequence = useRef(0);
   const load = useCallback(async () => {
+    const sequence = ++requestSequence.current;
     if (!me) { setData(null); return; }
-    try { setData(await api.myTasks()); setErr(null); } catch (e: any) { setErr(e.message); }
+    try {
+      const result = await api.myTasks();
+      if (sequence === requestSequence.current) { setData(result); setErr(null); }
+    } catch (e: any) { if (sequence === requestSequence.current) setErr(e.message); }
   }, [me]);
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void load(); return () => { requestSequence.current++; }; }, [load]);
   useEffect(() => {
     const refresh = () => { if (document.visibilityState === 'visible') void load(); };
     window.addEventListener('focus', refresh);
@@ -69,7 +76,10 @@ export default function MyTodo() {
   const selected = all.find((t) => t.id === selectedId) ?? null;
   const groups = groupMyTasks(data?.assigned ?? []);
   const pick = (t: Task) => { setSelectedId(t.id); setParams((prev) => { const n = new URLSearchParams(prev); n.set('task', String(t.id)); return n; }, { replace: true }); };
-  const replace = (t: Task) => setData((prev) => (prev ? { assigned: prev.assigned.map((x) => (x.id === t.id ? t : x)), reviewing: prev.reviewing.map((x) => (x.id === t.id ? t : x)) } : prev));
+  const replace = (t: Task) => {
+    setData((prev) => (prev ? { ...prev, assigned: prev.assigned.map((x) => (x.id === t.id ? t : x)), reviewing: prev.reviewing.map((x) => (x.id === t.id ? t : x)) } : prev));
+    void load();
+  };
 
   const projectOptions = [{ value: 'all', label: uiText("founderDesign.all.projects") }, ...Array.from(new Map(all.map((t) => [t.project_id, { value: String(t.project_id), label: t.project_name }])).values())];
   const filtered = (rows: Task[]) => rows.filter((t) => (projectFilter === 'all' || String(t.project_id) === projectFilter) && (!query || `${t.title} ${t.project_name}`.toLowerCase().includes(query.toLowerCase())));
@@ -88,7 +98,7 @@ export default function MyTodo() {
   const pane = (subset: Task[]) => (selected && filtered(subset).some((t) => t.id === selected.id)
     ? <Container embedded cardId="task-processing" cardContext={selected?.title} header={<Header variant="h2" description={`${selected.project_name} · ${selected.project_address}`}>{taskTitle(selected)}</Header>}><TaskWorkbench task={selected} meId={me?.id ?? null} onChanged={replace} onConflict={load} /></Container>
     : <Container embedded cardId="task-processing"><Box color="text-body-secondary">{uiText("myTodo.select.a.task.to.review.its.requirements.and.take")}</Box></Container>);
-  const layout = (left: JSX.Element, subset: Task[]) => <CollaborationWorkspace processing main={left} detail={pane(subset)} detailOpen={!!selected && filtered(subset).some((t) => t.id === selected.id)} onBack={() => {
+  const layout = (left: JSX.Element, subset: Task[]) => <CollaborationWorkspace processing backLabel={uiText('collaborationWorkspace.back.to.task.list')} main={left} detail={pane(subset)} detailOpen={!!selected && filtered(subset).some((t) => t.id === selected.id)} onBack={() => {
     setSelectedId(null); setParams((prev) => { const next = new URLSearchParams(prev); next.delete('task'); return next; }, { replace: true });
   }} />;
 
@@ -100,6 +110,8 @@ export default function MyTodo() {
         {wanted && data && !selected && <Alert type="info">{uiText("myTodo.this.task.is.outside.your.assignment.or.review.scope")}</Alert>}
         {me && !data && !err && <Box textAlign="center" padding="l"><Spinner /></Box>}
         {me && data && <div className={css.toolbar}><TextFilter filteringText={query} onChange={({ detail }) => setQuery(detail.filteringText)} filteringPlaceholder={uiText("myTodo.search.project.or.task")} filteringAriaLabel={uiText("myTodo.search.my.tasks")} /><Select selectedOption={projectOptions.find((o) => o.value === projectFilter)!} options={projectOptions} onChange={({ detail }) => setProjectFilter(detail.selectedOption.value!)} ariaLabel={uiText("myTodo.filter.by.project")} /></div>}
+        {me && data && <TaskSignals signals={(data.signals ?? []).filter(signal => projectFilter === 'all' || String(signal.project_id) === projectFilter)} />}
+        {me && data && (projectFilter !== 'all' || selected) && <TaskProjectRoadmap key={projectFilter !== 'all' ? projectFilter : selected!.project_id} projectId={projectFilter !== 'all' ? Number(projectFilter) : selected!.project_id} refreshKey={`${data.signals?.[0]?.id ?? ''}:${all.map(task => `${task.id}:${task.version}:${task.satisfied}`).join(',')}`} onChanged={load} />}
         {me && data && (
           <Tabs
             activeTabId={tab}

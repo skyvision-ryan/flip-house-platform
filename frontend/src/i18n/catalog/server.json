@@ -370,5 +370,13 @@
   "server.password.changedElsewhere": [
     "密码已在其他会话中更改，请重新登录。",
     "Your password changed in another session. Sign in again."
+  ],
+  "server.taskEvidenceAutomatic": [
+    "此任务按房屋证据自动判断，无需提交审核；请补充对应资料或记录",
+    "This task follows property evidence automatically. No review submission is needed; provide the required data or record."
+  ],
+  "server.taskPhotoRequired": [
+    "这项任务需要可读取的现场照片，请使用 JPG、PNG 或 WebP 图片；普通文件不能作为照片证据",
+    "This task needs a readable site photo. Use a JPG, PNG or WebP image; a regular document cannot count as photo evidence."
   ]
 }

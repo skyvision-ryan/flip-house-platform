@@ -7,6 +7,8 @@ export function eventText(event: TaskEvent): string {
   const person = (id: unknown) => id == null ? systemText('待分派') : event.participant_names?.[String(id)] ?? m('server.account', { value1: String(id) });
   let text: string;
   switch (event.kind) {
+    case 'evidence_satisfied': text = m(after.mode === 'record' ? 'taskWorkflow.eventRecord' : 'taskWorkflow.eventMet'); break;
+    case 'evidence_missing': text = m('taskWorkflow.eventMissing'); break;
     case 'assigned': text = m('event.assigned', { person: person(after.assignee_user_id) }); break;
     case 'reassigned': text = m('event.reassigned', { before: person(before.assignee_user_id), after: person(after.assignee_user_id) }); break;
     case 'unassigned': text = m('event.unassigned', { person: person(before.assignee_user_id) }); break;

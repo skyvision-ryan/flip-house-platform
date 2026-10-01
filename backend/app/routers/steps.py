@@ -1,4 +1,5 @@
 """阶段清单与更新记录。"""
+from ..task_evidence import capture_evidence, commit_evidence
 
 import json
 import re
@@ -39,6 +40,7 @@ def get_steps(project_id: int, db: Session = Depends(get_db), actor: str = Depen
 
 @router.post("/projects/{project_id}/steps/{key}", response_model=schemas.StepsOut)
 def toggle_step(project_id: int, key: str, body: schemas.StepToggleIn, request: Request, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
+    evidence_before = capture_evidence(db, project_id)
     p = _project(db, project_id)
     if key not in ITEM_TITLE:
         raise HTTPException(400, "未知清单项")
@@ -96,7 +98,7 @@ def toggle_step(project_id: int, key: str, body: schemas.StepToggleIn, request: 
     log_update(db, project_id, actor, "step", text + (f"：{body.note}" if body.note else ""))
     if key == "open_escrow" and body.done:
         _freeze_lead_substage(db, p, request, actor)
-    db.commit()
+    commit_evidence(db, project_id, evidence_before, actor)
     return compute_steps(db, p, hide_money=not can_read_money(actor))
 
 

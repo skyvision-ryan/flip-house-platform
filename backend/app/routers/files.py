@@ -1,6 +1,10 @@
+from ..task_evidence import capture_evidence, commit_evidence
 import re
 import shutil
 from typing import Optional
+from PIL import Image
+from pillow_heif import register_heif_opener
+from ..message_codes import system_error
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
@@ -13,6 +17,7 @@ from ..dictionaries import FILE_DEFAULT_OWNER, FILE_TYPES, MONEY_DOCS, STEP_BY_K
 from .common import allowed, can_read_money, get_actor, log_update
 
 router = APIRouter(prefix="/api", tags=["files"])
+register_heif_opener(thumbnails=False)
 
 STAGE_OF_TYPE = {t["value"]: t["stage"] for t in FILE_TYPES}
 FILE_TYPES_LABEL = {t["value"]: t["label"] for t in FILE_TYPES}
@@ -74,6 +79,7 @@ async def upload(project_id: int, file: UploadFile = File(...), doc_type: Option
                  amount: Optional[float] = Form(None), uploaded_by: Optional[str] = Form(None),
                  expires_at: Optional[str] = Form(None), step_key: Optional[str] = Form(None),
                  db: Session = Depends(get_db), actor: str = Depends(get_actor)):
+    evidence_before = capture_evidence(db, project_id)
     if not db.get(models.Project, project_id):
         raise HTTPException(404, "项目不存在")
     if step_key and step_key not in STEP_BY_KEY:
@@ -82,10 +88,23 @@ async def upload(project_id: int, file: UploadFile = File(...), doc_type: Option
         raise HTTPException(403, f"{actor} 不能传这类文件，只能交自己那一步的东西")
     if uploaded_by and uploaded_by != actor and not allowed(actor, "upload_any"):
         uploaded_by = actor  # 只有紫蓝能代别人登记上传人
+    # Only photo deliverables use this guard; document uploads and procurement stay unchanged.
+    stored_mime = file.content_type
+    if (STEP_BY_KEY.get(step_key or "", {}).get("deliverable") or {}).get("kind") == "photo":
+        try:
+            with Image.open(file.file) as picture:
+                stored_mime = Image.MIME.get(picture.format, "image/heif" if picture.format == "HEIF" else None)
+                if not stored_mime or not stored_mime.startswith("image/"):
+                    raise ValueError()
+                picture.verify()
+        except (OSError, ValueError, Image.DecompressionBombError):
+            raise system_error(422, "server.taskPhotoRequired")
+        finally:
+            file.file.seek(0)
     folder = UPLOAD_DIR / str(project_id)
     folder.mkdir(parents=True, exist_ok=True)
     rec = models.ProjectFile(project_id=project_id, filename=file.filename or "file", stored_path="",
-                             mime=file.content_type, doc_type=doc_type or "other",
+                             mime=stored_mime, doc_type=doc_type or "other",
                              stage=STAGE_OF_TYPE.get(doc_type or "other"), doc_date=doc_date,
                              counterparty=counterparty, amount=amount, source="upload", expires_at=expires_at or None, step_key=step_key or None,
                              uploaded_by=uploaded_by or (actor if actor != "负责人" else FILE_DEFAULT_OWNER.get(doc_type or "other", actor)))
@@ -98,7 +117,7 @@ async def upload(project_id: int, file: UploadFile = File(...), doc_type: Option
     rec.size = target.stat().st_size
     step_title = STEP_BY_KEY[step_key]["title"] if step_key else None
     log_update(db, project_id, rec.uploaded_by or actor, "file", f"上传了{FILE_TYPES_LABEL.get(rec.doc_type, '文件')}：{rec.filename}" + (f"（“{step_title}”）" if step_title else ""))
-    db.commit()
+    commit_evidence(db, project_id, evidence_before, actor)
     db.refresh(rec)
     return _out(rec, actor)
 
@@ -108,6 +127,7 @@ def patch_file(file_id: int, body: schemas.FilePatch, db: Session = Depends(get_
     rec = db.get(models.ProjectFile, file_id)
     if not rec:
         raise HTTPException(404, "文件不存在")
+    evidence_before = capture_evidence(db, rec.project_id)
     if not _can_touch(actor, rec.doc_type, rec.step_key, rec.uploaded_by):
         raise HTTPException(403, f"{actor} 不能改别人登记的文件")
     data = body.model_dump(exclude_unset=True)
@@ -118,7 +138,7 @@ def patch_file(file_id: int, body: schemas.FilePatch, db: Session = Depends(get_
     if body.doc_type:
         rec.stage = STAGE_OF_TYPE.get(body.doc_type, rec.stage)
     log_update(db, rec.project_id, actor, "file", f"修改了文件登记：{rec.filename}")
-    db.commit()
+    commit_evidence(db, rec.project_id, evidence_before, actor)
     db.refresh(rec)
     return _out(rec, actor)
 
@@ -138,6 +158,7 @@ def delete_file(file_id: int, db: Session = Depends(get_db), actor: str = Depend
     rec = db.get(models.ProjectFile, file_id)
     if not rec:
         raise HTTPException(404, "文件不存在")
+    evidence_before = capture_evidence(db, rec.project_id)
     if not _can_touch(actor, rec.doc_type, rec.step_key, rec.uploaded_by):
         raise HTTPException(403, f"{actor} 不能删别人的文件")
     log_update(db, rec.project_id, actor, "file", f"删掉了文件：{rec.filename}")
@@ -147,4 +168,4 @@ def delete_file(file_id: int, db: Session = Depends(get_db), actor: str = Depend
     except OSError:
         pass
     db.delete(rec)
-    db.commit()
+    commit_evidence(db, rec.project_id, evidence_before, actor)

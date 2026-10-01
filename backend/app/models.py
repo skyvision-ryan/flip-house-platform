@@ -500,3 +500,11 @@ class ProcurementRequest(Base):
     actor_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     body_json: Mapped[str] = mapped_column(String)
     item_id: Mapped[int] = mapped_column(ForeignKey("procurement_items.id"))
+
+
+class TaskEvidenceState(Base):
+    """Last observed evidence condition, solely for transactional transition deduplication."""
+    __tablename__ = "task_evidence_states"
+    task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id"), primary_key=True)
+    met: Mapped[bool] = mapped_column(Boolean)
+    observed_at: Mapped[Optional[str]] = mapped_column(String)

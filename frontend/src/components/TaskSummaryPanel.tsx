@@ -63,7 +63,10 @@ export default function TaskSummaryPanel({ task, project, canAssign, onAssign, o
   return (
     <SpaceBetween size="l">
       <Container embedded cardId="task-summary" cardContext={task?.title} header={<Header variant="h2" help={uiText("taskSummaryPanel.select.a.task.on.the.left.to.view.its")}>{uiText("taskSummaryPanel.task.summary")}</Header>}>
-        {task?.node_confirmation ? <TaskWorkbench task={task} meId={me?.id ?? null} onChanged={onChanged} onConflict={() => window.location.reload()} /> : task ? (
+        {task && (task.node_confirmation || task.completion_mode === 'evidence' || task.completion_mode === 'record') ? <SpaceBetween size="m">
+          {!task.node_confirmation && <><h3 className="ui-summary-title">{taskTitle(task)}</h3>{canAssign && <Button onClick={() => onAssign(task)}>{uiText('taskWorkflow.assignment')}</Button>}</>}
+          <TaskWorkbench task={task} meId={me?.id ?? null} onChanged={onChanged} onConflict={() => window.location.reload()} />
+        </SpaceBetween> : task ? (
           <SpaceBetween size="m">
             <h3 className="ui-summary-title">{taskTitle(task)}</h3>
             <div className="ui-muted">{stageKeyLabel(meta?.stage_groups, task.stage_key, task.stage_label)}</div>

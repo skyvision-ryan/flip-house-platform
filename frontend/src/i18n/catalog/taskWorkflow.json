@@ -1,0 +1,150 @@
+{
+  "taskWorkflow.autoHint": [
+    "保存所需资料后，任务按同一套房屋证据规则自动满足，无需另行提交审核。",
+    "Saving the required information satisfies this task under the property evidence rules. No separate review submission is required."
+  ],
+  "taskWorkflow.continuingHint": [
+    "这是持续事项：现有记录满足本次证据要求，不代表整段施工结束或以后无需继续。",
+    "This is ongoing work. The current record satisfies the evidence requirement; it does not mean construction is finished or future work is unnecessary."
+  ],
+  "taskWorkflow.met": [
+    "任务条件已满足",
+    "Task requirements met"
+  ],
+  "taskWorkflow.missing": [
+    "任务条件需补充",
+    "Task requirements need attention"
+  ],
+  "taskWorkflow.recordMet": [
+    "本次记录已满足",
+    "Current record meets the requirement"
+  ],
+  "taskWorkflow.recent": [
+    "最近任务变化",
+    "Recent task changes"
+  ],
+  "taskWorkflow.recentHint": [
+    "这里只显示已保存的条件变化，不表示未读。没有邮件或手机推送。",
+    "Shows saved changes to task requirements, not unread messages. No email or phone notifications are sent."
+  ],
+  "taskWorkflow.noChanges": [
+    "尚无新的条件变化记录。既有资料不会被冒充成刚完成。",
+    "No new requirement changes recorded. Existing evidence is not presented as newly completed."
+  ],
+  "taskWorkflow.next": [
+    "下一步可关注",
+    "Suggested next task"
+  ],
+  "taskWorkflow.noNext": [
+    "暂时没有其他已安排事项，可在房屋总览检查后续安排。",
+    "No other assigned task is available. Check future assignments in the property overview."
+  ],
+  "taskWorkflow.notAssigned": [
+    "尚未分派",
+    "Not assigned"
+  ],
+  "taskWorkflow.roadmap": [
+    "关键节点、证据清单与工期",
+    "Milestones, evidence and schedule"
+  ],
+  "taskWorkflow.roadmapHint": [
+    "先看房屋整体路线，再处理自己的事项。阶段节点仍按原有事实和授权规则推进。",
+    "See the property roadmap before working on your tasks. Milestones retain their evidence and authorization rules."
+  ],
+  "taskWorkflow.loading": [
+    "正在读取任务条件…",
+    "Loading task requirements…"
+  ],
+  "taskWorkflow.retry": [
+    "重新读取",
+    "Reload"
+  ],
+  "taskWorkflow.history": [
+    "查看历史提交与记录",
+    "View past submissions and records"
+  ],
+  "taskWorkflow.eventMet": [
+    "任务条件已满足，系统已更新任务显示",
+    "Requirements met; task display updated automatically"
+  ],
+  "taskWorkflow.eventRecord": [
+    "本次记录已满足；持续事项仍需跟进",
+    "Current record meets the requirement; ongoing work still needs follow-up"
+  ],
+  "taskWorkflow.eventMissing": [
+    "条件不再满足，请补充或核对证据",
+    "Requirements no longer met; add or verify the evidence"
+  ],
+  "taskWorkflow.criterion": [
+    "完成条件",
+    "Completion requirement"
+  ],
+  "taskWorkflow.input": [
+    "交付入口",
+    "Provide evidence"
+  ],
+  "taskWorkflow.currentEvidence": [
+    "当前依据",
+    "Current evidence"
+  ],
+  "taskWorkflow.goProperty": [
+    "查看房屋总览",
+    "View property overview"
+  ],
+  "taskWorkflow.saved": [
+    "已保存：{{title}}。任务按当前证据更新。",
+    "Saved: {{title}}. Task status follows the current evidence."
+  ],
+  "taskWorkflow.savedNext": [
+    "已保存：{{title}}。可在整体路线中查看下一项：{{next}}。",
+    "Saved: {{title}}. See the next item in the roadmap: {{next}}."
+  ],
+  "taskWorkflow.riskRecorded": [
+    "风险已记录：{{value}}",
+    "Risk recorded: {{value}}"
+  ],
+  "taskWorkflow.insuranceScope": [
+    "此条件只检查保险文件已登记，不证明贷款已办妥或保单有效。",
+    "This requirement checks that an insurance document is recorded. It does not establish loan completion or policy validity."
+  ],
+  "taskWorkflow.utilityScope": [
+    "此条件只检查三家水电瓦斯已关闭，不证明保险已取消或退款。",
+    "This requirement checks that all three utilities are closed. It does not establish insurance cancellation or a refund."
+  ],
+  "taskWorkflow.photoScope": [
+    "照片必须关联本房、本任务；系统只验证图片格式与关联，不自动判断照片中的现场工作。",
+    "Photos must belong to this property and task. The system checks image format and linkage; it does not assess the work shown in the image."
+  ],
+  "taskWorkflow.evidenceFiles": [
+    "本条件对应的照片与文件",
+    "Photos and files for this requirement"
+  ],
+  "taskWorkflow.photos_one": [
+    "本任务已有 {{count}} 张照片",
+    "{{count}} photo linked to this task"
+  ],
+  "taskWorkflow.photos_other": [
+    "本任务已有 {{count}} 张照片",
+    "{{count}} photos linked to this task"
+  ],
+  "taskWorkflow.files_one": [
+    "本房已有 {{count}} 份所需类型文件",
+    "{{count}} document of the required type recorded for this property"
+  ],
+  "taskWorkflow.files_other": [
+    "本房已有 {{count}} 份所需类型文件",
+    "{{count}} documents of the required type recorded for this property"
+  ],
+  "taskWorkflow.priceRecorded": [
+    "买入价已记录：{{value}}",
+    "Purchase price recorded: {{value}}"
+  ],
+  "taskWorkflow.priceHidden": [
+    "买入价已记录；金额按原有权限隐藏",
+    "Purchase price recorded; amount hidden under existing permissions"
+  ],
+  "taskWorkflow.assignment": [
+    "调整负责人或期限",
+    "Change assignee or due date"
+  ]
+}

@@ -1,4 +1,5 @@
 """水电瓦斯账户与施工检查记录：各人自己填，负责人看。"""
+from ..task_evidence import capture_evidence, commit_evidence
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
@@ -46,6 +47,7 @@ def list_utilities(project_id: int, db: Session = Depends(get_db), actor: str = 
 
 @router.put("/projects/{project_id}/utilities/{kind}", response_model=list[schemas.UtilityOut])
 def save_utility(project_id: int, kind: str, body: schemas.UtilityIn, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
+    evidence_before = capture_evidence(db, project_id)
     require(actor, "utilities", what="填水电瓦斯账户")
     _project(db, project_id)
     if kind not in KIND_LABEL:
@@ -67,7 +69,7 @@ def save_utility(project_id: int, kind: str, body: schemas.UtilityIn, db: Sessio
     if body.blocker:
         text += f"，卡在：{body.blocker}"
     log_update(db, project_id, actor, "utility", text)
-    db.commit()
+    commit_evidence(db, project_id, evidence_before, actor)
     return list_utilities(project_id, db, actor)
 
 
@@ -85,6 +87,7 @@ def list_inspections(project_id: int, db: Session = Depends(get_db), actor: str 
 
 @router.post("/projects/{project_id}/inspections", response_model=list[schemas.InspectionOut], status_code=201)
 def add_inspection(project_id: int, body: schemas.InspectionIn, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
+    evidence_before = capture_evidence(db, project_id)
     require(actor, "inspections", what="记检查")
     _project(db, project_id)
     if body.result not in RESULT_LABEL:
@@ -92,7 +95,7 @@ def add_inspection(project_id: int, body: schemas.InspectionIn, db: Session = De
     rec = models.Inspection(project_id=project_id, recorded_by=actor, **body.model_dump())
     db.add(rec)
     log_update(db, project_id, actor, "inspection", f"记了一次检查：{body.name} · {RESULT_LABEL[body.result]}" + ("（final）" if body.is_final else ""))
-    db.commit()
+    commit_evidence(db, project_id, evidence_before, actor)
     return _inspections(db, project_id)
 
 
@@ -102,13 +105,14 @@ def patch_inspection(inspection_id: int, body: schemas.InspectionPatch, db: Sess
     rec = db.get(models.Inspection, inspection_id)
     if not rec:
         raise HTTPException(404, "检查记录不存在")
+    evidence_before = capture_evidence(db, rec.project_id)
     data = body.model_dump(exclude_unset=True)
     if "result" in data and data["result"] not in RESULT_LABEL:
         raise HTTPException(400, "结果不对")
     for k, v in data.items():
         setattr(rec, k, v)
     log_update(db, rec.project_id, actor, "inspection", f"更新了检查：{rec.name} · {RESULT_LABEL.get(rec.result, rec.result)}" + (f"，{rec.fixer} 整改" if rec.result == "failed" and rec.fixer else ""))
-    db.commit()
+    commit_evidence(db, rec.project_id, evidence_before, actor)
     return _inspections(db, rec.project_id)
 
 
@@ -118,8 +122,9 @@ def delete_inspection(inspection_id: int, db: Session = Depends(get_db), actor: 
     rec = db.get(models.Inspection, inspection_id)
     if not rec:
         raise HTTPException(404, "检查记录不存在")
+    evidence_before = capture_evidence(db, rec.project_id)
     pid = rec.project_id
     log_update(db, pid, actor, "inspection", f"删掉了检查记录：{rec.name}")
     db.delete(rec)
-    db.commit()
+    commit_evidence(db, rec.project_id, evidence_before, actor)
     return _inspections(db, pid)

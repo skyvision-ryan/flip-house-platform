@@ -61,11 +61,13 @@ export default function StepsPanel({
   onChanged,
   deepLink,
   schedule,
+  refreshKey,
 }: {
   projectId: number;
   onChanged?: () => void;
   deepLink?: StepsDeepLink;
   schedule?: StepsSchedule;
+  refreshKey?: string;
 }) {
   useLanguage();
   const flash = useFlash();
@@ -83,8 +85,8 @@ export default function StepsPanel({
   const gateRef = useRef<HTMLDivElement | null>(null);
 
   const load = useCallback(() => api.steps(projectId).then(setSteps), [projectId]);
-  useEffect(() => { load(); }, [load]);
-  useEffect(() => { api.files(projectId).then(setFiles).catch(() => setFiles([])); }, [projectId]);
+  useEffect(() => { let active = true; api.steps(projectId).then(next => { if (active) setSteps(next); }); return () => { active = false; }; }, [projectId, refreshKey]);
+  useEffect(() => { let active = true; api.files(projectId).then(next => { if (active) setFiles(next); }).catch(() => { if (active) setFiles([]); }); return () => { active = false; }; }, [projectId, refreshKey]);
 
   // 深链：工作台「轮到谁」「待我确认的门」和我的待办都靠 ?step=&action= 落到这里。
   useEffect(() => {

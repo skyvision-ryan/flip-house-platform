@@ -58,6 +58,10 @@ jobs:
         working-directory: frontend
         run: npm run check:i18n
 
+      - name: Task evidence action and terminology regressions
+        working-directory: frontend
+        run: node --test --experimental-strip-types src/lib/taskEvidence.test.ts
+
       - name: Frontend build
         working-directory: frontend
         run: npm run build
