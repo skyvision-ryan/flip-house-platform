@@ -20,8 +20,9 @@ export function canActOn(item: StepItem, role: RoleLike): boolean {
   const dv = item.deliverable;
   if (!dv) return false;
   const mine = item.owners.includes(role.actor);
+  const fileDuty = mine || (role.actor === 'Permit/设计' && item.owners.some(owner => ['Z', '设计师'].includes(owner))) || (role.actor === '项目助理' && dv.doc_type === 'insurance');
   if (dv.kind === 'tick') return mine || role.can('tick_any');
-  if (dv.kind === 'file' || dv.kind === 'photo') return mine || role.can('upload_any');
+  if (dv.kind === 'file' || dv.kind === 'photo') return fileDuty || role.can('upload_any');
   if (dv.kind === 'field') return dv.field === 'purchase_price' ? role.can('edit_money') : role.can('edit_project') || mine;
   if (dv.kind === 'record') {
     return mine || role.can(dv.record === 'utilities' ? 'utilities' : dv.record === 'inspections' ? 'inspections' : dv.record === 'procurement' ? 'procurement' : dv.record === 'analyses' ? 'analysis' : 'budget');
@@ -119,9 +120,7 @@ export function statusHint(item: StepItem): string {
 /** 完成后 Flashbar 文案。 */
 export function nextUpFlash(doneTitle: string, steps: Steps): string {
   const next = steps.next_up[0];
-  if (!next) return uiText("sentences.completed.no.next.item.in.this.stage", { value1: (doneTitle) });
-  const who = next.owners.length ? next.owners.join('、') : '相关同事';
-  return uiText("sentences.completed.next", { value1: (doneTitle), value2: (who), value3: (next.title) });
+  return next ? uiText('taskWorkflow.savedNext', { title: systemText(doneTitle), next: systemText(next.title) }) : uiText('taskWorkflow.saved', { title: systemText(doneTitle) });
 }
 
 /** 从 steps 里按 key 找完整 StepItem。 */

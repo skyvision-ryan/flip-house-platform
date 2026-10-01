@@ -702,6 +702,7 @@ class SubmissionOut(BaseModel):
 
 
 class TaskOut(BaseModel):
+    completion_mode: str = "review"
     template_key: Optional[str] = None
     template_name_snapshot: Optional[str] = None
     node_confirmation: Optional[dict] = None
@@ -787,6 +788,7 @@ class MembersOut(BaseModel):
 
 
 class MyTasksOut(BaseModel):
+    signals: list[dict] = Field(default_factory=list)
     assigned: list[TaskOut]
     reviewing: list[TaskOut]
 

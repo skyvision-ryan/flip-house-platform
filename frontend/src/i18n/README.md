@@ -46,6 +46,7 @@ Review every reachable route, not just navigation: login/settings; workspace and
 | `profit_margin_pct` | Return on total cost | Existing formula: profit ÷ total costs × 100; not revenue profit margin |
 | `roi_pct` | Return on cash invested | Existing formula: profit ÷ cash invested × 100; not annualized |
 | 项目负责人 / 任务负责人 | Project lead / Assignee | Role versus assigned person; property owner is a different concept |
+| 任务条件已满足 / 本次记录已满足 | Task requirements met / Current record meets the requirement | Ordinary template tasks follow property evidence; ongoing construction, mowing and inspections are not permanently completed by one record. |
 | 确认 / 审核 / 审批 | Confirm / Review / Approval | Use Approval only where the actual workflow is approval |
 
 ## Remaining free-content scope

@@ -1,3 +1,4 @@
+import { systemText } from '../i18n/core.ts';
 import { useLanguage } from '../i18n/LanguageProvider';
 import { m as uiText } from '../i18n/core.ts';
 import Box from '@cloudscape-design/components/box';
@@ -8,7 +9,7 @@ import Input from '@cloudscape-design/components/input';
 import Modal from '@cloudscape-design/components/modal';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import Textarea from '@cloudscape-design/components/textarea';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, Steps, TodoRow } from '../api/client';
 import { useFlash } from '../lib/flash';
@@ -32,7 +33,7 @@ const KIND_LABEL: Record<string, string> = { get file() { return uiText("myTodoT
 type Row = TodoRow;
 
 /** “轮到我做的”表：待办页和工作台小组件共用。行由后端 /api/dashboard/role 给。 */
-export default function MyTodoTable({ rows, onReload, compact = false }: { rows: Row[] | null; onReload: () => Promise<void> | void; compact?: boolean }) {
+export default function MyTodoTable({ rows, onReload, compact = false, actionOnly = false, initialFieldValues = {} }: { rows: Row[] | null; onReload: () => Promise<void> | void; compact?: boolean; actionOnly?: boolean; initialFieldValues?: Record<string, string | number | null | undefined> }) {
   useLanguage();
   const navigate = useNavigate();
   const role = useRole();
@@ -44,7 +45,7 @@ export default function MyTodoTable({ rows, onReload, compact = false }: { rows:
 
   const afterDone = async (doneTitle: string, projectId: number) => {
     const steps = await api.steps(projectId).catch(() => null as Steps | null);
-    flash({ type: 'success', content: steps ? nextUpFlash(doneTitle, steps) : uiText("sentences.completed", { value1: (doneTitle) }) });
+    flash({ type: 'success', content: steps ? nextUpFlash(doneTitle, steps) : uiText('taskWorkflow.saved', { title: systemText(doneTitle) }) });
     setModal(null);
     await onReload();
   };
@@ -69,7 +70,7 @@ export default function MyTodoTable({ rows, onReload, compact = false }: { rows:
       return;
     }
     if (mode === 'field') {
-      setFieldVal('');
+      setFieldVal(String(initialFieldValues[row.item.deliverable?.field ?? ''] ?? ''));
       setModal({ kind: 'field', row });
     }
   };
@@ -105,7 +106,7 @@ export default function MyTodoTable({ rows, onReload, compact = false }: { rows:
     setSaving(true);
     try {
       const f = modal.row.item.deliverable.field;
-      await api.patchProject(modal.row.project.project_id, { [f]: f === 'purchase_price' ? Number(fieldVal) : fieldVal || null });
+      await api.patchProject(modal.row.project.project_id, { [f]: f === 'purchase_price' ? Number(fieldVal) : fieldVal.trim() || null });
       await afterDone(modal.row.item.title, modal.row.project.project_id);
     } catch (e: any) {
       flash({ type: 'error', content: e.message });
@@ -121,7 +122,7 @@ export default function MyTodoTable({ rows, onReload, compact = false }: { rows:
 
   return (
     <>
-      <Table cardId="legacy-todo"
+      {actionOnly ? <SpaceBetween direction="horizontal" size="s">{(rows ?? []).map(row => <Button key={row.item.key} variant="primary" onClick={() => openAction(row)}>{actionLabel(row.item, { actor: role.actor, canDo: canActOn(row.item, role) })}</Button>)}</SpaceBetween> : <Table cardId="legacy-todo"
         variant={compact ? 'embedded' : 'container'}
         loading={rows === null}
         loadingText={uiText("myTodoTable.checking.which.properties.need.your.action")}
@@ -146,13 +147,13 @@ export default function MyTodoTable({ rows, onReload, compact = false }: { rows:
             },
           },
         ]}
-      />
+      />}
 
-      <Modal
+      <TaskActionDialog inline={actionOnly}
         visible={modal?.kind === 'upload'}
         onDismiss={() => setModal(null)}
         size="large"
-        header={modal?.kind === 'upload' ? `${modal.row.item.deliverable?.kind === 'photo' ? uiText("myTodoTable.provide.photos") : uiText("myTodoTable.provide.files")}：${modal.row.item.title}` : ''}
+        header={modal?.kind === 'upload' ? `${modal.row.item.deliverable?.kind === 'photo' ? uiText("myTodoTable.provide.photos") : uiText("myTodoTable.provide.files")}：${systemText(modal.row.item.title)}` : ''}
       >
         {modal?.kind === 'upload' && (
           <UploadForm
@@ -165,16 +166,16 @@ export default function MyTodoTable({ rows, onReload, compact = false }: { rows:
             onDone={() => { afterDone(modal.row.item.title, modal.row.project.project_id); }}
           />
         )}
-      </Modal>
+      </TaskActionDialog>
 
-      <Modal
+      <TaskActionDialog inline={actionOnly}
         visible={modal?.kind === 'field'}
         onDismiss={() => setModal(null)}
-        header={modal?.kind === 'field' ? `${modal.row.item.title}：${FIELD_LABEL[modal.row.item.deliverable?.field ?? ''] ?? ''}` : ''}
-        footer={<Box float="right"><SpaceBetween direction="horizontal" size="xs"><Button variant="link" onClick={() => setModal(null)}>{uiText("fieldWithSource.cancel")}</Button><Button variant="primary" loading={saving} disabled={!fieldVal} onClick={saveField}>{uiText("fieldWithSource.save")}</Button></SpaceBetween></Box>}
+        header={modal?.kind === 'field' ? `${systemText(modal.row.item.title)}：${systemText(FIELD_LABEL[modal.row.item.deliverable?.field ?? ''] ?? '')}` : ''}
+        footer={<Box float="right"><SpaceBetween direction="horizontal" size="xs"><Button variant="link" onClick={() => setModal(null)}>{uiText("fieldWithSource.cancel")}</Button><Button variant="primary" loading={saving} disabled={!fieldVal.trim() || (modal?.row.item.deliverable?.field === 'purchase_price' && !Number.isFinite(Number(fieldVal)))} onClick={saveField}>{uiText("fieldWithSource.save")}</Button></SpaceBetween></Box>}
       >
         {modal?.kind === 'field' && (
-          <FormField label={FIELD_LABEL[modal.row.item.deliverable?.field ?? ''] ?? ''}>
+          <FormField label={systemText(FIELD_LABEL[modal.row.item.deliverable?.field ?? ''] ?? '')}>
             {modal.row.item.deliverable?.field?.endsWith('_date')
               ? <DatePicker value={fieldVal} onChange={({ detail }) => setFieldVal(detail.value)} placeholder="YYYY/MM/DD" />
               : modal.row.item.deliverable?.field === 'risks'
@@ -182,7 +183,7 @@ export default function MyTodoTable({ rows, onReload, compact = false }: { rows:
                 : <Input type="number" value={fieldVal} onChange={({ detail }) => setFieldVal(detail.value)} />}
           </FormField>
         )}
-      </Modal>
+      </TaskActionDialog>
 
       <Modal
         visible={modal?.kind === 'tick'}
@@ -191,7 +192,7 @@ export default function MyTodoTable({ rows, onReload, compact = false }: { rows:
         footer={<Box float="right"><SpaceBetween direction="horizontal" size="xs"><Button variant="link" onClick={() => setModal(null)}>{uiText("fieldWithSource.cancel")}</Button><Button variant="primary" loading={busy} onClick={doTick}>{uiText("myTodoTable.confirm.completion")}</Button></SpaceBetween></Box>}
       >
         {modal?.kind === 'tick' && (
-          <Box>{uiText("myTodoTable.confirm.2")}{modal.row.item.title}{uiText("myTodoTable.is.complete.the.next.responsible.role.will.then.be")}</Box>
+          <Box>{uiText("myTodoTable.confirm.2")}{systemText(modal.row.item.title)}{uiText("myTodoTable.is.complete.the.next.responsible.role.will.then.be")}</Box>
         )}
       </Modal>
 
@@ -218,4 +219,15 @@ export default function MyTodoTable({ rows, onReload, compact = false }: { rows:
       </Modal>
     </>
   );
+}
+
+
+/** Inline in MyTask so global display settings remain reachable without closing a draft. */
+function TaskActionDialog({ inline, visible, header, onDismiss, footer, children, size }: {
+  inline: boolean; visible: boolean; header: string; onDismiss: () => void; footer?: ReactNode; children: ReactNode; size?: 'large';
+}) {
+  useLanguage();
+  if (!inline) return <Modal visible={visible} header={header} onDismiss={onDismiss} footer={footer} size={size}>{children}</Modal>;
+  if (!visible) return null;
+  return <section aria-label={header}><SpaceBetween size="m"><Header variant="h3">{header}</Header>{children}{footer ?? <Button onClick={onDismiss}>{uiText('fieldWithSource.cancel')}</Button>}</SpaceBetween></section>;
 }

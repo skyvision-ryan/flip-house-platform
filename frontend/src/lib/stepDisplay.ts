@@ -36,10 +36,18 @@ function whoAt(item: StepItem): string {
 const list = (...xs: (string | null | undefined)[]): string[] => xs.filter((x): x is string => !!x);
 
 export function factOf(item: StepItem): Fact {
-  const hint = item.evidence_hint || undefined;
+  const hint = item.confirmation_mode === 'any' && item.missing?.length
+    ? uiText('sentences.missing', { value1: item.missing.map(value => systemText(value)).join(' / ') })
+    : item.evidence_hint || undefined;
   const ev = item.evidence;
   const out = (kind: FactKind, label: string, basis: string[], indicator: Fact['indicator']): Fact =>
     hint ? { kind, label: systemText(label), basis, indicator, hint: systemText(hint) } : { kind, label: systemText(label), basis, indicator };
+
+  if (item.confirmation_mode === 'any') {
+    if (item.done) return out('gate-confirmed', uiText('stepsPanel.confirmed'), list(whoAt(item), ev), 'success');
+    if (item.needs_review) return out('gate-void', uiText('taskSummaryPanel.prerequisites.changed.review.required'), [], 'warning');
+    return out('gate-none', item.ready ? uiText('taskSummaryPanel.awaiting.one.authorized.confirmation') : uiText('taskSummaryPanel.requirements.not.met'), [], 'pending');
+  }
 
   // 一、先看大节点：要具名的人各确认一次。listing 这类 gate=true 但没有确认名单的，不走这里。
   if (item.confirm.length > 0) {

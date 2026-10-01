@@ -31,6 +31,7 @@ class WorkbenchVisibilityTests(_TaskBase):
                 tasks["view"].exec_status = "waiting"
                 tasks["view"].wait_reason = "等看房时间"
                 review = tasks["screen"]
+                review.source = "adhoc"  # legacy review remains scope-restricted
                 review.assignee_user_id = self.uid["b"]
                 review.reviewer_user_id = self.uid["a"]
                 review.exec_status = "pending_review"
@@ -121,7 +122,7 @@ class WorkbenchVisibilityTests(_TaskBase):
         self.workbench(a)
         self.workbench(a2)
         self.assertEqual([t["step_key"] for t in a.get("/api/me/tasks").json()["assigned"]], ["design_final"])
-        self.assertEqual(a2.get("/api/me/tasks").json(), {"assigned": [], "reviewing": []})
+        self.assertEqual(a2.get("/api/me/tasks").json(), {"assigned": [], "reviewing": [], "signals": []})
 
 
 if __name__ == "__main__":

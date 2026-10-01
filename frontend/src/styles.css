@@ -794,3 +794,5 @@ html[lang="en-US"] .ui-stage-label { align-items: start; }
   html[lang="en-US"] .ui-setting-row > :last-child { grid-column: 2; }
   html[lang="en-US"] .ui-stage-label { font-size: 14px; line-height: 1.4; }
 }
+
+.ui-task-signal { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.375rem; overflow-wrap: anywhere; }

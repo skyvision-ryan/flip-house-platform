@@ -147,7 +147,7 @@ export default function TaskAssignModal({ projectId, tasks, onDone, onConflict, 
         <FormField label={isReassign ? uiText("taskAssignModal.reassignment.reason.required") : uiText("taskAssignModal.explanation.optional")} description={uiText("taskAssignModal.saved.in.the.activity.history")}>
           <Textarea value={reason} rows={2} onChange={({ detail }) => setReason(detail.value)} placeholder={isReassign ? uiText("taskAssignModal.for.example.employee.a.is.on.leave.a2.is") : ''} />
         </FormField>
-        <>{task.step_key !== 'purchase' && <Box fontSize="body-s" color="text-body-secondary">{uiText("taskAssignModal.reviewer")}{task.reviewer?.display_name ?? uiText("taskAssignModal.you")}。</Box>}</>
+        <>{task.step_key !== 'purchase' && (!task.completion_mode || task.completion_mode === 'review') && <Box fontSize="body-s" color="text-body-secondary">{uiText("taskAssignModal.reviewer")}{task.reviewer?.display_name ?? uiText("taskAssignModal.you")}。</Box>}</>
         <HelpText>{uiText("taskAssignModal.assignment.changes.only.the.assignee.and.due.date.milestones")}</HelpText>
         {err && <Alert type="error">{systemText(err)}</Alert>}
       </SpaceBetween>

@@ -61,11 +61,13 @@ export default function StepsPanel({
   onChanged,
   deepLink,
   schedule,
+  refreshKey,
 }: {
   projectId: number;
   onChanged?: () => void;
   deepLink?: StepsDeepLink;
   schedule?: StepsSchedule;
+  refreshKey?: string;
 }) {
   useLanguage();
   const flash = useFlash();
@@ -83,8 +85,8 @@ export default function StepsPanel({
   const gateRef = useRef<HTMLDivElement | null>(null);
 
   const load = useCallback(() => api.steps(projectId).then(setSteps), [projectId]);
-  useEffect(() => { load(); }, [load]);
-  useEffect(() => { api.files(projectId).then(setFiles).catch(() => setFiles([])); }, [projectId]);
+  useEffect(() => { let active = true; api.steps(projectId).then(next => { if (active) setSteps(next); }); return () => { active = false; }; }, [projectId, refreshKey]);
+  useEffect(() => { let active = true; api.files(projectId).then(next => { if (active) setFiles(next); }).catch(() => { if (active) setFiles([]); }); return () => { active = false; }; }, [projectId, refreshKey]);
 
   // 深链：工作台「轮到谁」「待我确认的门」和我的待办都靠 ?step=&action= 落到这里。
   useEffect(() => {
@@ -177,7 +179,7 @@ export default function StepsPanel({
     <SpaceBetween size="xs">
       {it.needs_review && <StatusIndicator type="warning">{uiText("stepsPanel.prerequisites.changed.review.required.prior.confirmations.are.retained")}</StatusIndicator>}
       {it.done ? <StatusIndicator type="success">{it.done_by} {uiText("stepsPanel.conditions.confirmed")}</StatusIndicator> : <Button variant="primary" loading={busy === it.key} disabled={!it.ready || !(it.confirm.includes(role.actor) || role.can('confirm_for_others'))} onClick={() => toggle(it.key, true, undefined, it.title)}>{uiText("myTodoTable.confirm.conditions.met")}</Button>}
-      <Box variant="small" color="text-body-secondary">{systemText(it.evidence_hint)}</Box>
+      <Box variant="small" color="text-body-secondary">{it.confirmation_mode === 'any' && it.missing?.length ? uiText('sentences.missing', { value1: it.missing.map(value => systemText(value)).join(' / ') }) : systemText(it.evidence_hint)}</Box>
     </SpaceBetween>
   ) : (
     <SpaceBetween direction="horizontal" size="s">
@@ -233,7 +235,7 @@ export default function StepsPanel({
             content: (it: StepItem) => (
               <SpaceBetween size="xxs">
                 <RoleNames codes={it.owners} prefix={uiText("stepsPanel.responsible.roles")} />
-                {it.ws && <Box fontSize="body-s" color="text-body-secondary">{it.ws}</Box>}
+                {it.ws && <Box fontSize="body-s" color="text-body-secondary">{systemText(it.ws)}</Box>}
               </SpaceBetween>
             ),
           },

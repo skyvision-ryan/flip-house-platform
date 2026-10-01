@@ -96,7 +96,7 @@ class TaskAssignTests(_TaskBase):
         self.assertEqual(r.status_code, 200, r.text)
         body = r.json()
         self.assertEqual(body["assignee"]["id"], self.uid["a"])
-        self.assertEqual(body["reviewer"]["id"], self.uid["jessie"], "审核人为空时默认是分派的人")
+        self.assertIsNone(body["reviewer"], "证据任务不再要求审核人")
         self.assertIsNone(body["due_at"], "截止日期允许为空")
         self.assertEqual(body["version"], t["version"] + 1)
         self.assertEqual(body["last_event"]["kind"], "assigned")

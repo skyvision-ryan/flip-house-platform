@@ -1,3 +1,4 @@
+from ..task_evidence import capture_evidence, commit_evidence
 import json
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -77,6 +78,7 @@ def list_analyses(project_id: int, db: Session = Depends(get_db)):
 
 @router.post("/projects/{project_id}/analyses", response_model=schemas.AnalysisOut, status_code=201)
 def new_analysis(project_id: int, body: schemas.AnalysisCreate | None = None, db: Session = Depends(get_db)):
+    evidence_before = capture_evidence(db, project_id)
     p = _project(db, project_id)
     body = body or schemas.AnalysisCreate()
     rec = create_analysis(db, p, body.name, body.inputs, body.tier)
@@ -87,7 +89,7 @@ def new_analysis(project_id: int, body: schemas.AnalysisCreate | None = None, db
         inputs = json.loads(rec.inputs_json)
         inputs["name_template"] = {"snapshot": rec.name, "tier": body.tier, "version": count}
         rec.inputs_json = json.dumps(inputs, ensure_ascii=False)
-    db.commit()
+    commit_evidence(db, project_id, evidence_before, None)
     db.refresh(rec)
     return _out(rec)
 
@@ -105,6 +107,7 @@ def patch_analysis(aid: int, body: schemas.AnalysisPatch, db: Session = Depends(
     a = db.get(models.DealAnalysis, aid)
     if not a:
         raise HTTPException(404, "分析不存在")
+    evidence_before = capture_evidence(db, a.project_id)
     if body.name is not None:
         a.name = body.name
     if body.inputs is not None:
@@ -113,7 +116,7 @@ def patch_analysis(aid: int, body: schemas.AnalysisPatch, db: Session = Depends(
     if body.is_current:
         for other in db.scalars(select(models.DealAnalysis).where(models.DealAnalysis.project_id == a.project_id)).all():
             other.is_current = other.id == a.id
-    db.commit()
+    commit_evidence(db, a.project_id, evidence_before, None)
     db.refresh(a)
     return _out(a)
 
@@ -123,8 +126,9 @@ def delete_analysis(aid: int, db: Session = Depends(get_db)):
     a = db.get(models.DealAnalysis, aid)
     if not a:
         raise HTTPException(404, "分析不存在")
+    evidence_before = capture_evidence(db, a.project_id)
     db.delete(a)
-    db.commit()
+    commit_evidence(db, a.project_id, evidence_before, None)
 
 
 @router.post("/analyses/{aid}/apply", response_model=schemas.ProjectOut)
@@ -135,6 +139,7 @@ def apply_analysis(aid: int, body: schemas.AnalysisApplyIn, db: Session = Depend
     a = db.get(models.DealAnalysis, aid)
     if not a:
         raise HTTPException(404, "分析不存在")
+    evidence_before = capture_evidence(db, a.project_id)
     p = db.get(models.Project, a.project_id)
     inputs = json.loads(a.inputs_json or "{}")
 
@@ -159,6 +164,6 @@ def apply_analysis(aid: int, body: schemas.AnalysisApplyIn, db: Session = Depend
     for other in p.analyses:
         other.is_current = other.id == a.id
     log_update(db, p.id, actor, "analysis", f"把“{a.name}”应用到项目：目标售价 ${p.target_arv or 0:,.0f}，预算项 {len(by_cat)} 类")
-    db.commit()
+    commit_evidence(db, a.project_id, evidence_before, actor)
     db.refresh(p)
     return project_out(db, p, actor)

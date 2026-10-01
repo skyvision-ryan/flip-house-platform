@@ -221,6 +221,7 @@ export interface Submission {
   files: SubmissionFile[];
 }
 export interface Task {
+  completion_mode?: 'evidence' | 'record' | 'review';
   template_key?: string | null; template_name_snapshot?: string | null;
   node_confirmation?: StepItem | null;
   procurement_progress?: { excluded?: number; total: number; ready: number; complete: boolean; nodes: { wave: string; total: number; ready: number }[] } | null;
@@ -245,10 +246,11 @@ export interface WorkbenchProject {
   procurement?: { owner: string | null; ready: number; total: number; spent: string; missing_totals: number; order_count: number; problems: {id: number; name: string; note: string}[] } | null;
   waiting_count: number; unassigned_current_count: number;
 }
-export interface Workbench { projects: WorkbenchProject[]; my_pending: Task[]; counts: { projects: number; pending_review_mine: number; unassigned_current: number; waiting: number }; recent_handoffs: (TaskEvent & { project_name: string | null; task_title: string | null })[] }
+export interface Workbench { projects: WorkbenchProject[]; my_pending: Task[]; counts: { projects: number; pending_review_mine: number; unassigned_current: number; waiting: number }; recent_handoffs: (TaskEvent & { project_name: string | null; task_title: string | null; task_display?: { title: string; template_key?: string | null; template_name_snapshot?: string | null } | null })[] }
 export interface ProjectMember extends UserBrief { role_snapshot: string | null; added_at: string | null }
 export interface ProjectMembers { members: ProjectMember[]; others: UserBrief[]; can_assign: boolean; can_add_member: boolean }
-export interface MyTasks { assigned: Task[]; reviewing: Task[] }
+export interface TaskSignal { id: number; task_id: number; project_id: number; project_name: string; title: string; template_key: string | null; template_name_snapshot: string | null; kind: string; mode: string; created_at: string; next: { id: number; title: string; template_key: string | null; template_name_snapshot: string | null; assignee: UserBrief | null; due_at: string | null } | null }
+export interface MyTasks { assigned: Task[]; reviewing: Task[]; signals?: TaskSignal[] }
 export interface TaskAssignIn { version: number; assignee_user_id?: number | null; due_at?: string | null; reason?: string | null; join_project?: boolean }
 export interface TaskStatusIn { version: number; action: 'start' | 'wait' | 'resume'; wait_for?: string | null; wait_reason?: string | null; wait_until?: string | null }
 export type UserRow = Omit<Me, 'demo_mode'>;

@@ -40,9 +40,9 @@ class ProjectPreplanTests(_TaskBase):
         tasks = j.get(f'/api/projects/{pid}/tasks').json()['tasks']
         self.assertEqual(len(tasks), 29)
         self.assertEqual(sum(t['assignee'] is not None for t in tasks), 2)
-        self.assertTrue(all(t['exec_status'] == 'not_started' for t in tasks))
+        self.assertTrue(all(t['exec_status'] == ('done' if t['completion_mode'] == 'evidence' and t['satisfied'] else 'not_started') for t in tasks))
         future = next(t for t in tasks if t['step_key'] == 'design_final')
-        self.assertEqual(future['reviewer']['id'], self.uid['jessie'])
+        self.assertIsNone(future['reviewer'])
         self.assertEqual(next(t for t in tasks if t['step_key'] == 'view')['due_at'], '2026-09-26')
         with Session(self.engine) as s:
             self.assertEqual(s.scalar(select(func.count()).select_from(models.ProjectMember).where(models.ProjectMember.project_id == pid)), 2)

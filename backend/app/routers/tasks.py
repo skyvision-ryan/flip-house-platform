@@ -20,6 +20,7 @@ from .. import models, schemas
 from ..auth import current_user
 from ..db import get_db
 from ..dictionaries import STAGE_CHECKLIST, STEP_BY_KEY, TASK_EVENT_KINDS, TASK_EXEC_STATUSES
+from ..task_evidence import completion_mode, execution_status
 from ..models import now_iso
 from ..steps import compute_steps
 from ..procurement_workflow import purchase_progress, purchase_overview
@@ -180,11 +181,14 @@ def _task_out(t: models.Task, p: models.Project, steps: dict, users: dict[int, m
     gate = step_item if t.step_key in SINGLE_CONFIRM_KEYS else None
     if gate:
         execution = "done" if gate["done"] else "pending_review" if gate["ready"] else "not_started"
+    mode = completion_mode(t)
+    if mode != "review":
+        execution = execution_status(t, bool(step_item and step_item["done"]))
     cur = steps["current_stage"]
     cur_idx = len(STAGE_CHECKLIST) + 1 if cur["key"] == "done" else STAGE_INDEX.get(cur["key"], 1)
     return {
         "id": t.id, "project_id": t.project_id, "project_name": p.name, "project_address": p.property.address_std,
-        "step_key": t.step_key, "source": t.source,
+        "step_key": t.step_key, "source": t.source, "completion_mode": mode,
         "template_key": t.template_key, "template_name_snapshot": t.template_name_snapshot,
         "stage_key": t.stage_key, "stage_label": STAGE_LABEL.get(t.stage_key, t.stage_key), "stage_short": STAGE_SHORT.get(t.stage_key, t.stage_key),
         "stage_index": STAGE_INDEX.get(t.stage_key, 0), "project_current_stage_index": cur_idx, "project_current_stage_label": cur["label"],
@@ -194,14 +198,14 @@ def _task_out(t: models.Task, p: models.Project, steps: dict, users: dict[int, m
         "owners": it.get("owners", []), "deliverable": it.get("deliverable"),
         "description": t.description, "deliverable_note": t.deliverable_note,
         "assignee": _brief(users.get(t.assignee_user_id)) if t.assignee_user_id else None,
-        "reviewer": _brief(users.get(t.reviewer_user_id)) if t.reviewer_user_id and not procurement else None,
-        "exec_status": execution, "exec_status_label": ("已备齐" if procurement and execution == "done" else ("条件未满足" if gate and execution == "not_started" else STATUS_LABEL.get(execution, execution))),
+        "reviewer": _brief(users.get(t.reviewer_user_id)) if t.reviewer_user_id and not procurement and mode == "review" else None,
+        "exec_status": execution, "exec_status_label": ("任务条件已满足" if mode == "evidence" and execution == "done" else "已备齐" if procurement and execution == "done" else ("条件未满足" if gate and execution == "not_started" else STATUS_LABEL.get(execution, execution))),
         "due_at": t.due_at, "wait_for": None if procurement else t.wait_for, "wait_reason": None if procurement else t.wait_reason, "wait_until": None if procurement else t.wait_until,
         "version": t.version,
         "satisfied": bool(step_item and step_item["done"]), "satisfied_how": (step_item or {}).get("how"),
         "satisfied_evidence": (step_item or {}).get("evidence"), "evidence_hint": (step_item or {}).get("evidence_hint"),
         "last_event": _event_out(last, users) if last else None,
-        "done_at": None if procurement else t.done_at, "requires_file": (it.get("deliverable") or {}).get("kind") in FILE_KINDS,
+        "done_at": None if procurement or mode != "review" else t.done_at, "requires_file": (it.get("deliverable") or {}).get("kind") in FILE_KINDS,
         "submissions": subs or [],
         "created_at": t.created_at, "updated_at": t.updated_at,
     }
@@ -447,7 +451,7 @@ def my_workbench(db: Session = Depends(get_db), me: models.User = Depends(requir
     # 最近交接先按项目范围过滤，再取最近 6 条，避免其他项目的事件挤掉可见记录。
     evs = list(db.scalars(select(models.TaskEvent).where(
                           models.TaskEvent.project_id.in_(visible_project_ids),
-                          models.TaskEvent.kind.in_(["submitted", "returned", "confirmed", "reassigned"]))
+                          models.TaskEvent.kind.in_(["submitted", "returned", "confirmed", "reassigned", "evidence_satisfied", "evidence_missing"]))
                           .order_by(models.TaskEvent.created_at.desc(), models.TaskEvent.id.desc()).limit(6)).all())
     ids = {e.actor_user_id for e in evs}
     for e in evs:
@@ -457,8 +461,8 @@ def my_workbench(db: Session = Depends(get_db), me: models.User = Depends(requir
                 ids |= {d.get("assignee_user_id"), d.get("user_id")}
     users = _users_by_id(db, ids)
     names = {p.id: p.name for p in projects}
-    titles = {t.id: t.title for t in db.scalars(select(models.Task).where(models.Task.id.in_([e.task_id for e in evs if e.task_id]))).all()} if evs else {}
-    handoffs = [{**_event_out(e, users), "project_name": names.get(e.project_id), "task_title": titles.get(e.task_id)} for e in evs]
+    titles = {t.id: {"title": t.title, "template_key": t.template_key, "template_name_snapshot": t.template_name_snapshot} for t in db.scalars(select(models.Task).where(models.Task.id.in_([e.task_id for e in evs if e.task_id]))).all()} if evs else {}
+    handoffs = [{**_event_out(e, users), "project_name": names.get(e.project_id), "task_title": (titles.get(e.task_id) or {}).get("title"), "task_display": titles.get(e.task_id)} for e in evs]
     return {"projects": rows_out, "my_pending": pending_mine,
             "counts": {"projects": len(rows_out), "pending_review_mine": len(pending_mine), "unassigned_current": unassigned, "waiting": waiting},
             "recent_handoffs": handoffs}
@@ -512,7 +516,27 @@ def my_tasks(db: Session = Depends(get_db), me: models.User = Depends(require_us
             continue
         out.extend(_tasks_payload(db, p, rows, me.role_code))
     out.sort(key=lambda r: (r["project_current_stage_index"] < r["stage_index"], r["project_name"], r["stage_index"]))
-    return {"assigned": [r for r in out if r["assignee"] and r["assignee"]["id"] == me.id],
+    signals = []
+    events = db.scalars(select(models.TaskEvent).where(models.TaskEvent.project_id.in_(list(by_project)),
+        models.TaskEvent.kind.in_(["evidence_satisfied", "evidence_missing"]))
+        .order_by(models.TaskEvent.id.desc()).limit(12)).all()
+    project_rows = {}
+    for ev in events:
+        task = db.get(models.Task, ev.task_id)
+        p = db.get(models.Project, ev.project_id)
+        if not task or not p:
+            continue
+        if p.id not in project_rows:
+            rows = [t for t in db.scalars(select(models.Task).where(models.Task.project_id == p.id)) if t.step_key != "purchase"]
+            project_rows[p.id] = _tasks_payload(db, p, rows, me.role_code)
+        candidates = [r for r in project_rows[p.id] if r["id"] != task.id and r["assignee"] and r["exec_status"] not in {"done", "waiting"} and not (r["completion_mode"] == "record" and r["satisfied"])]
+        candidates.sort(key=lambda r: (r["stage_index"], r["due_at"] or "9999", r["id"]))
+        nxt = candidates[0] if candidates else None
+        signals.append({"id": ev.id, "task_id": task.id, "project_id": p.id, "project_name": p.name,
+                        "title": task.title, "template_key": task.template_key, "template_name_snapshot": task.template_name_snapshot,
+                        "kind": ev.kind, "mode": completion_mode(task), "created_at": ev.created_at,
+                        "next": {k: nxt[k] for k in ("id", "title", "template_key", "template_name_snapshot", "assignee", "due_at")} if nxt else None})
+    return {"signals": signals, "assigned": [r for r in out if r["assignee"] and r["assignee"]["id"] == me.id],
             "reviewing": [r for r in out if (r["reviewer"] and r["reviewer"]["id"] == me.id and not (r["assignee"] and r["assignee"]["id"] == me.id)) or ((r.get("node_confirmation") or {}).get("can_confirm") and r["exec_status"] == "pending_review")]}
 
 
@@ -563,7 +587,7 @@ def assign_task(project_id: int, task_id: int, body: schemas.TaskAssignIn, db: S
             # 换人后执行状态回到未开始：原负责人的开始 / 等待属于他自己，不能算在新负责人头上；历史仍在事件里。
             t.exec_status = "not_started"
             t.wait_for = t.wait_reason = t.wait_until = None
-        if new_assignee is not None and t.reviewer_user_id is None and t.step_key != "purchase":
+        if new_assignee is not None and t.reviewer_user_id is None and t.step_key != "purchase" and completion_mode(t) == "review":
             t.reviewer_user_id = me.id  # 审核人为空时默认是分派的人（待 Ryan 最终确认，可改）
         kind = "assigned" if prev_assignee is None else ("unassigned" if new_assignee is None else "reassigned")
         _event(db, t, project_id, kind, me, before=before,
@@ -587,6 +611,7 @@ _TRANSITIONS = {
 @router.post("/projects/{project_id}/tasks/{task_id}/status", response_model=schemas.TaskOut)
 def task_status(project_id: int, task_id: int, body: schemas.TaskStatusIn, db: Session = Depends(get_db), me: models.User = Depends(require_user)):
     """开始 / 记录等待 / 恢复。只有当前负责人能做；改派后旧负责人 403。没有「完成」——完成由审核确认（块 5）。"""
+    _require_task_read(db, project_id, me)
     p = _project(db, project_id)
     t = _task(db, project_id, task_id)
     if t.step_key in SINGLE_CONFIRM_KEYS:
@@ -602,6 +627,12 @@ def task_status(project_id: int, task_id: int, body: schemas.TaskStatusIn, db: S
     if t.version != body.version:
         _conflict(db, p, t, me.role_code)
     allowed_from, to, kind = _TRANSITIONS[body.action]
+    if completion_mode(t) != "review":
+        current = _tasks_payload(db, p, [t], me.role_code)[0]["exec_status"]
+        if current == "done":
+            from ..message_codes import system_error
+            raise system_error(409, "server.taskEvidenceAutomatic")
+        t.exec_status = current
     if t.exec_status not in allowed_from:
         raise HTTPException(400, f"现在是「{STATUS_LABEL.get(t.exec_status, t.exec_status)}」，不能{ {'start': '开始', 'wait': '记录等待', 'resume': '恢复'}[body.action] }")
     before = {"exec_status": t.exec_status, "wait_for": t.wait_for, "wait_reason": t.wait_reason, "wait_until": t.wait_until}
@@ -636,6 +667,10 @@ def submit_task(project_id: int, task_id: int, body: schemas.TaskSubmitIn, db: S
     引用的文件必须属于本项目且当前账号能访问；上传本身还是走文件接口，这里不复制文件。"""
     p = _project(db, project_id)
     t = _task(db, project_id, task_id)
+    _require_task_read(db, project_id, me)
+    if completion_mode(t) != "review":
+        from ..message_codes import system_error
+        raise system_error(409, "server.taskEvidenceAutomatic")
     if t.step_key in SINGLE_CONFIRM_KEYS:
         raise HTTPException(409, "节点由前置条件自动进入待确认，请使用确认满足；无需分派、开始或提交")
     if t.step_key == "purchase":
@@ -686,6 +721,10 @@ def submit_task(project_id: int, task_id: int, body: schemas.TaskSubmitIn, db: S
 def _decide(db: Session, project_id: int, task_id: int, body: schemas.TaskDecisionIn, me: models.User, decision: str):
     p = _project(db, project_id)
     t = _task(db, project_id, task_id)
+    _require_task_read(db, project_id, me)
+    if completion_mode(t) != "review":
+        from ..message_codes import system_error
+        raise system_error(409, "server.taskEvidenceAutomatic")
     if t.step_key == "purchase":
         _require_task_read(db, project_id, me)
         raise HTTPException(409, "采购由清单自动更新，无需开始、等待、提交或审核；请进入采购工作台")

@@ -18,6 +18,13 @@ class SubmissionTests(_TaskBase):
     def setUp(self):
         super().setUp()
         self.app.include_router(files_router)
+        # This suite preserves the pre-existing unstructured/adhoc review contract.
+        # Named template evidence behavior is covered by test_task_evidence.py.
+        with Session(self.engine) as s:
+            for row in s.scalars(select(models.Task).where(models.Task.project_id == self.pid)):
+                if row.step_key in ('design_final', 'utilities_on', 'agent'):
+                    row.source = 'adhoc'
+            s.commit()
         with Session(self.engine) as s:
             other_prop = models.Property(address_std="9 Other St")
             s.add(other_prop); s.flush()

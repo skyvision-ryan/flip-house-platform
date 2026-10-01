@@ -88,13 +88,13 @@ export default function WorkbenchFocus({ refreshKey = 0 }: { refreshKey?: number
               ))}
             </SpaceBetween>
           </Container>
-          <Container embedded cardId="workbench-handoffs" header={<Header variant="h2" help={uiText("workbenchFocus.who.handed.what.to.whom")}>{uiText("workbenchFocus.recent.handoffs")}</Header>}>
-            {data && data.recent_handoffs.length === 0 && <Box color="text-body-secondary">{uiText("workbenchFocus.no.submissions.returns.or.reassignments.yet")}</Box>}
+          <Container embedded cardId="workbench-handoffs" header={<Header variant="h2" help={uiText('taskWorkflow.recentHint')}>{uiText('taskWorkflow.recent')}</Header>}>
+            {data && data.recent_handoffs.length === 0 && <Box color="text-body-secondary">{uiText('taskWorkflow.noChanges')}</Box>}
             <SpaceBetween size="xs">
               {(data?.recent_handoffs ?? []).map((e) => (
                 <div key={e.id} className="ui-list-item">
                   <div><Box variant="span" fontWeight="bold">{e.actor?.display_name ?? uiText("taskSummaryPanel.system")}</Box> {eventText(e)}</div>
-                  <Box variant="small" color="text-body-secondary">{e.project_name} · {e.task_title} · {dateTime(e.created_at)}</Box>
+                  <Box variant="small" color="text-body-secondary">{e.project_name} · {e.task_display ? taskTitle(e.task_display) : e.task_title} · {dateTime(e.created_at)}</Box>
                 </div>
               ))}
             </SpaceBetween>

@@ -1,3 +1,5 @@
+import SubmissionList from './TaskSubmissionList';
+import EvidenceTaskWorkbench from './EvidenceTaskWorkbench';
 import { taskTitle } from '../i18n/templateNames.ts';
 import { systemText } from '../i18n/core.ts';
 import { useLanguage } from '../i18n/LanguageProvider';
@@ -83,6 +85,8 @@ export default function TaskWorkbench({ task, meId, onChanged, onConflict }: { t
     </SpaceBetween>;
   }
 
+  if (task.completion_mode === 'evidence' || task.completion_mode === 'record') return <EvidenceTaskWorkbench key={`${task.project_id}:${task.id}`} task={task} onChanged={onChanged} />;
+
   if (task.step_key === 'purchase') return <SpaceBetween size="m"><Alert type="info" action={<Button onClick={() => navigate(`/procurement?project=${task.project_id}`)}>{uiText("taskWorkbench.open.property.procurement")}</Button>}>{uiText("taskWorkbench.procurement.lead")}{task.assignee?.display_name || uiText("personAvatar.unassigned")} · {task.procurement_progress?.ready ?? 0} / {task.procurement_progress?.total ?? 0} {uiText("taskWorkbench.items.ready.procurement.progress.updates.from.the.list.automatically")}</Alert><TaskTimeline projectId={task.project_id} taskId={task.id} refreshKey={task.version} /></SpaceBetween>;
 
   const detail = (
@@ -127,24 +131,6 @@ export default function TaskWorkbench({ task, meId, onChanged, onConflict }: { t
   );
 }
 
-function SubmissionList({ subs }: { subs: Submission[] }) {
-  useLanguage();
-  if (!subs.length) return null;
-  return (
-    <ExpandableSection headerText={uiText("sentences.submissions", { value1: (subs.length) })} variant="footer" defaultExpanded={subs.length <= 2}>
-      <SpaceBetween size="s">
-        {subs.map((s) => (
-          <div key={s.id} className="ui-submission">
-            <div><Box variant="span" fontWeight="bold">{uiText("taskWorkbench.number")} {s.seq} {uiText("taskWorkbench.attempts")}</Box>　<StatusIndicator type={s.decision === 'confirmed' ? 'success' : s.decision === 'returned' ? 'error' : 'pending'}>{systemText(s.decision_label)}</StatusIndicator></div>
-            <Box variant="small" color="text-body-secondary">{s.submitted_by?.display_name ?? '—'} · {dateTime(s.submitted_at)}{s.note ? ` · ${s.note}` : ''}</Box>
-            {s.files.length > 0 && <Box variant="small">{s.files.map((f) => <span key={f.id} className="ui-file-link"><Link href={`/api/files/${f.id}/download`} external>{f.filename}</Link></span>)}</Box>}
-            {s.decision !== 'pending' && <Box variant="small" color="text-body-secondary">{s.decided_by?.display_name ?? '—'} · {dateTime(s.decided_at)}{s.decision_reason ? `：${s.decision_reason}` : ''}</Box>}
-          </div>
-        ))}
-      </SpaceBetween>
-    </ExpandableSection>
-  );
-}
 
 function DeliverTab({ task, meId, canSubmit, canReview, busy, onAction }: { task: Task; meId: number | null; canSubmit: boolean; canReview: boolean; busy: boolean; onAction: (fn: () => Promise<Task>, ok: string) => Promise<void> }) {
   useLanguage();

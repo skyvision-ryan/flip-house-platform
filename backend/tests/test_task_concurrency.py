@@ -53,7 +53,13 @@ class TaskConcurrencyTests(unittest.TestCase):
         row = next(t for t in self.planner.get(f"/api/projects/{self.pid}/tasks").json()["tasks"] if t["step_key"] == "utilities_on")
         response = self.planner.post(self.url(row, "assign"), json={"version": row["version"], "assignee_user_id": self.users["worker"]})
         self.assertEqual(response.status_code, 200, response.text)
-        self.task = response.json()
+        # Keep racing legacy review transactions as well as start/reassignment writes.
+        # New named-template evidence transitions have separate transaction tests.
+        with Session(self.engine) as session:
+            legacy = session.get(models.Task, row['id'])
+            legacy.source = 'adhoc'; legacy.reviewer_user_id = self.users['planner']
+            session.commit()
+        self.task = self.planner.get(f"/api/projects/{self.pid}/tasks/{row['id']}").json()
 
     def login(self, username):
         client = TestClient(self.app)

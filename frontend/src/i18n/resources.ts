@@ -1,3 +1,4 @@
+import taskWorkflow from './catalog/taskWorkflow.json' with { type: 'json' };
 import password from './catalog/password.json' with { type: 'json' };
 import events from './catalog/events.json' with { type: 'json' };
 import server from './catalog/server.json' with { type: 'json' };
@@ -190,6 +191,7 @@ export const messages = {
   ...catalog85,
   ...catalog86,
   ...catalog87,
+  ...taskWorkflow,
   'task.assignee': ['负责人', 'Assignee'],
   'app.name': ['翻新项目平台', 'Flip House Platform'],
   'settings.title': ['显示设置', 'Display settings'],

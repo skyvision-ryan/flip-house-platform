@@ -43,7 +43,7 @@ def _evidence(rule: str, p: models.Project, hide_money: bool = False) -> tuple[b
         kind, _, arg = alt.partition(":")
         if kind == "field":
             v = getattr(p, arg, None)
-            if v not in (None, ""):
+            if v not in (None, "") and (not isinstance(v, str) or bool(v.strip())):
                 if hide_money and arg in MONEY_FIELDS:
                     return True, f"已填{FIELD_LABEL.get(arg, arg)}"
                 return True, f"已填{FIELD_LABEL.get(arg, arg)}：{_fmt(v)}"

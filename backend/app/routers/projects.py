@@ -1,3 +1,4 @@
+from ..task_evidence import capture_evidence, commit_evidence, completion_mode
 from typing import Optional
 import hashlib
 import json
@@ -26,7 +27,6 @@ def creation_members(db: Session = Depends(get_db), me: models.User = Depends(re
     require(me.role_code, "assign_tasks", what="安排新项目任务")
     from .tasks import _brief
     return [_brief(u) for u in db.scalars(select(models.User).where(models.User.active.is_(True)).order_by(models.User.display_name, models.User.id))]
-
 
 
 def _get(db: Session, project_id: int) -> models.Project:
@@ -171,9 +171,10 @@ def _create_with_plan(body, db, actor, creator, targets, receipt):
                     joined.add(target.id)
                     _event(db, t, project.id, "member_added", creator, after={"user_id": target.id, "role_code": target.role_code})
                 t.assignee_user_id = target.id
-                t.reviewer_user_id = creator.id
+                if completion_mode(t) == "review":
+                    t.reviewer_user_id = creator.id
                 _event(db, t, project.id, "assigned", creator,
-                       after={"assignee_user_id": target.id, "reviewer_user_id": creator.id, "exec_status": "not_started"})
+                       after={"assignee_user_id": target.id, "reviewer_user_id": t.reviewer_user_id, "exec_status": "not_started"})
             if plan.due_at:
                 t.due_at = plan.due_at.isoformat()
                 _event(db, t, project.id, "rescheduled", creator, after={"due_at": t.due_at})
@@ -190,6 +191,7 @@ def get_project(project_id: int, db: Session = Depends(get_db), actor: str = Dep
 
 @router.patch("/{project_id}", response_model=schemas.ProjectOut)
 def patch_project(project_id: int, body: schemas.ProjectPatch, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
+    evidence_before = capture_evidence(db, project_id)
     p = _get(db, project_id)
     data = body.model_dump(exclude_unset=True)
     clear = data.pop("clear_status_override", False)
@@ -210,7 +212,7 @@ def patch_project(project_id: int, body: schemas.ProjectPatch, db: Session = Dep
         p.status_override_reason = None
     if changed:
         log_update(db, project_id, actor, "project", f"修改了{'、'.join(changed[:4])}{'等' if len(changed) > 4 else ''}")
-    db.commit()
+    commit_evidence(db, project_id, evidence_before, actor)
     db.refresh(p)
     return project_out(db, p, actor)
 

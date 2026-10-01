@@ -109,6 +109,34 @@ class PersistentStorageTests(unittest.TestCase):
         self.assertTrue((bundles[0] / "INCOMPLETE").exists())
         self.assertFalse((bundles[0] / "manifest.json").exists())
 
+    def test_existing_orphan_records_are_preserved_and_reported(self):
+        with sqlite3.connect(self.database) as db:
+            db.execute("INSERT INTO project_members VALUES(99, 1)")
+        before = self.fingerprint()
+        bundle = storage_backup.backup(self.data, self.root / "backups")
+        self.assertEqual(self.fingerprint(), before)
+        with sqlite3.connect(self.database) as source, sqlite3.connect(bundle / "app.db") as restored:
+            self.assertEqual(list(source.iterdump()), list(restored.iterdump()))
+            violations = restored.execute("PRAGMA foreign_key_check").fetchall()
+            self.assertEqual(violations, source.execute("PRAGMA foreign_key_check").fetchall())
+        manifest = json.loads((bundle / "manifest.json").read_text())
+        self.assertTrue(manifest["sqlite_integrity_verified"])
+        self.assertFalse(manifest["foreign_keys_verified"])
+        self.assertEqual(manifest["foreign_key_violations"], [list(row) for row in violations])
+        self.assertFalse((bundle / "INCOMPLETE").exists())
+        with patch.dict(os.environ,self.env,clear=True), patch.object(start_persistent.os.path,"ismount",return_value=True), patch.object(start_persistent.os,"execv") as run:
+            self.assertEqual(start_persistent.main(), 0)
+            run.assert_called_once()
+        self.assertEqual(hashlib.sha256(self.database.read_bytes()).hexdigest(), before["app.db"])
+
+    def test_corrupt_database_still_refuses_backup(self):
+        self.database.write_bytes(b"not a SQLite database")
+        with self.assertRaises(sqlite3.DatabaseError):
+            storage_backup.backup(self.data, self.root / "backups")
+        bundle = next((self.root / "backups").iterdir())
+        self.assertTrue((bundle / "INCOMPLETE").exists())
+        self.assertFalse((bundle / "manifest.json").exists())
+
     def test_symlink_uploads_or_nested_backup_rejected(self):
         with self.assertRaises(ValueError):storage_backup.backup(self.data,self.data / "uploads/backup")
         (self.data / "uploads/link").symlink_to(self.attachment)
