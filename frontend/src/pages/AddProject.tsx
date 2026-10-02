@@ -75,6 +75,7 @@ export default function AddProject() {
   const [strategy, setStrategy] = useState('flip');
   const [initialStage, setInitialStage] = useState('s1');
   const [name, setName] = useState('');
+  const [holdingCompany, setHoldingCompany] = useState('');
   const [deal, setDeal] = useState({ purchase_price: '', target_arv: '', purchase_date: '', construction_start: '', construction_end: '', risks: '', notes: '' });
 
   const [submitting, setSubmitting] = useState(false);
@@ -179,7 +180,7 @@ export default function AddProject() {
         owner: null, mortgages: [], sales_history: [], valuation: null,
         purchase_price: numOrNull(deal.purchase_price), target_arv: numOrNull(deal.target_arv),
         purchase_date: deal.purchase_date || null, construction_start: deal.construction_start || null, construction_end: deal.construction_end || null,
-        risks: deal.risks || null, notes: deal.notes || null,
+        holding_company: holdingCompany.trim() || null, risks: deal.risks || null, notes: deal.notes || null,
         // 手动建的房没有任何已知数据，不自动生成带假设金额的分析
         create_analysis: false,
       });
@@ -232,6 +233,7 @@ export default function AddProject() {
       <div><div className="ui-property-icon"><Icon name="folder" /></div><Box fontWeight="bold" fontSize="heading-m">{name || address?.street || uiText("addProject.address.needs.confirmation")}</Box><Box margin={{ top: 'xs' }} color="text-body-secondary">{address?.label || uiText("addProject.select.or.enter.a.property.address.first")}</Box></div>
       <div><Box color="text-body-secondary">{uiText("addProject.purchase.proposed.price.team.entry")}</Box><Box fontSize="heading-xl" fontWeight="bold">{deal.purchase_price ? money(Number(deal.purchase_price)) : uiText("procurementItemRow.not.entered.2")}</Box></div>
       <dl className={css.houseFacts}>{[
+        { label: uiText("company.label"), value: holdingCompany || uiText("company.empty") },
         { label: uiText("addProject.property.type"), value: byKey.property_type?.f.value || uiText("procurementItemRow.not.entered.2") },
         { label: uiText("addProject.beds.baths"), value: uiText("sentences.beds.baths", { value1: (byKey.beds?.f.value || '—'), value2: (byKey.baths_full?.f.value || '—') }) },
         { label: uiText("addProject.interior.area"), value: byKey.sqft?.f.value ? `${byKey.sqft.f.value} sqft` : uiText("procurementItemRow.not.entered.2") },
@@ -351,6 +353,7 @@ export default function AddProject() {
                     <FormField label={uiText("addProject.project.name")}>
                       <Input value={name} onChange={({ detail }) => setName(detail.value)} />
                     </FormField>
+                    <FormField label={uiText("company.label")} description={uiText("company.help")}><Input value={holdingCompany} onChange={({detail}) => setHoldingCompany(detail.value)} /></FormField>
                     <FormField label={uiText("addProject.investment.strategy")}>
                       <Tiles
                         value={strategy}

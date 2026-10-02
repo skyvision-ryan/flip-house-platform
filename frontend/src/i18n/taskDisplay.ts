@@ -38,7 +38,8 @@ export function focusValue(fact: FocusFact): string {
 }
 
 /** Legacy server-owned procurement update envelopes. Captured identities/order references stay raw. */
-export function projectUpdateText(update: {kind: string; text: string}): string {
+export function projectUpdateText(update: {kind: string; text: string; changes?: {before?: string | null; after?: string | null} | null}): string {
+  if (update.kind === 'project_company' && update.changes) return m('company.changed', {before: update.changes.before || m('company.empty'), after: update.changes.after || m('company.empty')});
   if (update.kind !== 'procurement') return update.text;
   const match = /^(.*?) (建立订单|更新订单|确认收货)：([\s\S]*)$/.exec(update.text);
   if (!match) return update.text;

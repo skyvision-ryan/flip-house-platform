@@ -10,6 +10,9 @@ from sqlalchemy.orm import Session
 
 from .. import models, schemas
 from ..db import get_db
+from ..auth import current_user
+from ..message_codes import system_error
+from .common import require_project_read, visible_project_ids
 from .common import allowed, get_actor, log_update, project_out, require, require_user, set_field_with_source
 
 MONEY_FIELDS = {"purchase_price", "target_arv", "sale_price"}
@@ -37,8 +40,8 @@ def _get(db: Session, project_id: int) -> models.Project:
 
 
 @router.get("", response_model=list[schemas.ProjectOut])
-def list_projects(stage: Optional[str] = None, q: Optional[str] = None, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
-    stmt = select(models.Project).order_by(models.Project.updated_at.desc())
+def list_projects(request: Request, stage: Optional[str] = None, q: Optional[str] = None, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
+    stmt = select(models.Project).where(models.Project.id.in_(visible_project_ids(db, current_user(request, db)))).order_by(models.Project.updated_at.desc())
     if stage:
         stmt = stmt.where(models.Project.stage == stage)
     items = db.scalars(stmt).all()
@@ -54,7 +57,7 @@ def create_project(body: schemas.ProjectCreate, request: Request, db: Session = 
     from ..auth import current_user
     from .tasks import ORDINARY_ITEMS
     creator = current_user(request, db)
-    if (body.task_plan or body.request_key) and creator is None:
+    if (body.task_plan or body.request_key or body.holding_company) and creator is None:
         raise HTTPException(401, "请登录后安排新项目任务")
     fingerprint = hashlib.sha256(json.dumps(body.model_dump(mode="json"), sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
@@ -129,7 +132,7 @@ def _create_with_plan(body, db, actor, creator, targets, receipt):
             db.add(models.SalesHistory(property_id=prop.id, **{k: s.get(k) for k in ("recording_date", "seller", "buyer", "doc_type", "amount")}))
 
     project = models.Project(
-        property_id=prop.id, name=body.name or body.address.street, strategy=body.strategy,
+        property_id=prop.id, name=body.name or body.address.street, strategy=body.strategy, holding_company=body.holding_company,
         stage=body.stage, substage=body.substage, lead_heat=body.lead_heat, initial_stage_key=body.initial_stage_key,
         purchase_price=body.purchase_price, target_arv=body.target_arv, purchase_date=body.purchase_date,
         construction_start=body.construction_start, construction_end=body.construction_end,
@@ -181,16 +184,22 @@ def _create_with_plan(body, db, actor, creator, targets, receipt):
     if receipt is not None:
         receipt.project_id = project.id
     log_update(db, project.id, actor, "project", f"新建了项目：{project.name}")
+    if body.holding_company:
+        log_update(db, project.id, actor, "project_company", "Recorded purchasing / holding company", user=creator,
+                   changes={"before": None, "after": body.holding_company})
     return project
 
 
 @router.get("/{project_id}", response_model=schemas.ProjectOut)
-def get_project(project_id: int, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
+def get_project(project_id: int, request: Request, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
+    require_project_read(db, project_id, current_user(request, db))
     return project_out(db, _get(db, project_id), actor)
 
 
 @router.patch("/{project_id}", response_model=schemas.ProjectOut)
-def patch_project(project_id: int, body: schemas.ProjectPatch, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
+def patch_project(project_id: int, body: schemas.ProjectPatch, request: Request, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
+    user = current_user(request, db)
+    require_project_read(db, project_id, user)
     evidence_before = capture_evidence(db, project_id)
     p = _get(db, project_id)
     data = body.model_dump(exclude_unset=True)
@@ -204,7 +213,12 @@ def patch_project(project_id: int, body: schemas.ProjectPatch, db: Session = Dep
         require(actor, "edit_money", what="改价格")
     if set(data) - MONEY_FIELDS or clear:
         require(actor, "edit_project", what="改项目信息")
-    changed = [DATE_LABEL.get(k, k) for k, v in data.items() if getattr(p, k) != v]
+    if "holding_company" in data and data["holding_company"] != p.holding_company:
+        if user is None:
+            raise system_error(401, "server.companyLoginRequired")
+        log_update(db, project_id, actor, "project_company", "Updated purchasing / holding company", user=user,
+                   changes={"before": p.holding_company, "after": data["holding_company"]})
+    changed = [DATE_LABEL.get(k, k) for k, v in data.items() if k != "holding_company" and getattr(p, k) != v]
     for k, v in data.items():
         setattr(p, k, v)
     if clear:

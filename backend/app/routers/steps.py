@@ -15,7 +15,7 @@ from ..db import get_db
 from ..auth import current_user
 from ..dictionaries import ITEM_EVIDENCE, STAGE_CHECKLIST, SUBSTAGES
 from ..steps import compute_steps
-from .common import allowed, can_read_money, get_actor, log_update
+from .common import allowed, can_read_money, get_actor, log_update, require_project_read, visible_project_ids
 
 MONEY_RE = re.compile(r"\$[\d,]+(?:\.\d+)?")
 
@@ -126,22 +126,24 @@ def _freeze_lead_substage(db: Session, p: models.Project, request: Request, acto
 
 
 def _with_names(db: Session, rows: list[models.ProjectUpdate], actor: str = "负责人") -> list[schemas.UpdateOut]:
-    names = {p.id: p.name for p in db.scalars(select(models.Project)).all()}
+    names = {p.id: p.name for p in db.scalars(select(models.Project).where(models.Project.id.in_({r.project_id for r in rows}))).all()}
+    users = {u.id: u.display_name for u in db.scalars(select(models.User).where(models.User.id.in_({r.actor_user_id for r in rows if r.actor_user_id is not None}))).all()}
     hide = not can_read_money(actor)
-    return [schemas.UpdateOut(id=r.id, project_id=r.project_id, project_name=names.get(r.project_id), actor=r.actor, kind=r.kind,
-                              text=(MONEY_RE.sub("$***", r.text) if hide else r.text), created_at=r.created_at) for r in rows]
+    return [schemas.UpdateOut(id=r.id, project_id=r.project_id, project_name=names.get(r.project_id), actor=r.actor, actor_user_id=r.actor_user_id, actor_name=users.get(r.actor_user_id), changes=json.loads(r.changes_json) if r.changes_json else None, kind=r.kind,
+                              text=(MONEY_RE.sub("$***", r.text) if hide and r.kind != "project_company" else r.text), created_at=r.created_at) for r in rows]
 
 
 @router.get("/updates", response_model=list[schemas.UpdateOut])
-def all_updates(limit: int = 30, actor: Optional[str] = None, db: Session = Depends(get_db), me: str = Depends(get_actor)):
-    stmt = select(models.ProjectUpdate).order_by(models.ProjectUpdate.created_at.desc(), models.ProjectUpdate.id.desc()).limit(limit)
+def all_updates(request: Request, limit: int = 30, actor: Optional[str] = None, db: Session = Depends(get_db), me: str = Depends(get_actor)):
+    stmt = select(models.ProjectUpdate).where(models.ProjectUpdate.project_id.in_(visible_project_ids(db, current_user(request, db)))).order_by(models.ProjectUpdate.created_at.desc(), models.ProjectUpdate.id.desc()).limit(limit)
     if actor:
         stmt = stmt.where(models.ProjectUpdate.actor == actor)
     return _with_names(db, db.scalars(stmt).all(), me)
 
 
 @router.get("/projects/{project_id}/updates", response_model=list[schemas.UpdateOut])
-def project_updates(project_id: int, limit: int = 30, db: Session = Depends(get_db), me: str = Depends(get_actor)):
+def project_updates(project_id: int, request: Request, limit: int = 30, db: Session = Depends(get_db), me: str = Depends(get_actor)):
+    require_project_read(db, project_id, current_user(request, db))
     _project(db, project_id)
     stmt = (select(models.ProjectUpdate).where(models.ProjectUpdate.project_id == project_id)
             .order_by(models.ProjectUpdate.created_at.desc(), models.ProjectUpdate.id.desc()).limit(limit))

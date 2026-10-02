@@ -1,4 +1,8 @@
 {
+  "company.label": ["购买／持有公司", "Purchasing / holding company"],
+  "company.empty": ["未填写", "Not entered"],
+  "company.help": ["可留空。填写本项目购买或持有房屋的公司，与公示 Owner 和订单采购主体分别保存。", "Optional. Enter the company purchasing or holding this property. This is stored separately from the public-record owner and order purchasing entity."],
+  "company.changed": ["购买／持有公司：{{before}} → {{after}}", "Purchasing / holding company: {{before}} → {{after}}"],
   "assignment.creator": ["项目创建人", "Project creator"],
   "assistant.label": ["协办", "Assistant"],
   "assistant.optional": ["协办（可选一位）", "Assistant (one, optional)"],

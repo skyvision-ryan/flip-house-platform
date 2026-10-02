@@ -1,5 +1,6 @@
 """路由共用的序列化与计算。"""
 
+import json
 from typing import Optional
 from urllib.parse import unquote
 
@@ -58,9 +59,25 @@ def can_read_money(actor: str) -> bool:
     return allowed(actor, "read_money")
 
 
-def log_update(db: Session, project_id: int, actor: str, kind: str, text: str) -> None:
-    """谁改了什么，记一条给负责人看。调用方负责 commit。"""
-    db.add(models.ProjectUpdate(project_id=project_id, actor=actor or "负责人", kind=kind, text=text))
+def visible_project_ids(db: Session, me: Optional[models.User]):
+    query = select(models.Project.id)
+    if me is not None and not allowed(me.role_code, "workbench_all_projects"):
+        query = query.where(models.Project.id.in_(select(models.ProjectMember.project_id).where(
+            models.ProjectMember.user_id == me.id, models.ProjectMember.active.is_(True))))
+    return query
+
+
+def require_project_read(db: Session, project_id: int, me: Optional[models.User]) -> None:
+    if me is not None and not allowed(me.role_code, "workbench_all_projects"):
+        if db.scalar(visible_project_ids(db, me).where(models.Project.id == project_id)) is None:
+            from ..message_codes import system_error
+            raise system_error(403, "server.projectAccessDenied")
+
+
+def log_update(db: Session, project_id: int, actor: str, kind: str, text: str, *, user: Optional[models.User] = None, changes: Optional[dict] = None) -> None:
+    db.add(models.ProjectUpdate(project_id=project_id, actor=actor or "负责人", kind=kind, text=text,
+                               actor_user_id=user.id if user else None,
+                               changes_json=json.dumps(changes, ensure_ascii=False) if changes is not None else None))
 
 
 def cast_value(field: str, value):
@@ -97,7 +114,7 @@ def project_out(db: Session, p: models.Project, actor: str = "负责人") -> sch
     if not hide and p.target_arv is None:
         missing.append("目标售价（ARV）")
     return schemas.ProjectOut(
-        id=p.id, name=p.name, strategy=p.strategy, stage=p.stage, substage=p.substage,
+        id=p.id, name=p.name, holding_company=p.holding_company, strategy=p.strategy, stage=p.stage, substage=p.substage,
         lead_heat=p.lead_heat, status=status, status_reason=reason,
         status_override=p.status_override, status_override_reason=p.status_override_reason,
         purchase_price=None if hide else p.purchase_price, target_arv=None if hide else p.target_arv, purchase_date=p.purchase_date,
