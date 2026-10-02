@@ -1,116 +1,79 @@
-import Checkbox from '@cloudscape-design/components/checkbox';
-import NewTodayBadge from './NewTodayBadge';
-import { useBusinessDate } from '../lib/useBusinessDate';
-import { isNewToday, prioritizeToday } from '../lib/projectDates';
-import { useSearchParams } from 'react-router-dom';
-import { eventText } from '../i18n/taskDisplay.ts';
-import { taskTitle } from '../i18n/templateNames.ts';
-import { systemText } from '../i18n/core.ts';
-import { useLanguage } from '../i18n/LanguageProvider';
-import { m as uiText } from '../i18n/core.ts';
+import LanguageToggle from './LanguageToggle';
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Alert from '@cloudscape-design/components/alert';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
-import Link from '@cloudscape-design/components/link';
-import Icon, { type IconProps } from '@cloudscape-design/components/icon';
+import Checkbox from '@cloudscape-design/components/checkbox';
+import Input from '@cloudscape-design/components/input';
+import Select from '@cloudscape-design/components/select';
+import Modal from '@cloudscape-design/components/modal';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { api, Workbench, WorkbenchProject } from '../api/client';
+import { api, type Workbench, type WorkbenchProject, type Task, type TaskActivity } from '../api/client';
 import { useActor } from '../lib/actor';
-import { useRole } from '../lib/role';
+import { useMeta } from '../lib/meta';
+import { useBusinessDate } from '../lib/useBusinessDate';
+import { prioritizeToday } from '../lib/projectDates';
+import { dueText, statusIndicator } from '../lib/taskGroups';
 import { dateTime } from '../lib/format';
 import { moneyValue } from '../lib/purchaseOrders';
-import { dueText, statusIndicator } from '../lib/taskGroups';
-import CollaborationWorkspace from './ui/CollaborationWorkspace';
-import HelpText from './HelpText';
-import PersonAvatar from './PersonAvatar';
+import { taskTitle } from '../i18n/templateNames';
+import { m, systemText } from '../i18n/core';
+import { useLanguage } from '../i18n/LanguageProvider';
+import NewTodayBadge from './NewTodayBadge';
 import StagePositionBar from './StagePositionBar';
+import TaskAssignModal from './TaskAssignModal';
+import TaskWorkbench from './TaskWorkbench';
 import Header from './ui/Header';
-import Container, { CardFrame } from './ui/Surface';
-import Table from './ui/Table';
+import Container from './ui/Surface';
 
-/**
- * 工作台「项目关注」（KAN-75 块 4，目标图 01）。四个数 + 每套房一行 + 右侧待我处理。
- * 这里只看概况：房名进项目总览，下一动作进我的事项。数据全部来自任务表（/api/me/workbench），不另算一套。
- */
-export default function WorkbenchFocus({ refreshKey = 0 }: { refreshKey?: number }) {
-  useLanguage();
-  const navigate = useNavigate();
-  const [params, setParams] = useSearchParams();
-  const day = useBusinessDate();
-  const todayOnly = params.get('today') === '1';
-  const role = useRole();
-  const { me } = useActor();
-  const [data, setData] = useState<Workbench | null>(null);
-  const [err, setErr] = useState<string | null>(null);
-  useEffect(() => { api.workbench().then(setData).catch((e) => setErr(e.message)); }, [refreshKey]);
-  if (err) return <Alert type="error" header={uiText("workbenchFocus.cannot.load.project.focus")}>{systemText(err)}</Alert>;
-  const c = data?.counts;
-  const visible = prioritizeToday((data?.projects ?? []).filter(p => !todayOnly || isNewToday(p.created_at, day)), p => p.project_id, day);
-  const actionText = (p: WorkbenchProject) => {
-    const n = p.next_action;
-    if (!n) return <Box color="text-body-secondary">{uiText("workbenchFocus.all.current.stage.tasks.assigned")}</Box>;
-    const label = n.kind === 'review' ? uiText("sentences.review", { value1: (taskTitle(n)) }) : n.kind === 'assign' ? uiText("sentences.assign.2", { value1: (taskTitle(n)) }) : taskTitle(n);
-    const href = n.kind === 'review' && n.actor?.id === me?.id ? `/todo?task=${n.task_id}` : `/projects/${p.project_id}?tab=overview&task=${n.task_id}`;
-    return <Link href={href} onFollow={(e) => { e.preventDefault(); navigate(href); }}>{label}</Link>;
-  };
-  return (
-    <SpaceBetween size="l">
-      <div className="ui-metrics">
-        {[
-          { label: uiText("workbenchFocus.active.projects"), icon: 'folder', value: c?.projects, help: uiText("workbenchFocus.properties.whose.process.is.not.yet.complete") },
-          { label: uiText("workbenchFocus.awaiting.my.confirmation"), icon: 'check', value: c?.pending_review_mine, help: uiText("workbenchFocus.submitted.tasks.awaiting.your.review") },
-          { label: uiText("personAvatar.unassigned"), icon: 'group', value: c?.unassigned_current, help: uiText("workbenchFocus.current.stage.tasks.without.an.assignee") },
-          { label: uiText("workbenchFocus.awaiting.response"), icon: 'status-pending', value: c?.waiting, help: uiText("workbenchFocus.tasks.waiting.for.feedback") },
-        ].map((m) => <CardFrame key={m.icon} cardId="workbench-metrics" cardContext={systemText(m.label)}><div className="ui-metric"><div className="ui-metric-label"><span className="ui-metric-icon" aria-hidden="true"><Icon name={m.icon as IconProps.Name} /></span>{systemText(m.label)}</div><div className="ui-metric-value">{m.value ?? '—'}</div><HelpText inline>{m.help}</HelpText></div></CardFrame>)}
+const activityLabels = {
+  started:'workbench.change.started',submitted:'workbench.change.submitted',waiting:'workbench.change.waiting',resumed:'workbench.change.resumed',returned:'workbench.change.returned',confirmed:'workbench.change.confirmed',node_confirmed:'workbench.change.node_confirmed',evidence_satisfied:'workbench.change.evidence_satisfied',evidence_missing:'workbench.change.evidence_missing',evidence_reviewed:'workbench.change.evidence_reviewed',evidence_invalidated:'workbench.change.evidence_invalidated',procurement_completed:'workbench.change.procurement_completed',procurement_reopened:'workbench.change.procurement_reopened',
+} as const;
+
+export default function WorkbenchFocus({refreshKey=0}: {refreshKey?:number}) {
+  useLanguage(); const navigate=useNavigate(), meta=useMeta(), {me}=useActor(), day=useBusinessDate();
+  const [params,setParams]=useSearchParams();
+  const today=params.get('today')==='1', stage=params.get('workStage')??'', search=params.get('workSearch')??'';
+  const [data,setData]=useState<Workbench|null>(null), [err,setErr]=useState('');
+  const [expanded,setExpanded]=useState<Set<number>>(new Set());
+  const [assign,setAssign]=useState<Task|null>(null), [detail,setDetail]=useState<Task|null>(null);
+  const [activity,setActivity]=useState<{project:WorkbenchProject; until:string; data:TaskActivity|null}|null>(null);
+  const [activityBusy,setActivityBusy]=useState(false);
+  const reload=useCallback(async()=>{try { const d=await api.workbench({new_today:today,stage_key:stage,search});setData(d);setErr(''); }catch(e:any){setErr(e.message);}},[today,stage,search]);
+  useEffect(()=>{void reload();},[reload,refreshKey,day]);
+  useEffect(()=>{const focus=()=>{if(document.visibilityState==='visible')void reload();};window.addEventListener('focus',focus);document.addEventListener('visibilitychange',focus);return()=>{window.removeEventListener('focus',focus);document.removeEventListener('visibilitychange',focus);};},[reload]);
+  const filter=(key:string,value:string)=>setParams(prev=>{const next=new URLSearchParams(prev);value?next.set(key,value):next.delete(key);return next;},{replace:true});
+  const open=async(t:Task)=>{try{setDetail(await api.task(t.project_id,t.id));}catch(e:any){setErr(e.message);}};
+  const showActivity=async(p:WorkbenchProject)=>{const until=data?.activity_window?.until;if(!until)return;setActivity({project:p,until,data:null});setActivityBusy(true);try {const d=await api.taskActivity(p.project_id,until);setActivity({project:p,until,data:d});}catch(e:any){setErr(e.message);}finally{setActivityBusy(false);}};
+  const more=async()=>{if(!activity?.data?.next_cursor)return;setActivityBusy(true);try{const d=await api.taskActivity(activity.project.project_id,activity.until,activity.data.next_cursor);setActivity({...activity,data:{...d,items:[...activity.data.items,...d.items]}});}catch(e:any){setErr(e.message);}finally{setActivityBusy(false);}};
+  const people=(t:Task)=><div className="workbench-people"><span>{m('workbench.primary',{person:t.assignee?.display_name??m('personAvatar.unassigned')})}</span>{t.assistant&&<span>{m('workbench.helper',{person:t.assistant.display_name})}</span>}</div>;
+  const tasks=(p:WorkbenchProject)=>{const items=p.in_progress_tasks??[];return <SpaceBetween size="xs"><strong>{m('workbench.tasksCount',{count:items.length})}</strong>{!items.length&&<Box color="text-body-secondary">{m('workbench.noProgress')}</Box>}{(expanded.has(p.project_id)?items:items.slice(0,2)).map(t=><div key={t.id} className="workbench-task"><Button variant="inline-link" onClick={()=>void open(t)}>{taskTitle(t)}</Button><StatusIndicator type={statusIndicator(t.exec_status)}>{systemText(t.exec_status_label)}</StatusIndicator>{people(t)}{t.actions?.assign&&<Button variant="inline-link" onClick={()=>setAssign(t)}>{m('workbench.assign')}</Button>}</div>)}{items.length>2&&<Button variant="inline-link" onClick={()=>setExpanded(prev=>{const n=new Set(prev);n.has(p.project_id)?n.delete(p.project_id):n.add(p.project_id);return n;})}>{m(expanded.has(p.project_id)?'workbench.collapse':'workbench.showAll',{count:items.length})}</Button>}</SpaceBetween>;};
+  const next=(p:WorkbenchProject)=>{const t=p.next_task,n=p.next_action;return n&&t?<SpaceBetween size="xs"><Button variant="inline-link" onClick={()=>void open(t)}>{n.kind==='review'?m('sentences.review',{value1:taskTitle(t)}):n.kind==='assign'?m('sentences.assign.2',{value1:taskTitle(t)}):taskTitle(t)}</Button><StatusIndicator type={statusIndicator(t.exec_status)}>{systemText(t.exec_status_label)}</StatusIndicator><Box>{n.actor?.display_name??m('personAvatar.unassigned')} · {dueText(t.due_at)}</Box>{people(t)}{t.actions?.assign&&<Button onClick={()=>setAssign(t)}>{m('workbench.assign')}</Button>}</SpaceBetween>:<Box color="text-body-secondary">{m('workbenchFocus.all.current.stage.tasks.assigned')}</Box>;};
+  const procurement=(p:WorkbenchProject)=>p.procurement?<SpaceBetween size="xs"><Button variant="inline-link" onClick={()=>navigate(`/projects/${p.project_id}?tab=procurement`)}>{p.procurement.owner??m('personAvatar.unassigned')} · {p.procurement.ready}/{p.procurement.total} {m('workbenchFocus.requirements.met')}</Button><Box>{m('purchaseOrderCoverage.recorded.net.order.amount')} {p.procurement.order_count?moneyValue(p.procurement.order_count===p.procurement.missing_totals?null:p.procurement.spent):m('purchaseOrderCoverage.no.orders')}</Box>{p.procurement.missing_totals>0&&<Box>{m('sentences.orders.lack.payment.amounts.the.total.is.incomplete',{value1:p.procurement.missing_totals})}</Box>}{p.procurement.problems.length>0&&<Box>{m('sentences.items.need.action',{value1:p.procurement.problems.length,value2:p.procurement.problems[0].name,value3:p.procurement.problems[0].note})}</Box>}{!!p.procurement.arrival_checks&&<Box>{m('workbenchFocus.arrival.checks',{value1:p.procurement.arrival_checks})}</Box>}</SpaceBetween>:'—';
+  const visible=prioritizeToday(data?.projects??[],p=>p.project_id,day);
+  const stages=[{value:'',label:m('workbench.allStages')},...(meta?.stages??[]).map(s=>({value:s.value,label:systemText(s.label)}))];
+  return <SpaceBetween size="m">
+    {err&&<Alert type="error">{systemText(err)}</Alert>}
+    <Container cardId="workbench-projects" header={<Header variant="h2" counter={data?`(${visible.length})`:undefined} actions={<SpaceBetween direction="horizontal" size="xs"><Button iconName="refresh" onClick={()=>void reload()}>{m('workbench.refresh')}</Button><Button onClick={()=>navigate('/projects')}>{m('workbenchFocus.view.all.projects')}</Button></SpaceBetween>}>{m('workbenchFocus.project.focus')}</Header>}>
+      <div className="workbench-filters"><Input ariaLabel={m('workbench.search')} placeholder={m('workbench.search')} value={search} onChange={({detail})=>filter('workSearch',detail.value)}/><Select ariaLabel={m('workbench.allStages')} options={stages} selectedOption={stages.find(s=>s.value===stage)??stages[0]} onChange={({detail})=>filter('workStage',detail.selectedOption.value??'')}/><Checkbox checked={today} onChange={({detail})=>filter('today',detail.checked?'1':'')}>{m('newToday.filter')}</Checkbox></div>
+      <Box color="text-body-secondary">{m('workbench.scope')}</Box>
+      <div className="workbench-rows" role="list" aria-label={m('workbenchFocus.project.focus')}>
+        <div className="workbench-columns" aria-hidden="true"><span>{m('workbench.propertyPosition')}</span><span>{m('workbench.inProgress')}</span><span>{m('workbench.action')}</span><span>{m('app.procurement')}</span><span>{m('workbench.activity')}</span></div>
+        {visible.map(p=><article key={p.project_id} className="workbench-row" role="listitem" aria-label={p.project_name}>
+          <div><Button variant="inline-link" onClick={()=>navigate(`/projects/${p.project_id}?tab=overview`)}>{p.project_name}</Button> <NewTodayBadge createdAt={p.created_at} day={day}/><Box color="text-body-secondary">{p.address}</Box><StagePositionBar position={p.group_position} compact/></div>
+          <div><strong className="workbench-mobile-label">{m('workbench.inProgress')}</strong>{tasks(p)}</div>
+          <div><strong className="workbench-mobile-label">{m('workbench.action')}</strong>{next(p)}</div>
+          <div><strong className="workbench-mobile-label">{m('app.procurement')}</strong>{procurement(p)}</div>
+          <div><strong className="workbench-mobile-label">{m('workbench.activity')}</strong><Button variant="inline-link" onClick={()=>void showActivity(p)}>{p.activity_count??0}</Button></div>
+        </article>)}
+        {data&&!visible.length&&<Box padding="l">{m('workbenchFocus.no.projects.yet')}</Box>}
       </div>
-      <CollaborationWorkspace wide main={
-        <Table cardId="workbench-projects"
-          variant="embedded"
-          loading={!data}
-          loadingText={uiText("workbenchFocus.checking.each.property.s.progress")}
-          items={visible}
-          filter={<Checkbox checked={todayOnly} onChange={({detail}) => setParams(prev => {const n = new URLSearchParams(prev); detail.checked ? n.set('today', '1') : n.delete('today'); return n;}, {replace:true})}>{uiText('newToday.filter')}</Checkbox>}
-          trackBy="project_id"
-          header={<Header variant="h2" description={data?.projects.some(p => p.procurement) ? uiText("workbenchFocus.procurement.amounts.include.recorded.order.payments.less.refunds.excluding") : undefined} counter={data ? `(${visible.length})` : undefined} help={uiText("workbenchFocus.stage.bar.light.blue.is.passed.dark.blue.is")} actions={role.canReadMoney ? <Button iconName="folder" onClick={() => navigate('/projects')}>{uiText("workbenchFocus.view.all.projects")}</Button> : undefined}>{uiText("workbenchFocus.project.focus")}</Header>}
-          empty={<Box textAlign="center" padding="l" color="text-body-secondary">{uiText("workbenchFocus.no.projects.yet")}</Box>}
-          columnDefinitions={[
-            { id: 'p', header: uiText("app.projects"), minWidth: 160, cell: (p) => <div title={p.address} className="ui-wrap-anywhere"><Link href={`/projects/${p.project_id}`} onFollow={(e) => { e.preventDefault(); navigate(`/projects/${p.project_id}?tab=overview`); }}>{p.project_name}</Link> <NewTodayBadge createdAt={p.created_at} day={day} /></div> },
-            { id: 'pos', header: uiText("stagePositionBar.current.position"), minWidth: 110, cell: (p) => <div onClick={(e) => e.stopPropagation()}><StagePositionBar position={p.group_position} compact /></div> },
-            { id: 'next', header: uiText("workbenchFocus.next.action"), minWidth: 150, cell: (p) => <div onClick={(e) => e.stopPropagation()}><div>{actionText(p)}</div>{p.next_action && <StatusIndicator type={statusIndicator(p.next_action.exec_status)}>{systemText(p.next_action.exec_status_label)}</StatusIndicator>}</div> },
-            { id: 'who', header: uiText("workbenchFocus.action.by"), minWidth: 115, cell: (p) => (p.next_action ? <PersonAvatar user={p.next_action.actor} size="small" showRole={false} /> : '—') },
-            ...(data?.projects.some(p => p.procurement) ? [{ id: 'procurement', header: uiText("app.procurement"), minWidth: 200, cell: (p: WorkbenchProject) => p.procurement ? <div onClick={e=>e.stopPropagation()}><Button variant="inline-link" onClick={()=>navigate(`/projects/${p.project_id}?tab=procurement`)}>{p.procurement.owner || uiText("personAvatar.unassigned")} · {p.procurement.ready}/{p.procurement.total} {uiText("workbenchFocus.requirements.met")}</Button><Box>{uiText("purchaseOrderCoverage.recorded.net.order.amount")} {p.procurement.order_count ? moneyValue(p.procurement.order_count === p.procurement.missing_totals ? null : p.procurement.spent) : uiText("purchaseOrderCoverage.no.orders")}{p.procurement.missing_totals ? uiText("sentences.orders.lack.payment.amounts.the.total.is.incomplete", { value1: (p.procurement.missing_totals) }) : ''}</Box><Box>{p.procurement.problems.length ? uiText("sentences.items.need.action", { value1: (p.procurement.problems.length), value2: (p.procurement.problems[0].name), value3: (p.procurement.problems[0].note) }) : uiText("workbenchFocus.no.pending.actions")}</Box>{p.procurement.arrival_checks ? <Box>{uiText("workbenchFocus.arrival.checks", { value1: p.procurement.arrival_checks })}</Box> : null}</div> : '—' }] : []),
-            { id: 'due', header: uiText("taskTable.due"), minWidth: 85, cell: (p) => <span className="ui-nowrap">{p.next_action?.due_at ? dueText(p.next_action.due_at) : <Box variant="span" color="text-body-secondary">{uiText("projectPreplan.not.set")}</Box>}</span> },
-          ]}
-        />
-        } detail={<SpaceBetween size="l">
-          <Container embedded cardId="workbench-pending" header={<Header variant="h2" counter={data ? `(${data.my_pending.length})` : undefined} help={uiText("workbenchFocus.submitted.for.your.review.return.or.accept.in.my")}>{uiText("workbenchFocus.needs.my.action")}</Header>}>
-            {data && data.my_pending.length === 0 && <Box color="text-body-secondary">{uiText("workbenchFocus.no.submissions.await.your.confirmation")}</Box>}
-            <SpaceBetween size="s">
-              {(data?.my_pending ?? []).map((t) => (
-                <div key={t.id} className="ui-list-item">
-                  <div><Box fontWeight="bold" variant="span">{taskTitle(t)}</Box>　<StatusIndicator type="pending">{uiText("workbenchFocus.awaiting.my.review")}</StatusIndicator></div>
-                  <Box variant="small" color="text-body-secondary">{t.project_name} · {t.assignee?.display_name ?? uiText("personAvatar.unassigned")} {uiText("workbenchFocus.submitted.due")} {dueText(t.due_at)}</Box>
-                  <div><Button variant="normal" onClick={() => navigate(`/todo?task=${t.id}`)}>{uiText("workbenchFocus.start.review")}</Button></div>
-                </div>
-              ))}
-            </SpaceBetween>
-          </Container>
-          <Container embedded cardId="workbench-handoffs" header={<Header variant="h2" help={uiText('taskWorkflow.recentHint')}>{uiText('taskWorkflow.recent')}</Header>}>
-            {data && data.recent_handoffs.length === 0 && <Box color="text-body-secondary">{uiText('taskWorkflow.noChanges')}</Box>}
-            <SpaceBetween size="xs">
-              {(data?.recent_handoffs ?? []).map((e) => (
-                <div key={e.id} className="ui-list-item">
-                  <div><Box variant="span" fontWeight="bold">{e.actor?.display_name ?? uiText("taskSummaryPanel.system")}</Box> {eventText(e)}</div>
-                  <Box variant="small" color="text-body-secondary">{e.project_name} · {e.task_display ? taskTitle(e.task_display) : e.task_title} · {dateTime(e.created_at)}</Box>
-                </div>
-              ))}
-            </SpaceBetween>
-          </Container>
-        </SpaceBetween>
-      } />
-    </SpaceBetween>
-  );
+      {data?.activity_window?.complete_from&&<Box color="text-body-secondary">{m('workbench.completeFrom',{at:dateTime(data.activity_window.complete_from)})}</Box>}
+    </Container>
+    {assign&&<TaskAssignModal projectId={assign.project_id} tasks={[assign]} onDone={()=>{setAssign(null);void reload();}} onDismiss={()=>setAssign(null)} onConflict={()=>{setAssign(null);void reload();}}/>}
+    {detail&&<Modal visible size="large" header={taskTitle(detail)} onDismiss={()=>{setDetail(null);void reload();}} footer={<SpaceBetween direction="horizontal" size="m"><LanguageToggle/><Button onClick={()=>{setDetail(null);void reload();}}>{m('workbench.close')}</Button></SpaceBetween>}><TaskWorkbench task={detail} meId={me?.id??null} onChanged={t=>{setDetail(t);void reload();}} onConflict={()=>void open(detail)}/></Modal>}
+    {activity&&<Modal visible header={`${activity.project.project_name} · ${m('workbench.activity')}`} onDismiss={()=>setActivity(null)} footer={<Button onClick={()=>setActivity(null)}>{m('workbench.close')}</Button>}><SpaceBetween size="m">{activity.data&&<Box>{m('workbench.window',{from:dateTime(activity.data.window.from),until:dateTime(activity.data.window.until),count:activity.data.total})}</Box>}{activity.data?.items.map(e=><div key={e.id} className="workbench-task"><Button variant="inline-link" onClick={async()=>{try{setDetail(await api.task(activity.project.project_id,e.task_id));setActivity(null);}catch(error:any){setErr(error.message);}}}>{taskTitle(e)}</Button><Box>{m(activityLabels[e.kind as keyof typeof activityLabels]??'workbench.change.started')} · {e.actor?.display_name??m('taskSummaryPanel.system')} · {dateTime(e.created_at)}</Box>{e.reason&&<Box>{e.reason}</Box>}</div>)}{activity.data?.next_cursor&&<Button loading={activityBusy} onClick={()=>void more()}>{m('workbench.loadMore')}</Button>}{!activity.data&&<Button loading={activityBusy}>{m('workbench.activity')}</Button>}</SpaceBetween></Modal>}
+  </SpaceBetween>;
 }

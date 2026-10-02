@@ -225,6 +225,7 @@ export interface Submission {
 }
 export interface TaskNote { id: number; task_id: number; author: UserBrief; text: string; created_at: string }
 export interface Task {
+  actions?: Record<string, boolean>;
   completion_mode?: 'evidence' | 'record' | 'review';
   template_key?: string | null; template_name_snapshot?: string | null;
   node_confirmation?: StepItem | null;
@@ -249,14 +250,18 @@ export interface WorkbenchProject {
   project_id: number; project_name: string; address: string; group_position: GroupPosition; position_label: string;
   next_action: { task_id: number; title: string; template_key?: string | null; template_name_snapshot?: string | null; exec_status: TaskExecStatus; exec_status_label: string; due_at: string | null; actor: UserBrief | null; kind: 'review' | 'assign' | 'do' } | null;
   procurement?: { owner: string | null; ready: number; total: number; spent: string; missing_totals: number; order_count: number; problems: {id: number; name: string; note: string}[]; arrival_checks?: number } | null;
+  in_progress_tasks?: Task[]; next_task?: Task | null; activity_count?: number;
   waiting_count: number; unassigned_current_count: number;
 }
-export interface Workbench { projects: WorkbenchProject[]; my_pending: Task[]; counts: { projects: number; pending_review_mine: number; unassigned_current: number; waiting: number }; recent_handoffs: (TaskEvent & { project_name: string | null; task_title: string | null; task_display?: { title: string; template_key?: string | null; template_name_snapshot?: string | null } | null })[] }
+export interface ActivityWindow { from: string; until: string; complete_from?: string | null }
+export interface TaskActivityItem { id: number; task_id: number; title: string; template_key?: string | null; template_name_snapshot?: string | null; kind: string; actor: UserBrief | null; created_at: string; reason: string | null }
+export interface TaskActivity { items: TaskActivityItem[]; total: number; window: ActivityWindow; complete_from: string | null; next_cursor: string | null }
+export interface Workbench { activity_window?: ActivityWindow; can_assign?: boolean; projects: WorkbenchProject[]; my_pending: Task[]; counts: { projects: number; pending_review_mine: number; unassigned_current: number; waiting: number }; recent_handoffs: (TaskEvent & { project_name: string | null; task_title: string | null; task_display?: { title: string; template_key?: string | null; template_name_snapshot?: string | null } | null })[] }
 export interface ProjectMember extends UserBrief { role_snapshot: string | null; added_at: string | null }
 export interface ProjectMembers { members: ProjectMember[]; others: UserBrief[]; can_assign: boolean; can_add_member: boolean }
 export interface TaskSignal { id: number; task_id: number; project_id: number; project_name: string; title: string; template_key: string | null; template_name_snapshot: string | null; kind: string; mode: string; created_at: string; next: { id: number; title: string; template_key: string | null; template_name_snapshot: string | null; assignee: UserBrief | null; due_at: string | null } | null }
 export interface MyTasks { assisting?: Task[]; assigned: Task[]; reviewing: Task[]; signals?: TaskSignal[] }
-export interface TaskAssignIn { version: number; assignee_user_id?: number | null; assistant_user_id?: number | null; due_at?: string | null; reason?: string | null; join_project?: boolean }
+export interface TaskAssignIn { reviewer_user_id?: number; version: number; assignee_user_id?: number | null; assistant_user_id?: number | null; due_at?: string | null; reason?: string | null; join_project?: boolean }
 export interface TaskStatusIn { version: number; action: 'start' | 'wait' | 'resume'; wait_for?: string | null; wait_reason?: string | null; wait_until?: string | null }
 export type UserRow = Omit<Me, 'demo_mode'>;
 
@@ -313,7 +318,8 @@ export const api = {
   projectTasks: (id: number) => req<TaskList>(`/api/projects/${id}/tasks`),
   projectMembers: (id: number) => req<ProjectMembers>(`/api/projects/${id}/members`),
   task: (id: number, taskId: number) => req<Task>(`/api/projects/${id}/tasks/${taskId}`),
-  workbench: () => req<Workbench>('/api/me/workbench'),
+  workbench: (params?: {new_today?: boolean; stage_key?: string; search?: string}) => req<Workbench>('/api/me/workbench' + (params ? '?' + new URLSearchParams(Object.entries(params).filter(([,v])=>v !== undefined && v !== '').map(([k,v])=>[k,String(v)])) : '')),
+  taskActivity: (id: number, until: string, cursor?: string) => req<TaskActivity>(`/api/projects/${id}/task-activity?` + new URLSearchParams({until, ...(cursor ? {cursor} : {})})),
   taskEvents: (id: number, taskId: number) => req<TaskEvent[]>(`/api/projects/${id}/tasks/${taskId}/events`),
   addTaskNote: (id: number, taskId: number, body: {request_key: string; text: string}) => req<Task>(`/api/projects/${id}/tasks/${taskId}/notes`, {method: 'POST', body: JSON.stringify(body)}),
   assignTask: (id: number, taskId: number, body: TaskAssignIn) => req<Task>(`/api/projects/${id}/tasks/${taskId}/assign`, { method: 'POST', body: JSON.stringify(body) }),

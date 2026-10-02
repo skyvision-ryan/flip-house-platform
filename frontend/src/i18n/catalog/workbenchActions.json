@@ -1,0 +1,150 @@
+{
+  "workbench.inProgress": [
+    "在办任务",
+    "Work in progress"
+  ],
+  "workbench.activity": [
+    "任务动态 · 近7天",
+    "Task changes · Last 7 days"
+  ],
+  "workbench.tasksCount": [
+    "{{count}} 项在办",
+    "{{count}} in progress"
+  ],
+  "workbench.showAll": [
+    "展开全部 {{count}} 项",
+    "Show all {{count}} tasks"
+  ],
+  "workbench.collapse": [
+    "收起任务",
+    "Collapse tasks"
+  ],
+  "workbench.noProgress": [
+    "暂无在办任务",
+    "No work in progress"
+  ],
+  "workbench.propertyPosition": [
+    "房屋与位置",
+    "Property & position"
+  ],
+  "workbench.action": [
+    "下一动作 · 行动者 · 截止日",
+    "Next action · Person · Due"
+  ],
+  "workbench.assign": [
+    "分派",
+    "Assign"
+  ],
+  "workbench.open": [
+    "打开任务",
+    "Open task"
+  ],
+  "workbench.search": [
+    "搜索房屋",
+    "Search properties"
+  ],
+  "workbench.allStages": [
+    "全部阶段",
+    "All stages"
+  ],
+  "workbench.refresh": [
+    "刷新工作台",
+    "Refresh workbench"
+  ],
+  "workbench.scope": [
+    "动态只统计工作流状态变化；分派、改期和备注不计数。",
+    "Changes count workflow transitions only; assignments, due dates and notes are excluded."
+  ],
+  "workbench.completeFrom": [
+    "完整统计从 {{at}} 开始；更早的历史保留在任务记录。",
+    "Complete tracking began {{at}}; earlier history remains in task records."
+  ],
+  "workbench.window": [
+    "{{from}} 至 {{until}}，共 {{count}} 条",
+    "{{from}} to {{until}} · {{count}} changes"
+  ],
+  "workbench.loadMore": [
+    "加载更多",
+    "Load more"
+  ],
+  "workbench.close": [
+    "关闭",
+    "Close"
+  ],
+  "workbench.reviewer": [
+    "提交审核人（当前未指定）",
+    "Submission reviewer (currently missing)"
+  ],
+  "workbench.reviewerHint": [
+    "已有审核人保持不变。项目助理分派不会自动成为审核人。",
+    "Existing reviewers stay unchanged. Assistant assignment does not make the assistant a reviewer."
+  ],
+  "workbench.primary": [
+    "主责：{{person}}",
+    "Primary: {{person}}"
+  ],
+  "workbench.helper": [
+    "协办：{{person}}",
+    "Helper: {{person}}"
+  ],
+  "workbench.change.started": [
+    "开始",
+    "Started"
+  ],
+  "workbench.change.submitted": [
+    "提交审核",
+    "Submitted"
+  ],
+  "workbench.change.waiting": [
+    "等待",
+    "Waiting"
+  ],
+  "workbench.change.resumed": [
+    "恢复",
+    "Resumed"
+  ],
+  "workbench.change.returned": [
+    "退回",
+    "Returned"
+  ],
+  "workbench.change.confirmed": [
+    "审核完成",
+    "Approved"
+  ],
+  "workbench.change.node_confirmed": [
+    "节点确认",
+    "Node confirmed"
+  ],
+  "workbench.change.evidence_satisfied": [
+    "证据满足，待审阅",
+    "Evidence met; awaiting review"
+  ],
+  "workbench.change.evidence_missing": [
+    "证据不再满足",
+    "Evidence no longer met"
+  ],
+  "workbench.change.evidence_reviewed": [
+    "证据审阅完成",
+    "Evidence reviewed"
+  ],
+  "workbench.change.evidence_invalidated": [
+    "依据变化，待复核",
+    "Evidence changed; review required"
+  ],
+  "workbench.change.procurement_completed": [
+    "采购实际备齐",
+    "Procurement complete"
+  ],
+  "workbench.change.procurement_reopened": [
+    "采购重新未备齐",
+    "Procurement incomplete again"
+  ],
+  "workbench.switchChinese": [
+    "中文",
+    "中文"
+  ],
+  "workbench.switchEnglish": [
+    "English",
+    "English"
+  ]
+}

@@ -1,3 +1,4 @@
+import workbenchActions from './catalog/workbenchActions.json' with { type: 'json' };
 import taskWorkflow from './catalog/taskWorkflow.json' with { type: 'json' };
 import password from './catalog/password.json' with { type: 'json' };
 import events from './catalog/events.json' with { type: 'json' };
@@ -96,6 +97,7 @@ import catalog86 from './catalog/workbenchFocus.json' with { type: 'json' };
 import catalog87 from './catalog/zoeyDesign.json' with { type: 'json' };
 /** Reviewed application copy. Business codes and user content are never resource keys. */
 export const messages = {
+  ...workbenchActions,
   ...password,
   ...events,
   ...server,
