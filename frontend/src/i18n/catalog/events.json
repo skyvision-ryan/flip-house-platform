@@ -75,6 +75,10 @@
     "新增采购需求",
     "Added procurement requirement"
   ],
+  "event.requirementRemoved": [
+    "删除采购需求",
+    "Removed procurement requirement"
+  ],
   "counts.items_one": [
     "{{count}} 项",
     "{{count}} item"
@@ -218,6 +222,14 @@
   "counts.orders_other": [
     "{{count}} 笔",
     "{{count}} orders"
+  ],
+  "counts.overdue.days_one": [
+    "超期 {{count}} 天",
+    "{{count}} day overdue"
+  ],
+  "counts.overdue.days_other": [
+    "超期 {{count}} 天",
+    "{{count}} days overdue"
   ],
   "update.orderCreated": [
     "{{person}} 建立订单：{{order}}",

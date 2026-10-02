@@ -44,5 +44,7 @@ def purchase_overview(db, project_id):
     refunds = sum((order_summary(d)['refund'] for d in docs), Decimal(0))
     task = db.scalar(select(models.Task).where(models.Task.project_id == project_id, models.Task.step_key == 'purchase'))
     owner = db.get(models.User, task.assignee_user_id) if task and task.assignee_user_id else None
+    arrival_words = ('预计日期已过，待核实', '网站送达待确认', '待取货')
     return {**progress, 'owner': owner.display_name if owner else None, 'spent': str(paid - refunds),
-            'missing_totals': sum(d.total is None for d in docs), 'order_count': len(docs), 'problems': problems}
+            'missing_totals': sum(d.total is None for d in docs), 'order_count': len(docs), 'problems': problems,
+            'arrival_checks': sum(1 for row in rows if any(word in reason for reason in attention[row.id] for word in arrival_words))}

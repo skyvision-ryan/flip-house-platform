@@ -160,7 +160,9 @@ export interface ProcurementItem extends ProcurementFields {
 export interface ProcurementSummary {
   total: number; pending_spec: number; pending_order: number; ordered: number; received: number; exception: number; na: number;
 }
-export interface ProcurementWorkspaceData { tasks: Task[]; items: (ProcurementItem & { project_name: string })[]; projects: { id: number; name: string; address: string }[]; source: string }
+export interface ProcurementNewRequirement { item_id: number; project_id: number; project_name: string; name: string; wave: string; added_by: string; added_at: string }
+export interface ProcurementArrival { kind: 'line' | 'delivery'; order_id: number; project_id: number; project_name: string; order_title: string; line_id: string | null; material_id: number | null; name: string; expected_on: string; days_overdue: number; remaining: string | null; unit: string; tracking_url: string | null }
+export interface ProcurementWorkspaceData { tasks: Task[]; items: (ProcurementItem & { project_name: string })[]; projects: { id: number; name: string; address: string }[]; source: string; new_requirements?: ProcurementNewRequirement[]; arrivals?: ProcurementArrival[] }
 export interface ProcurementList { created_item_id?: number | null; items: ProcurementItem[]; summary: ProcurementSummary; template_missing?: boolean }
 
 export interface BudgetLine { id: number; project_id: number; category: string; planned_amount: number; note: string | null }
@@ -243,7 +245,7 @@ export interface TaskList { tasks: Task[]; stages: { key: string; label: string;
 export interface WorkbenchProject {
   project_id: number; project_name: string; address: string; group_position: GroupPosition; position_label: string;
   next_action: { task_id: number; title: string; template_key?: string | null; template_name_snapshot?: string | null; exec_status: TaskExecStatus; exec_status_label: string; due_at: string | null; actor: UserBrief | null; kind: 'review' | 'assign' | 'do' } | null;
-  procurement?: { owner: string | null; ready: number; total: number; spent: string; missing_totals: number; order_count: number; problems: {id: number; name: string; note: string}[] } | null;
+  procurement?: { owner: string | null; ready: number; total: number; spent: string; missing_totals: number; order_count: number; problems: {id: number; name: string; note: string}[]; arrival_checks?: number } | null;
   waiting_count: number; unassigned_current_count: number;
 }
 export interface Workbench { projects: WorkbenchProject[]; my_pending: Task[]; counts: { projects: number; pending_review_mine: number; unassigned_current: number; waiting: number }; recent_handoffs: (TaskEvent & { project_name: string | null; task_title: string | null; task_display?: { title: string; template_key?: string | null; template_name_snapshot?: string | null } | null })[] }
@@ -364,6 +366,7 @@ export const api = {
   procurement: (id: number) => req<ProcurementList>(`/api/projects/${id}/procurement`),
   initProcurement: (id: number) => req<ProcurementList>(`/api/projects/${id}/procurement/init`, { method: 'POST' }),
   patchProcurement: (itemId: number, body: ProcurementPatch) => req<ProcurementList>(`/api/procurement/${itemId}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  deleteProcurement: (itemId: number, updatedAt: string) => req<ProcurementList>(`/api/procurement/${itemId}?expected_updated_at=${encodeURIComponent(updatedAt)}`, { method: 'DELETE' }),
   procurementWorklist: (id: number, items: {id: number; updated_at: string; selected: boolean}[]) => req<ProcurementList>(`/api/projects/${id}/procurement/worklist`, {method: 'POST', body: JSON.stringify({items})}),
   procurementNotNeeded: (id: number, body: { reason: string; items: {id: number; updated_at: string}[] }) => req<ProcurementList>(`/api/projects/${id}/procurement/not-needed`, { method: 'POST', body: JSON.stringify(body) }),
   addProcurement: (id: number, body: Partial<ProcurementRequirements> & { name: string; wave: string; request_key?: string }) => req<ProcurementList>(`/api/projects/${id}/procurement`, { method: 'POST', body: JSON.stringify(body) }),

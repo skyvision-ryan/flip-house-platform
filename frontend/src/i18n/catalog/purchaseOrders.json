@@ -422,5 +422,33 @@
   "purchaseOrders.view.product.image": [
     "查看 {{value1}} 的商品图片",
     "View the product image for {{value1}}"
+  ],
+  "purchaseOrders.record.receipt.for.this.item": [
+    "登记这件到货",
+    "Record receipt for this item"
+  ],
+  "purchaseOrders.fill.remaining": [
+    "按仍需填入 {{value1}}",
+    "Fill remaining {{value1}}"
+  ],
+  "purchaseOrders.line.status.pending": [
+    "未到货",
+    "Not received"
+  ],
+  "purchaseOrders.line.status.partial": [
+    "部分到货",
+    "Partially received"
+  ],
+  "purchaseOrders.line.status.received": [
+    "已到齐",
+    "Fully received"
+  ],
+  "purchaseOrders.line.status.cancelled": [
+    "已取消",
+    "Cancelled"
+  ],
+  "purchaseOrders.line.status.returned": [
+    "已退货",
+    "Returned"
   ]
 }

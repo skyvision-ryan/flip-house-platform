@@ -110,5 +110,9 @@
   "workbenchFocus.no.submissions.returns.or.reassignments.yet": [
     "还没有提交、退回或改派。",
     "No submissions, returns, or reassignments yet."
+  ],
+  "workbenchFocus.arrival.checks": [
+    "{{value1}} 项到货待核实",
+    "{{value1}} arrivals to verify"
   ]
 }

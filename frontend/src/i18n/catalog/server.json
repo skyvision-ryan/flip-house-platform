@@ -378,5 +378,17 @@
   "server.taskPhotoRequired": [
     "这项任务需要可读取的现场照片，请使用 JPG、PNG 或 WebP 图片；普通文件不能作为照片证据",
     "This task needs a readable site photo. Use a JPG, PNG or WebP image; a regular document cannot count as photo evidence."
+  ],
+  "server.procurement.row.has.orders": [
+    "该需求已关联订单，不能删除；误选请在订单中移除商品，或标为本房不需要",
+    "This requirement is linked to an order and cannot be deleted. Remove the item from the order or mark it not needed for this property."
+  ],
+  "server.procurement.row.has.images": [
+    "该需求有图片，请先移除图片再删除",
+    "This requirement has images. Remove them before deleting."
+  ],
+  "server.procurement.row.has.legacy.purchase": [
+    "该需求保留着旧购买记录，不能删除；请改为标记本房不需要",
+    "This requirement keeps legacy purchase records and cannot be deleted. Mark it not needed for this property instead."
   ]
 }

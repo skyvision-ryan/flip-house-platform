@@ -114,5 +114,9 @@
   "purchaseOrderFields.difference": [
     "· 差额",
     "· Difference"
+  ],
+  "purchaseOrderFields.order.title": [
+    "订单标题",
+    "Order title"
   ]
 }

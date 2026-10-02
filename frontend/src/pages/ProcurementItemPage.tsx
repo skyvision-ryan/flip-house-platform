@@ -16,13 +16,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, type ProcurementWorkspaceData, type ProcurementImage } from '../api/client';
 import ImageViewer from '../components/ui/ImageViewer';
 import ProcurementFields from '../components/ProcurementFields';
+import DeleteRequirementButton from '../components/DeleteRequirementButton';
 import FormField from '../components/ui/FormField';
 import Header from '../components/ui/Header';
 import { useFlash } from '../lib/flash';
 import { useMeta } from '../lib/meta';
 import { procurementChanges, procurementDraft, procurementError, type ProcurementDraft } from '../lib/procurement';
 
-export function ProcurementItemEditor({ materialId, houseId, onClose, onSaved, onDirty }: { materialId: number; houseId: number; onClose: () => void; onSaved: () => Promise<void>; onDirty: (dirty: boolean) => void }) {
+export function ProcurementItemEditor({ materialId, houseId, onClose, onSaved, onDirty, onDeleted }: { materialId: number; houseId: number; onClose: () => void; onSaved: () => Promise<void>; onDirty: (dirty: boolean) => void; onDeleted?: () => void | Promise<void> }) {
   useLanguage();
   const selectedId = materialId;
   const meta = useMeta();
@@ -117,6 +118,7 @@ export function ProcurementItemEditor({ materialId, houseId, onClose, onSaved, o
     <SpaceBetween direction="horizontal" size="s">
       <Button variant="primary" loading={busy} disabled={!dirty} onClick={() => save()}>{uiText("procurementItemPage.save.requirement")}</Button>
       <Button disabled={busy} onClick={discard}>{dirty ? uiText("procurementItemPage.discard.changes") : uiText("procurementItemPage.reload")}</Button>
+      {selected && !selected.order_managed && <DeleteRequirementButton row={selected} disabled={busy || dirty} onDeleted={async () => { if (onDeleted) await onDeleted(); else { await onSaved(); onClose(); } }} />}
     </SpaceBetween>
       </SpaceBetween>
     </div>

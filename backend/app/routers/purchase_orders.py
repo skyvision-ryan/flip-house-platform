@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 
 from .. import models
 from ..db import get_db
-from ..purchase_orders import OrderDocument, Receipt, Record, order_summary, parse_order_text, vendor_key
+from ..purchase_orders import OrderDocument, Receipt, Record, order_label, order_summary, parse_order_text, vendor_key
 from .common import allowed, log_update, require, require_user
 from .procurement import _access
 from ..procurement_workflow import require_purchase_assigned
@@ -129,7 +129,7 @@ def _write(db, order, doc, me, key, fingerprint, version, kind, source="", note=
         db.add(models.PurchaseOrderEvent(order_id=order.id, version=next_version, request_key=str(key),
             fingerprint=fingerprint, kind=kind, actor_id=me.id,
             snapshot=json.dumps({"document": doc.model_dump(mode="json"), "source_text": source, "note": note}, ensure_ascii=False)))
-        log_update(db, order.project_id, me.role_code, "procurement", f"{me.display_name} {kind}：{doc.vendor} {doc.order_number}")
+        log_update(db, order.project_id, me.role_code, "procurement", f"{me.display_name} {kind}：{order_label(doc)}")
         db.commit()
     except IntegrityError:
         db.rollback()

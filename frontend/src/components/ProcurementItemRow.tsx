@@ -8,7 +8,8 @@ import Link from '@cloudscape-design/components/link';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
 import type { ProcurementItem } from '../api/client';
 import type { NodeOption } from '../lib/orderStages';
-import { moneyValue, websiteStatusLabel, type PurchaseOrder } from '../lib/purchaseOrders';
+import { moneyValue, websiteStatusLabel, orderTitle, type PurchaseOrder } from '../lib/purchaseOrders';
+import DeleteRequirementButton from './DeleteRequirementButton';
 import { materialPurchaseFacts } from '../lib/procurementSummary';
 import ImageViewer from './ui/ImageViewer';
 import ProductThumb from './ProductThumb';
@@ -24,9 +25,9 @@ function Facts({ facts, wide = [] }: { facts: Fact[]; wide?: string[] }) {
 }
 
 /** One material: the seven row facts stay visible; 查看详情 opens requirement, orders, receipts and links. */
-export default function ProcurementItemRow({ row, orders, waves, expanded, statusLabel, onToggle, onEdit, onOrder, children, readOnly=false }: {
+export default function ProcurementItemRow({ row, orders, waves, expanded, statusLabel, onToggle, onEdit, onOrder, onDeleted, newBy, children, readOnly=false }: {
   readOnly?: boolean; children?: ReactNode; row: ProcurementItem; orders: PurchaseOrder[]; waves: NodeOption[]; expanded: boolean; statusLabel: string;
-  onToggle: () => void; onEdit: () => void; onOrder: (id: number) => void;
+  onToggle: () => void; onEdit: () => void; onOrder: (id: number) => void; onDeleted?: () => void | Promise<void>; newBy?: { added_by: string; added_at: string };
 }) {
   useLanguage();
   const [image, setImage] = useState<number | null>(null);
@@ -40,7 +41,7 @@ export default function ProcurementItemRow({ row, orders, waves, expanded, statu
   const images = row.images ?? [];
   return <article className="ui-proc-item" data-expanded={expanded}>
     <div id={`proc-item-${row.id}`} tabIndex={-1} className="ui-proc-item-main">
-      <div className="proc-material-main"><div className="ui-proc-item-name"><strong>{materialName(row)}</strong>{row.specification && <span className="proc-material-secondary">{row.specification}</span>}</div><StatusIndicator type={tone}>{systemText(purchase.progress ?? statusLabel)}</StatusIndicator></div>
+      <div className="proc-material-main"><div className="ui-proc-item-name"><strong>{materialName(row)}</strong>{row.specification && <span className="proc-material-secondary">{row.specification}</span>}</div><span className="proc-material-chips"><StatusIndicator type={tone}>{systemText(purchase.progress ?? statusLabel)}</StatusIndicator>{newBy && <span className="proc-new-chip">{uiText("procurementItemRow.new.requirement.by", { value1: newBy.added_by || uiText("purchaseOrders.procurement.entry"), value2: newBy.added_at.slice(5, 10) })}</span>}</span></div>
       <dl className="proc-material-facts">
         <div className="proc-material-cell"><dt>{uiText("procurementFields.required.quantity")}</dt><dd>{row.required_quantity ?? uiText("procurementItemRow.not.entered")} {unit}</dd></div>
         {purchase.linked.length ? <>
@@ -55,7 +56,7 @@ export default function ProcurementItemRow({ row, orders, waves, expanded, statu
       </div>
     </div>
     {expanded && <section id={`proc-summary-${row.id}`} aria-label={uiText("sentences.procurement.details", { value1: (materialName(row)) })} className="ui-proc-item-summary">
-      <div className="ui-proc-item-summary-heading"><h4>{uiText("procurementItemRow.requirement")}</h4>{!readOnly && <Button variant="inline-link" onClick={onEdit}>{children ? uiText("procurementItemRow.collapse.requirement.editor") : row.status === 'na' ? uiText("procurementItemRow.restore.edit.requirement") : uiText("procurementItemRow.edit.requirement")}</Button>}</div>
+      <div className="ui-proc-item-summary-heading"><h4>{uiText("procurementItemRow.requirement")}</h4>{!readOnly && <span className="proc-requirement-actions"><Button variant="inline-link" onClick={onEdit}>{children ? uiText("procurementItemRow.collapse.requirement.editor") : row.status === 'na' ? uiText("procurementItemRow.restore.edit.requirement") : uiText("procurementItemRow.edit.requirement")}</Button>{onDeleted && !children && !purchase.linked.length && !hasLegacy && <DeleteRequirementButton row={row} onDeleted={onDeleted} />}</span>}</div>
       {row.status === 'na' && <p className="proc-detail-note">{uiText("procurementItemRow.not.needed.for.this.property.excluded.from.progress.restore")}</p>}
       {row.status !== 'na' && !row.in_worklist && <p className="proc-detail-note">{uiText("procurementItemRow.this.requirement.is.outside.the.current.procurement.list")}</p>}
       <Facts facts={[['材料名称', materialName(row)], ['规格', row.specification], ['需求数量', row.required_quantity != null ? `${row.required_quantity} ${unit}` : null], ['使用节点', waves.find(w=>w.value===row.wave)?.label || row.wave], ['使用位置', row.use_location], ['需要到场', row.needed_on], ['需求预算（非实付）', row.budget_amount != null ? moneyValue(row.budget_amount) : null], ['备注', row.note]]} wide={['备注']} />
@@ -70,7 +71,7 @@ export default function ProcurementItemRow({ row, orders, waves, expanded, statu
         const adjustments = doc.adjustments.filter(a=>ids.has(a.line_id));
         const deliveries = doc.deliveries.filter(d=>d.allocations.some(a=>ids.has(a.line_id)));
         return <section className="ui-proc-order-summary" key={order.id}>
-          <div className="ui-proc-order-heading"><h5>{doc.vendor} · {doc.order_number || uiText("procurementItemRow.order.number.not.entered")}</h5><Button variant="inline-link" onClick={()=>onOrder(order.id)}>{uiText("procurementItemRow.open.order")}{readOnly ? '' : uiText("procurementItemRow.receiving")}</Button></div>
+          <div className="ui-proc-order-heading"><h5>{doc.title?.trim() ? <>{orderTitle(doc)}<small className="proc-order-subtitle">{doc.vendor} · {doc.order_number || uiText("procurementItemRow.order.number.not.entered")}</small></> : <>{doc.vendor} · {doc.order_number || uiText("procurementItemRow.order.number.not.entered")}</>}</h5><Button variant="inline-link" onClick={()=>onOrder(order.id)}>{uiText("procurementItemRow.open.order")}{readOnly ? '' : uiText("procurementItemRow.receiving")}</Button></div>
           {lines.map(line => { const fact = order.summary.lines.find(r=>r.id===line.id); const status = websiteStatusLabel(line.website_status); return <div className="proc-order-line" key={line.id}>
             <p>{lines.length > 1 ? `${orderLineName(line, [row])} · ` : ''}{uiText("procurementItemRow.order")} {doc.ordered_on || uiText("procurementItemRow.not.entered")} {uiText("procurementItemRow.ordered")} {line.quantity ?? uiText("procurementItemRow.not.entered.2")} {uiText("procurementItemRow.received.in.good.condition")} {fact?.usable ?? uiText("procurementItemRow.needs.verification")} {uiText("procurementItemRow.remaining")} {fact?.remaining ?? uiText("procurementItemRow.needs.verification")} {systemText(line.unit)} {uiText("procurementItemRow.item.amount")} {moneyValue(fact?.amount ?? null)}{line.expected_on ? uiText("sentences.estimated", { value1: (line.expected_on) }) : ''}{status ? uiText("sentences.carrier.not.proof.of.receipt", { value1: (status) }) : ''}</p>
             <Facts facts={[["规格", line.specification], ["品牌", line.brand], ["型号", line.model], ["颜色", line.color], ["使用位置", line.location], ["需要到场", line.needed_on], ["卖家", line.vendor], ["单价", line.unit_price != null ? moneyValue(line.unit_price) : null], ["收货地址", line.delivery_address || doc.delivery_address], ["备注", line.selection_note]]} wide={['备注']} />
