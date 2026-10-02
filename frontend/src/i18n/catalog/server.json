@@ -1,4 +1,6 @@
 {
+  "server.projectAccessDenied": ["你不是本项目的有效成员，不能查看或修改项目资料", "You are not an active member of this project and cannot view or change its details."],
+  "server.companyLoginRequired": ["请登录后修改购买／持有公司", "Sign in to edit the purchasing / holding company."],
   "server.assistantPairInvalid": ["协办须与主负责人不同，且必须先有主负责人", "An assistant must differ from the primary assignee, and a primary assignee is required."],
   "server.assignmentAccountInvalid": ["安排中的账号不存在或已停用，请重新选择", "An account does not exist or is inactive. Select an active account."],
   "server.procurementOwnerPermission": ["采购主负责人须具有采购权限", "The procurement lead must have procurement permission."],

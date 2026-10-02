@@ -9,8 +9,8 @@ import SpaceBetween from '@cloudscape-design/components/space-between';
 import { Update } from '../api/client';
 import { RoleLabel } from './RoleLabel';
 
-const KIND_TAB: Record<string, string> = { file: 'files', data: 'data', expense: 'budget', budget: 'budget', analysis: 'analysis', step: 'overview', project: 'overview', utility: 'data&section=utilities', inspection: 'overview', procurement: 'procurement' };
-const KIND_LABEL: Record<string, string> = { get file() { return uiText("updatesList.files"); }, get data() { return uiText("updatesList.data"); }, get expense() { return uiText("updatesList.expenses"); }, get budget() { return uiText("updatesList.budget"); }, get analysis() { return uiText("updatesList.analysis"); }, get step() { return uiText("updatesList.checklist"); }, get project() { return uiText("app.projects"); }, get utility() { return uiText("updatesList.utilities"); }, get inspection() { return uiText("updatesList.inspections"); }, get procurement() { return uiText("app.procurement"); } };
+const KIND_TAB: Record<string, string> = { file: 'files', data: 'data', expense: 'budget', budget: 'budget', analysis: 'analysis', step: 'overview', project: 'overview', project_company: 'overview', utility: 'data&section=utilities', inspection: 'overview', procurement: 'procurement' };
+const KIND_LABEL: Record<string, string> = { get project_company() { return uiText('company.label'); }, get file() { return uiText("updatesList.files"); }, get data() { return uiText("updatesList.data"); }, get expense() { return uiText("updatesList.expenses"); }, get budget() { return uiText("updatesList.budget"); }, get analysis() { return uiText("updatesList.analysis"); }, get step() { return uiText("updatesList.checklist"); }, get project() { return uiText("app.projects"); }, get utility() { return uiText("updatesList.utilities"); }, get inspection() { return uiText("updatesList.inspections"); }, get procurement() { return uiText("app.procurement"); } };
 
 const dayKey = (iso: string) => iso.slice(0, 10);
 const hm = (iso: string) => iso.slice(11, 16);
@@ -56,7 +56,7 @@ export default function UpdatesList({ items, showProject, onGo, emptyText = '还
                 className="ui-update-row"
               >
                 <Box variant="small" color="text-body-secondary">{hm(u.created_at)}</Box>
-                <RoleLabel code={u.actor} />
+                {u.actor_name ? <Box variant="span">{u.actor_name}</Box> : <RoleLabel code={u.actor} />}
                 {showProject && (
                   <Link href={href} onFollow={(e) => { e.preventDefault(); onGo(href); }}>{u.project_name ?? '—'}</Link>
                 )}

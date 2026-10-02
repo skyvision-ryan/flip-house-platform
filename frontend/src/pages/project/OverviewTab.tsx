@@ -91,6 +91,7 @@ export default function OverviewTab({ project, reload, deepLink, focus, tasks, t
         <KeyValuePairs
           columns={project.money_hidden ? 3 : 2}
           items={[
+            {label: uiText("company.label"), value: project.holding_company || uiText("company.empty")},
             ...(project.money_hidden ? [] : [
               { label: uiText("founderDesign.purchase.price"), value: money(project.purchase_price) },
               { label: uiText("overviewTab.after.repair.value.arv"), value: money(project.target_arv) },

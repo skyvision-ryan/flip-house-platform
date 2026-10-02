@@ -64,7 +64,7 @@ export interface Steps {
   earlier_undone: { key: string; title: string; owners: string[]; stage: string }[];
   stage_progress: StageProgress[];
 }
-export interface Update { id: number; project_id: number; project_name: string | null; actor: string; kind: string; text: string; created_at: string }
+export interface Update { actor_user_id?: number | null; actor_name?: string | null; changes?: {before?: string | null; after?: string | null} | null; id: number; project_id: number; project_name: string | null; actor: string; kind: string; text: string; created_at: string }
 
 export interface AddressCandidate {
   label: string; street: string; city: string; state: string; zip: string; lat?: number | null; lng?: number | null;
@@ -95,6 +95,7 @@ export interface PropertyBrief {
 }
 
 export interface Project {
+  holding_company?: string | null;
   id: number; name: string; strategy: string; stage: string; substage: string | null; lead_heat: string | null;
   status: string; status_reason: string; status_override: string | null; status_override_reason: string | null;
   purchase_price: number | null; target_arv: number | null; purchase_date: string | null; construction_start: string | null;

@@ -76,6 +76,7 @@ class PropertyBrief(ORM):
 
 
 class ProjectOut(ORM):
+    holding_company: Optional[str] = None
     id: int
     name: str
     strategy: str
@@ -128,7 +129,16 @@ class TaskPreplanIn(BaseModel):
     due_at: Optional[date] = None
 
 
-class ProjectCreate(BaseModel):
+class CompanyInput(BaseModel):
+    holding_company: Optional[str] = Field(default=None, max_length=300)
+
+    @field_validator("holding_company")
+    @classmethod
+    def clean_company(cls, value):
+        return value.strip() or None if value is not None else None
+
+
+class ProjectCreate(CompanyInput):
     name: str
     strategy: str = "flip"
     stage: str = "lead"
@@ -156,7 +166,7 @@ class ProjectCreate(BaseModel):
     join_assignees: bool = False
 
 
-class ProjectPatch(BaseModel):
+class ProjectPatch(CompanyInput):
     name: Optional[str] = None
     strategy: Optional[str] = None
     stage: Optional[str] = None
@@ -401,6 +411,9 @@ class DashboardWidgets(BaseModel):
 
 # ---------- 更新记录与阶段清单 ----------
 class UpdateOut(ORM):
+    actor_user_id: Optional[int] = None
+    actor_name: Optional[str] = None
+    changes: Optional[dict] = None
     id: int
     project_id: int
     project_name: Optional[str] = None

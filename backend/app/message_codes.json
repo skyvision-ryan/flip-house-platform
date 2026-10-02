@@ -1,4 +1,6 @@
 {
+  "server.projectAccessDenied": "你不是本项目的有效成员，不能查看或修改项目资料",
+  "server.companyLoginRequired": "请登录后修改购买／持有公司",
   "server.assistantPairInvalid": "协办须与主负责人不同，且必须先有主负责人",
   "server.assignmentAccountInvalid": "安排中的账号不存在或已停用，请重新选择",
   "server.procurementOwnerPermission": "采购主负责人须具有采购权限",

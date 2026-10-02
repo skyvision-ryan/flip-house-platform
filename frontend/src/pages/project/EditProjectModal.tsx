@@ -38,7 +38,7 @@ export default function EditProjectModal({ visible, project, onDismiss, onSaved 
     if (visible) {
       setDirty(false); setError(''); setDiscard(false);
       setF({
-        name: project.name, strategy: project.strategy, stage: project.stage, substage: project.substage ?? '',
+        holding_company: project.holding_company ?? '', name: project.name, strategy: project.strategy, stage: project.stage, substage: project.substage ?? '',
         lead_heat: project.lead_heat ?? 'warm_lead',
         purchase_price: str(project.purchase_price), target_arv: str(project.target_arv), sale_price: str(project.sale_price),
         purchase_date: project.purchase_date ?? '', construction_start: project.construction_start ?? '',
@@ -60,7 +60,7 @@ export default function EditProjectModal({ visible, project, onDismiss, onSaved 
     setSaving(true); setError('');
     try {
       await api.patchProject(project.id, {
-        name: f.name, strategy: f.strategy, stage: f.stage, substage: f.substage || null, lead_heat: f.lead_heat,
+        holding_company: f.holding_company?.trim() || null, name: f.name, strategy: f.strategy, stage: f.stage, substage: f.substage || null, lead_heat: f.lead_heat,
         purchase_price: numOrNull(f.purchase_price), target_arv: numOrNull(f.target_arv), sale_price: numOrNull(f.sale_price),
         purchase_date: f.purchase_date || null, construction_start: f.construction_start || null, construction_end: f.construction_end || null,
         list_date: f.list_date || null, sale_date: f.sale_date || null,
@@ -103,6 +103,7 @@ export default function EditProjectModal({ visible, project, onDismiss, onSaved 
         {discard && <div ref={discardRef} tabIndex={-1}><Alert type="warning" header={uiText("analysisTab.unsaved.changes")} action={<SpaceBetween direction="horizontal" size="xs"><Button onClick={() => setDiscard(false)}>{uiText("editProjectModal.continue.editing")}</Button><Button onClick={onDismiss}>{uiText("procurementItemPage.discard.changes")}</Button></SpaceBetween>}>{uiText("editProjectModal.closing.discards.these.inputs")}</Alert></div>}
         <ColumnLayout columns={3}>
           <FormField label={uiText("addProject.project.name")}><Input value={f.name ?? ''} onChange={({ detail }) => set('name', detail.value)} /></FormField>
+          <FormField label={uiText("company.label")} description={uiText("company.help")}><Input value={f.holding_company ?? ''} onChange={({detail}) => set('holding_company', detail.value)} /></FormField>
           <FormField label={uiText("addProject.investment.strategy")}>
             <Select selectedOption={meta?.strategies.find((s) => s.value === f.strategy) ?? null} options={meta?.strategies ?? []} onChange={({ detail }) => set('strategy', detail.selectedOption.value)} />
           </FormField>

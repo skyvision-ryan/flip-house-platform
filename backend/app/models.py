@@ -128,6 +128,7 @@ class Project(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     property_id: Mapped[int] = mapped_column(ForeignKey("properties.id"), index=True)
     name: Mapped[str] = mapped_column(String)
+    holding_company: Mapped[Optional[str]] = mapped_column(String)
     strategy: Mapped[str] = mapped_column(String, default="flip")
     stage: Mapped[str] = mapped_column(String, default="lead")
     substage: Mapped[Optional[str]] = mapped_column(String)
@@ -227,6 +228,8 @@ class ProjectUpdate(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), index=True)
+    actor_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"))
+    changes_json: Mapped[Optional[str]] = mapped_column(Text)
     actor: Mapped[str] = mapped_column(String, default="负责人")
     kind: Mapped[str] = mapped_column(String)  # file / data / expense / budget / analysis / step / project
     text: Mapped[str] = mapped_column(String)
