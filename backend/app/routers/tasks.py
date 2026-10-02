@@ -15,6 +15,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session, object_session
 from sqlalchemy.orm.exc import StaleDataError
+from sqlalchemy.exc import IntegrityError
+from ..message_codes import system_error
 
 from .. import models, schemas
 from ..auth import current_user
@@ -72,6 +74,22 @@ def ensure_member(db: Session, project_id: int, user: models.User, by: Optional[
     return True
 
 
+def validate_task_people(db: Session, assignee_id: Optional[int], assistant_id: Optional[int], step_key: Optional[str]) -> list[models.User]:
+    if assistant_id is not None and (assignee_id is None or assistant_id == assignee_id):
+        raise system_error(400, "server.assistantPairInvalid")
+    people = []
+    for uid in (assignee_id, assistant_id):
+        if uid is None:
+            continue
+        user = db.get(models.User, uid)
+        if user is None or not user.active:
+            raise system_error(400, "server.assignmentAccountInvalid")
+        if uid == assignee_id and step_key == "purchase" and not allowed(user.role_code, "procurement"):
+            raise system_error(400, "server.procurementOwnerPermission")
+        people.append(user)
+    return people
+
+
 def _members(db: Session, project_id: int) -> list[models.ProjectMember]:
     return list(db.scalars(select(models.ProjectMember).where(models.ProjectMember.project_id == project_id, models.ProjectMember.active.is_(True))).all())
 
@@ -95,6 +113,8 @@ def _event_text(ev: models.TaskEvent, names: dict[int, str]) -> str:
         t = "记录房屋录入起点；此前历史未自动完成"
     elif k == "assigned":
         t = f"分派给 {who(after.get('assignee_user_id'))}"
+    elif k == "assistant_changed":
+        t = f"协办：{who(before.get('assistant_user_id'))} → {who(after.get('assistant_user_id'))}"
     elif k == "reassigned":
         t = f"从 {who(before.get('assignee_user_id'))} 改派给 {who(after.get('assignee_user_id'))}"
     elif k == "unassigned":
@@ -136,7 +156,7 @@ def _event_out(ev: models.TaskEvent, users: dict[int, models.User]) -> dict:
         "before": json.loads(ev.before_json) if ev.before_json else None,
         "after": json.loads(ev.after_json) if ev.after_json else None,
         "reason": ev.reason, "created_at": ev.created_at, "text": _event_text(ev, names),
-        "participant_names": {uid: name for uid, name in names.items() if any(uid == data.get(key) for data in (json.loads(ev.before_json or "{}"), json.loads(ev.after_json or "{}")) for key in ("assignee_user_id", "user_id"))},
+        "participant_names": {uid: name for uid, name in names.items() if any(uid == data.get(key) for data in (json.loads(ev.before_json or "{}"), json.loads(ev.after_json or "{}")) for key in ("assignee_user_id", "assistant_user_id", "user_id"))},
     }
 
 
@@ -156,12 +176,12 @@ def _submissions(db: Session, task_ids: list[int]) -> dict[int, list[models.Task
     return out
 
 
-def _submission_out(db: Session, sub: models.TaskSubmission, users: dict[int, models.User]) -> dict:
+def _submission_out(db: Session, sub: models.TaskSubmission, users: dict[int, models.User], actor: str) -> dict:
     links = db.scalars(select(models.SubmissionFile).where(models.SubmissionFile.submission_id == sub.id)).all()
     files = []
     for l in links:
         f = db.get(models.ProjectFile, l.file_id)
-        if f:
+        if f and _can_download(actor, f):
             files.append({"id": f.id, "filename": f.filename, "mime": f.mime, "size": f.size, "doc_type": f.doc_type, "uploaded_at": f.uploaded_at})
     return {"id": sub.id, "task_id": sub.task_id, "seq": sub.seq, "note": sub.note,
             "submitted_by": _brief(users.get(sub.submitted_by_user_id)) if sub.submitted_by_user_id else None, "submitted_at": sub.submitted_at,
@@ -200,6 +220,7 @@ def _task_out(t: models.Task, p: models.Project, steps: dict, users: dict[int, m
         "owners": it.get("owners", []), "deliverable": it.get("deliverable"),
         "description": t.description, "deliverable_note": t.deliverable_note,
         "assignee": _brief(users.get(t.assignee_user_id)) if t.assignee_user_id else None,
+        "assistant": _brief(users.get(t.assistant_user_id)) if t.assistant_user_id else None,
         "reviewer": _brief(users.get(t.reviewer_user_id)) if t.reviewer_user_id and not procurement and mode == "review" else None,
         "exec_status": execution, "exec_status_label": ("任务条件已满足" if mode == "evidence" and execution == "done" else "已备齐" if procurement and execution == "done" else ("条件未满足" if gate and execution == "not_started" else STATUS_LABEL.get(execution, execution))),
         "due_at": t.due_at, "wait_for": None if procurement else t.wait_for, "wait_reason": None if procurement else t.wait_reason, "wait_until": None if procurement else t.wait_until,
@@ -251,17 +272,25 @@ def _last_events(db: Session, task_ids: list[int]) -> dict[int, models.TaskEvent
 
 def _tasks_payload(db: Session, p: models.Project, tasks: list[models.Task], actor: str) -> list[dict]:
     steps = compute_steps(db, p, hide_money=not can_read_money(actor))
-    ids = {t.assignee_user_id for t in tasks} | {t.reviewer_user_id for t in tasks}
+    ids = {t.assignee_user_id for t in tasks} | {t.assistant_user_id for t in tasks} | {t.reviewer_user_id for t in tasks}
     last = _last_events(db, [t.id for t in tasks])
     ids |= {ev.actor_user_id for ev in last.values()}
+    for ev in last.values():
+        for raw in (ev.before_json, ev.after_json):
+            data = json.loads(raw or "{}")
+            ids |= {data.get(key) for key in ("assignee_user_id", "assistant_user_id", "user_id")}
+
     subs = _submissions(db, [t.id for t in tasks])
     for lst in subs.values():
         ids |= {x.submitted_by_user_id for x in lst} | {x.decided_by_user_id for x in lst}
+    notes = list(db.scalars(select(models.TaskNote).where(models.TaskNote.task_id.in_([t.id for t in tasks])).order_by(models.TaskNote.id)))
+    ids |= {n.author_user_id for n in notes}
     users = _users_by_id(db, ids)
     order = {it["key"]: i for i, (_, it) in enumerate(ORDINARY_ITEMS)}
     tasks = sorted(tasks, key=lambda t: (order.get(t.step_key, 999), t.id))
-    result = [_task_out(t, p, steps, users, last.get(t.id), [_submission_out(db, x, users) for x in subs.get(t.id, [])]) for t in tasks]
+    result = [_task_out(t, p, steps, users, last.get(t.id), [_submission_out(db, x, users, actor) for x in subs.get(t.id, [])]) for t in tasks]
     for row in result:
+        row["notes"] = [{"id": n.id, "task_id": n.task_id, "author": _brief(users[n.author_user_id]), "text": n.text, "created_at": n.created_at} for n in notes if n.task_id == row["id"]]
         if row["node_confirmation"]:
             row["node_confirmation"]["can_confirm"] = actor in row["node_confirmation"]["confirm"] or allowed(actor, "confirm_for_others")
     return result
@@ -288,7 +317,7 @@ def _commit_task(db: Session, p: models.Project, t: models.Task, actor: str) -> 
     """Commit task, submission and history together, or discard the entire losing transaction."""
     try:
         db.commit()
-    except StaleDataError:
+    except (StaleDataError, IntegrityError):
         db.rollback()
         db.refresh(t)
         _conflict(db, p, t, actor)
@@ -460,7 +489,7 @@ def my_workbench(db: Session = Depends(get_db), me: models.User = Depends(requir
         for blob in (e.before_json, e.after_json):
             if blob:
                 d = json.loads(blob)
-                ids |= {d.get("assignee_user_id"), d.get("user_id")}
+                ids |= {d.get("assignee_user_id"), d.get("assistant_user_id"), d.get("user_id")}
     users = _users_by_id(db, ids)
     names = {p.id: p.name for p in projects}
     titles = {t.id: {"title": t.title, "template_key": t.template_key, "template_name_snapshot": t.template_name_snapshot} for t in db.scalars(select(models.Task).where(models.Task.id.in_([e.task_id for e in evs if e.task_id]))).all()} if evs else {}
@@ -494,7 +523,7 @@ def task_events(project_id: int, task_id: int, request: Request, db: Session = D
         for blob in (e.before_json, e.after_json):
             if blob:
                 d = json.loads(blob)
-                ids |= {d.get("assignee_user_id"), d.get("user_id"), d.get("reviewer_user_id")}
+                ids |= {d.get("assignee_user_id"), d.get("assistant_user_id"), d.get("user_id"), d.get("reviewer_user_id")}
     users = _users_by_id(db, ids)
     return [_event_out(e, users) for e in evs]
 
@@ -502,7 +531,7 @@ def task_events(project_id: int, task_id: int, request: Request, db: Session = D
 @router.get("/me/tasks", response_model=schemas.MyTasksOut)
 def my_tasks(db: Session = Depends(get_db), me: models.User = Depends(require_user)):
     """分派给我的 + 我是审核人的，按项目算满足与当前段。只按 user_id，不按角色。"""
-    query = select(models.Task).where((models.Task.assignee_user_id == me.id) | (models.Task.reviewer_user_id == me.id) | models.Task.step_key.in_(SINGLE_CONFIRM_KEYS))
+    query = select(models.Task).where((models.Task.assignee_user_id == me.id) | (models.Task.assistant_user_id == me.id) | (models.Task.reviewer_user_id == me.id) | models.Task.step_key.in_(SINGLE_CONFIRM_KEYS))
     if not allowed(me.role_code, "workbench_all_projects"):
         member_projects = select(models.ProjectMember.project_id).where(
             models.ProjectMember.user_id == me.id, models.ProjectMember.active.is_(True))
@@ -538,7 +567,7 @@ def my_tasks(db: Session = Depends(get_db), me: models.User = Depends(require_us
                         "title": task.title, "template_key": task.template_key, "template_name_snapshot": task.template_name_snapshot,
                         "kind": ev.kind, "mode": completion_mode(task), "created_at": ev.created_at,
                         "next": {k: nxt[k] for k in ("id", "title", "template_key", "template_name_snapshot", "assignee", "due_at")} if nxt else None})
-    return {"signals": signals, "assigned": [r for r in out if r["assignee"] and r["assignee"]["id"] == me.id],
+    return {"assisting": [r for r in out if r["assistant"] and r["assistant"]["id"] == me.id], "signals": signals, "assigned": [r for r in out if r["assignee"] and r["assignee"]["id"] == me.id],
             "reviewing": [r for r in out if (r["reviewer"] and r["reviewer"]["id"] == me.id and not (r["assignee"] and r["assignee"]["id"] == me.id)) or ((r.get("node_confirmation") or {}).get("can_confirm") and r["exec_status"] == "pending_review")]}
 
 
@@ -556,22 +585,25 @@ def assign_task(project_id: int, task_id: int, body: schemas.TaskAssignIn, db: S
         _conflict(db, p, t, me.role_code)
     data = body.model_dump(exclude_unset=True)
     prev_assignee = t.assignee_user_id
-    new_assignee = prev_assignee
-    target: Optional[models.User] = None
-    if "assignee_user_id" in data:
-        new_assignee = body.assignee_user_id
-        if new_assignee is not None:
-            target = db.get(models.User, new_assignee)
-            if target is None or not target.active:
-                raise HTTPException(400, "这个账号不存在或已停用，不能分派")
-            if t.step_key == "purchase" and not allowed(target.role_code, "procurement"):
-                raise HTTPException(400, "采购主负责人须具有采购权限")
+    new_assignee = body.assignee_user_id if "assignee_user_id" in data else prev_assignee
+    prev_assistant = t.assistant_user_id
+    new_assistant = body.assistant_user_id if "assistant_user_id" in data else prev_assistant
+    targets = validate_task_people(db, new_assignee, new_assistant, t.step_key)
+    target = next((u for u in targets if u.id == new_assignee), None)
+    changed_assistant = new_assistant != prev_assistant
+    if changed_assistant and prev_assistant is not None and not (body.reason or "").strip():
+        raise system_error(400, "server.assistantChangeReason")
     changed_assignee = new_assignee != prev_assignee
     if changed_assignee and prev_assignee is not None and not (body.reason or "").strip():
         raise HTTPException(400, "改派或取消分派要写原因，让接手的人和原负责人都看得到")
     # Validate every target and reason before writing membership or events.
-    if target is not None and ensure_member(db, project_id, target, me):
-        _event(db, t, project_id, "member_added", me, after={"user_id": target.id, "role_code": target.role_code})
+    for person in targets:
+        if ensure_member(db, project_id, person, me):
+            _event(db, t, project_id, "member_added", me, after={"user_id": person.id, "role_code": person.role_code})
+    if changed_assistant:
+        t.assistant_user_id = new_assistant
+        _event(db, t, project_id, "assistant_changed", me,
+               before={"assistant_user_id": prev_assistant}, after={"assistant_user_id": new_assistant}, reason=body.reason)
     if "due_at" in data and (body.due_at or None) != (t.due_at or None):
         before_due = t.due_at
         t.due_at = body.due_at or None
@@ -596,6 +628,33 @@ def assign_task(project_id: int, task_id: int, body: schemas.TaskAssignIn, db: S
     t.updated_at = now_iso()
     _commit_task(db, p, t, me.role_code)
     db.refresh(t)
+    return _tasks_payload(db, p, [t], me.role_code)[0]
+
+
+@router.post("/projects/{project_id}/tasks/{task_id}/notes", response_model=schemas.TaskOut)
+def add_task_note(project_id: int, task_id: int, body: schemas.TaskNoteIn, db: Session = Depends(get_db), me: models.User = Depends(require_user)):
+    _require_task_read(db, project_id, me)
+    p = _project(db, project_id)
+    t = _task(db, project_id, task_id)
+    if me.id not in (t.assignee_user_id, t.assistant_user_id) and not allowed(me.role_code, "assign_tasks"):
+        raise system_error(403, "server.taskNoteDenied")
+    text = body.text.strip()
+    if not text:
+        raise system_error(400, "server.taskNoteRequired")
+    query = select(models.TaskNote).where(models.TaskNote.task_id == t.id, models.TaskNote.author_user_id == me.id,
+                                          models.TaskNote.request_key == str(body.request_key))
+    existing = db.scalar(query)
+    if existing and existing.text != text:
+        raise system_error(409, "server.taskNoteRequestConflict")
+    if existing is None:
+        db.add(models.TaskNote(task_id=t.id, author_user_id=me.id, request_key=str(body.request_key), text=text))
+        try:
+            db.commit()
+        except IntegrityError:
+            db.rollback()
+            existing = db.scalar(query)
+            if existing is None or existing.text != text:
+                raise system_error(409, "server.taskNoteRequestConflict")
     return _tasks_payload(db, p, [t], me.role_code)[0]
 
 
@@ -799,6 +858,6 @@ def confirm_node(db: Session, project_id: int, t: models.Task, me: models.User, 
     log_update(db, project_id, me.role_code, "task", f"{me.display_name} 确认满足：{t.title}")
     try:
         db.commit()
-    except StaleDataError:
+    except (StaleDataError, IntegrityError):
         db.rollback()
         raise HTTPException(409, "其他确认人已更新该节点，请刷新查看")

@@ -47,7 +47,7 @@ export default function TaskHistoryPage() {
 
   if (err) return <ContentLayout header={<Header variant="h1">{uiText("taskHistoryPage.task.activity.history")}</Header>}><Alert type="error">{systemText(err)}</Alert></ContentLayout>;
   if (!task) return <Box padding="xxl" textAlign="center"><Spinner size="large" /></Box>;
-  const mine = !!me && (task.assignee?.id === me.id || task.reviewer?.id === me.id);
+  const mine = !!me && (task.assignee?.id === me.id || task.assistant?.id === me.id || task.reviewer?.id === me.id);
 
   return (
     <ContentLayout
@@ -71,6 +71,7 @@ export default function TaskHistoryPage() {
           <Container cardId="history-summary" header={<Header variant="h2">{uiText("taskSummaryPanel.task.summary")}</Header>}>
             <KeyValuePairs columns={1} items={[
               { label: uiText("taskTable.task"), value: <div><Box fontWeight="bold">{taskTitle(task)}</Box><Box variant="small" color="text-body-secondary">{stageKeyLabel(meta?.stage_groups, task.stage_key, task.stage_label)}{task.ws ? ` · ${systemText(task.ws)}` : ''}</Box></div> },
+              { label: uiText('assistant.label'), value: task.assistant?.display_name ?? uiText('assistant.none') },
               { label: uiText('task.assignee'), value: <PersonAvatar user={task.assignee} /> },
               ...(task.step_key==='purchase' ? [] : [{ label: uiText("taskSummaryPanel.reviewer"), value: task.reviewer ? <PersonAvatar user={task.reviewer} /> : '—' }]),
               { label: uiText("taskTable.due"), value: task.due_at ? dueText(task.due_at) : <Box color="text-body-secondary">{uiText("projectPreplan.not.set")}</Box> },

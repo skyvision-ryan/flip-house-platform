@@ -124,6 +124,7 @@ class FieldIn(BaseModel):
 class TaskPreplanIn(BaseModel):
     step_key: str
     assignee_user_id: Optional[int] = None
+    assistant_user_id: Optional[int] = None
     due_at: Optional[date] = None
 
 
@@ -729,6 +730,19 @@ class SubmissionOut(BaseModel):
     files: list[SubmissionFileOut] = []
 
 
+class TaskNoteIn(BaseModel):
+    request_key: UUID
+    text: str = Field(min_length=1, max_length=4000)
+
+
+class TaskNoteOut(BaseModel):
+    id: int
+    task_id: int
+    author: UserBrief
+    text: str
+    created_at: str
+
+
 class TaskOut(BaseModel):
     completion_mode: str = "review"
     template_key: Optional[str] = None
@@ -756,6 +770,8 @@ class TaskOut(BaseModel):
     description: Optional[str] = None
     deliverable_note: Optional[str] = None
     assignee: Optional[UserBrief] = None
+    assistant: Optional[UserBrief] = None
+    notes: list[TaskNoteOut] = Field(default_factory=list)
     reviewer: Optional[UserBrief] = None
     exec_status: str
     exec_status_label: str
@@ -818,12 +834,14 @@ class MembersOut(BaseModel):
 class MyTasksOut(BaseModel):
     signals: list[dict] = Field(default_factory=list)
     assigned: list[TaskOut]
+    assisting: list[TaskOut] = Field(default_factory=list)
     reviewing: list[TaskOut]
 
 
 class TaskAssignIn(BaseModel):
     version: int
     assignee_user_id: Optional[int] = None
+    assistant_user_id: Optional[int] = None
     due_at: Optional[str] = None
     reason: Optional[str] = None
     join_project: bool = False

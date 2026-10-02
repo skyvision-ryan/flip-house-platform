@@ -431,6 +431,7 @@ class Task(Base):
     description: Mapped[Optional[str]] = mapped_column(Text)
     deliverable_note: Mapped[Optional[str]] = mapped_column(Text)
     assignee_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), index=True)
+    assistant_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), index=True)
     reviewer_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), index=True)
     exec_status: Mapped[str] = mapped_column(String, default="not_started")  # not_started / in_progress / waiting / pending_review / done
     due_at: Mapped[Optional[str]] = mapped_column(String)  # YYYY-MM-DD，可空
@@ -447,6 +448,18 @@ class Task(Base):
     done_at: Mapped[Optional[str]] = mapped_column(String)  # 审核人确认本次交付的时间；只有确认才写
     created_at: Mapped[str] = mapped_column(String, default=now_iso)
     updated_at: Mapped[str] = mapped_column(String, default=now_iso, onupdate=now_iso)
+
+
+class TaskNote(Base):
+    """Independent collaboration notes, never a submission or task state transition."""
+    __tablename__ = "task_notes"
+    __table_args__ = (UniqueConstraint("task_id", "author_user_id", "request_key", name="uq_task_note_request"),)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id"), index=True)
+    author_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    request_key: Mapped[str] = mapped_column(String)
+    text: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[str] = mapped_column(String, default=now_iso)
 
 
 class TaskSubmission(Base):

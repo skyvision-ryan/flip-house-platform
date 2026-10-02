@@ -81,14 +81,10 @@ def create_project(body: schemas.ProjectCreate, request: Request, db: Session = 
         keys = [p.step_key for p in body.task_plan]
         if len(keys) != len(set(keys)) or set(keys) - ordinary:
             raise HTTPException(400, "预安排只能包含不重复的普通模板任务，关键节点单独确认")
-        for uid in {p.assignee_user_id for p in body.task_plan if p.assignee_user_id is not None}:
-            target = db.get(models.User, uid)
-            if target is None or not target.active:
-                raise HTTPException(400, "安排中的账号不存在或已停用，请重新选择负责人")
-            targets[uid] = target
-    for plan in body.task_plan:
-        if plan.step_key == "purchase" and plan.assignee_user_id and not allowed(targets[plan.assignee_user_id].role_code, "procurement"):
-            raise HTTPException(400, "采购主负责人须具有采购权限")
+        from .tasks import validate_task_people
+        for plan in body.task_plan:
+            for user in validate_task_people(db, plan.assignee_user_id, plan.assistant_user_id, plan.step_key):
+                targets[user.id] = user
     receipt = None
     try:
         if body.request_key:
@@ -170,6 +166,15 @@ def _create_with_plan(body, db, actor, creator, targets, receipt):
                     t.reviewer_user_id = creator.id
                 _event(db, t, project.id, "assigned", creator,
                        after={"assignee_user_id": target.id, "reviewer_user_id": t.reviewer_user_id, "exec_status": "not_started"})
+            if plan.assistant_user_id is not None:
+                helper = targets[plan.assistant_user_id]
+                if helper.id not in joined:
+                    ensure_member(db, project.id, helper, creator)
+                    joined.add(helper.id)
+                    _event(db, t, project.id, "member_added", creator, after={"user_id": helper.id, "role_code": helper.role_code})
+                t.assistant_user_id = helper.id
+                _event(db, t, project.id, "assistant_changed", creator,
+                       before={"assistant_user_id": None}, after={"assistant_user_id": helper.id})
             if plan.due_at:
                 t.due_at = plan.due_at.isoformat()
                 _event(db, t, project.id, "rescheduled", creator, after={"due_at": t.due_at})

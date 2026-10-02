@@ -31,6 +31,7 @@ export default function ProcurementManagement({projectId, items, task, onClose, 
     footer={<SpaceBetween direction="horizontal" size="s"><Button disabled={busy} onClick={onClose}>{changed.length || excluded.length || reason ? uiText("procurementManagement.discard.and.close"):uiText("myTodoTable.close")}</Button></SpaceBetween>}>
     <div className="procurement-surface proc-management"><SpaceBetween size="m">
       {error && <Alert type="error">{systemText(error)}</Alert>}
+      <div>{uiText("assistant.label")}: {task?.assistant?.display_name ?? uiText("assistant.none")}</div>
       <div>{uiText("procurementManagement.procurement.lead")}<strong>{task?.assignee?.display_name || uiText("personAvatar.unassigned")}</strong>{task?.due_at ? uiText("sentences.due", { value1: (task.due_at) }) : ''}</div>
       {task && userCan(meta,me,'assign_tasks') && <Button disabled={busy || !!changed.length || !!excluded.length || !!reason} onClick={()=>setAssign(true)}>{uiText("procurementManagement.change.lead.due.date")}</Button>}
       <TextFilter filteringText={query} filteringPlaceholder={uiText("procurementManagement.find.requirements.to.update")} filteringAriaLabel={uiText("procurementManagement.search.procurement.requirements")} onChange={({detail})=>setQuery(detail.filteringText)} />

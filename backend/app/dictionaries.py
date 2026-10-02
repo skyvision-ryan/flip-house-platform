@@ -193,6 +193,7 @@ TASK_EXEC_STATUSES = [
     {"value": "done", "label": "已完成", "kind": "success"},
 ]
 TASK_EVENT_KINDS = {
+    "assistant_changed": "变更协办",
     "evidence_satisfied": "任务条件已满足",
     "evidence_missing": "任务条件需补充",
     "procurement_requirement_added": "新增采购需求",

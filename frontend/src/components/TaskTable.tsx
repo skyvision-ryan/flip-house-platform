@@ -3,6 +3,7 @@ import { systemText } from '../i18n/core.ts';
 import { useLanguage } from '../i18n/LanguageProvider';
 import { m as uiText } from '../i18n/core.ts';
 import Box from '@cloudscape-design/components/box';
+import Button from '@cloudscape-design/components/button';
 import Select from '@cloudscape-design/components/select';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
 import TextFilter from '@cloudscape-design/components/text-filter';
@@ -34,12 +35,13 @@ export default function TaskTable({ data, selectedId, onSelect, canAssign, onAss
   const current = data.stages.find((s) => s.index === data.current_stage_index);
   const [stage, setStage] = useState<string>(current?.key ?? ALL);
   const [q, setQ] = useState('');
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const stageOptions = [
     { value: ALL, label: uiText("taskTable.all.stages") },
     // 六段 key 翻成位置条的说法（买房 · 未购入 / escrow 中 / 装修 …），不硬编码六段名
     ...data.stages.map((s) => { const l = stageKeyLabel(meta?.stage_groups, s.key, s.short); return { value: s.key, label: s.index === data.current_stage_index ? uiText("sentences.current", { value1: (l) }) : l }; }),
   ];
-  const rows = useMemo(() => data.tasks.filter((t) => (stage === ALL || t.stage_key === stage) && (!q || t.title.toLowerCase().includes(q.toLowerCase()) || (t.assignee?.display_name ?? '').includes(q))), [data.tasks, stage, q]);
+  const rows = useMemo(() => data.tasks.filter((t) => (stage === ALL || t.stage_key === stage) && (!q || t.title.toLowerCase().includes(q.toLowerCase()) || (t.assignee?.display_name ?? '').includes(q) || (t.assistant?.display_name ?? '').includes(q))), [data.tasks, stage, q]);
   const unassigned = rows.filter((t) => !t.assignee && !t.node_confirmation).length;
 
   return (
@@ -48,14 +50,19 @@ export default function TaskTable({ data, selectedId, onSelect, canAssign, onAss
       items={rows}
       wrapLines
       trackBy="id"
+      selectionType={canAssign ? 'multi' : undefined}
+      selectedItems={canAssign ? rows.filter(t => selectedIds.includes(t.id)) : undefined}
+      isItemDisabled={t => !!t.node_confirmation}
+      onSelectionChange={({detail}) => setSelectedIds(detail.selectedItems.map(t => t.id))}
       onRowClick={({ detail }) => onSelect(detail.item)}
-      ariaLabels={{ tableLabel: uiText("taskTable.task.assignments") }}
+      ariaLabels={{ tableLabel: uiText("taskTable.task.assignments"), selectionGroupLabel: uiText('assignment.bulkSelect'), itemSelectionLabel: (_, t) => taskTitle(t), allItemsSelectionLabel: () => uiText('assignment.bulkSelect') }}
       header={
         <Header
           variant="h2"
           counter={`(${rows.length})`}
           description={unassigned ? uiText("sentences.tasks.unassigned", { value1: (unassigned) }) : undefined}
           help={uiText("taskTable.select.a.row.to.view.its.summary.on.the")}
+          actions={canAssign && <Button disabled={!rows.some(t => selectedIds.includes(t.id))} onClick={() => {onAssign(rows.filter(t => selectedIds.includes(t.id))); setSelectedIds([]);}}>{uiText('assignment.bulkAction')}</Button>}
         >
           {uiText("taskTable.task.assignments")} </Header>
       }
@@ -80,6 +87,7 @@ export default function TaskTable({ data, selectedId, onSelect, canAssign, onAss
             <div className="ui-task-person" onClick={(e) => e.stopPropagation()}>
               {t.node_confirmation ? <span>{uiText("taskTable.milestone.confirmation")} {t.node_confirmation.confirm.join(" / ")}</span> : canAssign ? <AssigneeButton user={t.assignee} label={`${t.assignee ? uiText("taskTable.reassign") : uiText("taskTable.assign")}：${taskTitle(t)}`} onClick={() => onAssign([t])} />
                 : <PersonAvatar user={t.assignee} size="small" showRole={false} />}
+              {!t.node_confirmation && <Box variant="small">{uiText('assistant.label')}: {t.assistant?.display_name ?? uiText('assistant.none')}</Box>}
             </div>
           ),
         },

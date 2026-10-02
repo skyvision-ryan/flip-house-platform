@@ -122,7 +122,7 @@ class WorkbenchVisibilityTests(_TaskBase):
         self.workbench(a)
         self.workbench(a2)
         self.assertEqual([t["step_key"] for t in a.get("/api/me/tasks").json()["assigned"]], ["design_final"])
-        self.assertEqual(a2.get("/api/me/tasks").json(), {"assigned": [], "reviewing": [], "signals": []})
+        self.assertEqual(a2.get("/api/me/tasks").json(), {"assigned": [], "assisting": [], "reviewing": [], "signals": []})
 
 
 if __name__ == "__main__":

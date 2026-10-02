@@ -63,7 +63,7 @@ class TaskReadScopeTests(_TaskBase):
             session.commit()
         reader = self.login("a")
         self.assert_scope(reader, 403)
-        self.assertEqual(reader.get("/api/me/tasks").json(), {"assigned": [], "reviewing": [], "signals": []})
+        self.assertEqual(reader.get("/api/me/tasks").json(), {"assigned": [], "assisting": [], "reviewing": [], "signals": []})
         with Session(self.engine) as session:
             member = session.scalar(select(models.ProjectMember).where(
                 models.ProjectMember.project_id == self.pid, models.ProjectMember.user_id == self.uid["a"]))

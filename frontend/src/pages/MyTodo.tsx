@@ -43,7 +43,7 @@ export default function MyTodo() {
   const [data, setData] = useState<MyTasks | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(wanted);
-  const tab = params.get('view') === 'review' ? 'review' : 'mine';
+  const tab = params.get('view') === 'review' ? 'review' : params.get('view') === 'assist' ? 'assist' : 'mine';
   const setTab = (value: string) => setParams(prev => { const n = new URLSearchParams(prev); n.set('view', value); return n; }, { replace: true });
   const query = params.get('q') ?? '';
   const setQuery = (value: string) => setParams(prev => { const n = new URLSearchParams(prev); value ? n.set('q', value) : n.delete('q'); return n; }, { replace: true });
@@ -69,15 +69,16 @@ export default function MyTodo() {
   useEffect(() => { setSelectedId(wanted); }, [wanted]);
   useEffect(() => {
     if (!data || !wanted || params.has('view')) return;
+    if (data.assisting?.some(t => t.id === wanted)) { setTab('assist'); return; }
     if (data.reviewing.some((t) => t.id === wanted) && (!data.assigned.some((t) => t.id === wanted) || data.reviewing.some((t) => t.id === wanted && t.exec_status === 'pending_review'))) setTab('review');
   }, [data, wanted]);
 
-  const all = [...(data?.assigned ?? []), ...(data?.reviewing ?? [])];
+  const all = [...new Map([...(data?.assigned ?? []), ...(data?.assisting ?? []), ...(data?.reviewing ?? [])].map(t => [t.id, t])).values()];
   const selected = all.find((t) => t.id === selectedId) ?? null;
   const groups = groupMyTasks(data?.assigned ?? []);
   const pick = (t: Task) => { setSelectedId(t.id); setParams((prev) => { const n = new URLSearchParams(prev); n.set('task', String(t.id)); return n; }, { replace: true }); };
   const replace = (t: Task) => {
-    setData((prev) => (prev ? { ...prev, assigned: prev.assigned.map((x) => (x.id === t.id ? t : x)), reviewing: prev.reviewing.map((x) => (x.id === t.id ? t : x)) } : prev));
+    setData((prev) => (prev ? { ...prev, assisting: prev.assisting?.map(x => x.id === t.id ? t : x), assigned: prev.assigned.map((x) => (x.id === t.id ? t : x)), reviewing: prev.reviewing.map((x) => (x.id === t.id ? t : x)) } : prev));
     void load();
   };
 
@@ -89,7 +90,7 @@ export default function MyTodo() {
       <Box padding={{ horizontal: 'm', top: 'm', bottom: 's' }}><Header variant="h3" counter={`(${visible.length})`} help={hint}>{title}</Header></Box>
       {!visible.length && <Box padding={{ horizontal: 'm', bottom: 'm' }} color="text-body-secondary">{uiText("myTodo.no.tasks")}</Box>}
       {visible.map((t) => <div key={t.id}><ReviewTag cardId="my-task-card" context={`${t.project_name} · ${taskTitle(t)}`} /><button type="button" className={css.taskPick} aria-pressed={t.id === selectedId} onClick={() => pick(t)}>
-        <div className={css.pickTitle}>{taskTitle(t)}</div>
+        <div className={css.pickTitle}>{taskTitle(t)}</div>{t.assistant?.id === me?.id && <Box fontWeight="bold">{uiText('assistant.mine')}</Box>}
         <Box variant="small" color="text-body-secondary">{t.project_name} · {stageKeyLabel(meta?.stage_groups, t.stage_key, t.stage_short)}</Box>
         <div className={css.pickMeta}><StatusIndicator type={statusIndicator(t.exec_status)}>{systemText(t.exec_status_label)}</StatusIndicator><Box variant="small" color="text-body-secondary">{uiText("taskTable.due")} {t.due_at ? dueText(t.due_at) : uiText("projectPreplan.not.set")}</Box></div>
       </button></div>)}
@@ -117,11 +118,12 @@ export default function MyTodo() {
             activeTabId={tab}
             onChange={({ detail }) => {
               setTab(detail.activeTabId);
-              const rows = detail.activeTabId === 'review' ? data.reviewing : data.assigned;
+              const rows = detail.activeTabId === 'review' ? data.reviewing : detail.activeTabId === 'assist' ? (data.assisting ?? []) : data.assigned;
               const first = rows.find((t) => t.exec_status === 'pending_review') ?? rows[0];
               if (first) pick(first); else { setSelectedId(null); setParams(prev => { const n = new URLSearchParams(prev); n.delete('task'); return n; }, { replace: true }); }
             }}
             tabs={[
+              { id: 'assist', label: `${uiText('assistant.mine')} (${data.assisting?.length ?? 0})`, content: layout(<Container embedded cardId="my-task-list" cardContext={uiText('assistant.mine')} disableContentPaddings>{list(data.assisting ?? [], uiText('assistant.mine'), uiText('assistant.permissions'))}</Container>, data.assisting ?? []) },
               {
                 id: 'mine', label: uiText("sentences.my.tasks", { value1: (data.assigned.length) }),
                 content: layout(
