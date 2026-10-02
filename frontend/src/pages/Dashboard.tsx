@@ -182,7 +182,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
     filtering: {
       defaultFilteringText: params.get('q') ?? '',
       filteringFunction: (item, s) => { const t = s.toLowerCase(); return item.name.toLowerCase().includes(t) || item.property.address_std.toLowerCase().includes(t); },
-      empty: <Box textAlign="center" color="inherit"><b>{uiText("dashboard.no.projects.yet")}</b><Box padding={{ bottom: 's' }} variant="p" color="inherit">{uiText("dashboard.enter.an.address.to.look.up.property.data")}</Box><span>{role.can('create_project') ? <Button variant="primary" onClick={() => navigate('/projects/new')}>{uiText("app.new.project")}</Button> : uiText("dashboard.contact.the.project.lead.to.assign.a.property")}</span></Box>,
+      empty: projects.length ? <Box textAlign="center" color="inherit"><b>{uiText("dashboard.no.matching.projects")}</b></Box> : <Box textAlign="center" color="inherit"><b>{uiText("dashboard.no.projects.yet")}</b><Box padding={{ bottom: 's' }} variant="p" color="inherit">{uiText("dashboard.enter.an.address.to.look.up.property.data")}</Box><span>{role.can('create_project') ? <Button variant="primary" onClick={() => navigate('/projects/new')}>{uiText("app.new.project")}</Button> : uiText("dashboard.contact.the.project.lead.to.assign.a.property")}</span></Box>,
       noMatch: <Box textAlign="center" color="inherit"><b>{uiText("dashboard.no.matching.projects")}</b></Box>,
     },
     pagination: { pageSize: 10 },
