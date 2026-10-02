@@ -5,6 +5,7 @@ from sqlalchemy import Boolean, Float, ForeignKey, Integer, String, Text, Unique
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import Base
+from .project_dates import created_now
 
 
 def now_iso() -> str:
@@ -149,7 +150,7 @@ class Project(Base):
     sale_price: Mapped[Optional[float]] = mapped_column(Float)
     risks: Mapped[Optional[str]] = mapped_column(Text)
     notes: Mapped[Optional[str]] = mapped_column(Text)
-    created_at: Mapped[str] = mapped_column(String, default=now_iso)
+    created_at: Mapped[str] = mapped_column(String, default=created_now)
     updated_at: Mapped[str] = mapped_column(String, default=now_iso, onupdate=now_iso)
 
     property: Mapped[Property] = relationship(back_populates="projects")

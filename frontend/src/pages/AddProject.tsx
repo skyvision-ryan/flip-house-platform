@@ -20,6 +20,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AddressCandidate, api, LookupResult, UserBrief } from '../api/client';
 import css from '../components/ui/CollaborationLayout.module.css';
 import HelpText from '../components/HelpText';
+import { projectListReturnPath } from '../lib/projectDates';
 import ProjectPreplan, { PlanReview, PlanSummary } from '../components/ProjectPreplan';
 import SourceBadge from '../components/SourceBadge';
 import ExpandableSection from '../components/ui/ExpandableSection';
@@ -184,8 +185,8 @@ export default function AddProject() {
         // 手动建的房没有任何已知数据，不自动生成带假设金额的分析
         create_analysis: false,
       });
-      flash({ type: 'success', content: uiText("sentences.created.and.tasks.assigned.email.is.not.connected.so.no", { value1: (p.name), value2: (planSummary.total), value3: (planSummary.assigned) }) });
-      navigate(`/projects/${p.id}?tab=overview`);
+      flash({ type: 'success', action: <Button onClick={()=>navigate(`/projects/${p.id}?tab=overview`)}>{uiText('newToday.open')}</Button>, content: uiText("sentences.created.and.tasks.assigned.email.is.not.connected.so.no", { value1: (p.name), value2: (planSummary.total), value3: (planSummary.assigned) }) });
+      navigate(`/projects/${p.id}?tab=overview&created=${p.id}&returnTo=${encodeURIComponent(projectListReturnPath(params.get('returnTo'), p.id))}`);
     } catch (e: any) {
       setError(e.message);
     } finally {

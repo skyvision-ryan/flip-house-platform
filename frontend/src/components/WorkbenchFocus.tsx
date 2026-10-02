@@ -1,3 +1,8 @@
+import Checkbox from '@cloudscape-design/components/checkbox';
+import NewTodayBadge from './NewTodayBadge';
+import { useBusinessDate } from '../lib/useBusinessDate';
+import { isNewToday, prioritizeToday } from '../lib/projectDates';
+import { useSearchParams } from 'react-router-dom';
 import { eventText } from '../i18n/taskDisplay.ts';
 import { taskTitle } from '../i18n/templateNames.ts';
 import { systemText } from '../i18n/core.ts';
@@ -33,6 +38,9 @@ import Table from './ui/Table';
 export default function WorkbenchFocus({ refreshKey = 0 }: { refreshKey?: number }) {
   useLanguage();
   const navigate = useNavigate();
+  const [params, setParams] = useSearchParams();
+  const day = useBusinessDate();
+  const todayOnly = params.get('today') === '1';
   const role = useRole();
   const { me } = useActor();
   const [data, setData] = useState<Workbench | null>(null);
@@ -40,6 +48,7 @@ export default function WorkbenchFocus({ refreshKey = 0 }: { refreshKey?: number
   useEffect(() => { api.workbench().then(setData).catch((e) => setErr(e.message)); }, [refreshKey]);
   if (err) return <Alert type="error" header={uiText("workbenchFocus.cannot.load.project.focus")}>{systemText(err)}</Alert>;
   const c = data?.counts;
+  const visible = prioritizeToday((data?.projects ?? []).filter(p => !todayOnly || isNewToday(p.created_at, day)), p => p.project_id, day);
   const actionText = (p: WorkbenchProject) => {
     const n = p.next_action;
     if (!n) return <Box color="text-body-secondary">{uiText("workbenchFocus.all.current.stage.tasks.assigned")}</Box>;
@@ -62,12 +71,13 @@ export default function WorkbenchFocus({ refreshKey = 0 }: { refreshKey?: number
           variant="embedded"
           loading={!data}
           loadingText={uiText("workbenchFocus.checking.each.property.s.progress")}
-          items={data?.projects ?? []}
+          items={visible}
+          filter={<Checkbox checked={todayOnly} onChange={({detail}) => setParams(prev => {const n = new URLSearchParams(prev); detail.checked ? n.set('today', '1') : n.delete('today'); return n;}, {replace:true})}>{uiText('newToday.filter')}</Checkbox>}
           trackBy="project_id"
-          header={<Header variant="h2" description={data?.projects.some(p => p.procurement) ? uiText("workbenchFocus.procurement.amounts.include.recorded.order.payments.less.refunds.excluding") : undefined} counter={data ? `(${data.projects.length})` : undefined} help={uiText("workbenchFocus.stage.bar.light.blue.is.passed.dark.blue.is")} actions={role.canReadMoney ? <Button iconName="folder" onClick={() => navigate('/projects')}>{uiText("workbenchFocus.view.all.projects")}</Button> : undefined}>{uiText("workbenchFocus.project.focus")}</Header>}
+          header={<Header variant="h2" description={data?.projects.some(p => p.procurement) ? uiText("workbenchFocus.procurement.amounts.include.recorded.order.payments.less.refunds.excluding") : undefined} counter={data ? `(${visible.length})` : undefined} help={uiText("workbenchFocus.stage.bar.light.blue.is.passed.dark.blue.is")} actions={role.canReadMoney ? <Button iconName="folder" onClick={() => navigate('/projects')}>{uiText("workbenchFocus.view.all.projects")}</Button> : undefined}>{uiText("workbenchFocus.project.focus")}</Header>}
           empty={<Box textAlign="center" padding="l" color="text-body-secondary">{uiText("workbenchFocus.no.projects.yet")}</Box>}
           columnDefinitions={[
-            { id: 'p', header: uiText("app.projects"), minWidth: 160, cell: (p) => <div title={p.address} className="ui-wrap-anywhere"><Link href={`/projects/${p.project_id}`} onFollow={(e) => { e.preventDefault(); navigate(`/projects/${p.project_id}?tab=overview`); }}>{p.project_name}</Link></div> },
+            { id: 'p', header: uiText("app.projects"), minWidth: 160, cell: (p) => <div title={p.address} className="ui-wrap-anywhere"><Link href={`/projects/${p.project_id}`} onFollow={(e) => { e.preventDefault(); navigate(`/projects/${p.project_id}?tab=overview`); }}>{p.project_name}</Link> <NewTodayBadge createdAt={p.created_at} day={day} /></div> },
             { id: 'pos', header: uiText("stagePositionBar.current.position"), minWidth: 110, cell: (p) => <div onClick={(e) => e.stopPropagation()}><StagePositionBar position={p.group_position} compact /></div> },
             { id: 'next', header: uiText("workbenchFocus.next.action"), minWidth: 150, cell: (p) => <div onClick={(e) => e.stopPropagation()}><div>{actionText(p)}</div>{p.next_action && <StatusIndicator type={statusIndicator(p.next_action.exec_status)}>{systemText(p.next_action.exec_status_label)}</StatusIndicator>}</div> },
             { id: 'who', header: uiText("workbenchFocus.action.by"), minWidth: 115, cell: (p) => (p.next_action ? <PersonAvatar user={p.next_action.actor} size="small" showRole={false} /> : '—') },

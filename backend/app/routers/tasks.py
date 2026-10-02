@@ -24,6 +24,7 @@ from ..db import get_db
 from ..dictionaries import STAGE_CHECKLIST, STEP_BY_KEY, TASK_EVENT_KINDS, TASK_EXEC_STATUSES
 from ..task_evidence import completion_mode, execution_status
 from ..models import now_iso
+from ..project_dates import is_new_today, prioritize_new
 from ..steps import compute_steps
 from ..procurement_workflow import purchase_progress, purchase_overview
 from .common import allowed, can_read_money, get_actor, log_update, require, require_user
@@ -439,7 +440,7 @@ def get_task(project_id: int, task_id: int, request: Request, db: Session = Depe
 
 
 @router.get("/me/workbench", response_model=schemas.WorkbenchOut)
-def my_workbench(db: Session = Depends(get_db), me: models.User = Depends(require_user)):
+def my_workbench(new_today: bool = False, db: Session = Depends(get_db), me: models.User = Depends(require_user)):
     """工作台「项目关注」：每套房一行（位置、下一动作、行动者、截止），加待我确认 / 待分派 / 等待回复三个数。
     只看概况，不在这里做事；处理入口指向我的事项与项目总览。未购入的房也列（它们也要跟进）。"""
     # 使用真实账号的角色与有效成员关系；项目、指标、待审、交接共用同一可见范围。
@@ -449,6 +450,9 @@ def my_workbench(db: Session = Depends(get_db), me: models.User = Depends(requir
             models.ProjectMember.user_id == me.id, models.ProjectMember.active.is_(True))
         project_query = project_query.where(models.Project.id.in_(member_projects))
     projects = db.scalars(project_query.order_by(models.Project.updated_at.desc())).all()
+    if new_today:
+        projects = [p for p in projects if is_new_today(p.created_at)]
+    projects = prioritize_new(projects)
     visible_project_ids = [p.id for p in projects]
     hide = not can_read_money(me.role_code)
     rows_out: list[dict] = []
@@ -470,7 +474,7 @@ def my_workbench(db: Session = Depends(get_db), me: models.User = Depends(requir
         if nxt:
             actor_brief = nxt["reviewer"] if nxt["exec_status"] == "pending_review" else nxt["assignee"]
         rows_out.append({
-            "project_id": p.id, "project_name": p.name, "address": p.property.address_std,
+            "project_id": p.id, "project_name": p.name, "address": p.property.address_std, "created_at": p.created_at, "created_today": is_new_today(p.created_at),
             "group_position": steps["group_position"], "position_label": steps["group_position"]["label"],
             "next_action": ({"task_id": nxt["id"], "title": nxt["title"], "template_key": nxt.get("template_key"), "template_name_snapshot": nxt.get("template_name_snapshot"), "exec_status": nxt["exec_status"], "exec_status_label": nxt["exec_status_label"],
                              "due_at": nxt["due_at"], "actor": actor_brief, "kind": "review" if nxt["exec_status"] == "pending_review" else ("assign" if not nxt["assignee"] else "do")} if nxt else None),

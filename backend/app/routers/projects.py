@@ -12,6 +12,7 @@ from .. import models, schemas
 from ..db import get_db
 from ..auth import current_user
 from ..message_codes import system_error
+from ..project_dates import is_new_today, prioritize_new
 from .common import require_project_read, visible_project_ids
 from .common import allowed, get_actor, log_update, project_out, require, require_user, set_field_with_source
 
@@ -40,7 +41,7 @@ def _get(db: Session, project_id: int) -> models.Project:
 
 
 @router.get("", response_model=list[schemas.ProjectOut])
-def list_projects(request: Request, stage: Optional[str] = None, q: Optional[str] = None, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
+def list_projects(request: Request, new_today: bool = False, stage: Optional[str] = None, q: Optional[str] = None, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
     stmt = select(models.Project).where(models.Project.id.in_(visible_project_ids(db, current_user(request, db)))).order_by(models.Project.updated_at.desc())
     if stage:
         stmt = stmt.where(models.Project.stage == stage)
@@ -48,7 +49,9 @@ def list_projects(request: Request, stage: Optional[str] = None, q: Optional[str
     if q:
         ql = q.lower()
         items = [p for p in items if ql in p.name.lower() or ql in p.property.address_std.lower()]
-    return [project_out(db, p, actor) for p in items]
+    if new_today:
+        items = [p for p in items if is_new_today(p.created_at)]
+    return [project_out(db, p, actor) for p in prioritize_new(items)]
 
 
 @router.post("", response_model=schemas.ProjectOut, status_code=201)

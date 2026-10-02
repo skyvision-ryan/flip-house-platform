@@ -454,5 +454,37 @@
   "dashboard.remove.widget": [
     "移除小组件",
     "Remove widget"
+  ],
+  "newToday.label": [
+    "今日新建",
+    "New today"
+  ],
+  "newToday.filter": [
+    "只看今日新建",
+    "New today only"
+  ],
+  "newToday.open": [
+    "打开项目",
+    "Open project"
+  ],
+  "newToday.located": [
+    "已定位项目：{{name}}",
+    "Located project: {{name}}"
+  ],
+  "newToday.filtered": [
+    "项目 {{name}} 不符合当前筛选，筛选条件已保留。可直接打开项目。",
+    "Project {{name}} does not match your current filters. Your filters are preserved; you can open the project directly."
+  ],
+  "newToday.locatedRow": [
+    "已定位",
+    "Located"
+  ],
+  "newToday.locate": [
+    "在项目列表中定位",
+    "Locate in project list"
+  ],
+  "newToday.created": [
+    "项目已创建：{{name}}",
+    "Project created: {{name}}"
   ]
 }

@@ -1,11 +1,13 @@
 from datetime import date, timedelta
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .. import models, schemas
 from ..db import get_db
+from ..auth import current_user
+from .common import visible_project_ids
 from ..dictionaries import SUBSTAGES, widget_allowed
 from ..steps import compute_steps
 from ..procurement_orders import order_material_projection, procurement_attention
@@ -25,8 +27,8 @@ def _bucket(steps: dict) -> str:
 
 
 @router.get("/summary", response_model=schemas.DashboardSummary)
-def summary(db: Session = Depends(get_db), actor: str = Depends(get_actor)):
-    projects = db.scalars(select(models.Project)).all()
+def summary(request: Request, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
+    projects = db.scalars(select(models.Project).where(models.Project.id.in_(visible_project_ids(db, current_user(request, db))))).all()
     buckets = {p.id: _bucket(compute_steps(db, p, hide_money=True)) for p in projects}
     leads = sum(1 for b in buckets.values() if b == "leads")
     active = sum(1 for b in buckets.values() if b == "active")
@@ -64,17 +66,17 @@ DATE_KINDS = [("purchase_date", "买入"), ("construction_start", "开工"), ("c
 
 
 @router.get("/widgets", response_model=schemas.DashboardWidgets)
-def widgets(db: Session = Depends(get_db), actor: str = Depends(get_actor)):
+def widgets(request: Request, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
     """工作台小组件的数据：一次返回，全部来自现有表。看不到钱的身份，钱类块给空。"""
     today = date.today()
-    projects = db.scalars(select(models.Project)).all()
-    expenses = db.scalars(select(models.Expense)).all()
+    projects = db.scalars(select(models.Project).where(models.Project.id.in_(visible_project_ids(db, current_user(request, db))))).all()
+    expenses = db.scalars(select(models.Expense).where(models.Expense.project_id.in_([p.id for p in projects]))).all()
 
     spent_by: dict[int, float] = {}
     for e in expenses:
         spent_by[e.project_id] = spent_by.get(e.project_id, 0) + e.amount
     planned_by: dict[int, float] = {}
-    for l in db.scalars(select(models.BudgetLine)).all():
+    for l in db.scalars(select(models.BudgetLine).where(models.BudgetLine.project_id.in_([p.id for p in projects]))).all():
         planned_by[l.project_id] = planned_by.get(l.project_id, 0) + l.planned_amount
 
     # 未来 30 天（含逾期 14 天内）的关键日期；已完成项目只看成交
@@ -182,10 +184,10 @@ def _brief(p: models.Project) -> dict:
 
 
 @router.get("/role", response_model=schemas.DashboardRole)
-def role_widgets(db: Session = Depends(get_db), actor: str = Depends(get_actor)):
+def role_widgets(request: Request, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
     """一次返回这个身份能看的专属小组件数据。每块只在 widget_allowed 时计算。"""
     today = date.today()
-    projects = db.scalars(select(models.Project).order_by(models.Project.updated_at.desc())).all()
+    projects = db.scalars(select(models.Project).where(models.Project.id.in_(visible_project_ids(db, current_user(request, db)))).order_by(models.Project.updated_at.desc())).all()
     hide = not can_read_money(actor)
     out: dict = {}
 

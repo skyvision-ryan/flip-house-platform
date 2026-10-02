@@ -1,3 +1,7 @@
+import Checkbox from '@cloudscape-design/components/checkbox';
+import NewTodayBadge from '../components/NewTodayBadge';
+import { useBusinessDate } from '../lib/useBusinessDate';
+import { compareNewToday, isNewToday } from '../lib/projectDates';
 import { systemText } from '../i18n/core.ts';
 import { useLanguage } from '../i18n/LanguageProvider';
 import { m as uiText } from '../i18n/core.ts';
@@ -18,7 +22,7 @@ import Select from '@cloudscape-design/components/select';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
 import TextFilter from '@cloudscape-design/components/text-filter';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api, DashboardRole, DashboardSummary, DashboardWidgets, Project, Update } from '../api/client';
 import CoverImage from '../components/CoverImage';
@@ -145,6 +149,16 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
   // KAN-75 块 2：列表按「位置」筛（买房 · 未购入 / escrow 中 / 装修 …），从 URL ?group=&sub= 取初值；
   // 旧的 /leads 入口就跳到 ?group=buying&sub=pre。工作台（非 listOnly）默认不列未购入的房。
   const [params, setParams] = useSearchParams();
+  const day = useBusinessDate();
+  const dayRef = useRef(day); dayRef.current = day;
+  const focusId = Number(params.get('focus')) || null;
+  const focusHandled = useRef<number | null>(null);
+  const todayOnly = params.get('today') === '1';
+  const queryText = (params.get('q') ?? '').toLowerCase();
+  const defaultSorting = {sortingColumn: {sortingComparator: (a: Project, b: Project) => compareNewToday(a, b, dayRef.current)}, isDescending:false};
+  const sortField = params.get('sort');
+  const validSort = sortField && ['name','stage','budget_used_pct','target_arv','updated_at'].includes(sortField);
+  const initialSorting = validSort ? {sortingColumn:{sortingField:sortField}, isDescending:params.get('desc') === '1'} : defaultSorting;
   const groupFilter = filterFromParams(params.get('group'), params.get('sub'));
   const setGroupFilter = (v: string) => setParams((prev) => { const n = new URLSearchParams(prev); if (!v) { n.delete('group'); n.delete('sub'); } else { const [g, sub] = v.split(':'); n.set('group', g); if (sub) n.set('sub', sub); else n.delete('sub'); } return n; }, { replace: true });
 
@@ -163,8 +177,8 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
   // 判据走 lib/leads 的 isLead（current_stage 停在 s1），和分组视图是同一个函数。
   const notLead = useMemo(() => projects.filter((p) => !isLead(p)), [projects]);
   const showLeadGroups = groupFilter === 'buying:pre';
-  const filtered = useMemo(() => (groupFilter ? projects.filter((p) => matchesGroupFilter(p.group_position, groupFilter)) : listOnly ? projects : notLead), [projects, notLead, groupFilter, listOnly]);
-  const { items: rows, actions, collectionProps, filterProps, paginationProps } = useCollection(filtered, {
+  const filtered = useMemo(() => (groupFilter ? projects.filter((p) => matchesGroupFilter(p.group_position, groupFilter)) : listOnly ? projects : notLead).filter(p => (!todayOnly || isNewToday(p.created_at, day)) && (!queryText || p.name.toLowerCase().includes(queryText) || p.property.address_std.toLowerCase().includes(queryText))), [projects, notLead, groupFilter, listOnly, todayOnly, day, queryText]);
+  const { items: rows, allPageItems, actions, collectionProps, filterProps, paginationProps } = useCollection(filtered, {
     filtering: {
       defaultFilteringText: params.get('q') ?? '',
       filteringFunction: (item, s) => { const t = s.toLowerCase(); return item.name.toLowerCase().includes(t) || item.property.address_std.toLowerCase().includes(t); },
@@ -172,25 +186,39 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
       noMatch: <Box textAlign="center" color="inherit"><b>{uiText("dashboard.no.matching.projects")}</b></Box>,
     },
     pagination: { pageSize: 10 },
-    sorting: { defaultState: { sortingColumn: { sortingField: 'updated_at' }, isDescending: true } },
+    sorting: { defaultState: initialSorting },
   });
 
   useEffect(() => { actions.setFiltering(params.get('q') ?? ''); }, [params.get('q')]);
   const searchProps = { ...filterProps, onChange: ({ detail }: { detail: { filteringText: string } }) => { actions.setFiltering(detail.filteringText); setParams(prev => { const next = new URLSearchParams(prev); if (detail.filteringText) next.set('q', detail.filteringText); else next.delete('q'); return next; }, { replace: true }); } };
 
+  useEffect(() => {
+    if (loading || !focusId || focusHandled.current === focusId) return;
+    const index = allPageItems.findIndex(p => p.id === focusId);
+    if (index >= 0) actions.setCurrentPage(Math.floor(index / 10) + 1);
+    focusHandled.current = focusId;
+  }, [loading, focusId, allPageItems]);
+  const sortProps = {...collectionProps, onSortingChange: (event: Parameters<NonNullable<typeof collectionProps.onSortingChange>>[0]) => {
+    collectionProps.onSortingChange?.(event);
+    setParams(prev => {const n = new URLSearchParams(prev); const field = event.detail.sortingColumn.sortingField; field ? n.set('sort', field) : n.delete('sort'); event.detail.isDescending ? n.set('desc','1') : n.delete('desc'); return n;}, {replace:true});
+  }};
+  const todayFilter = <Checkbox checked={todayOnly} onChange={({detail})=>setParams(prev=>{const n=new URLSearchParams(prev);detail.checked?n.set('today','1'):n.delete('today');return n;},{replace:true})}>{uiText('newToday.filter')}</Checkbox>;
+  const focusedProject = projects.find(p => p.id === focusId);
+  const focusNotice = focusedProject ? <Alert type="info" action={<Button onClick={()=>navigate(`/projects/${focusedProject.id}`)}>{uiText('newToday.open')}</Button>}>{uiText(filtered.some(p=>p.id===focusId) ? 'newToday.located' : 'newToday.filtered', {name:focusedProject.name})}</Alert> : null;
   const recent = [...projects].sort((a, b) => (a.updated_at < b.updated_at ? 1 : -1)).slice(0, 3);
   const groupOptions = groupFilterOptions(meta?.stage_groups);
   const groupSelected = groupOptions.find((o) => o.value === groupFilter) ?? groupOptions[0];
   const active = projects.filter((p) => p.stage === 'active');
-  const go = (href: string) => navigate(href);
+  const go = (href: string) => navigate(href === '/projects/new' && listOnly ? `/projects/new?returnTo=${encodeURIComponent(`/projects?${params}`)}` : href);
   const projLink = (id: number, name: string) => <Link href={`/projects/${id}`} onFollow={(e) => { e.preventDefault(); go(`/projects/${id}`); }}>{name}</Link>;
 
   const projectColumns = [
     { id: 'name', header: uiText("app.projects"), sortingField: 'name', width: '34%', minWidth: 260, cell: (p: Project) => (
       <div className="ui-row-spaced">
         <CoverImage propertyId={p.property.id} width={56} height={40} radius={6} showLabel={false} />
-        <div className="ui-stack-min">
-          {projLink(p.id, p.name)}
+        <div className="ui-stack-min" id={`project-${p.id}`}>
+          {projLink(p.id, p.name)} <NewTodayBadge createdAt={p.created_at} day={day} />
+          {p.id === focusId && <Box fontWeight="bold">{uiText('newToday.locatedRow')}</Box>}
           <Box variant="small" color="text-body-secondary">{p.property.address_std}</Box>
         </div>
       </div>
@@ -217,14 +245,15 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
     <SpaceBetween size="m">
       <Header variant="h2" counter={`(${filtered.length})`} help={uiText("dashboard.properties.without.confirmed.open.escrow.are.grouped.by.follow")} actions={<SpaceBetween direction="horizontal" size="xs">{groupSelect}{listOnly && role.can('create_project') && <Button variant="primary" onClick={() => go('/projects/new')}>{uiText("app.new.project")}</Button>}</SpaceBetween>}>{uiText("projectPreplan.acquisition.not.purchased")}</Header>
       <HelpText>{uiText("dashboard.suggested.tasks.follow.checklist.order.a.responsible.role.is")}</HelpText>
-      <LeadGroups projects={loading ? null : filtered} meta={meta} canEdit={role.can('edit_project')} onPatched={onLeadPatched} />
+      <div>{todayFilter}</div>
+      <LeadGroups projects={loading ? null : allPageItems as Project[]} meta={meta} canEdit={role.can('edit_project')} onPatched={onLeadPatched} />
       <Box variant="small" color="text-body-secondary">{uiText("dashboard.list.price.and.automated.valuation.are.references.not.confirmed")}</Box>
     </SpaceBetween>
   );
 
   const table = showLeadGroups ? leadView : (
     <Table cardId="project-list"
-      {...collectionProps}
+      {...sortProps}
       items={rows}
       loading={loading}
       loadingText={uiText("dashboard.loading")}
@@ -235,7 +264,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
       filter={
         <SpaceBetween direction="horizontal" size="xs">
           <TextFilter {...searchProps} filteringPlaceholder={uiText("dashboard.search.by.project.name.or.address")} countText={uiText("sentences.matches", { value1: (rows.length) })} />
-          {groupSelect}
+          {groupSelect}{todayFilter}
         </SpaceBetween>
       }
       pagination={<Pagination {...paginationProps} />}
@@ -250,7 +279,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
         header={<Header variant="h1" description={uiText("dashboard.open.a.property.to.view.progress.and.assigned.work")}>{uiText("dashboard.all.projects")}</Header>}
       >
         {loadError && <Alert type="error" header={uiText("dashboard.could.not.load.projects")}>{systemText(loadError)}</Alert>}
-        {table}
+        <SpaceBetween size="m">{focusNotice}{table}</SpaceBetween>
       </ContentLayout>
     );
   }
@@ -625,7 +654,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
         {/* 项目表固定渲染，不再是看板的一项：没有拖动手柄、没有关闭按钮。登录后由「项目关注」承担，这里只给未登录访客。 */}
         {!me && (showLeadGroups ? leadView : (
           <Table cardId="guest-projects"
-            {...collectionProps}
+            {...sortProps}
             items={rows}
             loading={loading}
             loadingText={uiText("dashboard.loading")}
@@ -636,7 +665,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
             filter={
               <SpaceBetween direction="horizontal" size="xs">
                 <TextFilter {...searchProps} filteringPlaceholder={uiText("dashboard.search.by.project.name.or.address")} countText={uiText("sentences.matches", { value1: (rows.length) })} />
-                {groupSelect}
+                {groupSelect}{todayFilter}
               </SpaceBetween>
             }
             pagination={<Pagination {...paginationProps} />}

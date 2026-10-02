@@ -1,3 +1,5 @@
+import NewTodayBadge from './NewTodayBadge';
+import { useBusinessDate } from '../lib/useBusinessDate';
 import { systemText } from '../i18n/core.ts';
 import { useLanguage } from '../i18n/LanguageProvider';
 import { m as uiText } from '../i18n/core.ts';
@@ -32,6 +34,7 @@ export default function LeadGroups({
   onPatched: (p: Project) => void;
 }) {
   useLanguage();
+  const day = useBusinessDate();
   if (projects === null) {
     return <Box padding="xxl" textAlign="center"><Spinner size="large" /> {uiText("leadGroups.loading.leads")}</Box>;
   }
@@ -49,7 +52,7 @@ export default function LeadGroups({
         <Container cardId="lead-group" cardContext={systemText(g.label)} key={g.value} header={<Header variant="h2" counter={`(${g.projects.length})`}>{systemText(g.label)}</Header>}>
           <SpaceBetween size="m">
             {g.projects.map((p) => (
-              <LeadRow key={p.id} p={p} meta={meta} canEdit={canEdit} onPatched={onPatched} />
+              <LeadRow key={p.id} p={p} day={day} meta={meta} canEdit={canEdit} onPatched={onPatched} />
             ))}
           </SpaceBetween>
         </Container>
@@ -59,7 +62,8 @@ export default function LeadGroups({
 }
 
 /** 一条线索。整块可点进项目，但右侧的操作菜单**不能**把点击冒泡成「进详情」。 */
-function LeadRow({ p, meta, canEdit, onPatched }: {
+function LeadRow({ p, day, meta, canEdit, onPatched }: {
+  day: string;
   p: Project; meta: Meta | null | undefined; canEdit: boolean; onPatched: (p: Project) => void;
 }) {
   useLanguage();
@@ -99,6 +103,7 @@ function LeadRow({ p, meta, canEdit, onPatched }: {
         <SpaceBetween size="xxs">
           <div className="ui-row-wrap">
             <Link fontSize="heading-s" href={`/projects/${p.id}`} onFollow={(e) => { e.preventDefault(); navigate(`/projects/${p.id}`); }}>{p.name}</Link>
+            <NewTodayBadge createdAt={p.created_at} day={day} />
             {heat && <Badge>{heat}</Badge>}
           </div>
           <Box variant="small" color="text-body-secondary">{p.property.address_std}</Box>
