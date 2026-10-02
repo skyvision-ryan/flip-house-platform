@@ -1,4 +1,9 @@
 {
+  "server.evidenceReviewRequired": "普通任务请使用证据审阅或指定审核人入口，清单勾选不能代替审阅",
+  "server.evidenceReviewDenied": "你没有审阅此任务或访问其依据的权限",
+  "server.evidenceReviewConflict": "任务或依据已变化，请刷新后复核；本次未覆盖他人修改",
+  "server.evidenceMissing": "所需依据尚未满足，不能确认完成",
+  "server.evidenceReturnReason": "退回审阅须填写原因",
   "server.projectAccessDenied": "你不是本项目的有效成员，不能查看或修改项目资料",
   "server.companyLoginRequired": "请登录后修改购买／持有公司",
   "server.assistantPairInvalid": "协办须与主负责人不同，且必须先有主负责人",

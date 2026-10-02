@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from .. import models, schemas
@@ -72,22 +72,30 @@ def toggle_step(project_id: int, key: str, body: schemas.StepToggleIn, request: 
         store_key = f"{key}:{as_who}"
         who_label = as_who if as_who == actor else f"{as_who}（{actor} 代勾）"
     else:
-        if ITEM_EVIDENCE.get(key, "manual") != "manual":
-            # 有自动证据的项：只有紫蓝能手工确认（记成“无证据”），执行角色要交东西
-            if not allowed(actor, "tick_any"):
-                raise HTTPException(400, f"“{ITEM_TITLE[key]}”要交东西才算完成，不能手工勾")
-            who_label = f"{actor}（手工确认，无证据）"
-        elif actor not in ITEM_OWNERS[key] and not allowed(actor, "tick_any"):
-            raise HTTPException(403, f"“{ITEM_TITLE[key]}”由 {'、'.join(ITEM_OWNERS[key])} 负责，{actor} 不能勾")
-        elif actor not in ITEM_OWNERS[key]:
-            who_label = f"{actor}（代勾）"
+        from ..message_codes import system_error
+        raise system_error(409, "server.evidenceReviewRequired")
     rec = db.scalar(select(models.ProjectStep).where(models.ProjectStep.project_id == project_id, models.ProjectStep.key == store_key))
     if rec is None:
         rec = models.ProjectStep(project_id=project_id, key=store_key)
         db.add(rec)
+    if rec.done == body.done and rec.note == body.note:
+        return compute_steps(db,p,hide_money=not can_read_money(actor))
+    task=db.scalar(select(models.Task).where(models.Task.project_id==project_id,models.Task.step_key==key))
+    before_done=next(i['done'] for st in compute_steps(db,p)['stages'] for i in st['items'] if i['key']==key)
+    if task:
+        from ..task_activity import utc_now
+        expected=body.version if body.version is not None else task.version
+        claimed=db.execute(update(models.Task).where(models.Task.id==task.id,models.Task.version==expected).values(version=expected+1,updated_at=utc_now()).execution_options(synchronize_session=False))
+        if not claimed.rowcount:
+            db.rollback()
+            from ..message_codes import system_error
+            raise system_error(409,'server.evidenceReviewConflict')
+        db.expire(task)
+    before_rec_done=rec.done
     rec.done = body.done
     rec.done_by = who_label if body.done else None
-    rec.done_at = datetime.now().isoformat(timespec="seconds") if body.done else None
+    from ..task_activity import utc_now
+    rec.done_at = utc_now() if body.done else None
     rec.note = body.note
     if confirm:
         as_who = store_key.split(":")[1]
@@ -98,6 +106,18 @@ def toggle_step(project_id: int, key: str, body: schemas.StepToggleIn, request: 
     log_update(db, project_id, actor, "step", text + (f"：{body.note}" if body.note else ""))
     if key == "open_escrow" and body.done:
         _freeze_lead_substage(db, p, request, actor)
+    db.flush()
+    after_done=next(i['done'] for st in compute_steps(db,p)['stages'] for i in st['items'] if i['key']==key)
+    if task and after_done!=before_done:
+        u=current_user(request,db)
+        at=utc_now()
+        if after_done:
+            task.gate_confirmation_json=json.dumps({'user_id':u.id if u else None,'name':u.display_name if u else actor,'role':actor,'at':at,'confirmed':confirm,'facts':{'node_key':key}},ensure_ascii=False)
+            task.done_at=at
+        db.add(models.TaskEvent(task_id=task.id,project_id=project_id,kind='node_confirmed' if after_done else 'node_reopened',actor_user_id=u.id if u else None,actor_role_snapshot=actor,before_json=json.dumps({'done':before_done}),after_json=json.dumps({'done':after_done,'name':u.display_name if u else actor,'node_key':key}),created_at=at))
+    elif task and before_rec_done!=body.done:
+        u=current_user(request,db)
+        db.add(models.TaskEvent(task_id=task.id,project_id=project_id,kind='node_partial_confirmed',actor_user_id=u.id if u else None,actor_role_snapshot=actor,after_json=json.dumps({'node_key':key,'confirm_as':store_key.split(':')[-1],'done':body.done}),created_at=utc_now()))
     commit_evidence(db, project_id, evidence_before, actor)
     return compute_steps(db, p, hide_money=not can_read_money(actor))
 

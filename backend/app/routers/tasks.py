@@ -1,6 +1,6 @@
 """任务实例：每套房每个普通清单项一条，分派给具体账号（KAN-75 块 1）。
 
-- 只对 STAGE_CHECKLIST 里 gate=False 的 24 项建实例；7 个关键节点仍走 project_steps 的 D/J 确认，不在这里。
+- 24 项普通任务及 7 个关键节点使用稳定实例；五个单确认和两个 D/J 双确认保留各自规则。
 - 执行状态（未开始 / 进行中 / 等待 / 待确认 / 已完成）只描述人在做什么；「满足」仍由 steps.compute_steps 按证据派生，
   两者并列返回，界面并列显示，谁也不替代谁。分派层没有「完成」按钮。
 - 所有写接口要求真登录（require_user）；演示模式的 X-Actor 头对写接口无效。
@@ -23,12 +23,13 @@ from ..auth import current_user
 from ..db import get_db
 from ..dictionaries import STAGE_CHECKLIST, STEP_BY_KEY, TASK_EVENT_KINDS, TASK_EXEC_STATUSES
 from ..task_evidence import completion_mode, execution_status
+from .. import evidence_review
 from .. import task_activity
 from ..models import now_iso
 from ..project_dates import is_new_today, prioritize_new
 from ..steps import compute_steps
 from ..procurement_workflow import purchase_progress, purchase_overview
-from .common import allowed, can_read_money, get_actor, log_update, require, require_user
+from .common import allowed, can_read_money, get_actor, log_update, require, require_user, visible_project_ids
 from .files import _can_download
 
 router = APIRouter(prefix="/api", tags=["tasks"])
@@ -42,6 +43,8 @@ FILE_KINDS = {"file", "photo"}   # 这两类交付物提交时至少要一个文
 from ..dictionaries import SINGLE_CONFIRM_KEYS
 from ..steps import gate_conditions
 
+NODE_KEYS=frozenset(it["key"] for st in STAGE_CHECKLIST for it in st["items"] if it.get("gate"))
+
 ORDINARY_ITEMS = [(st["key"], it) for st in STAGE_CHECKLIST for it in st["items"] if not it.get("gate")]
 
 
@@ -52,10 +55,10 @@ def ensure_tasks(db: Session, project_id: int, *, commit: bool = True) -> list[m
     rows = list(db.scalars(select(models.Task).where(models.Task.project_id == project_id)).all())
     have = {t.step_key for t in rows if t.step_key}
     added = False
-    for stage_key, it in [(st["key"], it) for st in STAGE_CHECKLIST for it in st["items"] if not it.get("gate") or it["key"] in SINGLE_CONFIRM_KEYS]:
+    for stage_key, it in [(st["key"], it) for st in STAGE_CHECKLIST for it in st["items"] if not it.get("gate") or it["key"] in NODE_KEYS]:
         if it["key"] in have:
             continue
-        db.add(models.Task(project_id=project_id, step_key=it["key"], source="node_confirmation" if it["key"] in SINGLE_CONFIRM_KEYS else "template", stage_key=stage_key, title=it["title"], template_key="task." + it["key"], template_name_snapshot=it["title"]))
+        db.add(models.Task(project_id=project_id, step_key=it["key"], source="node_confirmation" if it["key"] in NODE_KEYS else "template", stage_key=stage_key, title=it["title"], template_key="task." + it["key"], template_name_snapshot=it["title"]))
         added = True
     if added:
         db.commit() if commit else db.flush()
@@ -201,13 +204,14 @@ def _task_out(t: models.Task, p: models.Project, steps: dict, users: dict[int, m
                 step_item = si
                 break
     procurement = purchase_progress(object_session(t), t.project_id) if t.step_key == "purchase" else None
-    execution = ("not_started" if not t.assignee_user_id else "done" if procurement["complete"] else "in_progress") if procurement else t.exec_status
-    gate = step_item if t.step_key in SINGLE_CONFIRM_KEYS else None
+    execution = ("done" if procurement["complete"] else "not_started" if not t.assignee_user_id else "in_progress") if procurement else t.exec_status
+    gate = step_item if t.step_key in NODE_KEYS else None
     if gate:
-        execution = "done" if gate["done"] else "pending_review" if gate["ready"] else "not_started"
+        execution = "done" if gate["done"] else "pending_review" if gate.get("ready") and (t.step_key in SINGLE_CONFIRM_KEYS or gate["confirmed"] or STAGE_INDEX.get(t.stage_key,0)<=STAGE_INDEX.get(steps["current_stage"]["key"],7)) else "not_started"
     mode = completion_mode(t)
+    review = evidence_review.current(object_session(t), t, p) if mode == "evidence" else None
     if mode != "review":
-        execution = execution_status(t, bool(step_item and step_item["done"]))
+        execution = execution_status(t, bool(step_item and step_item.get("condition_met", step_item["done"])), review)
     cur = steps["current_stage"]
     cur_idx = len(STAGE_CHECKLIST) + 1 if cur["key"] == "done" else STAGE_INDEX.get(cur["key"], 1)
     return {
@@ -224,13 +228,13 @@ def _task_out(t: models.Task, p: models.Project, steps: dict, users: dict[int, m
         "assignee": _brief(users.get(t.assignee_user_id)) if t.assignee_user_id else None,
         "assistant": _brief(users.get(t.assistant_user_id)) if t.assistant_user_id else None,
         "reviewer": _brief(users.get(t.reviewer_user_id)) if t.reviewer_user_id and not procurement and mode == "review" else None,
-        "exec_status": execution, "exec_status_label": ("任务条件已满足" if mode == "evidence" and execution == "done" else "已备齐" if procurement and execution == "done" else ("条件未满足" if gate and execution == "not_started" else STATUS_LABEL.get(execution, execution))),
+        "exec_status": execution, "exec_status_label": ("已审阅完成" if mode == "evidence" and execution == "done" else "已备齐" if procurement and execution == "done" else ("条件未满足" if gate and execution == "not_started" else STATUS_LABEL.get(execution, execution))),
         "due_at": t.due_at, "wait_for": None if procurement else t.wait_for, "wait_reason": None if procurement else t.wait_reason, "wait_until": None if procurement else t.wait_until,
         "version": t.version,
-        "satisfied": bool(step_item and step_item["done"]), "satisfied_how": (step_item or {}).get("how"),
+        "satisfied": bool(step_item and step_item.get("condition_met", step_item["done"])), "satisfied_how": (step_item or {}).get("how"),
         "satisfied_evidence": (step_item or {}).get("evidence"), "evidence_hint": (step_item or {}).get("evidence_hint"),
         "last_event": _event_out(last, users) if last else None,
-        "done_at": None if procurement or mode != "review" else t.done_at, "requires_file": (it.get("deliverable") or {}).get("kind") in FILE_KINDS,
+        "done_at": review["receipt"].reviewed_at if review and review["valid"] else None if procurement or mode != "review" else t.done_at, "requires_file": (it.get("deliverable") or {}).get("kind") in FILE_KINDS,
         "submissions": subs or [],
         "created_at": t.created_at, "updated_at": t.updated_at,
     }
@@ -294,17 +298,34 @@ def _tasks_payload(db: Session, p: models.Project, tasks: list[models.Task], act
     for row in result:
         row["notes"] = [{"id": n.id, "task_id": n.task_id, "author": _brief(users[n.author_user_id]), "text": n.text, "created_at": n.created_at} for n in notes if n.task_id == row["id"]]
         if row["node_confirmation"]:
-            row["node_confirmation"]["can_confirm"] = actor in row["node_confirmation"]["confirm"] or allowed(actor, "confirm_for_others")
+            row["node_confirmation"]["can_confirm"] = (actor in row["node_confirmation"]["confirm"] or allowed(actor, "confirm_for_others"))
+            if row["node_confirmation"].get("confirmation_mode")=="all":
+                missing=[role for role in row["node_confirmation"]["confirm"] if role not in row["node_confirmation"]["confirmed"]]
+                row["node_confirmation"]["can_confirm"] = actor in missing or bool(missing and allowed(actor,"confirm_for_others"))
+        t = next(t for t in tasks if t.id == row['id'])
+        can_access = evidence_review.can_access(db,t,actor) if row['completion_mode']=='evidence' else True
+        if row['completion_mode']=='evidence':
+            state=evidence_review.current(db,t,p)
+            receipt=state['receipt']
+            reviewer=db.get(models.User,receipt.reviewer_user_id) if receipt else None
+            row['evidence_review']={'state':state['state'],'revision':state['revision'],
+                'fingerprint':state['fingerprint'] if can_access else None,
+                'facts':evidence_review.public_snapshot(state['snapshot']) if can_access else None,
+                'receipt':{'id':receipt.id,'reviewer':_brief(reviewer) if reviewer else None,'reviewed_at':receipt.reviewed_at,'invalidated_at':receipt.invalidated_at} if receipt else None}
+            if not can_access:row['satisfied_evidence']=None
         primary = row["assignee"] is not None and row["assignee"]["id"] == me_id
         regular = not row["node_confirmation"] and not row["procurement_progress"]
         row["actions"] = {
+            "review_evidence": row["completion_mode"]=="evidence" and allowed(actor,"evidence_review") and can_access,
+            "mark_evidence": row["completion_mode"]=="evidence" and allowed(actor,"evidence_review") and can_access and row["satisfied"] and row["exec_status"]!="done",
+            "reopen_evidence": row["completion_mode"]=="evidence" and allowed(actor,"evidence_review") and can_access and row["exec_status"]=="done",
             "assign": allowed(actor, "assign_tasks") and not row["node_confirmation"],
             "start": regular and primary and row["exec_status"] == "not_started",
             "wait": regular and primary and row["exec_status"] in {"not_started", "in_progress"},
             "resume": regular and primary and row["exec_status"] == "waiting",
             "submit": regular and primary and row["completion_mode"] == "review" and row["exec_status"] not in {"pending_review", "done"},
             "review": regular and row["exec_status"] == "pending_review" and row["reviewer"] is not None and row["reviewer"]["id"] == me_id,
-            "confirm_node": bool((row["node_confirmation"] or {}).get("can_confirm")) and row["exec_status"] == "pending_review",
+            "confirm_node": bool((row["node_confirmation"] or {}).get("can_confirm")) and (row["exec_status"] == "pending_review" or (row["node_confirmation"] or {}).get("confirmation_mode")=="all"),
         }
     return result
 
@@ -315,7 +336,7 @@ def _event(db: Session, task: Optional[models.Task], project_id: int, kind: str,
                           actor_user_id=actor.id, actor_role_snapshot=actor.role_code,
                           before_json=json.dumps(before, ensure_ascii=False) if before else None,
                           after_json=json.dumps(after, ensure_ascii=False) if after else None,
-                          reason=reason or None)
+                          reason=reason or None,created_at=task_activity.utc_now())
     db.add(ev)
     return ev
 
@@ -490,10 +511,10 @@ def my_workbench(new_today: bool = False, stage_key: str | None = None, search: 
         cur_rows = [r for r in payload if r["stage_key"] == cur_key and r["exec_status"] != "done"]
         unassigned += sum(1 for r in cur_rows if not r["assignee"] and not r.get("node_confirmation"))
         waiting += sum(1 for r in payload if r["exec_status"] == "waiting")
-        pending_mine.extend(r for r in payload if r["exec_status"] == "pending_review" and (r["reviewer"] and r["reviewer"]["id"] == me.id or (r.get("node_confirmation") or {}).get("can_confirm")))
+        pending_mine.extend(r for r in payload if r["exec_status"] == "pending_review" and (r["reviewer"] and r["reviewer"]["id"] == me.id or (r.get("node_confirmation") or {}).get("can_confirm") or r["actions"]["mark_evidence"]))
         actor_brief = None
         if nxt:
-            actor_brief = nxt["reviewer"] if nxt["exec_status"] == "pending_review" else nxt["assignee"]
+            actor_brief = (_brief(me) if nxt["actions"]["mark_evidence"] else nxt["reviewer"]) if nxt["exec_status"] == "pending_review" else nxt["assignee"]
         rows_out.append({
             "project_id": p.id, "project_name": p.name, "address": p.property.address_std, "created_at": p.created_at, "created_today": is_new_today(p.created_at),
             "group_position": steps["group_position"], "position_label": steps["group_position"]["label"],
@@ -596,7 +617,7 @@ def task_events(project_id: int, task_id: int, request: Request, db: Session = D
 @router.get("/me/tasks", response_model=schemas.MyTasksOut)
 def my_tasks(db: Session = Depends(get_db), me: models.User = Depends(require_user)):
     """分派给我的 + 我是审核人的，按项目算满足与当前段。只按 user_id，不按角色。"""
-    query = select(models.Task).where((models.Task.assignee_user_id == me.id) | (models.Task.assistant_user_id == me.id) | (models.Task.reviewer_user_id == me.id) | models.Task.step_key.in_(SINGLE_CONFIRM_KEYS))
+    query = select(models.Task).where((models.Task.assignee_user_id == me.id) | (models.Task.assistant_user_id == me.id) | (models.Task.reviewer_user_id == me.id) | models.Task.step_key.in_(NODE_KEYS) | (models.Task.source=="template" if allowed(me.role_code,"evidence_review") else False))
     if not allowed(me.role_code, "workbench_all_projects"):
         member_projects = select(models.ProjectMember.project_id).where(
             models.ProjectMember.user_id == me.id, models.ProjectMember.active.is_(True))
@@ -633,7 +654,7 @@ def my_tasks(db: Session = Depends(get_db), me: models.User = Depends(require_us
                         "kind": ev.kind, "mode": completion_mode(task), "created_at": ev.created_at,
                         "next": {k: nxt[k] for k in ("id", "title", "template_key", "template_name_snapshot", "assignee", "due_at")} if nxt else None})
     return {"assisting": [r for r in out if r["assistant"] and r["assistant"]["id"] == me.id], "signals": signals, "assigned": [r for r in out if r["assignee"] and r["assignee"]["id"] == me.id],
-            "reviewing": [r for r in out if (r["reviewer"] and r["reviewer"]["id"] == me.id and not (r["assignee"] and r["assignee"]["id"] == me.id)) or ((r.get("node_confirmation") or {}).get("can_confirm") and r["exec_status"] == "pending_review")]}
+            "reviewing": [r for r in out if (r["reviewer"] and r["reviewer"]["id"] == me.id and not (r["assignee"] and r["assignee"]["id"] == me.id)) or ((r.get("node_confirmation") or {}).get("can_confirm") and r["exec_status"] == "pending_review") or r["actions"]["mark_evidence"]]}
 
 
 # ---------------- 写 ----------------
@@ -645,7 +666,7 @@ def assign_task(project_id: int, task_id: int, body: schemas.TaskAssignIn, db: S
     _require_task_read(db, project_id, me)
     p = _project(db, project_id)
     t = _task(db, project_id, task_id)
-    if t.step_key in SINGLE_CONFIRM_KEYS:
+    if t.step_key in NODE_KEYS:
         raise HTTPException(409, "节点由前置条件自动进入待确认，请使用确认满足；无需分派、开始或提交")
     if t.version != body.version:
         _conflict(db, p, t, me.role_code)
@@ -749,7 +770,7 @@ def task_status(project_id: int, task_id: int, body: schemas.TaskStatusIn, db: S
     _require_task_read(db, project_id, me)
     p = _project(db, project_id)
     t = _task(db, project_id, task_id)
-    if t.step_key in SINGLE_CONFIRM_KEYS:
+    if t.step_key in NODE_KEYS:
         raise HTTPException(409, "节点由前置条件自动进入待确认，请使用确认满足；无需分派、开始或提交")
     if t.step_key == "purchase":
         _require_task_read(db, project_id, me)
@@ -806,7 +827,7 @@ def submit_task(project_id: int, task_id: int, body: schemas.TaskSubmitIn, db: S
     if completion_mode(t) != "review":
         from ..message_codes import system_error
         raise system_error(409, "server.taskEvidenceAutomatic")
-    if t.step_key in SINGLE_CONFIRM_KEYS:
+    if t.step_key in NODE_KEYS:
         raise HTTPException(409, "节点由前置条件自动进入待确认，请使用确认满足；无需分派、开始或提交")
     if t.step_key == "purchase":
         _require_task_read(db, project_id, me)
@@ -904,12 +925,18 @@ def return_task(project_id: int, task_id: int, body: schemas.TaskDecisionIn, db:
 
 
 @router.post("/projects/{project_id}/tasks/{task_id}/confirm", response_model=schemas.TaskOut)
-def confirm_task(project_id: int, task_id: int, body: schemas.TaskDecisionIn, db: Session = Depends(get_db), me: models.User = Depends(require_user)):
+def confirm_task(project_id: int, task_id: int, body: schemas.TaskDecisionIn, request: Request, db: Session = Depends(get_db), me: models.User = Depends(require_user)):
     """审核人确认本次交付：任务完成、记时间。**不补 ProjectStep 手工勾**——证据满足仍由 compute_steps 派生，两者并列显示。"""
     t = db.get(models.Task, task_id)
     if t and t.project_id == project_id and t.step_key in SINGLE_CONFIRM_KEYS:
         confirm_node(db, project_id, t, me, body.version)
-        return _tasks_payload(db, _project(db, project_id), [t], me.role_code)[0]
+        return _tasks_payload(db, _project(db, project_id), [t], me.role_code, me.id)[0]
+    if t and t.project_id==project_id and t.step_key in NODE_KEYS:
+        _require_task_read(db,project_id,me)
+        from .steps import toggle_step
+        toggle_step(project_id,t.step_key,schemas.StepToggleIn(done=True,confirm_as=body.confirm_as,version=body.version),request,db,me.role_code)
+        db.refresh(t)
+        return _tasks_payload(db,_project(db,project_id),[t],me.role_code,me.id)[0]
     return _decide(db, project_id, task_id, body, me, "confirmed")
 
 
@@ -927,7 +954,7 @@ def confirm_node(db: Session, project_id: int, t: models.Task, me: models.User, 
     if version is not None and t.version != version:
         raise HTTPException(409, "节点已更新，请刷新后核对")
     _, facts = gate_conditions(p, t.step_key)
-    snapshot = {"user_id": me.id, "name": me.display_name, "role": me.role_code, "at": models.now_iso(), "facts": facts}
+    snapshot = {"user_id": me.id, "name": me.display_name, "role": me.role_code, "at": task_activity.utc_now(), "facts": facts}
     before = json.loads(t.gate_confirmation_json) if t.gate_confirmation_json else None
     t.gate_confirmation_json = json.dumps(snapshot, ensure_ascii=False)
     t.done_at = snapshot["at"]
@@ -939,3 +966,117 @@ def confirm_node(db: Session, project_id: int, t: models.Task, me: models.User, 
     except (StaleDataError, IntegrityError):
         db.rollback()
         raise HTTPException(409, "其他确认人已更新该节点，请刷新查看")
+
+
+@router.post('/projects/{project_id}/tasks/{task_id}/evidence-review', response_model=schemas.TaskOut)
+def mark_evidence(project_id:int,task_id:int,body:schemas.TaskEvidenceMarkIn,db:Session=Depends(get_db),me:models.User=Depends(require_user)):
+    """Bind one real reviewer to one exact evidence revision; repeats are idempotent."""
+    from sqlalchemy import update
+    _require_task_read(db,project_id,me)
+    p,t=_project(db,project_id),_task(db,project_id,task_id)
+    if completion_mode(t)!='evidence':raise system_error(409,'server.evidenceReviewRequired')
+    if not allowed(me.role_code,'evidence_review') or not evidence_review.can_access(db,t,me.role_code):
+        raise system_error(403,'server.evidenceReviewDenied')
+    # Atomic conditional version claim locks the task before facts/revision are inspected.
+    old=db.scalar(select(models.TaskEvidenceReview).where(models.TaskEvidenceReview.task_id==task_id,models.TaskEvidenceReview.request_key==str(body.request_key)))
+    state=evidence_review.current(db,t,p)
+    if old:
+        if old.fingerprint==body.fingerprint and old.revision==body.revision and state['valid'] and state['receipt'].id==old.id:
+            return _tasks_payload(db,p,[t],me.role_code,me.id)[0]
+        raise system_error(409,'server.evidenceReviewConflict')
+    claim=db.execute(update(models.Task).where(models.Task.id==task_id,models.Task.version==body.version).values(version=body.version+1,updated_at=task_activity.utc_now()).execution_options(synchronize_session=False))
+    if not claim.rowcount:
+        db.rollback();raise system_error(409,'server.evidenceReviewConflict')
+    db.expire_all();t=db.get(models.Task,task_id);p=db.get(models.Project,project_id)
+    state=evidence_review.current(db,t,p)
+    if state['fingerprint']!=body.fingerprint or state['revision']!=body.revision or state['valid']:
+        db.rollback();raise system_error(409,'server.evidenceReviewConflict')
+    if not state['met']:
+        db.rollback();raise system_error(409,'server.evidenceMissing')
+    evidence_review.ensure_version(db,t.id,state)
+    # Claiming the fact revision protects against a competing fact mutation on PostgreSQL too.
+    locked=db.execute(update(models.TaskEvidenceVersion).where(models.TaskEvidenceVersion.task_id==task_id,models.TaskEvidenceVersion.revision==body.revision,models.TaskEvidenceVersion.fingerprint==body.fingerprint).values(revision=body.revision))
+    if not locked.rowcount:
+        db.rollback();raise system_error(409,'server.evidenceReviewConflict')
+    receipt=models.TaskEvidenceReview(task_id=task_id,revision=body.revision,fingerprint=body.fingerprint,
+        facts_json=evidence_review.dumps(state['snapshot']),reviewer_user_id=me.id,reviewed_at=task_activity.utc_now(),request_key=str(body.request_key))
+    db.add(receipt)
+    _event(db,t,project_id,'evidence_reviewed',me,after={'revision':body.revision,'fingerprint':body.fingerprint,'mode':'evidence'})
+    try:db.commit()
+    except IntegrityError:
+        db.rollback();raise system_error(409,'server.evidenceReviewConflict')
+    db.refresh(t)
+    return _tasks_payload(db,p,[t],me.role_code,me.id)[0]
+
+
+@router.post('/projects/{project_id}/tasks/{task_id}/evidence-review/reopen',response_model=schemas.TaskOut)
+def reopen_evidence(project_id:int,task_id:int,body:schemas.TaskDecisionIn,db:Session=Depends(get_db),me:models.User=Depends(require_user)):
+    from sqlalchemy import update
+    _require_task_read(db,project_id,me)
+    p,t=_project(db,project_id),_task(db,project_id,task_id)
+    if completion_mode(t)!='evidence' or not allowed(me.role_code,'evidence_review') or not evidence_review.can_access(db,t,me.role_code):
+        raise system_error(403,'server.evidenceReviewDenied')
+    if not (body.reason or '').strip():raise system_error(400,'server.evidenceReturnReason')
+    claim=db.execute(update(models.Task).where(models.Task.id==t.id,models.Task.version==body.version).values(version=body.version+1,updated_at=task_activity.utc_now()).execution_options(synchronize_session=False))
+    if not claim.rowcount:db.rollback();raise system_error(409,'server.evidenceReviewConflict')
+    db.expire_all();t=db.get(models.Task,task_id)
+    state=evidence_review.current(db,t,p)
+    if not state['valid']:db.rollback();raise system_error(409,'server.evidenceReviewConflict')
+    v=db.get(models.TaskEvidenceVersion,t.id)
+    changed=db.execute(update(models.TaskEvidenceVersion).where(models.TaskEvidenceVersion.task_id==t.id,models.TaskEvidenceVersion.revision==state['revision']).values(revision=state['revision']+1))
+    if not changed.rowcount:db.rollback();raise system_error(409,'server.evidenceReviewConflict')
+    state['receipt'].invalidated_at=task_activity.utc_now();state['receipt'].invalidation_reason=body.reason.strip()
+    _event(db,t,project_id,'returned',me,before={'review_id':state['receipt'].id},after={'mode':'evidence','revision':state['revision']+1},reason=body.reason.strip())
+    db.commit();db.refresh(t)
+    return _tasks_payload(db,p,[t],me.role_code,me.id)[0]
+
+
+@router.get('/me/completed-tasks')
+def completed_tasks(until:str|None=None,cursor:str|None=None,limit:int=25,search:str|None=None,stage_key:str|None=None,db:Session=Depends(get_db),me:models.User=Depends(require_user)):
+    """Current valid results, including closed properties, never a historical-event search."""
+    from ..project_dates import creation_instant
+    bounds=task_activity.window(until)
+    rows=[]
+    projects=db.scalars(select(models.Project).where(models.Project.id.in_(visible_project_ids(db,me))))
+    for p in projects:
+        if search and search.casefold() not in (p.name+' '+p.property.address_std).casefold():continue
+        steps=compute_steps(db,p,hide_money=not can_read_money(me.role_code))
+        tasks=[t for t in db.scalars(select(models.Task).where(models.Task.project_id==p.id)) if not stage_key or t.stage_key==stage_key]
+        by_id={t.id:t for t in tasks}
+        for row in _tasks_payload(db,p,tasks,me.role_code,me.id,steps):
+            t=by_id[row['id']]
+            if row['exec_status']!='done':continue
+            from ..common_access import activity_allowed
+            if not activity_allowed(t,me.role_code):continue
+            mode=row['completion_mode'];automatic=t.step_key=='purchase'
+            person=None;at=row['done_at']
+            if mode=='record':continue
+            if mode=='evidence':
+                if not evidence_review.can_access(db,t,me.role_code):continue
+                receipt=evidence_review.current(db,t,p)['receipt'];person=_brief(db.get(models.User,receipt.reviewer_user_id));at=receipt.reviewed_at
+            elif row['node_confirmation']:
+                snap=json.loads(t.gate_confirmation_json or '{}');at=snap.get('at');person=_brief(db.get(models.User,snap.get('user_id'))) if snap.get('user_id') and db.get(models.User,snap['user_id']) else None
+                # Legacy role-only history stays in the property; never invent a real confirmer.
+                if not at or not person:continue
+            elif automatic:
+                ev=db.scalar(select(models.TaskWorkflowTransition).where(models.TaskWorkflowTransition.task_id==t.id,models.TaskWorkflowTransition.kind=='procurement_completed').order_by(models.TaskWorkflowTransition.id.desc()))
+                if not ev:continue
+                at=ev.created_at
+            else:
+                latest=(row['submissions'] or [None])[0]
+                if not latest or latest['decision']!='confirmed' or not latest['decided_by']:continue
+                if row['requires_file'] and not latest['files']:continue
+                person=latest['decided_by'];at=latest['decided_at']
+            instant=creation_instant(at)
+            if instant and instant.isoformat(timespec='microseconds')>=bounds['until']:continue
+            sort_at=instant.isoformat(timespec='microseconds') if instant else '0001-01-01T00:00:00.000000+00:00'
+            rows.append({'task':row,'confirmed_by':person,'confirmed_at':at,'automatic':automatic,'time_zone_known':bool(instant),'sort_at':sort_at})
+    rows.sort(key=lambda r:(r['sort_at'],r['task']['id']),reverse=True)
+    total=len(rows)
+    if cursor:
+        try:stamp,tid=cursor.rsplit('|',1);tid=int(tid)
+        except ValueError:raise system_error(400,'server.activityCursorInvalid')
+        rows=[r for r in rows if (r['sort_at'],r['task']['id'])<(stamp,tid)]
+    limit=max(1,min(limit,100));page=rows[:limit];last=page[-1] if len(rows)>limit else None
+    return {'items':[{k:v for k,v in r.items() if k!='sort_at'} for r in page],'total':total,'until':bounds['until'],
+            'next_cursor':f"{last['sort_at']}|{last['task']['id']}" if last else None}

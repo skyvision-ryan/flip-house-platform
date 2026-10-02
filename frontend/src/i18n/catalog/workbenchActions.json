@@ -146,5 +146,141 @@
   "workbench.switchEnglish": [
     "English",
     "English"
+  ],
+  "review.pending": [
+    "证据满足，尚未审阅",
+    "Evidence met; awaiting review"
+  ],
+  "review.recheck": [
+    "依据已变化，待复核",
+    "Evidence changed; review required"
+  ],
+  "review.reviewed": [
+    "已审阅完成",
+    "Reviewed and complete"
+  ],
+  "review.mark": [
+    "审阅本版依据并确认完成",
+    "Review this evidence version and complete"
+  ],
+  "review.hint": [
+    "资料满足后须由有权查看依据的项目助理或负责人审阅；依据变化后须重新复核。",
+    "Evidence must be reviewed by an authorized project assistant or lead with access to it. Evidence changes require another review."
+  ],
+  "review.by": [
+    "{{person}} · {{at}} 已审阅",
+    "Reviewed by {{person}} · {{at}}"
+  ],
+  "review.version": [
+    "依据版本 {{revision}}",
+    "Evidence revision {{revision}}"
+  ],
+  "review.authorizedReviewer": [
+    "有权限的审阅人",
+    "Authorized reviewer"
+  ],
+  "review.denied": [
+    "你可查看任务概况，审阅须有对应角色及依据访问权限。",
+    "You can view the task summary. Review requires the appropriate role and evidence access."
+  ],
+  "review.refresh": [
+    "刷新依据（保留输入）",
+    "Refresh evidence (keep input)"
+  ],
+  "review.reopen": [
+    "退回并重新审阅",
+    "Return for another review"
+  ],
+  "review.reason": [
+    "退回原因",
+    "Reason for return"
+  ],
+  "review.evidenceReviewed": [
+    "证据审阅完成",
+    "Evidence review completed"
+  ],
+  "review.evidenceInvalidated": [
+    "依据变化，待复核",
+    "Evidence changed; review required"
+  ],
+  "review.evidenceReturned": [
+    "退回证据审阅",
+    "Evidence review returned"
+  ],
+  "review.completed": [
+    "完成跟进",
+    "Completion follow-up"
+  ],
+  "review.currentOnly": [
+    "只显示当前有效完成；依据失效、退回或重新打开后移出。采购按事实备齐，无人工确认人。",
+    "Current valid results only. Invalidated, returned or reopened tasks leave this list. Procurement is complete by facts, without a human approver."
+  ],
+  "review.noCompleted": [
+    "暂无当前有效完成结果",
+    "No current valid completed results"
+  ],
+  "review.automatic": [
+    "按采购事实自动备齐",
+    "Automatically complete from procurement facts"
+  ],
+  "review.unknownTime": [
+    "早期记录未注明时区，保留原时间",
+    "Early record has no timezone; original time preserved"
+  ],
+  "review.evidenceSummary": [
+    "本版依据摘要",
+    "Evidence summary for this revision"
+  ],
+  "review.continuing": [
+    "本次满足（持续工作）",
+    "Current record met (ongoing work)"
+  ],
+  "review.reviewedFact": [
+    "本版依据已人工审阅",
+    "This evidence revision was reviewed"
+  ],
+  "server.evidenceReviewRequired": [
+    "普通任务请使用证据审阅或指定审核人入口，清单勾选不能代替审阅",
+    "Use evidence review or the designated reviewer; checklist ticks cannot replace review"
+  ],
+  "server.evidenceReviewDenied": [
+    "你没有审阅此任务或访问其依据的权限",
+    "You cannot review this task or access its evidence"
+  ],
+  "server.evidenceReviewConflict": [
+    "任务或依据已变化，请刷新后复核；本次未覆盖他人修改",
+    "The task or evidence changed. Refresh and review again; no changes were overwritten"
+  ],
+  "server.evidenceMissing": [
+    "所需依据尚未满足，不能确认完成",
+    "Required evidence is missing; completion cannot be confirmed"
+  ],
+  "server.evidenceReturnReason": [
+    "退回审阅须填写原因",
+    "A reason is required to return the review"
+  ],
+  "review.completedSearch": [
+    "搜索完成结果的房屋",
+    "Search completed properties"
+  ],
+  "review.confirmAs": [
+    "本次确认职责（沿用原节点规则）",
+    "Confirming role (existing milestone rules)"
+  ],
+  "review.nodeReopened": [
+    "节点确认已取消",
+    "Milestone confirmation cancelled"
+  ],
+  "review.nodePartial": [
+    "节点部分确认已更新",
+    "Partial milestone confirmation updated"
+  ],
+  "review.analysisVersion": [
+    "分析版本",
+    "Analysis version"
+  ],
+  "review.previousBy": [
+    "旧版审阅：{{person}} · {{at}}（已失效）",
+    "Previous review: {{person}} · {{at}} (no longer valid)"
   ]
 }

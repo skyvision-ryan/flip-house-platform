@@ -96,6 +96,7 @@ export const CARD_REGISTRY = {
   'recent-project-card': { id: 94, get title() { return uiText("cardRegistry.recent.project.card"); } },
   'turn-project-card': { id: 95, get title() { return uiText("cardRegistry.handoff.project.card"); } },
   'dashboard-metrics': { id: 96, get title() { return uiText("cardRegistry.project.metrics"); } },
+  'widget-completed': { id: 98, get title() { return uiText('review.completed'); } },
   'purchase-orders': { id: 97, get title() { return uiText("cardRegistry.purchase.orders"); } }
 } as const;
 export type CardKey = keyof typeof CARD_REGISTRY;

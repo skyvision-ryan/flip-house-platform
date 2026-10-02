@@ -31,6 +31,16 @@ def get_actor(request: Request, db: Session = Depends(get_db), x_actor: Optional
     u = current_user(request, db)
     if u is not None:
         db.info["actor_user_id"] = u.id
+        project_id = request.path_params.get("project_id")
+        if project_id is None:
+            for parameter, resource in (("file_id", models.ProjectFile), ("aid", models.DealAnalysis), ("inspection_id", models.Inspection)):
+                if parameter in request.path_params:
+                    record = db.get(resource, int(request.path_params[parameter]))
+                    if record is not None:
+                        project_id = record.project_id
+                    break
+        if project_id is not None:
+            require_project_read(db, int(project_id), u)
         if DEMO_MODE and u.is_admin and x_actor:
             return unquote(x_actor)
         return u.role_code

@@ -66,7 +66,7 @@ export function actionLabel(item: StepItem, opts: { actor: string; canDo: boolea
     if (f === 'purchase_price') return uiText("stepActions.enter.price");
     return uiText("sentences.enter", { value1: (FIELD_LABEL[f] ?? f) });
   }
-  if (mode === 'tick') return uiText("stepActions.mark.complete");
+  if (mode === 'tick') return uiText('workbench.open');
   if (mode === 'navigate') {
     if (dv?.record === 'utilities') return uiText("stepActions.enter.utility.accounts");
     if (dv?.record === 'expenses') return uiText("stepActions.record.expense");

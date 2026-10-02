@@ -1,3 +1,4 @@
+import Select from '@cloudscape-design/components/select';
 import TaskCollaboration from './TaskCollaboration';
 import SubmissionList from './TaskSubmissionList';
 import EvidenceTaskWorkbench from './EvidenceTaskWorkbench';
@@ -51,8 +52,9 @@ function TaskWorkbenchBody({ task, meId, onChanged, onConflict }: { task: Task; 
   const navigate = useNavigate();
   const isAssignee = meId != null && task.assignee?.id === meId;
   const isReviewer = meId != null && task.reviewer?.id === meId;
-  const canSubmit = isAssignee && !['pending_review', 'done'].includes(task.exec_status);
-  const canReview = isReviewer && task.exec_status === 'pending_review';
+  const canSubmit = task.actions?.submit ?? (isAssignee && !['pending_review', 'done'].includes(task.exec_status));
+  const canReview = task.actions?.review ?? (isReviewer && task.exec_status === 'pending_review');
+  const [confirmAs,setConfirmAs]=useState<string|null>(null);
   const [tab, setTab] = useState<string>(canReview ? 'deliver' : 'detail');
   const [waiting, setWaiting] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -66,8 +68,8 @@ function TaskWorkbenchBody({ task, meId, onChanged, onConflict }: { task: Task; 
     setBusy(true);
     try { const changed = await fn(); deliveryDrafts.delete(`${meId}:${task.project_id}:${task.id}`); bump(changed); flash({ type: 'success', content: ok }); } catch (e: any) {
       const msg = String(e.message ?? e);
-      flash({ type: msg.startsWith('409') ? 'warning' : 'error', content: msg });
-      if (msg.startsWith('409')) onConflict();
+      flash({ type: e.status === 409 ? 'warning' : 'error', content: msg });
+      if (e.status === 409) onConflict();
     } finally { setBusy(false); }
   };
 
@@ -79,7 +81,8 @@ function TaskWorkbenchBody({ task, meId, onChanged, onConflict }: { task: Task; 
       <Box>{systemText(node.evidence_hint)}</Box>
       {node.history_pending && <Alert type="info">{uiText("taskWorkbench.history.from.before.entry.requires.supporting.records.and.verification")}</Alert>}
       {node.confirmation && <Box color="text-body-secondary">{node.confirmation.name} · {dateTime(node.confirmation.at)} {uiText("myTodoTable.confirm")}</Box>}
-      {!task.satisfied && <Button variant="primary" loading={busy} disabled={!node.ready || !node.can_confirm} onClick={() => handle(() => api.confirmTask(task.project_id, task.id, { version: task.version }), uiText("sentences.conditions.confirmed", { value1: (taskTitle(task)) }))}>{uiText("myTodoTable.confirm.conditions.met")}</Button>}
+      {node.confirmation_mode==='all'&&node.can_confirm&&<Select ariaLabel={uiText('review.confirmAs')} options={node.confirm.filter(role=>!node.confirmed.includes(role)).map(value=>({value,label:value}))} selectedOption={confirmAs?{value:confirmAs,label:confirmAs}:null} placeholder={uiText('review.confirmAs')} onChange={({detail})=>setConfirmAs(detail.selectedOption.value??null)}/>}
+      {!task.satisfied && <Button variant="primary" loading={busy} disabled={!node.ready || !task.actions?.confirm_node || (node.confirmation_mode==='all'&&!confirmAs)} onClick={() => handle(() => api.confirmTask(task.project_id, task.id, { version: task.version, confirm_as:confirmAs??undefined }), uiText("sentences.conditions.confirmed", { value1: (taskTitle(task)) }))}>{uiText("myTodoTable.confirm.conditions.met")}</Button>}
       {!node.can_confirm && <Box color="text-body-secondary">{uiText("taskWorkbench.by")} {node.confirm.join(' / ')} {uiText("taskWorkbench.or.a.project.lead.account")}</Box>}
       <Button variant="link" onClick={() => navigate(`/projects/${task.project_id}?tab=overview&step=${task.step_key}&action=confirm`)}>{uiText("taskWorkbench.view.property.and.prerequisites")}</Button>
       <TaskTimeline projectId={task.project_id} taskId={task.id} refreshKey={task.version + refreshKey} />
@@ -127,7 +130,7 @@ function TaskWorkbenchBody({ task, meId, onChanged, onConflict }: { task: Task; 
           { id: 'history', label: uiText("taskSummaryPanel.activity.history"), content: <TaskTimeline projectId={task.project_id} taskId={task.id} refreshKey={refreshKey} /> },
         ]}
       />
-      {waiting && <TaskWaitModal key={`${task.project_id}:${task.id}`} task={task} onDone={(t) => { setWaiting(false); bump(t); flash({ type: 'success', content: uiText("sentences.waiting.recorded", { value1: (taskTitle(t)) }) }); }} onConflict={() => { setWaiting(false); onConflict(); }} onDismiss={() => setWaiting(false)} />}
+      {waiting && <TaskWaitModal key={`${task.project_id}:${task.id}`} task={task} onDone={(t) => { setWaiting(false); bump(t); flash({ type: 'success', content: uiText("sentences.waiting.recorded", { value1: (taskTitle(t)) }) }); }} onConflict={onConflict} onDismiss={() => setWaiting(false)} />}
     </SpaceBetween>
   );
 }

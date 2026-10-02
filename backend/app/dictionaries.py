@@ -195,6 +195,10 @@ TASK_EXEC_STATUSES = [
     {"value": "done", "label": "已完成", "kind": "success"},
 ]
 TASK_EVENT_KINDS = {
+    "node_reopened": "节点确认已取消",
+    "node_partial_confirmed": "节点部分确认已更新",
+    "evidence_reviewed": "证据审阅完成",
+    "evidence_invalidated": "依据变化，待复核",
     "reviewer_set": "指定审核人",
     "procurement_completed": "采购实际备齐",
     "procurement_reopened": "采购重新未备齐",

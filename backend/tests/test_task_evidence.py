@@ -67,7 +67,7 @@ class TaskEvidenceTests(unittest.TestCase):
         ordinary=[i for stage in STAGE_CHECKLIST for i in stage['items'] if not i.get('gate') and i['key']!='purchase']
         self.assertEqual(len(ordinary),23)
         self.assertEqual(sum(m=='record' for m in modes.values()),4)
-        self.assertTrue(all(modes[i['key']] in {'record','evidence'} for i in ordinary))
+        self.assertTrue(all(modes[i['key']] in {'record','evidence','review'} for i in ordinary))
         self.assertEqual(modes['purchase'],'review');self.assertEqual(modes['open_escrow'],'review')
 
     def test_risk_is_recorded_not_resolved_no_reviewer_and_loss_notifies_once(self):
@@ -76,7 +76,7 @@ class TaskEvidenceTests(unittest.TestCase):
         self.assertFalse(self.task('screen')['satisfied']);self.assertEqual(self.signals(),[])
         res=self.lead.patch('/api/projects/1',json={'risks':'Synthetic unresolved foundation risk'})
         self.assertEqual(res.status_code,200,res.text)
-        t=self.task('screen');self.assertEqual(t['exec_status'],'done');self.assertIsNone(t['done_at'])
+        t=self.task('screen');self.assertEqual(t['exec_status'],'pending_review');self.assertIsNone(t['done_at'])
         self.assertEqual(self.signals()[0]['kind'],'evidence_satisfied')
         count=len(self.signals())
         self.lead.patch('/api/projects/1',json={'risks':'Synthetic unresolved foundation risk'})
@@ -94,7 +94,7 @@ class TaskEvidenceTests(unittest.TestCase):
         self.upload('photo','view',pid=2,photo=True)
         self.assertFalse(self.task('view')['satisfied'])
         res=self.upload('photo','view',photo=True,client=self.site);self.assertEqual(res.status_code,201,res.text)
-        self.assertEqual(self.task('view')['exec_status'],'done')
+        self.assertEqual(self.task('view')['exec_status'],'pending_review')
         self.assertEqual(self.task('progress')['completion_mode'],'record')
         self.assertEqual(self.task('progress')['exec_status'],'in_progress')
         self.lead.delete(f'/api/files/{res.json()["id"]}')
@@ -102,7 +102,7 @@ class TaskEvidenceTests(unittest.TestCase):
 
     def test_permit_application_is_not_issued_and_home_inspection_is_not_city_final(self):
         res=self.upload('permit_application','permit_apply',client=self.permit);self.assertEqual(res.status_code,201,res.text)
-        self.assertEqual(self.task('permit_apply')['exec_status'],'done')
+        self.assertEqual(self.task('permit_apply')['exec_status'],'pending_review')
         self.assertFalse(self.task('permit_issued')['satisfied'])
         self.upload('inspection')
         self.assertTrue(self.task('home_inspection')['satisfied']);self.assertFalse(self.task('final')['satisfied'])
@@ -130,7 +130,7 @@ class TaskEvidenceTests(unittest.TestCase):
                 kind=item['evidence'].split(':')[1]
                 self.assertFalse(self.task(item['key'])['satisfied'])
                 res=self.upload(kind,item['key']);self.assertEqual(res.status_code,201,res.text)
-                self.assertEqual(self.task(item['key'])['exec_status'],'done')
+                self.assertEqual(self.task(item['key'])['exec_status'],'pending_review')
                 self.lead.delete(f'/api/files/{res.json()["id"]}')
                 self.assertFalse(self.task(item['key'])['satisfied'])
 
@@ -174,14 +174,14 @@ class TaskEvidenceTests(unittest.TestCase):
 
     def test_price_analysis_manual_choice_and_legacy_audit_are_not_mixed(self):
         response=self.lead.patch('/api/projects/1',json={'purchase_price':321000})
-        self.assertEqual(response.status_code,200,response.text);self.assertEqual(self.task('price')['exec_status'],'done')
+        self.assertEqual(response.status_code,200,response.text);self.assertEqual(self.task('price')['exec_status'],'pending_review')
         self.assertFalse(self.task('analysis')['satisfied'])
         response=self.lead.post('/api/projects/1/analyses',json={})
         self.assertEqual(response.status_code,201,response.text);self.assertTrue(self.task('analysis')['satisfied'])
         self.lead.delete(f'/api/analyses/{response.json()["id"]}')
         self.assertFalse(self.task('analysis')['satisfied'])
         response=self.lead.post('/api/projects/1/steps/agent',json={'done':True})
-        self.assertEqual(response.status_code,200,response.text);self.assertTrue(self.task('agent')['satisfied'])
+        self.assertEqual(response.status_code,409,response.text);self.assertFalse(self.task('agent')['satisfied'])
         # A historical review must not be erased or treated as present-day evidence.
         with Session(self.engine) as s:
             t=s.scalar(select(models.Task).where(models.Task.project_id==1,models.Task.step_key=='screen'))
@@ -216,5 +216,5 @@ class TaskEvidenceTests(unittest.TestCase):
                 self.assertIn(s.get(models.Project,1).risks,{'Synthetic A','Synthetic B'})
                 events=s.scalars(select(models.TaskEvent).where(models.TaskEvent.kind=='evidence_satisfied')).all()
                 self.assertEqual(len(events),1)
-                self.assertTrue(s.get(models.TaskEvidenceState,events[0].task_id).met)
+                self.assertTrue(s.get(models.TaskEvidenceVersion,events[0].task_id).met)
         finally:reopened.dispose()

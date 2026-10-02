@@ -44,10 +44,11 @@ export interface GroupPosition {
 
 export interface Deliverable { kind: 'file' | 'photo' | 'field' | 'record' | 'confirm' | 'tick'; label: string; doc_type?: string | null; field?: string | null; record?: string | null }
 export interface StepItem {
+  condition_met?: boolean; counts_as_task?: boolean; review_state?: string;
   final_inspection_passed?: boolean | null; photo_count?: number;
-  confirmation_mode?: "any"; ready?: boolean; missing?: string[]; needs_review?: boolean; history_pending?: boolean; can_confirm?: boolean;
+  confirmation_mode?: "any" | "all"; ready?: boolean; missing?: string[]; needs_review?: boolean; history_pending?: boolean; can_confirm?: boolean;
   confirmation?: { user_id: number; name: string; role: string; at: string } | null;
-  key: string; title: string; owners: string[]; gate: boolean; confirm: string[]; confirmed: string[]; done: boolean; how: 'auto' | 'manual' | 'manual_override' | null;
+  key: string; title: string; owners: string[]; gate: boolean; confirm: string[]; confirmed: string[]; done: boolean; how: 'auto' | 'manual' | 'manual_override' | 'reviewed' | null;
   deliverable: Deliverable | null; evidence_hint: string | null;
   evidence: string | null; can_auto: boolean; done_by: string | null; done_at: string | null; note: string | null;
   /** 属于哪条工作线；这件事是干嘛的；后端认为怎样才算完成。由后端透传，没有就不显示。 */
@@ -55,7 +56,7 @@ export interface StepItem {
 }
 export interface StageProgress {
   key: string; label: string; short: string; done: number; total: number; gate_title: string | null; gate_done: boolean; gate_confirmed: string[]; gate_at: string | null;
-  gates?: { confirmation_mode?: "any"; ready?: boolean; missing?: string[]; needs_review?: boolean; key: string; title: string; done: boolean; confirmed: string[]; at: string | null }[];
+  gates?: { confirmation_mode?: "any" | "all"; ready?: boolean; missing?: string[]; needs_review?: boolean; key: string; title: string; done: boolean; confirmed: string[]; at: string | null }[];
 }
 export interface Steps {
   stages: { key: string; history_pending?: boolean; label: string; short: string; desc?: string | null; items: StepItem[]; done_count: number; total: number; gate_title: string | null; gate_done: boolean; gate_confirmed: string[]; gate_at: string | null }[];
@@ -131,9 +132,9 @@ export interface ProjectFile {
 export type FileRow = ProjectFile;
 
 export interface Utility {
-  id: number; project_id: number; kind: string; company: string | null; account_no: string | null; login: string | null; password: string | null;
+  id: number | null; project_id: number; kind: string; company: string | null; account_no: string | null; login: string | null; password: string | null;
   website: string | null;
-  opened_under: string | null; status: string; blocker: string | null; updated_by: string | null; updated_at: string;
+  opened_under: string | null; status: string; blocker: string | null; updated_by: string | null; updated_at: string | null;
 }
 export interface UtilityIn { company: string | null; website: string | null; account_no: string | null; login: string | null; password: string | null; opened_under: string | null; status: string; blocker: string | null }
 export interface Inspection {
@@ -224,7 +225,11 @@ export interface Submission {
   files: SubmissionFile[];
 }
 export interface TaskNote { id: number; task_id: number; author: UserBrief; text: string; created_at: string }
+export interface EvidenceReview { state: string; revision: number; fingerprint: string | null; facts: Record<string,any> | null; receipt: {id:number;reviewer:UserBrief|null;reviewed_at:string;invalidated_at:string|null} | null }
+export interface CompletedResult {task:Task;confirmed_by:UserBrief|null;confirmed_at:string|null;automatic:boolean;time_zone_known:boolean}
+export interface CompletedTasks {items:CompletedResult[];total:number;until:string;next_cursor:string|null}
 export interface Task {
+  evidence_review?: EvidenceReview | null;
   actions?: Record<string, boolean>;
   completion_mode?: 'evidence' | 'record' | 'review';
   template_key?: string | null; template_name_snapshot?: string | null;
@@ -324,10 +329,13 @@ export const api = {
   addTaskNote: (id: number, taskId: number, body: {request_key: string; text: string}) => req<Task>(`/api/projects/${id}/tasks/${taskId}/notes`, {method: 'POST', body: JSON.stringify(body)}),
   assignTask: (id: number, taskId: number, body: TaskAssignIn) => req<Task>(`/api/projects/${id}/tasks/${taskId}/assign`, { method: 'POST', body: JSON.stringify(body) }),
   taskStatus: (id: number, taskId: number, body: TaskStatusIn) => req<Task>(`/api/projects/${id}/tasks/${taskId}/status`, { method: 'POST', body: JSON.stringify(body) }),
+  markEvidence: (id:number,taskId:number,body:{version:number;revision:number;fingerprint:string;request_key:string}) => req<Task>(`/api/projects/${id}/tasks/${taskId}/evidence-review`,{method:'POST',body:JSON.stringify(body)}),
+  reopenEvidence: (id:number,taskId:number,body:{version:number;reason:string}) => req<Task>(`/api/projects/${id}/tasks/${taskId}/evidence-review/reopen`,{method:'POST',body:JSON.stringify(body)}),
+  completedTasks: (params?:{until?:string;cursor?:string;search?:string;stage_key?:string}) => req<CompletedTasks>('/api/me/completed-tasks?'+new URLSearchParams(Object.entries(params??{}).filter(([,v])=>!!v))),
   myTasks: () => req<MyTasks>('/api/me/tasks'),
   submitTask: (id: number, taskId: number, body: { version: number; note?: string | null; file_ids: number[] }) => req<Task>(`/api/projects/${id}/tasks/${taskId}/submit`, { method: 'POST', body: JSON.stringify(body) }),
   returnTask: (id: number, taskId: number, body: { version: number; reason: string }) => req<Task>(`/api/projects/${id}/tasks/${taskId}/return`, { method: 'POST', body: JSON.stringify(body) }),
-  confirmTask: (id: number, taskId: number, body: { version: number; reason?: string | null }) => req<Task>(`/api/projects/${id}/tasks/${taskId}/confirm`, { method: 'POST', body: JSON.stringify(body) }),
+  confirmTask: (id: number, taskId: number, body: { version: number; reason?: string | null; confirm_as?: string }) => req<Task>(`/api/projects/${id}/tasks/${taskId}/confirm`, { method: 'POST', body: JSON.stringify(body) }),
   dashboard: () => req<DashboardSummary>('/api/dashboard/summary'),
   widgets: () => req<DashboardWidgets>('/api/dashboard/widgets'),
   dashboardRole: () => req<DashboardRole>('/api/dashboard/role'),

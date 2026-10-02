@@ -1,7 +1,7 @@
 {
   "taskWorkflow.autoHint": [
-    "保存所需资料后，任务按同一套房屋证据规则自动满足，无需另行提交审核。",
-    "Saving the required information satisfies this task under the property evidence rules. No separate review submission is required."
+    "资料满足后须由有权查看依据的项目助理或负责人审阅；依据变化后须重新复核。",
+    "Evidence must be reviewed by an authorized project assistant or lead with access to it. Evidence changes require another review."
   ],
   "taskWorkflow.continuingHint": [
     "这是持续事项：现有记录满足本次证据要求，不代表整段施工结束或以后无需继续。",

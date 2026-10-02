@@ -10,7 +10,7 @@ export type FactKind =
   | 'site-record' | 'record' | 'doc-present' | 'field-filled'
   | 'manual-no-proof' | 'ticked'
   | 'gate-confirmed' | 'gate-partial' | 'gate-none' | 'gate-void'
-  | 'nothing-yet';
+  | 'nothing-yet' | 'review-pending' | 'reviewed' | 'record-current';
 
 export interface Fact {
   kind: FactKind;
@@ -43,6 +43,10 @@ export function factOf(item: StepItem): Fact {
   const out = (kind: FactKind, label: string, basis: string[], indicator: Fact['indicator']): Fact =>
     hint ? { kind, label: systemText(label), basis, indicator, hint: systemText(hint) } : { kind, label: systemText(label), basis, indicator };
 
+  if (item.review_state==='reviewed') return out('reviewed',uiText('review.reviewed'),list(whoAt(item),ev),'success');
+  if (item.review_state==='recheck') return out('review-pending',uiText('review.recheck'),list(ev),'warning');
+  if (item.review_state==='pending') return out('review-pending',uiText('review.pending'),list(ev),'pending');
+  if (item.counts_as_task===false && item.condition_met) return out('record-current',uiText('review.continuing'),list(ev),'pending');
   if (item.confirmation_mode === 'any') {
     if (item.done) return out('gate-confirmed', uiText('stepsPanel.confirmed'), list(whoAt(item), ev), 'success');
     if (item.needs_review) return out('gate-void', uiText('taskSummaryPanel.prerequisites.changed.review.required'), [], 'warning');

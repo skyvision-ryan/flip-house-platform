@@ -169,6 +169,7 @@ def compute_steps(db: Session, p: models.Project, hide_money: bool = False) -> d
                 last = max((r for r in recs.values() if r and r.done), key=lambda r: r.done_at or "", default=None)
                 m = last
                 done = manual_done
+                gate_extra = {"ready":True,"confirmation_mode":"all"}
                 how: str | None = "manual" if manual_done else None
                 evidence = why
                 # final：确认后若复检失败，持续不算过门
@@ -230,6 +231,15 @@ def compute_steps(db: Session, p: models.Project, hide_money: bool = False) -> d
     else:
         current = {"key": cur["key"], "label": cur["label"], "index": idx + 1}
         next_up = [{"key": i["key"], "title": i["title"], "owners": i["owners"], "gate": i["gate"]} for i in undone_here[:3]]
+    from .evidence_review import decorate_steps
+    decorate_steps(db, p, stages, tasks)
+    # Recommendations use the same current completion as task pages. The phase
+    # selected above still uses existing gates/conditions and never rolls back
+    # merely because ordinary evidence now needs a human receipt.
+    next_up = [{"key": i["key"], "title": i["title"], "owners": i["owners"], "gate": i["gate"]}
+               for i in cur["items"] if i["counts_as_task"] and not i["done"]][:3]
+    earlier = [{"key": i["key"], "title": i["title"], "owners": i["owners"], "stage": s["label"]}
+               for s in stages[floor:idx] for i in s["items"] if i["counts_as_task"] and not i["done"]]
     progress = [{"history_pending": s["history_pending"], "key": s["key"], "label": s["label"], "short": s["short"], "done": s["done_count"], "total": s["total"],
                  "gate_title": s["gate_title"], "gate_done": s["gate_done"], "gate_confirmed": s["gate_confirmed"], "gate_at": s["gate_at"], "gates": s["gates"]} for s in stages]
     return {"stages": stages, "current_stage": current, "next_up": next_up, "earlier_undone": earlier, "stage_progress": progress,
