@@ -525,3 +525,21 @@ class TaskEvidenceState(Base):
     task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id"), primary_key=True)
     met: Mapped[bool] = mapped_column(Boolean)
     observed_at: Mapped[Optional[str]] = mapped_column(String)
+
+
+class TaskWorkflowTransition(Base):
+    """One counted state change per structured source event; timestamps are explicit UTC."""
+    __tablename__ = "task_workflow_transitions"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    event_id: Mapped[int] = mapped_column(ForeignKey("task_events.id"), unique=True)
+    event: Mapped[TaskEvent] = relationship()
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), index=True)
+    task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id"), index=True)
+    kind: Mapped[str] = mapped_column(String)
+    created_at: Mapped[str] = mapped_column(String, default=created_now, index=True)
+
+
+class WorkflowBaseline(Base):
+    __tablename__ = "workflow_baselines"
+    key: Mapped[str] = mapped_column(String, primary_key=True)
+    started_at: Mapped[str] = mapped_column(String, default=created_now)

@@ -82,6 +82,9 @@ def _access(db: Session, project_id: int, user: Optional[models.User], actor: st
                 models.ProjectMember.user_id == user.id, models.ProjectMember.active.is_(True)))
             if member is None:
                 raise HTTPException(403, "你不是本项目的有效成员，不能查看或修改采购明细")
+    if not read_only:
+        from ..task_activity import observe_procurement
+        observe_procurement(db, project_id, user)
     return project
 
 

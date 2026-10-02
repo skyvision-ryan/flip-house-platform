@@ -189,7 +189,7 @@
   "backend.sale.documents": "卖房文件",
   "backend.arrange.lawn.care": "安排园丁剪草",
   "backend.design.proposals.and.final.designs": "设计方案、设计定稿",
-  "backend.view.all.project.summaries.handle.utilities.account.details.and.insurance": "查看全部项目概况，办理水电瓦斯及账户资料、保险；无财务金额、分派或 D/J 审批权",
+  "backend.view.all.project.summaries.handle.utilities.account.details.and.insurance": "查看全部项目概况，分派任务，办理水电瓦斯及账户资料、保险；仅能审阅有权访问的普通任务依据，无财务金额或关键节点确认权",
   "backend.maintain.requirements.orders.and.receipt.status.handle.tasks.assigned.to": "维护采购清单、下单与到货状态；执行本人被分派的任务",
   "backend.view.amounts.maintain.budgets.and.expenses.and.upload.invoices.no": "查看金额、维护预算和支出、上传发票；无定价、项目管理或节点确认权",
   "backend.design.proposals.and.final.designs.permit.documents.and.inspection.records": "设计方案与定稿、permit 文件、检查记录；无 D/J 节点确认权",
@@ -624,5 +624,10 @@
   "server.procurement.row.has.orders": "该需求已关联订单，不能删除；误选请在订单中移除商品，或标为本房不需要",
   "server.procurement.row.has.images": "该需求有图片，请先移除图片再删除",
   "server.procurement.row.has.legacy.purchase": "该需求保留着旧购买记录，不能删除；请改为标记本房不需要",
-  "server.clockTimezoneRequired": "The comparison clock must have an explicit timezone"
+  "server.clockTimezoneRequired": "The comparison clock must have an explicit timezone",
+  "server.activityWindowInvalid": "统计窗口无效，请刷新工作台",
+  "server.activityCursorInvalid": "动态分页位置无效，请重新打开明细",
+  "server.reviewerProtected": "已有审核人会保留，不能通过分派覆盖",
+  "server.reviewerInvalid": "请选择有效且有审核权限的账号",
+  "server.maintenance": "发布维护中，请稍后重试"
 }

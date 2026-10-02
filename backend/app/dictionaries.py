@@ -144,7 +144,7 @@ ROLES = [
     {"code": "W", "label": "W", "tier": "teal", "duties": "卖房文件"},
     {"code": "A", "label": "A", "tier": "teal", "duties": "安排园丁剪草"},
     {"code": "设计师", "label": "设计师", "tier": "teal", "duties": "设计方案、设计定稿"},
-    {"code": "项目助理", "label": "项目助理", "tier": "teal", "duties": "查看全部项目概况，办理水电瓦斯及账户资料、保险；无财务金额、分派或 D/J 审批权"},
+    {"code": "项目助理", "label": "项目助理", "tier": "teal", "duties": "查看全部项目概况，分派任务，办理水电瓦斯及账户资料、保险；仅能审阅有权访问的普通任务依据，无财务金额或关键节点确认权"},
     {"code": "采购", "label": "采购", "tier": "teal", "duties": "维护采购清单、下单与到货状态；执行本人被分派的任务"},
     {"code": "财务", "label": "财务", "tier": "teal", "duties": "查看金额、维护预算和支出、上传发票；无定价、项目管理或节点确认权"},
     {"code": "Permit/设计", "label": "Permit / 设计", "tier": "teal", "duties": "设计方案与定稿、permit 文件、检查记录；无 D/J 节点确认权"},
@@ -180,7 +180,9 @@ PERMISSIONS = {
     "upload_any":        ["purple", "blue"],          # 传任何类型的文件
     "tick_any":          ["purple", "blue"],          # 代任何人打勾
     "confirm_for_others": ["负责人"],                  # 代 D/J 确认大节点
-    "assign_tasks":      ["purple", "blue"],          # KAN-75：把任务分派给具体账号、改派、改截止；也能「加入项目并分派」
+    "assign_tasks":      ["purple", "blue", "项目助理"],
+    "evidence_review":   ["D", "J", "负责人", "项目助理"],
+    "submission_reviewer": ["purple", "blue"],
 }
 
 # ---------------- KAN-75：任务实例的执行状态与事件 ----------------
@@ -193,6 +195,9 @@ TASK_EXEC_STATUSES = [
     {"value": "done", "label": "已完成", "kind": "success"},
 ]
 TASK_EVENT_KINDS = {
+    "reviewer_set": "指定审核人",
+    "procurement_completed": "采购实际备齐",
+    "procurement_reopened": "采购重新未备齐",
     "assistant_changed": "变更协办",
     "evidence_satisfied": "任务条件已满足",
     "evidence_missing": "任务条件需补充",

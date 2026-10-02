@@ -64,9 +64,10 @@ def commit_evidence(db, project_id, before, actor=None):
             changed = db.execute(update(models.TaskEvidenceState).where(
                 models.TaskEvidenceState.task_id == tid, models.TaskEvidenceState.met != value["met"]
             ).values(met=value["met"], observed_at=models.now_iso()))
-            if changed.rowcount:
+            if changed.rowcount and before.get(tid, value)["met"] != value["met"]:
                 db.add(models.TaskEvent(task_id=tid, project_id=project_id,
                        kind="evidence_satisfied" if value["met"] else "evidence_missing",
+                       actor_user_id=db.info.get("actor_user_id"),
                        actor_role_snapshot=actor, before_json=json.dumps({"met": not value["met"]}),
                        after_json=json.dumps(value)))
     db.commit()

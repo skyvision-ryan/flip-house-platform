@@ -39,10 +39,14 @@ async def lifespan(app: FastAPI):
         from .routers.tasks import ensure_tasks
         for pid in db.scalars(select(models.Project.id)).all():
             ensure_tasks(db, pid)
+        from .task_activity import initialize
+        initialize(db)
     yield
 
 
 app = FastAPI(title="翻新项目平台 API", version="0.1.0", lifespan=lifespan)
+from .maintenance import WriteBarrier
+app.add_middleware(WriteBarrier)
 @app.exception_handler(StarletteHTTPException)
 async def localized_error_metadata(request, exc):
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail, **exception_metadata(exc)}, headers=exc.headers)
@@ -62,7 +66,9 @@ for r in (auth, meta, dashboard, lookup, projects, property_data, files, budget,
 
 @app.get("/api/health")
 def health():
-    return {"ok": True, "commit": os.getenv("RENDER_GIT_COMMIT", "local")[:7]}
+    from .settings import DATA_DIR
+    return {"ok": True, "commit": os.getenv("RENDER_GIT_COMMIT", "local")[:7],
+            "write_barrier": True, "maintenance": (DATA_DIR / "WRITE_MAINTENANCE").exists()}
 
 
 # ---- 生产环境：同一容器提供前端静态文件（本地开发时 dist 不存在则跳过）----
