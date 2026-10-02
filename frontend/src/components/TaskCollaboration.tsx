@@ -15,7 +15,7 @@ import FormField from './ui/FormField';
 import Header from './ui/Header';
 
 /** Notes remain independent of delivery batches and task state. */
-export default function TaskCollaboration({task, meId, onChanged}: {task: Task; meId: number | null; onChanged: (task: Task) => void}) {
+export default function TaskCollaboration({task, meId, onChanged, showPeople = true}: {showPeople?: boolean; task: Task; meId: number | null; onChanged: (task: Task) => void}) {
   useLanguage();
   const { me } = useActor(); const meta = useMeta();
   const [text, setText] = useState('');
@@ -30,7 +30,7 @@ export default function TaskCollaboration({task, meId, onChanged}: {task: Task; 
     finally { setBusy(false); }
   };
   return <section aria-label={m('assistant.notes')}><SpaceBetween size="s">
-    <Box><b>{m('projectPreplan.primary.assignee')}</b>: {task.assignee?.display_name ?? m('personAvatar.unassigned')}<br /><b>{m('assistant.label')}</b>: {task.assistant?.display_name ?? m('assistant.none')}{task.assistant?.id === meId && ` (${m('assistant.mine')})`}</Box>
+    {showPeople && <Box><b>{m('projectPreplan.primary.assignee')}</b>: {task.assignee?.display_name ?? m('personAvatar.unassigned')}<br /><b>{m('assistant.label')}</b>: {task.assistant?.display_name ?? m('assistant.none')}{task.assistant?.id === meId && ` (${m('assistant.mine')})`}</Box>}
     {task.assistant?.id === meId && <Box color="text-body-secondary">{m('assistant.permissions')}</Box>}
     <Header variant="h3">{m('assistant.notes')}</Header>
     {(task.notes ?? []).map(note => <div key={note.id}><Box variant="small" color="text-body-secondary">{note.author.display_name} · {dateTime(note.created_at)}</Box><div className="ui-task-note">{note.text}</div></div>)}

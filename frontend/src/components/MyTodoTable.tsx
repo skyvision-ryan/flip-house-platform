@@ -33,7 +33,7 @@ const KIND_LABEL: Record<string, string> = { get file() { return uiText("myTodoT
 type Row = TodoRow;
 
 /** “轮到我做的”表：待办页和工作台小组件共用。行由后端 /api/dashboard/role 给。 */
-export default function MyTodoTable({ rows, onReload, compact = false, actionOnly = false, initialFieldValues = {} }: { rows: Row[] | null; onReload: () => Promise<void> | void; compact?: boolean; actionOnly?: boolean; initialFieldValues?: Record<string, string | number | null | undefined> }) {
+export default function MyTodoTable({ rows, onReload, compact = false, actionOnly = false, actionVariant = 'primary', initialFieldValues = {} }: { rows: Row[] | null; onReload: () => Promise<void> | void; compact?: boolean; actionOnly?: boolean; actionVariant?: 'primary' | 'normal'; initialFieldValues?: Record<string, string | number | null | undefined> }) {
   useLanguage();
   const navigate = useNavigate();
   const role = useRole();
@@ -122,7 +122,7 @@ export default function MyTodoTable({ rows, onReload, compact = false, actionOnl
 
   return (
     <>
-      {actionOnly ? <SpaceBetween direction="horizontal" size="s">{(rows ?? []).map(row => <Button key={row.item.key} variant="primary" onClick={() => openAction(row)}>{actionLabel(row.item, { actor: role.actor, canDo: canActOn(row.item, role) })}</Button>)}</SpaceBetween> : <Table cardId="legacy-todo"
+      {actionOnly ? <SpaceBetween direction="horizontal" size="s">{(rows ?? []).map(row => <Button key={row.item.key} variant={actionVariant} onClick={() => openAction(row)}>{actionLabel(row.item, { actor: role.actor, canDo: canActOn(row.item, role) })}</Button>)}</SpaceBetween> : <Table cardId="legacy-todo"
         variant={compact ? 'embedded' : 'container'}
         loading={rows === null}
         loadingText={uiText("myTodoTable.checking.which.properties.need.your.action")}

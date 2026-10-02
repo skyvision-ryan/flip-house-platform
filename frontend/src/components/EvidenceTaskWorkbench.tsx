@@ -51,23 +51,19 @@ export default function EvidenceTaskWorkbench({ task, onChanged }: { task: Task;
     if(request.current?.revision!==state.revision)request.current={revision:state.revision,key:crypto.randomUUID()};
     try{onChanged(await api.markEvidence(task.project_id,task.id,{version:task.version,revision:state.revision,fingerprint:state.fingerprint,request_key:request.current.key}));}catch(e:any){setError(e.message);}finally{setBusy(false);}};
   return <SpaceBetween size="m">
-    {state&&<StatusIndicator type={state.state==='reviewed'?'success':state.state==='recheck'?'warning':'pending'}>{m(state.state==='reviewed'?'review.reviewed':state.state==='recheck'?'review.recheck':state.state==='pending'?'review.pending':'taskWorkflow.missing')}</StatusIndicator>}
-    {state&&<Box>{m('review.version',{revision:state.revision})}</Box>}
+    {state&&<StatusIndicator type={state.state==='reviewed'?'success':state.state==='recheck'?'warning':'pending'}>{m(state.state==='reviewed'?'review.reviewed':state.state==='recheck'?'review.recheck':state.state==='pending'?'review.pending':'workbench.missingEvidence')}</StatusIndicator>}
     {state?.receipt&&<Box>{m(state.state==='reviewed'?'review.by':'review.previousBy',{person:state.receipt.reviewer?.display_name??m('taskSummaryPanel.system'),at:dateTime(state.receipt.reviewed_at)})}</Box>}
-    {task.actions?.mark_evidence&&<Button variant="primary" loading={busy} onClick={()=>void mark()}>{m('review.mark')}</Button>}
-    {task.actions?.reopen_evidence&&<SpaceBetween size="s"><FormField label={m('review.reason')}><Textarea value={returnReason} onChange={({detail})=>setReturnReason(detail.value)}/></FormField><Button loading={busy} disabled={!returnReason.trim()} onClick={async()=>{setBusy(true);try{onChanged(await api.reopenEvidence(task.project_id,task.id,{version:task.version,reason:returnReason.trim()}));setReturnReason('');setError('');}catch(e:any){setError(e.message);}finally{setBusy(false);}}}>{m('review.reopen')}</Button></SpaceBetween>}
-    {task.completion_mode==='evidence'&&!task.actions?.review_evidence&&<Box color="text-body-secondary">{m('review.denied')}</Box>}
 
-    {!state&&<StatusIndicator type="pending">{m(task.satisfied ? task.completion_mode === 'record' ? 'taskWorkflow.recordMet' : 'taskWorkflow.met' : 'taskWorkflow.missing')}</StatusIndicator>}
+    {!state&&<StatusIndicator type="pending">{m(task.satisfied ? task.completion_mode === 'record' ? 'taskWorkflow.recordMet' : 'taskWorkflow.met' : 'workbench.missingEvidence')}</StatusIndicator>}
     <Box color="text-body-secondary">{m(task.completion_mode === 'record' ? 'taskWorkflow.continuingHint' : 'taskWorkflow.autoHint')}</Box>
-    <Facts columns={2} items={[
+    <Facts columns={3} items={[
       { label: m('task.assignee'), value: task.assignee?.display_name ?? m('taskWorkflow.notAssigned') },
+      { label: m('assistant.label'), value: <>{task.assistant?.display_name ?? m('assistant.none')}{task.assistant?.id === me?.id && ` (${m('assistant.mine')})`}</> },
       { label: m('taskTable.due'), value: dateStr(task.due_at) },
-      { label: m('taskWorkflow.criterion'), value: systemText(task.done_when) || '—' },
       ...(task.exec_status === 'waiting' ? [{ label: m('taskSummaryPanel.waiting.for'), value: `${task.wait_for || '—'} · ${task.wait_reason || '—'}` }] : []),
       ...(task.exec_status === 'waiting' && task.wait_until ? [{ label: m('taskWaitModal.expected.response.date.optional'), value: dateStr(task.wait_until) }] : []),
-      { label: m('taskWorkflow.currentEvidence'), value: currentEvidence },
     ]} />
+    <section className="task-evidence-requirements"><h3>{m('taskWorkflow.criterion')}</h3><p>{systemText(task.done_when) || '—'}</p><h3>{m('taskWorkflow.currentEvidence')}</h3><p>{currentEvidence}</p></section>
     {(utilities.length>0||analysis)&&<ExpandableSection headerText={m('review.evidenceSummary')} defaultExpanded><Facts columns={2} items={[
       ...utilities.map(u=>({label:labelOf(meta?.utility_kinds,u.kind),value:labelOf(meta?.utility_statuses,u.status)})),
       ...(analysis?[
@@ -88,7 +84,12 @@ export default function EvidenceTaskWorkbench({ task, onChanged }: { task: Task;
     {preview != null && <ImageViewer images={images} selectedId={preview} onClose={() => setPreview(null)} />}
     {error && <Alert type="error" action={<Button onClick={refresh}>{m('review.refresh')}</Button>}>{systemText(error)}</Alert>}
     {!data && !error && <Box>{m('taskWorkflow.loading')}</Box>}
-    {data && item && <MyTodoTable actionOnly initialFieldValues={{ risks: data.project.risks, purchase_price: data.project.purchase_price }} rows={[{ project: { project_id: task.project_id, project_name: task.project_name, address: task.project_address, stage: data.project.stage }, stage: task.stage_label, item, is_current: task.stage_index === task.project_current_stage_index, for_confirm: false }]} onReload={refresh} />}
+    <div className="task-evidence-actions">
+    {task.actions?.mark_evidence&&<Button variant="primary" loading={busy} onClick={()=>void mark()}>{m('review.mark')}</Button>}
+    {task.actions?.reopen_evidence&&<SpaceBetween size="s"><FormField label={m('review.reason')}><Textarea value={returnReason} onChange={({detail})=>setReturnReason(detail.value)}/></FormField><Button loading={busy} disabled={!returnReason.trim()} onClick={async()=>{setBusy(true);try{onChanged(await api.reopenEvidence(task.project_id,task.id,{version:task.version,reason:returnReason.trim()}));setReturnReason('');setError('');}catch(e:any){setError(e.message);}finally{setBusy(false);}}}>{m('review.reopen')}</Button></SpaceBetween>}
+    {task.completion_mode==='evidence'&&!task.actions?.review_evidence&&<Box color="text-body-secondary">{m('review.denied')}</Box>}
+
+    {data && item && <MyTodoTable actionOnly actionVariant="normal" initialFieldValues={{ risks: data.project.risks, purchase_price: data.project.purchase_price }} rows={[{ project: { project_id: task.project_id, project_name: task.project_name, address: task.project_address, stage: data.project.stage }, stage: task.stage_label, item, is_current: task.stage_index === task.project_current_stage_index, for_confirm: false }]} onReload={refresh} />}
     {(task.actions?.wait || task.actions?.resume) && <Button onClick={async () => {
       if (task.exec_status !== 'waiting') { setWaiting(true); return; }
       try { onChanged(await api.taskStatus(task.project_id, task.id, { version: task.version, action: 'resume' })); } catch (e: any) { setError(e.message); }
@@ -96,7 +97,8 @@ export default function EvidenceTaskWorkbench({ task, onChanged }: { task: Task;
     {task.actions?.start&&<Button loading={busy} onClick={async()=>{setBusy(true);try{onChanged(await api.taskStatus(task.project_id,task.id,{version:task.version,action:'start'}));}catch(e:any){setError(e.message);}finally{setBusy(false);}}}>{m('taskWorkbench.start.work')}</Button>}
     {waiting && <TaskWaitModal task={task} onDone={next => { setWaiting(false); onChanged(next); }} onDismiss={() => setWaiting(false)} onConflict={() => { void refresh(); }} />}
     <Button variant="link" onClick={() => navigate(`/projects/${task.project_id}?tab=overview&step=${task.step_key}`)}>{m('taskWorkflow.goProperty')}</Button>
-    <ExpandableSection headerText={m('taskWorkflow.history')} defaultExpanded>
+    </div>
+    <ExpandableSection headerText={m('taskWorkflow.history')}>
       <TaskTimeline projectId={task.project_id} taskId={task.id} refreshKey={task.version + (task.satisfied ? 1 : 0)} />
       <SubmissionList subs={task.submissions} />
     </ExpandableSection>
