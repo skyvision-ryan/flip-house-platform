@@ -44,6 +44,7 @@ export default function ProcurementWorkspace() {
   const [view, setView] = useState(['orders', 'pending', 'excluded'].includes(params.get('view') || '') ? params.get('view')! : 'items');
   const [selectedId, setSelectedId] = useState<number | null>(Number(params.get('item')) || null);
   const [editing, setEditing] = useState<number | null>(params.get('edit') ? Number(params.get('item')) : null);
+  const [arrivalsOpen, setArrivalsOpen] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [adding, setAdding] = useState<number | null>(params.get('new') ? Number(params.get('project')) : null);
 
@@ -78,7 +79,10 @@ export default function ProcurementWorkspace() {
     if (element) { element.scrollIntoView({ block: 'center' }); focused.current = true; }
   }, [data, waves, selectedId, house]);
   const {items: houseItems, orders: houseOrders, task} = houseProcurement(data, orders, house);
-  const pending = pendingRequirements(houseItems);
+  const newById = new Map((data?.new_requirements ?? []).filter(n => String(n.project_id) === house).map(n => [n.item_id, n]));
+  const houseArrivals = (data?.arrivals ?? []).filter(a => String(a.project_id) === house);
+  // Colleagues' untouched additions float to the top of the pending queue; the queue order is otherwise by maintenance time.
+  const pending = [...pendingRequirements(houseItems)].sort((a, b) => Number(newById.has(b.id)) - Number(newById.has(a.id)));
   const scopeItems = view === 'pending' ? pending : view === 'excluded' ? houseItems.filter(i => i.status === 'na') : houseItems;
   const visible = scopeItems.filter(row => (view === 'pending' || view === 'excluded' || (attentionOnly ? procurementNeedsAttention(row) : row.in_worklist || row.id === selectedId)) && `${materialSearchText(row)} ${row.note ?? ''} ${row.specification ?? ''}`.toLowerCase().includes(query.trim().toLowerCase()));
   const changeView = (next: string) => { setView(next); setQuery(''); setAttentionOnly(false); setCollapsed([]); setSelectedId(null); setEditing(null); };
@@ -117,12 +121,22 @@ export default function ProcurementWorkspace() {
         <div className="proc-status-key"><dt>{uiText("procurementWorkspace.procurement.progress")}</dt><dd><StatusIndicator type={progress?.complete ? 'success' : task?.assignee ? 'in-progress' : 'pending'}>{progress?.complete ? uiText("procurementTask.all.required.items.ready") : task?.assignee ? uiText("procurementTask.procurement.in.progress") : uiText("personAvatar.unassigned")}</StatusIndicator></dd></div>
         <div className="proc-status-key"><dt>{uiText("procurementTask.all.required.items.ready")}</dt><dd>{progress ? <>{progress.ready} <small>/ {progress.total} {uiText("projectPreplan.items")}</small></> : uiText("procurementItemRow.needs.verification")}</dd></div>
         <div className="proc-status-key"><dt>{uiText("procurementSummary.follow.up.needed")}</dt><dd>{attentionCount ? <button type="button" className="proc-attention-filter" disabled={houseLocked} aria-pressed={attentionOnly && view === 'items'} title={attentionOnly && view === 'items' ? uiText("procurementWorkspace.restore.procurement.list") : uiText("procurementWorkspace.follow.up.needed.only")} onClick={() => {setView('items'); setQuery(''); setAttentionOnly(!(attentionOnly && view === 'items')); setCollapsed([]); setSelectedId(null);}}>{attentionCount} <small>{uiText("projectPreplan.items")}{attentionOnly && view === 'items' ? uiText("procurementWorkspace.filter.active") : ''}</small></button> : uiText("procurementWorkspace.none")}</dd></div>
+        <div className="proc-status-key"><dt>{uiText("procurementWorkspace.new.requirements.to.handle")}</dt><dd>{newById.size ? <button type="button" className="proc-attention-filter" disabled={houseLocked} aria-pressed={view === 'pending'} onClick={() => changeView('pending')}>{newById.size} <small>{uiText("projectPreplan.items")}</small></button> : uiText("procurementWorkspace.none")}</dd></div>
+        <div className="proc-status-key"><dt>{uiText("procurementWorkspace.arrival.reminders")}</dt><dd>{houseArrivals.length ? <button type="button" className="proc-attention-filter" disabled={houseLocked} aria-pressed={arrivalsOpen} aria-controls="proc-arrivals" onClick={() => setArrivalsOpen(!arrivalsOpen)}>{houseArrivals.length} <small>{uiText("projectPreplan.items")}</small></button> : uiText("procurementWorkspace.none")}</dd></div>
         <div><dt>{uiText('task.assignee')}</dt><dd>{task?.assignee?.display_name || uiText("personAvatar.unassigned")}</dd></div>
         <div><dt>{uiText("procurementWorkspace.procurement.due.date")}</dt><dd>{task?.due_at || uiText("leadershipProjectDetail.not.set")}</dd></div>
         <div><dt>{uiText("procurementWorkspace.orders")}</dt><dd>{houseOrders.length ? uiText("counts.orders", { count: (houseOrders.length) }) : uiText("purchaseOrderCoverage.no.orders")}</dd></div>
         <div><dt>{uiText("purchaseOrderCoverage.recorded.net.order.amount")}</dt><dd>{systemText(total.label)}{total.missing > 0 && <small className="proc-status-note">{total.missing} {uiText("procurementWorkspace.orders.without.payment.amounts")}</small>}</dd></div>
         {(canWrite || task) && <div className="proc-status-manage">{canWrite && <Button variant="inline-link" disabled={houseLocked} onClick={()=>setManaging(true)}>{uiText("procurementWorkspace.manage.procurement")}</Button>}{task && <Button variant="inline-link" disabled={houseLocked} onClick={()=>navigate(historyHref)}>{uiText("procurementWorkspace.project.procurement.history")}</Button>}</div>}
       </dl>
+    </section>}
+    {currentHouse && arrivalsOpen && houseArrivals.length > 0 && <section id="proc-arrivals" className="proc-arrivals" aria-label={uiText("procurementWorkspace.arrival.reminders")}>
+      <div className="proc-arrivals-head"><strong>{uiText("procurementWorkspace.arrival.reminders")}</strong><span>{uiText("procurementWorkspace.arrival.hint")}</span><Button variant="inline-link" onClick={() => setArrivalsOpen(false)}>{uiText("procurementItemRow.collapse")}</Button></div>
+      <ul>{houseArrivals.map(a => <li key={`${a.order_id}-${a.kind}-${a.line_id ?? a.name}`}>
+        <span className="proc-arrival-name">{a.kind === 'line' ? orderLineName({ name: a.name, material_id: a.material_id }, houseItems) : a.name}</span>
+        <span className="proc-arrival-meta">{a.order_title} · {uiText("sentences.estimated.2", { value1: a.expected_on })}{a.remaining ? ` · ${uiText("purchaseOrderCoverage.still.needed")} ${a.remaining} ${systemText(a.unit)}` : ''} <StatusIndicator type={a.days_overdue ? 'error' : 'warning'}>{a.days_overdue ? uiText("counts.overdue.days", { count: a.days_overdue }) : uiText("procurementWorkspace.chip.due.today")}</StatusIndicator></span>
+        <span className="proc-arrival-actions"><Button variant="inline-link" disabled={houseLocked} onClick={() => navigate(orderHref(`/procurement/orders?project=${a.project_id}&order=${a.order_id}`))}>{uiText("procurementWorkspace.open.order")}</Button>{a.tracking_url && <ExternalLink external href={a.tracking_url}>{uiText("procurementItemRow.tracking")}</ExternalLink>}{canWrite && a.line_id && <Button variant="inline-link" disabled={houseLocked} onClick={() => navigate(orderHref(`/procurement/orders?project=${a.project_id}&order=${a.order_id}&receive=${a.line_id}`))}>{uiText("purchaseOrders.record.receipt.for.this.item")}</Button>}</span>
+      </li>)}</ul>
     </section>}
     </div>
     <Modal visible={switching} header={uiText("procurementWorkspace.switch.procurement.property")} onDismiss={()=>setSwitching(false)}>
@@ -179,7 +193,7 @@ export default function ProcurementWorkspace() {
           return <section className="proc-material-group" key={group.value}>
             <h3><button type="button" disabled={dirty && rows.some(r => r.id === editing)} aria-expanded={open} aria-controls={`proc-group-${group.value}`} onClick={() => setCollapsed(open ? [...collapsed,group.value] : collapsed.filter(g => g !== group.value))}><Icon name={open ? 'angle-down' : 'angle-right'} /><span>{systemText(group.label)}</span><small>{uiText("counts.items", { count: rows.length })}</small></button></h3>
             {open && <div id={`proc-group-${group.value}`}>
-            <div className="ui-proc-items">{rows.map(row => <ProcurementItemRow key={row.id} row={row} readOnly={!canWrite} orders={houseOrders} waves={waves} expanded={selectedId===row.id} statusLabel={statuses.find(s=>s.value===row.status)?.label||row.status} onToggle={()=>choose(row.id)} onEdit={()=>{if(dirty){setError(uiText("procurementWorkspace.save.or.discard.changes.first"));return;}setEditing(editing===row.id?null:row.id);}} onOrder={id=>{if(dirty){setError(uiText("procurementWorkspace.save.or.discard.changes.first"));return;}navigate(orderHref(`/procurement/orders?project=${p.id}&material=${row.id}&order=${id}`));}} onDeleted={canWrite && !houseLocked ? afterDelete : undefined}>
+            <div className="ui-proc-items">{rows.map(row => <ProcurementItemRow key={row.id} row={row} readOnly={!canWrite} orders={houseOrders} waves={waves} expanded={selectedId===row.id} statusLabel={statuses.find(s=>s.value===row.status)?.label||row.status} newBy={newById.get(row.id)} onToggle={()=>choose(row.id)} onEdit={()=>{if(dirty){setError(uiText("procurementWorkspace.save.or.discard.changes.first"));return;}setEditing(editing===row.id?null:row.id);}} onOrder={id=>{if(dirty){setError(uiText("procurementWorkspace.save.or.discard.changes.first"));return;}navigate(orderHref(`/procurement/orders?project=${p.id}&material=${row.id}&order=${id}`));}} onDeleted={canWrite && !houseLocked ? afterDelete : undefined}>
               {editing===row.id && <ProcurementItemEditor key={row.id} materialId={row.id} houseId={p.id} onDirty={setDirty} onClose={()=>{setEditing(null);setDirty(false);}} onSaved={load} onDeleted={afterDelete} />}
             </ProcurementItemRow>)}</div>
             </div>}

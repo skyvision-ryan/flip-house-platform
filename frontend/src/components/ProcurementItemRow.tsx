@@ -25,9 +25,9 @@ function Facts({ facts, wide = [] }: { facts: Fact[]; wide?: string[] }) {
 }
 
 /** One material: the seven row facts stay visible; 查看详情 opens requirement, orders, receipts and links. */
-export default function ProcurementItemRow({ row, orders, waves, expanded, statusLabel, onToggle, onEdit, onOrder, onDeleted, children, readOnly=false }: {
+export default function ProcurementItemRow({ row, orders, waves, expanded, statusLabel, onToggle, onEdit, onOrder, onDeleted, newBy, children, readOnly=false }: {
   readOnly?: boolean; children?: ReactNode; row: ProcurementItem; orders: PurchaseOrder[]; waves: NodeOption[]; expanded: boolean; statusLabel: string;
-  onToggle: () => void; onEdit: () => void; onOrder: (id: number) => void; onDeleted?: () => void | Promise<void>;
+  onToggle: () => void; onEdit: () => void; onOrder: (id: number) => void; onDeleted?: () => void | Promise<void>; newBy?: { added_by: string; added_at: string };
 }) {
   useLanguage();
   const [image, setImage] = useState<number | null>(null);
@@ -41,7 +41,7 @@ export default function ProcurementItemRow({ row, orders, waves, expanded, statu
   const images = row.images ?? [];
   return <article className="ui-proc-item" data-expanded={expanded}>
     <div id={`proc-item-${row.id}`} tabIndex={-1} className="ui-proc-item-main">
-      <div className="proc-material-main"><div className="ui-proc-item-name"><strong>{materialName(row)}</strong>{row.specification && <span className="proc-material-secondary">{row.specification}</span>}</div><StatusIndicator type={tone}>{systemText(purchase.progress ?? statusLabel)}</StatusIndicator></div>
+      <div className="proc-material-main"><div className="ui-proc-item-name"><strong>{materialName(row)}</strong>{row.specification && <span className="proc-material-secondary">{row.specification}</span>}</div><span className="proc-material-chips"><StatusIndicator type={tone}>{systemText(purchase.progress ?? statusLabel)}</StatusIndicator>{newBy && <span className="proc-new-chip">{uiText("procurementItemRow.new.requirement.by", { value1: newBy.added_by || uiText("purchaseOrders.procurement.entry"), value2: newBy.added_at.slice(5, 10) })}</span>}</span></div>
       <dl className="proc-material-facts">
         <div className="proc-material-cell"><dt>{uiText("procurementFields.required.quantity")}</dt><dd>{row.required_quantity ?? uiText("procurementItemRow.not.entered")} {unit}</dd></div>
         {purchase.linked.length ? <>

@@ -274,5 +274,9 @@
   "procurementItemRow.original.tracking": [
     "原物流",
     "Original tracking"
+  ],
+  "procurementItemRow.new.requirement.by": [
+    "新需求 · {{value1}} · {{value2}}",
+    "New · {{value1}} · {{value2}}"
   ]
 }

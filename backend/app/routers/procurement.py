@@ -1,7 +1,8 @@
 """采购清单：按节点波次管理选型 / 下单 / 到货 / 异常。"""
 
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from io import BytesIO
 from pathlib import Path
 import warnings
@@ -143,7 +144,60 @@ def procurement_tracking(db: Session = Depends(get_db), me: models.User = Depend
         if purchase:
             tasks.extend(_tasks_payload(db, project, [purchase], me.role_code))
     return {"tasks": tasks, "projects": [{"id": p.id, "name": p.name, "address": p.property.address_std} for p in scoped_projects],
-            "items": [{**schemas.ProcurementItemOut.model_validate(row).model_dump(), **projected.get(row.id, {}), "attention_reasons": attention[row.id], "in_worklist": _in_worklist(row, projected, attention), "project_name": visible[row.project_id]} for row in rows], "source": "manual"}
+            "items": [{**schemas.ProcurementItemOut.model_validate(row).model_dump(), **projected.get(row.id, {}), "attention_reasons": attention[row.id], "in_worklist": _in_worklist(row, projected, attention), "project_name": visible[row.project_id]} for row in rows], "source": "manual",
+            "new_requirements": _new_requirements(db, me, rows, projected, visible), "arrivals": _arrivals(db, visible)}
+
+
+def _new_requirements(db: Session, me: models.User, rows, projected, visible: dict) -> list[dict]:
+    """Requirements colleagues added in the last 30 days that nobody has acted on: still pending_spec, no order. No read state is stored."""
+    cutoff = (datetime.now() - timedelta(days=30)).isoformat(timespec="seconds")
+    by_id = {row.id: row for row in rows}
+    events = db.scalars(select(models.TaskEvent).where(models.TaskEvent.kind == "procurement_requirement_added",
+        models.TaskEvent.project_id.in_(visible), models.TaskEvent.created_at >= cutoff).order_by(models.TaskEvent.created_at.desc(), models.TaskEvent.id.desc())).all()
+    output, seen = [], set()
+    for event in events:
+        after = json.loads(event.after_json or "{}")
+        row = by_id.get(after.get("item_id"))
+        if row is None or row.id in seen or event.actor_user_id == me.id or row.status != "pending_spec" or row.id in projected:
+            continue
+        seen.add(row.id)
+        actor = db.get(models.User, event.actor_user_id) if event.actor_user_id else None
+        output.append({"item_id": row.id, "project_id": row.project_id, "project_name": visible[row.project_id], "name": row.name, "wave": row.wave,
+                       "added_by": actor.display_name if actor else "", "added_at": event.created_at})
+    return output
+
+
+def _arrivals(db: Session, visible: dict) -> list[dict]:
+    """Derived, unstored: outstanding lines and delivery batches whose estimated arrival is today or past (LA)."""
+    from ..purchase_orders import OrderDocument, order_label, order_summary
+    from decimal import Decimal
+    today = datetime.now(ZoneInfo("America/Los_Angeles")).date()
+    output = []
+    for order in db.scalars(select(models.PurchaseOrder).where(models.PurchaseOrder.project_id.in_(visible))).all():
+        doc = OrderDocument.model_validate_json(order.document)
+        summary = order_summary(doc)
+        facts = {line["id"]: line for line in summary["lines"]}
+        base = {"order_id": order.id, "project_id": order.project_id, "project_name": visible[order.project_id], "order_title": order_label(doc)}
+        for line in doc.lines:
+            fact = facts[line.id]
+            if line.quantity is not None and line.quantity <= line.cancelled_quantity: continue
+            if not line.expected_on or line.expected_on > today or fact["remaining"] == 0: continue
+            output.append({**base, "kind": "line", "line_id": line.id, "material_id": line.material_id, "name": line.name, "expected_on": line.expected_on.isoformat(),
+                           "days_overdue": (today - line.expected_on).days, "remaining": None if fact["remaining"] is None else str(fact["remaining"]), "unit": line.unit, "tracking_url": str(line.tracking_url) if line.tracking_url else None})
+        for delivery in doc.deliveries:
+            if not delivery.expected_on or delivery.expected_on > today or not delivery.allocations: continue
+            done = True
+            for allocation in delivery.allocations:
+                if facts.get(allocation.line_id, {}).get("remaining") == 0: continue
+                received = sum((a.quantity for receipt in doc.receipts if not receipt.void_reason and receipt.delivery_id == delivery.id
+                                for a in receipt.lines if a.line_id == allocation.line_id), Decimal(0))
+                if received < allocation.quantity: done = False; break
+            if done: continue
+            first = next((l for l in doc.lines if l.id == delivery.allocations[0].line_id), None)
+            output.append({**base, "kind": "delivery", "line_id": first.id if first else None, "material_id": first.material_id if first else None, "name": delivery.label, "expected_on": delivery.expected_on.isoformat(),
+                           "days_overdue": (today - delivery.expected_on).days, "remaining": None, "unit": first.unit if first else "", "tracking_url": str(delivery.tracking_url) if delivery.tracking_url else None})
+    output.sort(key=lambda a: (a["expected_on"], a["order_id"], a["name"]))
+    return output
 
 
 @router.get("/projects/{project_id}/procurement", response_model=schemas.ProcurementListOut)
@@ -180,17 +234,6 @@ def create_procurement(project_id: int, body: schemas.ProcurementCreateIn, db: S
     if body.request_key:
         prior = retry()
         if prior: return prior
-    if body.request_key:
-        events = db.scalars(select(models.TaskEvent).where(models.TaskEvent.project_id == project_id,
-            models.TaskEvent.kind == "procurement_requirement_added")).all()
-        for event in events:
-            prior = json.loads(event.after_json or "{}")
-            if prior.get("request_key") == body.request_key:
-                if prior.get("request_body") != jsonable_encoder(raw):
-                    raise HTTPException(409, "这次新增请求的内容已变化，请重新提交")
-                payload = _payload(db, project_id)
-                payload.created_item_id = prior["item_id"]
-                return payload
     data = _validated(raw)
     wave = data.pop("wave", "other")
     # Additional needs supplement the baseline, including on a not-yet-initialized project.
@@ -205,6 +248,9 @@ def create_procurement(project_id: int, body: schemas.ProcurementCreateIn, db: S
         if body.request_key:
             db.add(models.ProcurementRequest(request_key=body.request_key, project_id=project_id,
                 actor_id=me.id, body_json=fingerprint, item_id=row.id))
+        from .tasks import _event
+        purchase = db.scalar(select(models.Task).where(models.Task.project_id == project_id, models.Task.step_key == "purchase"))
+        _event(db, purchase, project_id, "procurement_requirement_added", me, after={"item_id": row.id, "name": row.name, "wave": wave}, reason=reason)
         log_update(db, project_id, me.role_code, "procurement", reason)
         db.commit()
     except IntegrityError:

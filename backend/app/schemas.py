@@ -619,11 +619,39 @@ class ProcurementProgress(BaseModel):
     nodes: list[ProcurementNodeProgress]
 
 
+class ProcurementNewRequirementOut(BaseModel):
+    item_id: int
+    project_id: int
+    project_name: str
+    name: str
+    wave: str
+    added_by: str = ""
+    added_at: str
+
+
+class ProcurementArrivalOut(BaseModel):
+    kind: str  # line | delivery
+    order_id: int
+    project_id: int
+    project_name: str
+    order_title: str
+    line_id: Optional[str] = None
+    material_id: Optional[int] = None
+    name: str
+    expected_on: str
+    days_overdue: int  # 0 = due today
+    remaining: Optional[str] = None
+    unit: str = ""
+    tracking_url: Optional[str] = None
+
+
 class ProcurementTrackingOut(BaseModel):
     projects: list[ProcurementProjectOut]
     items: list[ProcurementTrackingItemOut]
     source: str = "manual"
     tasks: list["TaskOut"] = Field(default_factory=list)
+    new_requirements: list[ProcurementNewRequirementOut] = Field(default_factory=list)
+    arrivals: list[ProcurementArrivalOut] = Field(default_factory=list)
 
 
 class ProcurementSummary(BaseModel):

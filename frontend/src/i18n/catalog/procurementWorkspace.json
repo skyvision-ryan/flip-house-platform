@@ -254,5 +254,21 @@
   "procurementWorkspace.search.title.merchant.order.number.or.item": [
     "搜索标题、商家、订单号或商品",
     "Search title, merchant, order number or item"
+  ],
+  "procurementWorkspace.new.requirements.to.handle": [
+    "新需求待处理",
+    "New requirements to handle"
+  ],
+  "procurementWorkspace.arrival.reminders": [
+    "到货提醒",
+    "Arrival reminders"
+  ],
+  "procurementWorkspace.arrival.hint": [
+    "预计到货已到期或已过、仍有未收数量的商品；登记到货后自动消失。",
+    "Items with outstanding quantity whose estimated arrival is today or past; they clear once receipt is recorded."
+  ],
+  "procurementWorkspace.open.order": [
+    "打开订单",
+    "Open order"
   ]
 }

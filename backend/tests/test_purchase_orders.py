@@ -320,6 +320,61 @@ class PurchaseOrderTests(unittest.TestCase):
             self.assertEqual(purchase_progress(db, self.pid)['total'], 36)
         self.assertEqual(self.client.get(f"/api/purchase-orders/{order['id']}").status_code, 200)
 
+    def test_new_requirement_event_is_written_once_and_tracking_lists_colleagues_untouched_additions(self):
+        def tracking(who):
+            response = self.clients[who].get('/api/me/procurement-tracking'); self.assertEqual(response.status_code, 200, response.text)
+            return response.json()['new_requirements']
+        body = {'name': 'Synthetic new need', 'wave': 'other', 'request_key': 'new-need-key'}
+        first = self.client.post(f'/api/projects/{self.pid}/procurement', json=body); self.assertEqual(first.status_code, 201, first.text)
+        retry = self.client.post(f'/api/projects/{self.pid}/procurement', json=body); self.assertEqual(retry.status_code, 201, retry.text[:200])
+        item_id = first.json()['created_item_id']; self.assertEqual(retry.json()['created_item_id'], item_id)
+        with Session(self.engine) as db:
+            events = db.scalars(select(models.TaskEvent).where(models.TaskEvent.kind == 'procurement_requirement_added')).all()
+            self.assertEqual(len(events), 1); self.assertEqual(events[0].task_id, self.task_id); self.assertEqual(json.loads(events[0].after_json)['item_id'], item_id)
+            self.assertEqual(db.query(models.ProjectUpdate).filter(models.ProjectUpdate.text.contains('Synthetic new need')).count(), 1)
+        self.assertEqual([n['item_id'] for n in tracking('second')], [item_id])
+        self.assertEqual(tracking('second')[0]['added_by'], 'buyer')
+        self.assertEqual(tracking('buyer'), [])          # one's own additions are not reminders for oneself
+        self.assertEqual(tracking('outsider'), [])       # not a member
+        self.assertEqual(tracking('finance'), [tracking('second')[0]])
+        other = self.client.post(f'/api/projects/{self.pid}/procurement', json={'name': 'Synthetic second need', 'wave': 'other'}).json()['created_item_id']
+        third = self.client.post(f'/api/projects/{self.pid}/procurement', json={'name': 'Synthetic third need', 'wave': 'other'}).json()['created_item_id']
+        self.assertEqual({n['item_id'] for n in tracking('second')}, {item_id, other, third})
+        doc = deepcopy(self.doc); doc['lines'][0]['material_id'] = item_id
+        self.assertEqual(self.create(doc).status_code, 201)                                   # ordered → gone
+        row = self.material(other)
+        self.assertEqual(self.client.post(f'/api/projects/{self.pid}/procurement/not-needed', json={'reason': 'fixture', 'items': [{'id': other, 'updated_at': row['updated_at']}]}).status_code, 200)
+        row = self.material(third)
+        self.assertEqual(self.client.delete(f'/api/procurement/{third}', params={'expected_updated_at': row['updated_at']}).status_code, 200)
+        self.assertEqual(tracking('second'), [])
+
+    def test_arrival_reminders_follow_receipts_and_voids_and_member_scope(self):
+        today = datetime.now(ZoneInfo("America/Los_Angeles")).date().isoformat()
+        def arrivals(who='buyer'):
+            response = self.clients[who].get('/api/me/procurement-tracking'); self.assertEqual(response.status_code, 200, response.text)
+            return response.json()['arrivals']
+        doc = deepcopy(self.doc); doc['title'] = 'Synthetic arrival order'
+        doc['lines'][0]['expected_on'] = today; doc['deliveries'][0]['expected_on'] = today; doc['deliveries'][1]['expected_on'] = None
+        order = self.create(doc).json()
+        from app.procurement_workflow import purchase_overview
+        with Session(self.engine) as db:
+            self.assertEqual(purchase_overview(db, self.pid)['arrival_checks'], 1)   # 网站送达待确认 on the delivered, unreceived batch
+        due = arrivals()
+        self.assertEqual([(a['kind'], a['name'], a['days_overdue']) for a in due], [('delivery', 'First box', 0), ('line', 'Synthetic light', 0)])
+        self.assertEqual(due[1]['order_title'], 'Synthetic arrival order'); self.assertEqual(due[1]['remaining'], '6'); self.assertEqual(due[1]['line_id'], 'lamp')
+        self.assertEqual(arrivals('finance'), due)                      # read-only role still sees reminders
+        self.assertEqual(arrivals('outsider'), [])                      # not a member of the house
+        order = self.receive(order, 'first', '4').json()                # the batch is complete, the line still needs 2
+        self.assertEqual([(a['kind'], a['name']) for a in arrivals()], [('line', 'Synthetic light')])
+        order = self.receive(order, None, '2').json()
+        self.assertEqual(arrivals(), [])
+        receipt_id = order['document']['receipts'][-1]['id']
+        order = self.client.post(f"/api/purchase-orders/{order['id']}/receipts/{receipt_id}/void", json={'request_key': str(uuid4()), 'expected_version': order['version'], 'reason': 'fixture'}).json()
+        self.assertEqual([(a['kind'], a['name']) for a in arrivals()], [('line', 'Synthetic light')])
+        with Session(self.engine) as db:
+            # The workbench count keeps the backend's strict rule: due today is a reminder, not yet "past", and the batch is received.
+            self.assertEqual(purchase_overview(db, self.pid)['arrival_checks'], 0)
+
     def test_one_platform_order_keeps_item_sellers_brands_prices_and_arrivals_separate(self):
         doc = deepcopy(self.doc)
         doc['lines'][0].update(vendor='Synthetic lighting seller', brand='Fixture lights', expected_on='2026-10-02')

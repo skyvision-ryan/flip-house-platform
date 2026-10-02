@@ -105,16 +105,18 @@ export default function PurchaseOrders() {
     setSelected(order); setProjectId(String(order.project_id)); setDoc(order.document); setOriginal(JSON.stringify(order.document));
     setEditing(true); setDetailsOpen(false); setAttempted(false); setReceiptAttempted(false); setSource(''); setPreview(null); setEventNote(''); setReceiving(null); setAdjustment(null); setAdjustmentAttempted(false); setVoidId(''); setError(''); setConflict(false);
   };
-  const open = async (id: number, keepSource = false) => {
+  const open = async (id: number, keepSource = false, receiveLine = '') => {
     if (dirty && !keepSource) { setError(uiText("purchaseOrders.save.or.discard.this.draft.before.opening.another.order")); return; }
     setBusy(true); setError('');
-    try { const order = await api.purchaseOrder(id); const text = source; adopt(order); if (keepSource) setSource(text); navigate(`/procurement/orders?project=${order.project_id}&order=${order.id}${routeSuffix}`, { replace: true }); }
+    try { const order = await api.purchaseOrder(id); const text = source; adopt(order); if (keepSource) setSource(text); navigate(`/procurement/orders?project=${order.project_id}&order=${order.id}${routeSuffix}`, { replace: true });
+      // Arrival reminder deep link: land directly on this line's receipt form when it still needs quantity.
+      if (canWrite && receiveLine && order.summary.lines.some(l => l.id === receiveLine && (l.remaining == null || Number(l.remaining) > 0))) startReceipt([receiveLine], order.document.delivery_address || workspace?.projects.find(p => p.id === order.project_id)?.address || ''); }
     catch (e) { setError(procurementSaveError(e)); } finally { setBusy(false); }
   };
   useEffect(() => {
     if (!workspace || loadedInitial.current) return;
     loadedInitial.current = true;
-    if (initialOrder) void open(initialOrder);
+    if (initialOrder) void open(initialOrder, false, params.get('receive') ?? '');
     else if (route.projectId || params.get('new') === '1') start();
   }, [workspace]); // Initial route only; later navigation is explicit.
   const reset = () => { setEditing(false); setSelected(null); setSource(''); setPreview(null); setEventNote(''); setReceiving(null); setAdjustment(null); setVoidId(''); setError(''); };
@@ -180,9 +182,9 @@ export default function PurchaseOrders() {
     } catch (e) { fail(e); } finally { setBusy(false); }
   };
   /** One receipt body for the whole order or a single line; the quantity is never prefilled because a partial arrival is not completion. */
-  const startReceipt = (lineIds: string[]) => {
+  const startReceipt = (lineIds: string[], location = doc.delivery_address || project?.address || '') => {
     setError(''); setReceiptAttempted(false);
-    setReceiving({ id: crypto.randomUUID(), delivery_id: null, received_on: today, location: doc.delivery_address || project?.address || '',
+    setReceiving({ id: crypto.randomUUID(), delivery_id: null, received_on: today, location,
       lines: lineIds.map(id => ({ line_id: id, quantity: lineIds.length === 1 ? '' : '0', damaged_quantity: '0' })), note: '', confirmed_by: 0, confirmed_name: '', recorded_at: '', void_reason: '' });
   };
   const startReturn = (lineId: string) => { setError(''); setAdjustmentAttempted(false); setAdjustment({ id: crypto.randomUUID(), line_id: lineId, returned_quantity: '', returned_usable_quantity: '0', refund: null, occurred_on: today, reason: '' }); };
