@@ -72,7 +72,7 @@ export default function TaskAssignModal({projectId, tasks, onDone, onConflict, o
   const dismiss = () => {if (successes.length) onConflict(); else onDismiss();};
   return <Modal visible onDismiss={saving ? () => {} : dismiss} header={bulk ? m('sentences.assign.tasks', {value1:tasks.length}) : m('sentences.update.assignment', {value1:taskTitle(task)})} footer={<Box float="right"><SpaceBetween direction="horizontal" size="xs"><Button variant="link" disabled={saving} onClick={dismiss}>{m('fieldWithSource.cancel')}</Button><Button variant="primary" loading={saving} disabled={!members || !changed || !!conflicts.length} onClick={save}>{m('taskAssignModal.save.assignment')}</Button></SpaceBetween></Box>}>
     <SpaceBetween size="m">
-      {bulk && <Box>{tasks.map(taskTitle).join(' / ')}</Box>}
+      {bulk && <Box>{tasks.map(taskTitle).join(' / ')}<p>{m('assignment.bulkHint')}</p></Box>}
       <FormField label={m('projectPreplan.primary.assignee')}><Select selectedOption={selected(who)} options={options} filteringType="auto" onChange={({detail})=>setWho(detail.selectedOption.value ? Number(detail.selectedOption.value) : null)} /></FormField>
       <FormField label={m('assistant.optional')} description={m('assistant.permissions')}><Select selectedOption={selected(assistant)} options={assistantOptions} filteringType="auto" onChange={({detail})=>setAssistant(detail.selectedOption.value ? Number(detail.selectedOption.value) : null)} /></FormField>
       {!!joinNames.length && <Box>{m('assignment.autoJoin',{people:joinNames.join(' / ')})}</Box>}

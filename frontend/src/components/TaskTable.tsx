@@ -3,6 +3,7 @@ import { systemText } from '../i18n/core.ts';
 import { useLanguage } from '../i18n/LanguageProvider';
 import { m as uiText } from '../i18n/core.ts';
 import Box from '@cloudscape-design/components/box';
+import Button from '@cloudscape-design/components/button';
 import Select from '@cloudscape-design/components/select';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
 import TextFilter from '@cloudscape-design/components/text-filter';
@@ -34,6 +35,7 @@ export default function TaskTable({ data, selectedId, onSelect, canAssign, onAss
   const current = data.stages.find((s) => s.index === data.current_stage_index);
   const [stage, setStage] = useState<string>(current?.key ?? ALL);
   const [q, setQ] = useState('');
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const stageOptions = [
     { value: ALL, label: uiText("taskTable.all.stages") },
     // 六段 key 翻成位置条的说法（买房 · 未购入 / escrow 中 / 装修 …），不硬编码六段名
@@ -48,14 +50,19 @@ export default function TaskTable({ data, selectedId, onSelect, canAssign, onAss
       items={rows}
       wrapLines
       trackBy="id"
+      selectionType={canAssign ? 'multi' : undefined}
+      selectedItems={canAssign ? rows.filter(t => selectedIds.includes(t.id)) : undefined}
+      isItemDisabled={t => !!t.node_confirmation}
+      onSelectionChange={({detail}) => setSelectedIds(detail.selectedItems.map(t => t.id))}
       onRowClick={({ detail }) => onSelect(detail.item)}
-      ariaLabels={{ tableLabel: uiText("taskTable.task.assignments") }}
+      ariaLabels={{ tableLabel: uiText("taskTable.task.assignments"), selectionGroupLabel: uiText('assignment.bulkSelect'), itemSelectionLabel: (_, t) => taskTitle(t), allItemsSelectionLabel: () => uiText('assignment.bulkSelect') }}
       header={
         <Header
           variant="h2"
           counter={`(${rows.length})`}
           description={unassigned ? uiText("sentences.tasks.unassigned", { value1: (unassigned) }) : undefined}
           help={uiText("taskTable.select.a.row.to.view.its.summary.on.the")}
+          actions={canAssign && <Button disabled={!rows.some(t => selectedIds.includes(t.id))} onClick={() => {onAssign(rows.filter(t => selectedIds.includes(t.id))); setSelectedIds([]);}}>{uiText('assignment.bulkAction')}</Button>}
         >
           {uiText("taskTable.task.assignments")} </Header>
       }

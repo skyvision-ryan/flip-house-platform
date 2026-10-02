@@ -102,5 +102,17 @@
   "taskAssignModal.assignment.changes.only.the.assignee.and.due.date.milestones": [
     "分派只调整负责人和截止日期；关键节点仍需单独确认。",
     "Assignment changes only the assignee and due date; milestones require separate confirmation."
+  ],
+  "assignment.bulkSelect": [
+    "选择要分派的普通任务",
+    "Select tasks to assign"
+  ],
+  "assignment.bulkAction": [
+    "批量分派",
+    "Assign selected"
+  ],
+  "assignment.bulkHint": [
+    "所选任务使用同一主责和协办。留空协办会移除已有协办；截止日期留空则保留原日期。逐项保存，失败项会单独列出。",
+    "The selected tasks use the same primary assignee and assistant. An empty assistant removes existing assistants; an empty due date keeps each original date. Tasks save individually; failures are listed separately."
   ]
 }
