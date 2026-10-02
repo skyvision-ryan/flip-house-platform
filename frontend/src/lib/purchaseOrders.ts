@@ -38,7 +38,7 @@ export interface OrderSummary {
 }
 export interface PurchaseOrder {
   id: number; project_id: number; project_name: string; version: number; document: OrderDocument;
-  summary: OrderSummary; updated_at: string; updated_by: string;
+  summary: OrderSummary; updated_at: string; updated_by: string; created_at?: string;
   events?: { version: number; kind: string; actor: string; created_at: string; source_text: string; note: string; document: OrderDocument }[];
 }
 export interface ImportPreview {
@@ -72,7 +72,7 @@ export function orderAttention(order: PurchaseOrder, today: string): string[] {
   const d = order.document; const reasons = [];
   if (d.follow_up) reasons.push(d.follow_up_on && d.follow_up_on <= today ? uiText("sentences.follow.up.due", { value1: (d.follow_up) }) : d.follow_up);
 
-  if (Number(order.summary.difference)) reasons.push('金额待核对');
+  if (Number(order.summary.difference)) reasons.push(uiText("purchaseOrders.amount.needs.verification"));
   for (const line of d.lines) {
     const remaining = order.summary.lines.find(l => l.id === line.id)?.remaining;
     if (line.issue_note) reasons.push(`${line.name}：${line.issue_note}`);
@@ -91,7 +91,7 @@ export function orderAttention(order: PurchaseOrder, today: string): string[] {
     else if (!done && delivery.website_status === 'ready_pickup') reasons.push(uiText("sentences.awaiting.pickup", { value1: (delivery.label) }));
     else if (!done && delivery.expected_on && delivery.expected_on < today) reasons.push(uiText("sentences.past.estimated.arrival", { value1: (delivery.label) }));
   }
-  if (order.summary.lines.some(l => Number(l.damaged) > 0 && Number(l.remaining) > 0)) reasons.push('破损待处理');
+  if (order.summary.lines.some(l => Number(l.damaged) > 0 && Number(l.remaining) > 0)) reasons.push(uiText("purchaseOrders.damaged.items.need.action"));
   return [...new Set(reasons)];
 }
 /** Merchant-site shipping wording; never a statement of actual receipt. */
@@ -101,3 +101,12 @@ export function importDocument(preview: ImportPreview): OrderDocument {
   return { ...newOrder(), ...preview.draft, lines: preview.draft.lines.map(l => ({ ...newLine(), ...l })) };
 }
 export const todayLA = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+const cents = (value: Numeric) => value == null || value === '' ? 0 : Math.round(Number(value) * 100);
+/** Sum of per-line refund records, in dollars. */
+export const adjustmentRefundTotal = (adjustments: Adjustment[]) => adjustments.reduce((n, a) => n + cents(a.refund), 0) / 100;
+/** Order-level refund total after appending one return: automatic (null) stays automatic; a manual total is only raised, never lowered, so it never undercuts the records. */
+export function refundedAfterAdjustment(doc: OrderDocument, adjustment: Adjustment): { refunded: Numeric; raised: boolean } {
+  if (doc.refunded == null || doc.refunded === '') return { refunded: null, raised: false };
+  const sum = adjustmentRefundTotal([...doc.adjustments, adjustment]);
+  return Number(doc.refunded) < sum ? { refunded: sum.toFixed(2), raised: true } : { refunded: doc.refunded, raised: false };
+}

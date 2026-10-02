@@ -87,7 +87,7 @@ def _result(db, order, *, history=False):
     project = db.get(models.Project, order.project_id)
     result = {"id": order.id, "project_id": order.project_id, "project_name": project.name,
               "version": order.version, "document": doc.model_dump(mode="json"),
-              "summary": jsonable_encoder(order_summary(doc)), "updated_at": order.updated_at,
+              "summary": jsonable_encoder(order_summary(doc)), "created_at": order.created_at, "updated_at": order.updated_at,
               "updated_by": user.display_name if user else "已停用账号"}
     if history:
         result["events"] = [{"version": e.version, "kind": e.kind,

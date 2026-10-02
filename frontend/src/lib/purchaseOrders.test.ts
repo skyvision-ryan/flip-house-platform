@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { newOrder, newLine, importDocument, reconcile, orderAttention, type PurchaseOrder, type Delivery } from './purchaseOrders.ts';
+import { newOrder, newLine, importDocument, reconcile, orderAttention, refundedAfterAdjustment, adjustmentRefundTotal, type PurchaseOrder, type Delivery } from './purchaseOrders.ts';
 
 // Synthetic legacy batch fixture; normal orders do not create delivery allocations.
 const newDelivery = (index: number, address: string): Delivery => ({ id: crypto.randomUUID(), label: `第 ${index} 批`,
@@ -41,4 +41,15 @@ test('pickup without tracking and past due followup have meaningful actions', ()
   const order = { document: doc, summary: { missing: [], difference: 0, lines: [] } } as unknown as PurchaseOrder;
   const reasons = orderAttention(order, '2026-09-28');
   assert(reasons.some(r => r.includes('到期跟进'))); assert(reasons.some(r => r.includes('待取货')));
+});
+test('per-line refunds total automatically; a manual order total is raised only when it would undercut the records', () => {
+  const doc = newOrder(); const line = { ...newLine(1), name: 'Lamp', quantity: '2' }; doc.lines = [line];
+  const first = { id: 'a', line_id: line.id, returned_quantity: '1', returned_usable_quantity: '1', refund: '10.00', occurred_on: '2026-10-01', reason: 'Wrong size' };
+  const second = { ...first, id: 'b', refund: '4.50' };
+  assert.deepEqual(refundedAfterAdjustment(doc, first), { refunded: null, raised: false });
+  doc.adjustments = [first]; doc.refunded = '12.00';
+  assert.deepEqual(refundedAfterAdjustment(doc, second), { refunded: '14.50', raised: true });
+  doc.refunded = '20.00';
+  assert.deepEqual(refundedAfterAdjustment(doc, second), { refunded: '20.00', raised: false });
+  assert.equal(adjustmentRefundTotal([first, { ...second, refund: null }]), 10);
 });

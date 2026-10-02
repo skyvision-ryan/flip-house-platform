@@ -1,4 +1,4 @@
-import { materialSearchText } from '../i18n/templateNames.ts';
+import { materialSearchText, orderLineName } from '../i18n/templateNames.ts';
 import { stageText } from '../lib/stepDisplay';
 import { systemText } from '../i18n/core.ts';
 import { useLanguage } from '../i18n/LanguageProvider';
@@ -161,7 +161,7 @@ export default function ProcurementWorkspace() {
       }} />}
       {view === 'orders' ? <Table variant="embedded" header={query ? <Box>{uiText("procurementWorkspace.search.results")} {visibleOrders.length} {uiText("procurementWorkspace.orders.property.total")} {houseOrders.length} {uiText("procurementItemRow.orders.2")}</Box> : undefined} items={visibleOrders} empty={<Box>{query ? uiText("procurementWorkspace.no.matching.orders") : uiText("procurementWorkspace.no.orders.recorded.for.this.property.yet")}</Box>} columnDefinitions={[
         {id:'order',header:uiText("procurementItemRow.merchant.order"),cell:o=><Button variant="inline-link" onClick={()=>navigate(orderHref(`/procurement/orders?project=${p.id}&order=${o.id}`))}>{o.document.vendor} · {o.document.order_number}</Button>},
-        {id:'items',header:uiText("purchaseOrderEntry.procurement.item"),cell:o=>o.document.lines.map(l=>l.name).join('、')}, {id:'total',header:uiText("procurementWorkspace.recorded.payment.usd"),cell:o=>moneyValue(o.document.total)},
+        {id:'items',header:uiText("purchaseOrderEntry.procurement.item"),cell:o=>o.document.lines.map(l=>orderLineName(l, houseItems)).join('、')}, {id:'total',header:uiText("procurementWorkspace.recorded.payment.usd"),cell:o=>moneyValue(o.document.total)},
         {id:'state',header:uiText("procurementWorkspace.pending.action.receiving"),cell:o=>orderAttention(o,todayLA()).join('；') || (o.summary.complete?uiText("procurementWorkspace.fully.received"):uiText("procurementWorkspace.not.fully.received"))},
       ]} /> : <>
         {(attentionOnly || query) && <div className="ui-proc-list-caption"><span>{attentionOnly ? uiText("sentences.follow.up.needed.only.items", { value1: (attentionCount) }) : uiText("sentences.search.results.items", { value1: (visible.length) })}</span>{attentionOnly && <Button disabled={houseLocked} variant="inline-link" onClick={() => {setAttentionOnly(false); setQuery('');}}>{uiText("procurementWorkspace.restore.procurement.list")}</Button>}</div>}

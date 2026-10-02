@@ -245,6 +245,26 @@ class PurchaseOrderTests(unittest.TestCase):
         self.assertEqual(self.save(current, doc).status_code, 422)
         with Session(self.engine) as db: self.assertEqual(db.query(models.Expense).count(), 0)
 
+    def test_per_line_refunds_accumulate_and_manual_total_cannot_undercut_them(self):
+        doc = deepcopy(self.doc)
+        doc['lines'].append({'id': 'faucet', 'material_id': self.items[1], 'name': 'Synthetic faucet', 'quantity': '1', 'unit_price': '25.00'})
+        doc['total'] = '86.20'
+        order = self.create(doc).json()
+        self.assertIn('created_at', order); self.assertEqual(order['created_at'], order['updated_at'])
+        today = datetime.now(ZoneInfo("America/Los_Angeles")).date().isoformat()
+        refund_only = [{'id': 'r1', 'line_id': 'lamp', 'returned_quantity': '0', 'returned_usable_quantity': '0', 'refund': '5.00', 'occurred_on': today, 'reason': 'Price match'},
+                       {'id': 'r2', 'line_id': 'faucet', 'returned_quantity': '0', 'returned_usable_quantity': '0', 'refund': '7.00', 'occurred_on': today, 'reason': 'Cancelled before shipping'}]
+        doc = deepcopy(order['document']); doc['adjustments'] = refund_only[:1]
+        order = self.save(order, doc).json(); self.assertEqual(float(order['summary']['refund']), 5)
+        doc = deepcopy(order['document']); doc['adjustments'] = refund_only
+        order = self.save(order, doc).json(); self.assertEqual(float(order['summary']['refund']), 12); self.assertIsNone(order['document']['refunded'])
+        doc = deepcopy(order['document']); doc['refunded'] = '10.00'
+        self.assertEqual(self.save(order, doc).status_code, 422)
+        doc['refunded'] = '15.00'
+        order = self.save(order, doc).json(); self.assertEqual(float(order['summary']['refund']), 15)
+        self.assertEqual(self.client.get(f"/api/purchase-orders/{order['id']}").json()['created_at'], order['created_at'])
+        with Session(self.engine) as db: self.assertEqual(db.query(models.Expense).count(), 0)
+
     def test_one_platform_order_keeps_item_sellers_brands_prices_and_arrivals_separate(self):
         doc = deepcopy(self.doc)
         doc['lines'][0].update(vendor='Synthetic lighting seller', brand='Fixture lights', expected_on='2026-10-02')
