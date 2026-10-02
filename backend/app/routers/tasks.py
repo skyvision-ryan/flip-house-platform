@@ -12,7 +12,7 @@ from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from sqlalchemy import select
+from sqlalchemy import select, func, or_, and_
 from sqlalchemy.orm import Session, object_session
 from sqlalchemy.orm.exc import StaleDataError
 from sqlalchemy.exc import IntegrityError
@@ -23,6 +23,7 @@ from ..auth import current_user
 from ..db import get_db
 from ..dictionaries import STAGE_CHECKLIST, STEP_BY_KEY, TASK_EVENT_KINDS, TASK_EXEC_STATUSES
 from ..task_evidence import completion_mode, execution_status
+from .. import task_activity
 from ..models import now_iso
 from ..project_dates import is_new_today, prioritize_new
 from ..steps import compute_steps
@@ -271,8 +272,8 @@ def _last_events(db: Session, task_ids: list[int]) -> dict[int, models.TaskEvent
     return out
 
 
-def _tasks_payload(db: Session, p: models.Project, tasks: list[models.Task], actor: str) -> list[dict]:
-    steps = compute_steps(db, p, hide_money=not can_read_money(actor))
+def _tasks_payload(db: Session, p: models.Project, tasks: list[models.Task], actor: str, me_id: int | None = None, steps: dict | None = None) -> list[dict]:
+    steps = steps or compute_steps(db, p, hide_money=not can_read_money(actor))
     ids = {t.assignee_user_id for t in tasks} | {t.assistant_user_id for t in tasks} | {t.reviewer_user_id for t in tasks}
     last = _last_events(db, [t.id for t in tasks])
     ids |= {ev.actor_user_id for ev in last.values()}
@@ -294,6 +295,17 @@ def _tasks_payload(db: Session, p: models.Project, tasks: list[models.Task], act
         row["notes"] = [{"id": n.id, "task_id": n.task_id, "author": _brief(users[n.author_user_id]), "text": n.text, "created_at": n.created_at} for n in notes if n.task_id == row["id"]]
         if row["node_confirmation"]:
             row["node_confirmation"]["can_confirm"] = actor in row["node_confirmation"]["confirm"] or allowed(actor, "confirm_for_others")
+        primary = row["assignee"] is not None and row["assignee"]["id"] == me_id
+        regular = not row["node_confirmation"] and not row["procurement_progress"]
+        row["actions"] = {
+            "assign": allowed(actor, "assign_tasks") and not row["node_confirmation"],
+            "start": regular and primary and row["exec_status"] == "not_started",
+            "wait": regular and primary and row["exec_status"] in {"not_started", "in_progress"},
+            "resume": regular and primary and row["exec_status"] == "waiting",
+            "submit": regular and primary and row["completion_mode"] == "review" and row["exec_status"] not in {"pending_review", "done"},
+            "review": regular and row["exec_status"] == "pending_review" and row["reviewer"] is not None and row["reviewer"]["id"] == me_id,
+            "confirm_node": bool((row["node_confirmation"] or {}).get("can_confirm")) and row["exec_status"] == "pending_review",
+        }
     return result
 
 
@@ -423,7 +435,7 @@ def list_tasks(project_id: int, request: Request, db: Session = Depends(get_db),
     p = _project(db, project_id)
     tasks = list(db.scalars(select(models.Task).where(models.Task.project_id == project_id)).all())
     steps_stages = [{"key": st["key"], "label": st["label"], "short": st.get("short", st["label"]), "index": i + 1} for i, st in enumerate(STAGE_CHECKLIST)]
-    payload = _tasks_payload(db, p, tasks, actor)
+    payload = _tasks_payload(db, p, tasks, actor, current_user(request, db).id if current_user(request, db) else None)
     cur = payload[0]["project_current_stage_index"] if payload else 1
     steps = compute_steps(db, p, hide_money=not can_read_money(actor))
     return {"tasks": payload, "stages": steps_stages, "current_stage_index": cur,
@@ -436,11 +448,11 @@ def get_task(project_id: int, task_id: int, request: Request, db: Session = Depe
     _require_task_read(db, project_id, current_user(request, db))
     p = _project(db, project_id)
     t = _task(db, project_id, task_id)
-    return _tasks_payload(db, p, [t], actor)[0]
+    return _tasks_payload(db, p, [t], actor, current_user(request, db).id if current_user(request, db) else None)[0]
 
 
 @router.get("/me/workbench", response_model=schemas.WorkbenchOut)
-def my_workbench(new_today: bool = False, db: Session = Depends(get_db), me: models.User = Depends(require_user)):
+def my_workbench(new_today: bool = False, stage_key: str | None = None, search: str = "", db: Session = Depends(get_db), me: models.User = Depends(require_user)):
     """工作台「项目关注」：每套房一行（位置、下一动作、行动者、截止），加待我确认 / 待分派 / 等待回复三个数。
     只看概况，不在这里做事；处理入口指向我的事项与项目总览。未购入的房也列（它们也要跟进）。"""
     # 使用真实账号的角色与有效成员关系；项目、指标、待审、交接共用同一可见范围。
@@ -454,16 +466,25 @@ def my_workbench(new_today: bool = False, db: Session = Depends(get_db), me: mod
         projects = [p for p in projects if is_new_today(p.created_at)]
     projects = prioritize_new(projects)
     visible_project_ids = [p.id for p in projects]
+    bounds = task_activity.window()
+    baseline = db.get(models.WorkflowBaseline, "state_changes")
+    bounds["complete_from"] = baseline.started_at if baseline else None
+    activity = task_activity.query(db, visible_project_ids, me.role_code, bounds).subquery()
+    activity_counts = dict(db.execute(select(activity.c.project_id, func.count()).group_by(activity.c.project_id)).all())
     hide = not can_read_money(me.role_code)
     rows_out: list[dict] = []
     pending_mine: list[dict] = []
     unassigned = waiting = 0
     for p in projects:
         steps = compute_steps(db, p, hide_money=hide)
+        if stage_key and steps["current_stage"]["key"] != stage_key:
+            continue
+        if search.casefold() not in (p.name + " " + p.property.address_std).casefold():
+            continue
         if steps["group_position"]["complete"]:
             continue
         tasks = list(db.scalars(select(models.Task).where(models.Task.project_id == p.id)).all())
-        payload = _tasks_payload(db, p, tasks, me.role_code) if tasks else []
+        payload = _tasks_payload(db, p, tasks, me.role_code, me.id, steps) if tasks else []
         cur_key = steps["current_stage"]["key"]
         nxt = next_action(payload, cur_key)
         cur_rows = [r for r in payload if r["stage_key"] == cur_key and r["exec_status"] != "done"]
@@ -479,9 +500,13 @@ def my_workbench(new_today: bool = False, db: Session = Depends(get_db), me: mod
             "next_action": ({"task_id": nxt["id"], "title": nxt["title"], "template_key": nxt.get("template_key"), "template_name_snapshot": nxt.get("template_name_snapshot"), "exec_status": nxt["exec_status"], "exec_status_label": nxt["exec_status_label"],
                              "due_at": nxt["due_at"], "actor": actor_brief, "kind": "review" if nxt["exec_status"] == "pending_review" else ("assign" if not nxt["assignee"] else "do")} if nxt else None),
             "procurement": purchase_overview(db, p.id) if allowed(me.role_code, "procurement") else None,
+            "in_progress_tasks": [r for r in payload if r["exec_status"] in {"in_progress", "pending_review", "waiting"}],
+            "next_task": nxt,
+            "activity_count": activity_counts.get(p.id, 0),
             "waiting_count": sum(1 for r in payload if r["exec_status"] == "waiting"),
             "unassigned_current_count": sum(1 for r in cur_rows if not r["assignee"] and not r.get("node_confirmation")),
         })
+    visible_project_ids = [r["project_id"] for r in rows_out]
     pending_mine.sort(key=lambda r: (r["due_at"] or "9999", r["id"]))
     # 最近交接先按项目范围过滤，再取最近 6 条，避免其他项目的事件挤掉可见记录。
     evs = list(db.scalars(select(models.TaskEvent).where(
@@ -498,9 +523,45 @@ def my_workbench(new_today: bool = False, db: Session = Depends(get_db), me: mod
     names = {p.id: p.name for p in projects}
     titles = {t.id: {"title": t.title, "template_key": t.template_key, "template_name_snapshot": t.template_name_snapshot} for t in db.scalars(select(models.Task).where(models.Task.id.in_([e.task_id for e in evs if e.task_id]))).all()} if evs else {}
     handoffs = [{**_event_out(e, users), "project_name": names.get(e.project_id), "task_title": (titles.get(e.task_id) or {}).get("title"), "task_display": titles.get(e.task_id)} for e in evs]
-    return {"projects": rows_out, "my_pending": pending_mine,
+    return {"projects": rows_out, "my_pending": pending_mine, "activity_window": bounds, "can_assign": allowed(me.role_code, "assign_tasks"),
             "counts": {"projects": len(rows_out), "pending_review_mine": len(pending_mine), "unassigned_current": unassigned, "waiting": waiting},
             "recent_handoffs": handoffs}
+
+
+@router.get("/projects/{project_id}/task-activity")
+def task_activity_detail(project_id: int, until: str | None = None, cursor: str | None = None,
+                         limit: int = 25, db: Session = Depends(get_db), me: models.User = Depends(require_user)):
+    _require_task_read(db, project_id, me)
+    _project(db, project_id)
+    bounds = task_activity.window(until)
+    query = task_activity.query(db, [project_id], me.role_code, bounds)
+    total = db.scalar(select(func.count()).select_from(query.subquery()))
+    if cursor:
+        try:
+            stamp, eid = cursor.rsplit("|", 1)
+            if task_activity.creation_instant(stamp) is None:
+                raise ValueError()
+            eid = int(eid)
+        except ValueError:
+            raise system_error(400, "server.activityCursorInvalid")
+        query = query.where(or_(models.TaskWorkflowTransition.created_at < stamp,
+                              and_(models.TaskWorkflowTransition.created_at == stamp, models.TaskWorkflowTransition.id < eid)))
+    limit = max(1, min(limit, 100))
+    events = list(db.scalars(query.order_by(models.TaskWorkflowTransition.created_at.desc(), models.TaskWorkflowTransition.id.desc()).limit(limit + 1)))
+    items = []
+    for transition in events[:limit]:
+        t = db.get(models.Task, transition.task_id)
+        ev = transition.event
+        actor = db.get(models.User, ev.actor_user_id) if ev.actor_user_id else None
+        items.append({"id": transition.id, "task_id": t.id, "title": t.title,
+                      "template_key": t.template_key, "template_name_snapshot": t.template_name_snapshot,
+                      "kind": transition.kind, "actor": _brief(actor) if actor else None,
+                      "created_at": transition.created_at, "reason": ev.reason})
+    last = events[limit - 1] if len(events) > limit else None
+    baseline = db.get(models.WorkflowBaseline, "state_changes")
+    return {"items": items, "total": total, "window": bounds,
+            "complete_from": baseline.started_at if baseline else None,
+            "next_cursor": f"{last.created_at}|{last.id}" if last else None}
 
 
 @router.get("/projects/{project_id}/members", response_model=schemas.MembersOut)
@@ -549,7 +610,7 @@ def my_tasks(db: Session = Depends(get_db), me: models.User = Depends(require_us
         p = db.get(models.Project, pid)
         if p is None:
             continue
-        out.extend(_tasks_payload(db, p, rows, me.role_code))
+        out.extend(_tasks_payload(db, p, rows, me.role_code, me.id))
     out.sort(key=lambda r: (r["project_current_stage_index"] < r["stage_index"], r["project_name"], r["stage_index"]))
     signals = []
     events = db.scalars(select(models.TaskEvent).where(models.TaskEvent.project_id.in_(list(by_project)),
@@ -563,7 +624,7 @@ def my_tasks(db: Session = Depends(get_db), me: models.User = Depends(require_us
             continue
         if p.id not in project_rows:
             rows = [t for t in db.scalars(select(models.Task).where(models.Task.project_id == p.id)) if t.step_key != "purchase"]
-            project_rows[p.id] = _tasks_payload(db, p, rows, me.role_code)
+            project_rows[p.id] = _tasks_payload(db, p, rows, me.role_code, me.id)
         candidates = [r for r in project_rows[p.id] if r["id"] != task.id and r["assignee"] and r["exec_status"] not in {"done", "waiting"} and not (r["completion_mode"] == "record" and r["satisfied"])]
         candidates.sort(key=lambda r: (r["stage_index"], r["due_at"] or "9999", r["id"]))
         nxt = candidates[0] if candidates else None
@@ -581,6 +642,7 @@ def my_tasks(db: Session = Depends(get_db), me: models.User = Depends(require_us
 def assign_task(project_id: int, task_id: int, body: schemas.TaskAssignIn, db: Session = Depends(get_db), me: models.User = Depends(require_user)):
     """分派 / 改派 / 改截止。改派要写原因；授权分派在同一事务自动加入成员。保存成功后各入口才更新。"""
     require(me.role_code, "assign_tasks", what="分派任务")
+    _require_task_read(db, project_id, me)
     p = _project(db, project_id)
     t = _task(db, project_id, task_id)
     if t.step_key in SINGLE_CONFIRM_KEYS:
@@ -588,6 +650,15 @@ def assign_task(project_id: int, task_id: int, body: schemas.TaskAssignIn, db: S
     if t.version != body.version:
         _conflict(db, p, t, me.role_code)
     data = body.model_dump(exclude_unset=True)
+    if "reviewer_user_id" in data and body.reviewer_user_id != t.reviewer_user_id:
+        # This entry fills a missing reviewer; it never silently replaces the existing one.
+        if t.reviewer_user_id is not None:
+            raise system_error(409, "server.reviewerProtected")
+        reviewer = db.get(models.User, body.reviewer_user_id) if body.reviewer_user_id else None
+        if reviewer is None or not reviewer.active or not allowed(reviewer.role_code, "submission_reviewer") or completion_mode(t) != "review" or t.step_key == "purchase":
+            raise system_error(400, "server.reviewerInvalid")
+    else:
+        reviewer = None
     prev_assignee = t.assignee_user_id
     new_assignee = body.assignee_user_id if "assignee_user_id" in data else prev_assignee
     prev_assistant = t.assistant_user_id
@@ -601,6 +672,9 @@ def assign_task(project_id: int, task_id: int, body: schemas.TaskAssignIn, db: S
     if changed_assignee and prev_assignee is not None and not (body.reason or "").strip():
         raise HTTPException(400, "改派或取消分派要写原因，让接手的人和原负责人都看得到")
     # Validate every target and reason before writing membership or events.
+    if reviewer:
+        t.reviewer_user_id = reviewer.id
+        _event(db, t, project_id, "reviewer_set", me, after={"reviewer_user_id": reviewer.id})
     for person in targets:
         if ensure_member(db, project_id, person, me):
             _event(db, t, project_id, "member_added", me, after={"user_id": person.id, "role_code": person.role_code})
@@ -621,7 +695,7 @@ def assign_task(project_id: int, task_id: int, body: schemas.TaskAssignIn, db: S
             # 换人后执行状态回到未开始：原负责人的开始 / 等待属于他自己，不能算在新负责人头上；历史仍在事件里。
             t.exec_status = "not_started"
             t.wait_for = t.wait_reason = t.wait_until = None
-        if new_assignee is not None and t.reviewer_user_id is None and t.step_key != "purchase" and completion_mode(t) == "review":
+        if new_assignee is not None and t.reviewer_user_id is None and t.step_key != "purchase" and completion_mode(t) == "review" and me.role_code != "项目助理":
             t.reviewer_user_id = me.id  # 审核人为空时默认是分派的人（待 Ryan 最终确认，可改）
         kind = "assigned" if prev_assignee is None else ("unassigned" if new_assignee is None else "reassigned")
         _event(db, t, project_id, kind, me, before=before,
@@ -632,7 +706,7 @@ def assign_task(project_id: int, task_id: int, body: schemas.TaskAssignIn, db: S
     t.updated_at = now_iso()
     _commit_task(db, p, t, me.role_code)
     db.refresh(t)
-    return _tasks_payload(db, p, [t], me.role_code)[0]
+    return _tasks_payload(db, p, [t], me.role_code, me.id)[0]
 
 
 @router.post("/projects/{project_id}/tasks/{task_id}/notes", response_model=schemas.TaskOut)
@@ -659,7 +733,7 @@ def add_task_note(project_id: int, task_id: int, body: schemas.TaskNoteIn, db: S
             existing = db.scalar(query)
             if existing is None or existing.text != text:
                 raise system_error(409, "server.taskNoteRequestConflict")
-    return _tasks_payload(db, p, [t], me.role_code)[0]
+    return _tasks_payload(db, p, [t], me.role_code, me.id)[0]
 
 
 _TRANSITIONS = {
@@ -689,7 +763,7 @@ def task_status(project_id: int, task_id: int, body: schemas.TaskStatusIn, db: S
         _conflict(db, p, t, me.role_code)
     allowed_from, to, kind = _TRANSITIONS[body.action]
     if completion_mode(t) != "review":
-        current = _tasks_payload(db, p, [t], me.role_code)[0]["exec_status"]
+        current = _tasks_payload(db, p, [t], me.role_code, me.id)[0]["exec_status"]
         if current == "done":
             from ..message_codes import system_error
             raise system_error(409, "server.taskEvidenceAutomatic")
@@ -713,7 +787,7 @@ def task_status(project_id: int, task_id: int, body: schemas.TaskStatusIn, db: S
     t.updated_at = now_iso()
     _commit_task(db, p, t, me.role_code)
     db.refresh(t)
-    return _tasks_payload(db, p, [t], me.role_code)[0]
+    return _tasks_payload(db, p, [t], me.role_code, me.id)[0]
 
 
 # ---------------- 交付：提交批次、退回、确认（KAN-75 块 5） ----------------
@@ -776,7 +850,7 @@ def submit_task(project_id: int, task_id: int, body: schemas.TaskSubmitIn, db: S
     t.updated_at = now_iso()
     _commit_task(db, p, t, me.role_code)
     db.refresh(t)
-    return _tasks_payload(db, p, [t], me.role_code)[0]
+    return _tasks_payload(db, p, [t], me.role_code, me.id)[0]
 
 
 def _decide(db: Session, project_id: int, task_id: int, body: schemas.TaskDecisionIn, me: models.User, decision: str):
@@ -820,7 +894,7 @@ def _decide(db: Session, project_id: int, task_id: int, body: schemas.TaskDecisi
     t.updated_at = now_iso()
     _commit_task(db, p, t, me.role_code)
     db.refresh(t)
-    return _tasks_payload(db, p, [t], me.role_code)[0]
+    return _tasks_payload(db, p, [t], me.role_code, me.id)[0]
 
 
 @router.post("/projects/{project_id}/tasks/{task_id}/return", response_model=schemas.TaskOut)

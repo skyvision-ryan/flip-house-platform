@@ -1,6 +1,7 @@
 """路由共用的序列化与计算。"""
 
 import json
+from types import SimpleNamespace
 from typing import Optional
 from urllib.parse import unquote
 
@@ -15,7 +16,7 @@ from ..dictionaries import KEY_FIELDS_FOR_COMPLETENESS, PERMISSIONS, PROPERTY_FI
 from ..settings import DEMO_MODE
 from ..project_dates import is_new_today
 from ..status import compute_status
-from ..steps import compute_steps, sync_legacy_stage
+from ..steps import compute_steps, derive_legacy_stage
 
 FIELD_TYPES = {f["key"]: f["type"] for f in PROPERTY_FIELDS}
 FIELD_LABELS = {f["key"]: f["label"] for f in PROPERTY_FIELDS}
@@ -29,6 +30,7 @@ def get_actor(request: Request, db: Session = Depends(get_db), x_actor: Optional
     """
     u = current_user(request, db)
     if u is not None:
+        db.info["actor_user_id"] = u.id
         if DEMO_MODE and u.is_admin and x_actor:
             return unquote(x_actor)
         return u.role_code
@@ -42,6 +44,7 @@ def require_user(request: Request, db: Session = Depends(get_db)) -> models.User
     u = current_user(request, db)
     if u is None:
         raise HTTPException(401, "这个操作要先登录")
+    db.info["actor_user_id"] = u.id
     return u
 
 
@@ -103,9 +106,12 @@ def project_out(db: Session, p: models.Project, actor: str = "负责人") -> sch
     planned, spent = budget_totals(db, p.id)
     hide = not can_read_money(actor)
     steps = compute_steps(db, p, hide_money=hide)
-    if sync_legacy_stage(db, p, steps):
-        db.commit()
-    status, reason = compute_status(p, planned, spent)
+    # Derived display is read-only; a health/read-only release smoke cannot write the DB.
+    stage, substage = derive_legacy_stage(steps, p)
+    status_view = SimpleNamespace(stage=stage, substage=substage, status_override=p.status_override,
+                                  status_override_reason=p.status_override_reason, lead_heat=p.lead_heat,
+                                  construction_end=p.construction_end)
+    status, reason = compute_status(status_view, planned, spent)
     if hide and "$" in reason:
         reason = "支出超预算（金额对你隐藏）" if status == "at_risk" else reason
     prop = p.property
@@ -115,7 +121,7 @@ def project_out(db: Session, p: models.Project, actor: str = "负责人") -> sch
     if not hide and p.target_arv is None:
         missing.append("目标售价（ARV）")
     return schemas.ProjectOut(
-        id=p.id, name=p.name, holding_company=p.holding_company, strategy=p.strategy, stage=p.stage, substage=p.substage,
+        id=p.id, name=p.name, holding_company=p.holding_company, strategy=p.strategy, stage=stage, substage=substage,
         lead_heat=p.lead_heat, status=status, status_reason=reason,
         status_override=p.status_override, status_override_reason=p.status_override_reason,
         purchase_price=None if hide else p.purchase_price, target_arv=None if hide else p.target_arv, purchase_date=p.purchase_date,

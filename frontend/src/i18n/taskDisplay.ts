@@ -7,6 +7,9 @@ export function eventText(event: TaskEvent): string {
   const person = (id: unknown) => id == null ? systemText('待分派') : event.participant_names?.[String(id)] ?? m('server.account', { value1: String(id) });
   let text: string;
   switch (event.kind) {
+    case 'reviewer_set': text = m('event.reviewerSet'); break;
+    case 'procurement_completed': text = m('event.procurementCompleted'); break;
+    case 'procurement_reopened': text = m('event.procurementReopened'); break;
     case 'assistant_changed': text = m('event.assistantChanged', { before: person(before.assistant_user_id), after: person(after.assistant_user_id) }); break;
     case 'evidence_satisfied': text = m(after.mode === 'record' ? 'taskWorkflow.eventRecord' : 'taskWorkflow.eventMet'); break;
     case 'evidence_missing': text = m('taskWorkflow.eventMissing'); break;

@@ -162,7 +162,7 @@ class EmailAccountsTests(unittest.TestCase):
             tasks.ensure_tasks(session, self.pid)
             session.commit()
         self.assertEqual(self.login("designer@example.com").status_code, 200)
-        yes = {"dashboard", "utilities", "utility_secret", "workbench_all_projects"}
+        yes = {"assign_tasks", "evidence_review", "dashboard", "utilities", "utility_secret", "workbench_all_projects"}
         from app.dictionaries import PERMISSIONS
         for action in PERMISSIONS:
             self.assertEqual(allowed("项目助理", action), action in yes, action)
@@ -190,12 +190,14 @@ class EmailAccountsTests(unittest.TestCase):
                 self.assertEqual(self.client.post(f"/api/projects/{self.pid}/files", data={"doc_type": doc},
                     files={"file": ("synthetic.txt", b"synthetic", "text/plain")}).status_code, 403)
         task = self.client.get(f"/api/projects/{self.pid}/tasks").json()["tasks"][0]
-        self.assertEqual(self.client.post(f"/api/projects/{self.pid}/tasks/{task['id']}/assign", json={"version": task["version"], "assignee_user_id": identity}).status_code, 403)
+        assigned = self.client.post(f"/api/projects/{self.pid}/tasks/{task['id']}/assign", json={"version": task["version"], "assignee_user_id": identity})
+        self.assertEqual(assigned.status_code, 200, assigned.text)
+        self.assertIsNone(assigned.json()["reviewer"])
         for who in ("D", "J"):
             self.assertEqual(self.client.post(f"/api/projects/{self.pid}/steps/open_escrow", json={"done": True, "confirm_as": who}).status_code, 403)
         self.assertEqual(self.client.get(f"/api/projects/{self.pid}/budget-lines").status_code, 403)
         self.assertEqual(self.client.get("/api/users").status_code, 403)
-        self.assertEqual(self.client.get("/api/me/tasks").json()["assigned"], [])
+        self.assertEqual([t["id"] for t in self.client.get("/api/me/tasks").json()["assigned"]], [task["id"]])
 
     def test_cli_repeated_runs_reset_and_atomic_failure(self):
         with tempfile.TemporaryDirectory() as temp:

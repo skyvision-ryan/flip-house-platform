@@ -270,5 +270,13 @@
   "assignment.autoJoin": [
     "保存后自动加入项目：{{people}}",
     "Saving automatically adds these people to the project: {{people}}"
-  ]
+  ],
+  "server.activityWindowInvalid": ["统计窗口无效，请刷新工作台", "Invalid activity window. Refresh the workbench."],
+  "server.activityCursorInvalid": ["动态分页位置无效，请重新打开明细", "Invalid activity cursor. Reopen the details."],
+  "server.reviewerProtected": ["已有审核人会保留，不能通过分派覆盖", "The existing reviewer is retained and cannot be replaced through assignment."],
+  "server.reviewerInvalid": ["请选择有效且有审核权限的账号", "Select an active account with review permissions."],
+  "event.reviewerSet": ["指定审核人", "Reviewer selected"],
+  "event.procurementCompleted": ["采购实际备齐", "Procurement now complete"],
+  "event.procurementReopened": ["采购重新未备齐", "Procurement incomplete again"],
+  "server.maintenance": ["发布维护中，请稍后重试", "Release maintenance in progress. Please try again shortly."]
 }

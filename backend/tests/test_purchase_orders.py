@@ -236,6 +236,31 @@ class PurchaseOrderTests(unittest.TestCase):
             self.assertEqual(db.query(models.ProcurementItem).filter_by(project_id=self.pid).count(), 37)
             self.assertEqual(db.query(models.PurchaseOrderEvent).count(), 1)
 
+    def test_workflow_activity_counts_only_actual_procurement_completion_changes(self):
+        endpoint = f'/api/projects/{self.pid}/procurement'
+        rows = self.client.get(endpoint).json()['items']
+        excluded = [{'id': r['id'], 'updated_at': r['updated_at']} for r in rows if r['id'] != self.items[0]]
+        self.assertEqual(self.client.post(endpoint+'/not-needed', json={'items': excluded, 'reason': 'Synthetic fixture: one required item'}).status_code, 200)
+        def transitions():
+            with Session(self.engine) as db:
+                return [r.kind for r in db.scalars(select(models.TaskWorkflowTransition).where(models.TaskWorkflowTransition.task_id == self.task_id).order_by(models.TaskWorkflowTransition.id))]
+        self.assertEqual(transitions(), [])
+        order = self.create().json()
+        order = self.receive(order, 'first', '4').json()
+        self.assertEqual(transitions(), [])
+        order = self.receive(order, 'second', '2').json()
+        self.assertEqual(transitions(), ['procurement_completed'])
+        doc = deepcopy(order['document']); doc['title'] = 'Title update only'
+        order = self.save(order, doc, note='Original procurement note').json()
+        self.assertEqual(transitions(), ['procurement_completed'])
+        doc = deepcopy(order['document']); doc['adjustments'] = [{'id': 'return', 'line_id': 'lamp', 'returned_quantity': '1',
+            'returned_usable_quantity': '1', 'refund': '10.00', 'occurred_on': datetime.now(ZoneInfo('America/Los_Angeles')).date().isoformat(), 'reason': 'Synthetic usable item returned'}]
+        response = self.save(order, doc); self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(transitions(), ['procurement_completed', 'procurement_reopened'])
+        response = self.client.post(endpoint, json={'name': 'Extra synthetic need', 'wave': 'other'})
+        self.assertEqual(response.status_code, 201, response.text)
+        self.assertEqual(transitions(), ['procurement_completed', 'procurement_reopened'])
+
     def test_returns_keep_history_and_refund_is_not_expense(self):
         order = self.create().json(); order = self.receive(order, 'first', '4', '1').json()
         doc = deepcopy(order['document']); doc['adjustments'] = [{'id': 'return', 'line_id': 'lamp', 'returned_quantity': '1',

@@ -758,6 +758,7 @@ class TaskNoteOut(BaseModel):
 
 
 class TaskOut(BaseModel):
+    actions: dict[str, bool] = Field(default_factory=dict)
     completion_mode: str = "review"
     template_key: Optional[str] = None
     template_name_snapshot: Optional[str] = None
@@ -831,6 +832,8 @@ class WorkbenchOut(BaseModel):
     my_pending: list[TaskOut]
     counts: dict
     recent_handoffs: list[dict] = []
+    activity_window: dict = Field(default_factory=dict)
+    can_assign: bool = False
 
 
 class MemberOut(UserBrief):
@@ -856,6 +859,7 @@ class TaskAssignIn(BaseModel):
     version: int
     assignee_user_id: Optional[int] = None
     assistant_user_id: Optional[int] = None
+    reviewer_user_id: Optional[int] = None
     due_at: Optional[str] = None
     reason: Optional[str] = None
     join_project: bool = False

@@ -312,8 +312,8 @@
     "Design proposals and final designs"
   ],
   "backend.view.all.project.summaries.handle.utilities.account.details.and.insurance": [
-    "查看全部项目概况，办理水电瓦斯及账户资料、保险；无财务金额、分派或 D/J 审批权",
-    "View all project summaries; handle utilities, account details, and insurance. No financial amounts, assignment rights, or D/J milestone confirmation rights"
+    "查看全部项目概况，分派任务，办理水电瓦斯及账户资料、保险；仅能审阅有权访问的普通任务依据，无财务金额或关键节点确认权",
+    "View all project summaries, assign tasks, and handle utilities, account details and insurance. Review only accessible evidence for ordinary tasks. No financial amounts or milestone confirmation rights."
   ],
   "backend.maintain.requirements.orders.and.receipt.status.handle.tasks.assigned.to": [
     "维护采购清单、下单与到货状态；执行本人被分派的任务",
