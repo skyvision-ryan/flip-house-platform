@@ -58,5 +58,33 @@
   "procurementForm.could.not.save.check.your.entries.and.try.again": [
     "未能保存，请核对输入后重试。",
     "Could not save. Check your entries and try again."
+  ],
+  "procurementForm.enter.a.valid.link": [
+    "链接须以 http:// 或 https:// 开头。",
+    "Links must start with http:// or https://."
+  ],
+  "procurementForm.return.exceeds.received": [
+    "退回数量不能超过已收且未退的数量。",
+    "Returned quantity cannot exceed the received quantity not yet returned."
+  ],
+  "procurementForm.usable.exceeds.returned": [
+    "完好数量不能超过本次退回数量，也不能超过完好实收数量。",
+    "Good quantity cannot exceed the returned quantity or the good quantity received."
+  ],
+  "procurementForm.refund.exceeds.order.total": [
+    "退款合计不能超过订单实付。",
+    "Total refunds cannot exceed the order payment."
+  ],
+  "procurementForm.enter.the.return.refund.reason": [
+    "填写退货 / 退款原因。",
+    "Enter the return / refund reason."
+  ],
+  "procurementForm.enter.a.return.quantity.or.refund": [
+    "退回数量和退款金额至少填一项。",
+    "Enter a returned quantity or a refund amount."
+  ],
+  "procurementForm.date.cannot.be.in.the.future": [
+    "日期不能晚于今天。",
+    "The date cannot be later than today."
   ]
 }

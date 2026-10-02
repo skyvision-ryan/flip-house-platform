@@ -370,5 +370,57 @@
   "purchaseOrders.cancel.creation": [
     "取消创建",
     "Cancel creation"
+  ],
+  "purchaseOrders.return.refund.this.item": [
+    "退货 / 退款",
+    "Return / refund"
+  ],
+  "purchaseOrders.return.refund.form.title": [
+    "登记退货 / 退款",
+    "Record return / refund"
+  ],
+  "purchaseOrders.return.facts": [
+    "已收 {{value1}} · 已退 {{value2}} · 完好可退 {{value3}} {{value4}}",
+    "Received {{value1}} · returned {{value2}} · good returnable {{value3}} {{value4}}"
+  ],
+  "purchaseOrders.refund.amount.usd": [
+    "退款金额（USD，未知留空）",
+    "Refund amount (USD, leave blank if unknown)"
+  ],
+  "purchaseOrders.refund.only.hint": [
+    "退回数量填 0 表示仅退款（商品未收到或已取消）。",
+    "A returned quantity of 0 means refund only (item not received or cancelled)."
+  ],
+  "purchaseOrders.order.refund.total.will.update": [
+    "保存后订单累计退款将更新为 {{value1}}。",
+    "After saving, the order refund total becomes {{value1}}."
+  ],
+  "purchaseOrders.refund.total.auto.sum.hint": [
+    "留空则按各条退款记录自动合计。",
+    "Leave blank to total the refund records automatically."
+  ],
+  "purchaseOrders.save.return": [
+    "保存退货 / 退款",
+    "Save return / refund"
+  ],
+  "purchaseOrders.return.recorded": [
+    "退货 / 退款已记录。",
+    "Return / refund recorded."
+  ],
+  "purchaseOrders.return.note": [
+    "退货：{{value1}} ×{{value2}}，退款 {{value3}}",
+    "Return: {{value1}} ×{{value2}}, refund {{value3}}"
+  ],
+  "purchaseOrders.conflict.keep.input.reload": [
+    "订单刚被同事修改，你的输入已保留；重新载入后可以继续。",
+    "A teammate just changed this order. Your entry is kept; reload to continue."
+  ],
+  "purchaseOrders.reload.and.continue": [
+    "重新载入并继续",
+    "Reload and continue"
+  ],
+  "purchaseOrders.view.product.image": [
+    "查看 {{value1}} 的商品图片",
+    "View the product image for {{value1}}"
   ]
 }

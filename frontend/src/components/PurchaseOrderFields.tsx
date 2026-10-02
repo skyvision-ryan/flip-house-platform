@@ -11,6 +11,7 @@ import { type ProcurementItem } from '../api/client';
 import FormField from './ui/FormField';
 import Header from './ui/Header';
 import { ExpandableSection } from './ui/Surface';
+import ProductThumb from './ProductThumb';
 import { type OrderDocument, type OrderLine, type Delivery, type Numeric, newLine, moneyValue, lineAmount, reconcile } from '../lib/purchaseOrders';
 import type { FieldErrors } from '../lib/procurementForm';
 import type { NodeOption } from '../lib/orderStages';
@@ -60,6 +61,13 @@ export default function PurchaseOrderFields({ doc, onChange, materials, busy, no
           <TextField error={errors[`${line.id}.price`]} label={uiText("sentences.item.unit.price.usd", { value1: (index + 1) })} numeric value={line.unit_price} disabled={busy} onChange={v => lineSet(line.id, { unit_price: v || null })} />
           <TextField error={errors[`${line.id}.date`]} label={uiText("sentences.item.estimated.arrival.2", { value1: (index + 1) })} date value={line.expected_on} disabled={busy} onChange={v => lineSet(line.id, { expected_on: v || null })} />
           <div className="proc-line-issue"><TextField label={uiText("sentences.item.issue.notes", { value1: (index + 1) })} value={line.issue_note || ''} disabled={busy} onChange={issue_note => lineSet(line.id, { issue_note })} /></div>
+          <div className="proc-line-links">
+            <ProductThumb src={line.image_url} label={line.name || uiText("sentences.procurement.item", { value1: (index + 1) })} />
+            <TextField error={errors[`${line.id}.product_url`]} label={uiText("sentences.item.product.link", { value1: (index + 1) })} value={line.product_url} disabled={busy} onChange={v => lineSet(line.id, { product_url: v || null })} />
+            <TextField error={errors[`${line.id}.image_url`]} label={uiText("sentences.item.image.link", { value1: (index + 1) })} value={line.image_url} disabled={busy} onChange={v => lineSet(line.id, { image_url: v || null })} />
+            <TextField error={errors[`${line.id}.tracking_url`]} label={uiText("sentences.item.tracking.link", { value1: (index + 1) })} value={line.tracking_url || ''} disabled={busy} onChange={v => lineSet(line.id, { tracking_url: v || null })} />
+            <Choice label={uiText("sentences.item.carrier.status.not.proof.of.receipt", { value1: (index + 1) })} value={line.website_status || 'unknown'} options={websiteStatuses} disabled={busy} onChange={v => lineSet(line.id, { website_status: v as Delivery['website_status'] })} />
+          </div>
         </div>
         {(line.brand || line.vendor || (line.delivery_address != null && line.delivery_address !== doc.delivery_address)) && <p className="proc-line-differences">{[line.brand && uiText("sentences.brand", { value1: (line.brand) }), line.vendor && uiText("sentences.seller", { value1: (line.vendor) }), line.delivery_address != null && line.delivery_address !== doc.delivery_address && uiText("sentences.deliver.item.to", { value1: (line.delivery_address || uiText("purchaseOrderFields.address.not.entered")) })].filter(Boolean).join(' · ')}</p>}
         <ExpandableSection headerText={uiText("sentences.item.specifications.seller.and.tracking", { value1: (index + 1) })}><div className="ui-order-grid">
@@ -70,14 +78,10 @@ export default function PurchaseOrderFields({ doc, onChange, materials, busy, no
           <TextField label={uiText("sentences.item.specifications", { value1: (index + 1) })} value={line.specification} disabled={busy} onChange={v => lineSet(line.id, { specification: v })} />
           <TextField label={uiText("sentences.item.model", { value1: (index + 1) })} value={line.model} disabled={busy} onChange={v => lineSet(line.id, { model: v })} />
           <TextField label={uiText("sentences.item.color", { value1: (index + 1) })} value={line.color} disabled={busy} onChange={v => lineSet(line.id, { color: v })} />
-          <TextField label={uiText("sentences.item.product.link", { value1: (index + 1) })} value={line.product_url} disabled={busy} onChange={v => lineSet(line.id, { product_url: v || null })} />
-          <TextField label={uiText("sentences.item.image.link", { value1: (index + 1) })} value={line.image_url} disabled={busy} onChange={v => lineSet(line.id, { image_url: v || null })} />
           <TextField label={uiText("sentences.item.subtotal.including.merchant.specific.discounts", { value1: (index + 1) })} numeric value={line.amount} disabled={busy} onChange={v => lineSet(line.id, { amount: v || null })} />
           <TextField label={uiText("sentences.item.canceled.quantity", { value1: (index + 1) })} numeric value={line.cancelled_quantity} disabled={busy} onChange={v => lineSet(line.id, { cancelled_quantity: v || '0' })} />
           <TextField label={uiText("sentences.item.notes", { value1: (index + 1) })} value={line.selection_note} disabled={busy} onChange={v => lineSet(line.id, { selection_note: v })} />
           <TextField label={uiText("sentences.item.delivery.address", { value1: (index + 1) })} value={line.delivery_address ?? doc.delivery_address ?? ''} disabled={busy} onChange={delivery_address => lineSet(line.id, { delivery_address })} />
-          <Choice label={uiText("sentences.item.carrier.status.not.proof.of.receipt", { value1: (index + 1) })} value={line.website_status || 'unknown'} options={websiteStatuses} disabled={busy} onChange={v => lineSet(line.id, { website_status: v as Delivery['website_status'] })} />
-          <TextField label={uiText("sentences.item.tracking.link", { value1: (index + 1) })} value={line.tracking_url || ''} disabled={busy} onChange={v => lineSet(line.id, { tracking_url: v || null })} />
         </div></ExpandableSection>
       </section>)}
     </section>
@@ -88,8 +92,8 @@ export default function PurchaseOrderFields({ doc, onChange, materials, busy, no
         <TextField label={uiText("purchaseOrderFields.next.follow.up.date")} date value={doc.follow_up_on} disabled={busy} onChange={v => set('follow_up_on', v || null)} />
         <TextField label={uiText("purchaseOrderFields.last.manual.verification.date")} date value={doc.checked_on} disabled={busy} onChange={v => set('checked_on', v || null)} />
         <TextField label={uiText("purchaseOrderFields.order.notes")} value={doc.note} disabled={busy} onChange={v => set('note', v)} />
-        <TextField label={uiText("purchaseOrderFields.original.order.link")} value={doc.order_url} disabled={busy} onChange={v => set('order_url', v || null)} />
-        <TextField label={uiText("purchaseOrderEntry.proof.of.purchase.link")} value={doc.voucher_url} disabled={busy} onChange={v => set('voucher_url', v || null)} />
+        <TextField error={errors.order_url} label={uiText("purchaseOrderFields.original.order.link")} value={doc.order_url} disabled={busy} onChange={v => set('order_url', v || null)} />
+        <TextField error={errors.voucher_url} label={uiText("purchaseOrderEntry.proof.of.purchase.link")} value={doc.voucher_url} disabled={busy} onChange={v => set('voucher_url', v || null)} />
         <TextField label={uiText("purchaseOrderFields.actual.seller.store")} value={doc.seller} disabled={busy} onChange={v => set('seller', v)} />
         <TextField label={uiText("purchaseOrderFields.purchasing.entity")} value={doc.purchasing_entity} disabled={busy} onChange={v => set('purchasing_entity', v)} />
       </div>

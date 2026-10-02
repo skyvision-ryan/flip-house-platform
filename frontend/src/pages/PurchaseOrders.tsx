@@ -17,15 +17,16 @@ import Header from '../components/ui/Header';
 import FormField from '../components/ui/FormField';
 import { ExpandableSection, Table } from '../components/ui/Surface';
 import PurchaseOrderEntry from '../components/PurchaseOrderEntry';
-import PurchaseOrderFields, { Choice, TextField } from '../components/PurchaseOrderFields';
+import PurchaseOrderFields, { TextField } from '../components/PurchaseOrderFields';
+import ProductThumb from '../components/ProductThumb';
 import { type PurchaseOrder, type OrderDocument, type ImportPreview, type Receipt, type Adjustment,
-  newOrder, newLine, importDocument, moneyValue, todayLA, websiteStatusLabel } from '../lib/purchaseOrders';
+  newOrder, newLine, importDocument, moneyValue, todayLA, websiteStatusLabel, refundedAfterAdjustment } from '../lib/purchaseOrders';
 import {materialQuantityFacts} from '../lib/procurementSummary';
 import { useFlash } from '../lib/flash';
 import { useActor } from '../lib/actor';
 import { userCan } from '../lib/role';
 import { useMeta } from '../lib/meta';
-import { orderFormErrors, receiptFormErrors, procurementReturnTo, procurementSaveError } from '../lib/procurementForm';
+import { orderFormErrors, receiptFormErrors, adjustmentFormErrors, procurementReturnTo, procurementSaveError } from '../lib/procurementForm';
 import { orderStages } from '../lib/orderStages';
 
 export default function PurchaseOrders() {
@@ -58,8 +59,11 @@ export default function PurchaseOrders() {
   const [eventNote, setEventNote] = useState('');
   const [receiving, setReceiving] = useState<Receipt | null>(null);
   const [adjustment, setAdjustment] = useState<Adjustment | null>(null);
+  const [adjustmentAttempted, setAdjustmentAttempted] = useState(false);
+  const [conflict, setConflict] = useState(false);
   const receiptErrors = receiptAttempted && receiving ? receiptFormErrors(receiving) : {};
   const [voidId, setVoidId] = useState(''); const [voidReason, setVoidReason] = useState('');
+  const adjustmentLine = adjustment && selected ? selected.summary.lines.find(l => l.id === adjustment.line_id) : undefined;
   const pendingRequest = useRef({ payload: '', key: '' });
   const loadedInitial = useRef(false);
   const dirty = editing && (JSON.stringify(doc) !== original || !!source || !!eventNote || customizing || (!selected && !!entryExpected));
@@ -67,6 +71,9 @@ export default function PurchaseOrders() {
   const materials = workspace?.items.filter(i => i.project_id === Number(projectId)) ?? [];
   const today = todayLA();
   const lineName = (line: { name: string; material_id?: number | null } | undefined) => orderLineName(line, materials);
+  const adjustmentErrors = adjustmentAttempted && adjustment && adjustmentLine ? adjustmentFormErrors(adjustment, adjustmentLine, doc, today) : {};
+  /** A 409 means a teammate saved first; keep the local entry and offer a reload instead of discarding it. */
+  const fail = (e: unknown) => { setError(procurementSaveError(e)); if ((e as { status?: number })?.status === 409) setConflict(true); };
   useEffect(() => {
     if (!error) return;
     requestAnimationFrame(() => {
@@ -76,6 +83,7 @@ export default function PurchaseOrders() {
     });
   }, [error]);
   useEffect(() => { if (receiving) requestAnimationFrame(() => { const input = surface.current?.querySelector<HTMLElement>('.proc-receipt-form input'); input?.focus(); input?.scrollIntoView({block:'center'}); }); }, [!!receiving]);
+  useEffect(() => { if (adjustment) requestAnimationFrame(() => { const input = surface.current?.querySelector<HTMLElement>('.proc-return-form input'); input?.focus(); input?.scrollIntoView({block:'center'}); }); }, [!!adjustment]);
   useEffect(() => { if (detailsOpen) requestAnimationFrame(() => { const form = surface.current?.querySelector<HTMLElement>('.proc-order-edit input'); form?.focus(); form?.scrollIntoView({block:'center'}); }); }, [detailsOpen]);
   const requestKey = (payload: unknown) => {
     const encoded = JSON.stringify(payload);
@@ -94,7 +102,7 @@ export default function PurchaseOrders() {
   }, [dirty, receiving, adjustment]);
   const adopt = (order: PurchaseOrder) => {
     setSelected(order); setProjectId(String(order.project_id)); setDoc(order.document); setOriginal(JSON.stringify(order.document));
-    setEditing(true); setDetailsOpen(false); setAttempted(false); setReceiptAttempted(false); setSource(''); setPreview(null); setEventNote(''); setReceiving(null); setAdjustment(null); setVoidId(''); setError('');
+    setEditing(true); setDetailsOpen(false); setAttempted(false); setReceiptAttempted(false); setSource(''); setPreview(null); setEventNote(''); setReceiving(null); setAdjustment(null); setAdjustmentAttempted(false); setVoidId(''); setError(''); setConflict(false);
   };
   const open = async (id: number, keepSource = false) => {
     if (dirty && !keepSource) { setError(uiText("purchaseOrders.save.or.discard.this.draft.before.opening.another.order")); return; }
@@ -155,7 +163,7 @@ export default function PurchaseOrders() {
       adopt(saved); await load();
       if (!selected) navigate(`/procurement/orders?project=${project.id}&order=${saved.id}${routeSuffix}`, { replace: true });
       flash({ type: 'success', content: uiText("purchaseOrders.order.saved.linked.procurement.items.show.purchase.and.receipt") });
-    } catch (e) { setError(procurementSaveError(e)); } finally { setBusy(false); }
+    } catch (e) { fail(e); } finally { setBusy(false); }
   };
   const receive = async () => {
     if (!selected || !receiving) return;
@@ -168,13 +176,35 @@ export default function PurchaseOrders() {
     const payload = { receipt, expected_version: selected.version };
     try { adopt(await api.receivePurchaseOrder(selected.id, { ...payload, request_key: requestKey({ id: selected.id, ...payload }) })); await load();
       flash({ type: 'success', content: uiText("purchaseOrders.actual.receipt.recorded") });
-    } catch (e) { setError(procurementSaveError(e)); } finally { setBusy(false); }
+    } catch (e) { fail(e); } finally { setBusy(false); }
+  };
+  const startReturn = (lineId: string) => { setError(''); setAdjustmentAttempted(false); setAdjustment({ id: crypto.randomUUID(), line_id: lineId, returned_quantity: '', returned_usable_quantity: '0', refund: null, occurred_on: today, reason: '' }); };
+  const recordReturn = async () => {
+    if (!selected || !adjustment || !adjustmentLine || busy) return;
+    setAdjustmentAttempted(true);
+    const invalid = adjustmentFormErrors(adjustment, adjustmentLine, doc, today);
+    if (Object.keys(invalid).length) { setError(Object.values(invalid)[0]); return; }
+    const entry: Adjustment = { ...adjustment, returned_quantity: adjustment.returned_quantity || '0', returned_usable_quantity: adjustment.returned_usable_quantity || '0', refund: adjustment.refund === '' ? null : adjustment.refund, reason: adjustment.reason.trim() };
+    const document = { ...doc, adjustments: [...doc.adjustments, entry], refunded: refundedAfterAdjustment(doc, entry).refunded };
+    const note = uiText("purchaseOrders.return.note", { value1: lineName(adjustmentLine), value2: String(entry.returned_quantity), value3: entry.refund == null ? uiText("procurementItemRow.not.entered.2") : moneyValue(entry.refund) });
+    const payload = { document, source_text: '', note, expected_version: selected.version };
+    setBusy(true); setError('');
+    try { adopt(await api.savePurchaseOrder(selected.id, { ...payload, request_key: requestKey({ projectId, id: selected.id, ...payload }) })); await load();
+      flash({ type: 'success', content: uiText("purchaseOrders.return.recorded") });
+    } catch (e) { fail(e); } finally { setBusy(false); }
+  };
+  const reloadAndContinue = async () => {
+    if (!selected) return;
+    const keptReturn = adjustment, keptReceipt = receiving;
+    setBusy(true); setError('');
+    try { adopt(await api.purchaseOrder(selected.id)); setAdjustment(keptReturn); setReceiving(keptReceipt); }
+    catch (e) { setError(procurementSaveError(e)); } finally { setBusy(false); }
   };
   const voidReceipt = async () => {
     if (!selected || !voidId || !voidReason.trim()) return;
     setBusy(true); setError(''); const payload = { expected_version: selected.version, reason: voidReason };
     try { adopt(await api.voidPurchaseReceipt(selected.id, voidId, { ...payload, request_key: requestKey({ id: selected.id, voidId, ...payload }) })); await load(); setVoidReason(''); }
-    catch (e) { setError(procurementSaveError(e)); } finally { setBusy(false); }
+    catch (e) { fail(e); } finally { setBusy(false); }
   };
   if (!canWrite && !initialOrder && workspace) return <Navigate replace to={returnTo} />;
   if (!initialOrder && !route.projectId && params.get('new') !== '1') {
@@ -195,6 +225,7 @@ export default function PurchaseOrders() {
 
       </SpaceBetween>}>{selected ? `${selected.document.vendor} · ${selected.document.order_number}` : uiText("procurementWorkspace.create.order")}</Header>
     {error && <div data-form-error tabIndex={-1}><Alert type="error" dismissible onDismiss={() => setError('')}>{systemText(error)}</Alert></div>}
+    {conflict && selected && <Alert type="warning" action={<Button disabled={busy} onClick={() => void reloadAndContinue()}>{uiText("purchaseOrders.reload.and.continue")}</Button>}>{uiText("purchaseOrders.conflict.keep.input.reload")}</Alert>}
     {!canWrite && <Box>{uiText("procurementWorkspace.read.only.procurement.records.amounts.are.procurement.entries.not")}</Box>}
     {selected && <div className="proc-order-facts"><span>{uiText("procurementItemRow.order.date")} <strong>{selected.document.ordered_on || uiText("procurementItemRow.not.entered.2")}</strong></span><span>{uiText("procurementWorkspace.recorded.payment.usd")} <strong>{moneyValue(selected.document.total)}</strong></span><span>{uiText("purchaseOrders.total.refunds")} <strong>{moneyValue(selected.summary.refund)}</strong></span><span>{uiText("procurementItemRow.delivery.address")} <strong>{selected.document.delivery_address || uiText("procurementItemRow.not.entered.2")}</strong></span>{canWrite && <Button disabled={busy || !!receiving || !!adjustment || !!voidId} onClick={() => { if (dirty) setError(uiText("purchaseOrders.save.or.cancel.order.changes.first")); else setDetailsOpen(!detailsOpen); }}>{detailsOpen ? uiText("purchaseOrders.collapse.order.editor") : uiText("purchaseOrders.edit.order")}</Button>}</div>}
       {selected && <>
@@ -205,7 +236,7 @@ export default function PurchaseOrders() {
             const item = selected.document.lines.find(line => line.id === l.id);
             const unit = systemText(item?.unit || '');
             const differences = [item?.brand && uiText("sentences.brand", { value1: (item.brand) }), item?.vendor && uiText("sentences.seller", { value1: (item.vendor) }), item?.expected_on && uiText("sentences.estimated.2", { value1: (item.expected_on) }), item?.delivery_address && item.delivery_address !== selected.document.delivery_address && uiText("sentences.deliver.item.to", { value1: (item.delivery_address) })].filter(Boolean).join(' · ');
-            return <div className="proc-receipt-row" key={l.id}><div><strong>{lineName(l)}</strong>{item?.specification && <p className="proc-line-differences">{item.specification}</p>}<p className="proc-line-differences">{uiText("purchaseOrderCoverage.item.amount")} {moneyValue(l.amount)}</p>{differences && <p className="proc-line-differences">{differences}</p>}{item?.issue_note && <p className="proc-item-issue">{uiText("procurementItemRow.action.needed")}{item.issue_note}</p>}{websiteStatusLabel(item?.website_status) && <p className="proc-line-differences">{uiText("purchaseOrders.carrier.status")}{websiteStatusLabel(item?.website_status)}{uiText("purchaseOrders.not.proof.of.receipt")}</p>}<div className="proc-detail-links">{item?.product_url && <Link external href={item.product_url}>{uiText("procurementItemRow.product.link")}</Link>}{item?.tracking_url && <Link external href={item.tracking_url}>{uiText("procurementItemRow.tracking.link")}</Link>}{item?.image_url && <Link external href={item.image_url}>{uiText("purchaseOrders.product.image")}</Link>}</div></div><dl><div><dt>{uiText("purchaseOrders.ordered")}</dt><dd>{l.quantity ?? uiText("procurementItemRow.not.entered.2")} {unit}</dd></div><div><dt>{uiText("purchaseOrders.received.in.good.condition")}</dt><dd>{l.usable} {unit}</dd></div><div><dt>{uiText("purchaseOrderCoverage.still.needed")}</dt><dd className={l.remaining == null || Number(l.remaining) > 0 ? 'proc-shortage' : ''}>{l.remaining ?? uiText("procurementItemRow.needs.verification")} {unit}</dd></div></dl>{Number(l.damaged) > 0 && <span>{uiText("purchaseOrders.total.received")} {l.received}{uiText("purchaseOrders.including.damaged")} {l.damaged} {unit}</span>}</div>;
+            return <div className="proc-receipt-row" key={l.id}><div className="proc-line-head"><ProductThumb src={item?.image_url} label={lineName(l)} /><div><strong>{lineName(l)}</strong>{item?.specification && <p className="proc-line-differences">{item.specification}</p>}<p className="proc-line-differences">{uiText("purchaseOrderCoverage.item.amount")} {moneyValue(l.amount)}</p>{differences && <p className="proc-line-differences">{differences}</p>}{item?.issue_note && <p className="proc-item-issue">{uiText("procurementItemRow.action.needed")}{item.issue_note}</p>}{websiteStatusLabel(item?.website_status) && <p className="proc-line-differences">{uiText("purchaseOrders.carrier.status")}{websiteStatusLabel(item?.website_status)}{uiText("purchaseOrders.not.proof.of.receipt")}</p>}<div className="proc-detail-links">{item?.product_url && <Link external href={item.product_url}>{uiText("procurementItemRow.product.link")}</Link>}{item?.tracking_url && <Link external href={item.tracking_url}>{uiText("procurementItemRow.tracking.link")}</Link>}</div></div></div><dl><div><dt>{uiText("purchaseOrders.ordered")}</dt><dd>{l.quantity ?? uiText("procurementItemRow.not.entered.2")} {unit}</dd></div><div><dt>{uiText("purchaseOrders.received.in.good.condition")}</dt><dd>{l.usable} {unit}</dd></div><div><dt>{uiText("purchaseOrderCoverage.still.needed")}</dt><dd className={l.remaining == null || Number(l.remaining) > 0 ? 'proc-shortage' : ''}>{l.remaining ?? uiText("procurementItemRow.needs.verification")} {unit}</dd></div></dl>{Number(l.damaged) > 0 && <span>{uiText("purchaseOrders.total.received")} {l.received}{uiText("purchaseOrders.including.damaged")} {l.damaged} {unit}</span>}{canWrite && <div className="proc-line-actions"><Button variant="inline-link" disabled={busy || dirty || !!receiving || !!adjustment || !!voidId} onClick={() => startReturn(l.id)}>{uiText("purchaseOrders.return.refund.this.item")}</Button></div>}</div>;
           })}</div>
           <Box color="text-body-secondary">{uiText("purchaseOrders.confirming.actual.receipt.updates.linked.procurement.items.for.partial")}</Box>
           {canWrite && <SpaceBetween direction="horizontal" size="s"><Button variant="primary" disabled={!canWrite || busy || dirty || !!receiving || !!adjustment || !!voidId || !selected.summary.lines.some(l => l.remaining == null || Number(l.remaining) > 0)} onClick={() => { setError(''); setReceiptAttempted(false); setReceiving({
@@ -214,9 +245,7 @@ export default function PurchaseOrders() {
             note: '', confirmed_by: 0, confirmed_name: '', recorded_at: '', void_reason: '',
           }); }}>{uiText("purchaseOrders.record.receipt")}</Button></SpaceBetween>}
           {canWrite && <ExpandableSection headerText={uiText("purchaseOrders.returns.refunds.when.applicable")}><SpaceBetween size="s">
-            <TextField label={uiText("purchaseOrders.total.refunded.usd")} numeric value={doc.refunded ?? selected.summary.refund} disabled={!canWrite || busy || !!receiving || !!adjustment} onChange={v => setDoc({ ...doc, refunded: v || null })} />
-            <Button disabled={!canWrite || busy || dirty || !!receiving || !!adjustment || !!voidId} onClick={() => setAdjustment({ id: crypto.randomUUID(), line_id: doc.lines[0].id,
-              returned_quantity: '0', returned_usable_quantity: '0', refund: null, occurred_on: today, reason: '' })}>{uiText("purchaseOrders.record.returned.items")}</Button>
+            <TextField label={uiText("purchaseOrders.total.refunded.usd")} hint={uiText("purchaseOrders.refund.total.auto.sum.hint")} numeric value={doc.refunded ?? ''} disabled={!canWrite || busy || !!receiving || !!adjustment} onChange={v => setDoc({ ...doc, refunded: v || null })} />
           </SpaceBetween></ExpandableSection>}
           {dirty && <Box color="text-status-warning">{uiText("purchaseOrders.save.order.changes.before.recording.receipts.or.returns")}</Box>}
           {receiving && <div className="proc-receipt-form"><SpaceBetween size="m"><Header variant="h3">{uiText("purchaseOrders.this.receipt")}</Header><div className="ui-order-grid">
@@ -229,15 +258,16 @@ export default function PurchaseOrders() {
           </div>{receiptErrors.lines && <Alert type="error">{receiptErrors.lines}</Alert>}<TextField disabled={busy} label={uiText("purchaseOrders.receipt.notes.missing.or.damaged.items")} value={receiving.note} onChange={v => setReceiving({ ...receiving, note: v })} />
             <SpaceBetween direction="horizontal" size="s"><Button variant="primary" loading={busy} onClick={receive}>{uiText("purchaseOrders.confirm.actual.receipt")}</Button><Button disabled={busy} onClick={() => { setReceiving(null); setReceiptAttempted(false); setError(''); }}>{uiText("purchaseOrders.cancel.entry")}</Button></SpaceBetween>
           </SpaceBetween></div>}
-          {adjustment && <SpaceBetween size="m"><Header variant="h3" description={uiText("purchaseOrders.record.returned.items.then.save.the.order.enter.refund")}>{uiText("purchaseOrders.record.returned.items.2")}</Header>
-            <Choice label={uiText("purchaseOrders.item.for.return.refund")} value={adjustment.line_id} options={doc.lines.map(l => ({ value: l.id, label: lineName(l) }))} onChange={v => setAdjustment({ ...adjustment, line_id: v })} />
+          {adjustment && adjustmentLine && <div className="proc-return-form"><SpaceBetween size="m"><Header variant="h3" description={uiText("purchaseOrders.return.facts", { value1: String(adjustmentLine.received), value2: String(adjustmentLine.returned), value3: String(adjustmentLine.usable), value4: systemText(doc.lines.find(l => l.id === adjustment.line_id)?.unit || '') })}>{uiText("purchaseOrders.return.refund.form.title")} · {lineName(adjustmentLine)}</Header>
             <div className="ui-order-grid">
-              <TextField label={uiText("purchaseOrders.actual.return.quantity")} numeric value={adjustment.returned_quantity} onChange={v => setAdjustment({ ...adjustment, returned_quantity: v || '0' })} />
-              <TextField label={uiText("purchaseOrders.quantity.previously.in.good.condition")} numeric value={adjustment.returned_usable_quantity} onChange={v => setAdjustment({ ...adjustment, returned_usable_quantity: v || '0' })} />
-              <TextField label={uiText("purchaseOrders.actual.event.date")} date value={adjustment.occurred_on} onChange={v => setAdjustment({ ...adjustment, occurred_on: v })} />
-            </div><TextField label={uiText("purchaseOrders.return.refund.reason.and.receipt.notes")} value={adjustment.reason} onChange={v => setAdjustment({ ...adjustment, reason: v })} />
-            <SpaceBetween direction="horizontal" size="s"><Button disabled={!adjustment.reason.trim()} onClick={() => { setDoc({ ...doc, adjustments: [...doc.adjustments, adjustment] }); setAdjustment(null); }}>{uiText("purchaseOrders.add.to.order.draft")}</Button><Button onClick={() => setAdjustment(null)}>{uiText("purchaseOrders.cancel.entry")}</Button></SpaceBetween>
-          </SpaceBetween>}
+              <TextField disabled={busy} error={adjustmentErrors.returned} hint={uiText("purchaseOrders.refund.only.hint")} label={uiText("purchaseOrders.actual.return.quantity")} numeric value={adjustment.returned_quantity} onChange={v => setAdjustment({ ...adjustment, returned_quantity: v })} />
+              <TextField disabled={busy} error={adjustmentErrors.usable} label={uiText("purchaseOrders.quantity.previously.in.good.condition")} numeric value={adjustment.returned_usable_quantity} onChange={v => setAdjustment({ ...adjustment, returned_usable_quantity: v || '0' })} />
+              <TextField disabled={busy} error={adjustmentErrors.refund} label={uiText("purchaseOrders.refund.amount.usd")} numeric value={adjustment.refund} onChange={v => setAdjustment({ ...adjustment, refund: v || null })} />
+              <TextField disabled={busy} error={adjustmentErrors.date} label={uiText("purchaseOrders.actual.event.date")} date value={adjustment.occurred_on} onChange={v => setAdjustment({ ...adjustment, occurred_on: v })} />
+            </div><TextField disabled={busy} error={adjustmentErrors.reason} label={uiText("purchaseOrders.return.refund.reason.and.receipt.notes")} value={adjustment.reason} onChange={v => setAdjustment({ ...adjustment, reason: v })} />
+            {refundedAfterAdjustment(doc, adjustment).raised && <Box color="text-status-info">{uiText("purchaseOrders.order.refund.total.will.update", { value1: moneyValue(refundedAfterAdjustment(doc, adjustment).refunded) })}</Box>}
+            <SpaceBetween direction="horizontal" size="s"><Button variant="primary" loading={busy} onClick={recordReturn}>{uiText("purchaseOrders.save.return")}</Button><Button disabled={busy} onClick={() => { setAdjustment(null); setAdjustmentAttempted(false); setError(''); }}>{uiText("purchaseOrders.cancel.entry")}</Button></SpaceBetween>
+          </SpaceBetween></div>}
           <ExpandableSection headerText={uiText("sentences.receipt.records", { value1: (doc.receipts.length) })}>{!doc.receipts.length && <Box>{uiText("purchaseOrders.no.actual.receipts.recorded.yet")}</Box>}{doc.receipts.map(r => <div className="proc-history-entry" key={r.id}>
             <strong>{r.received_on} · {r.confirmed_name || uiText("purchaseOrders.procurement.entry")}</strong><p>{r.location || uiText("purchaseOrders.receiving.location.not.entered")}</p>
             <dl className="proc-detail-facts">{r.lines.map(l=><div key={l.line_id}><dt>{lineName(doc.lines.find(item=>item.id===l.line_id))}</dt><dd>{uiText("procurementItemRow.received")} {l.quantity} {uiText("purchaseOrders.damaged")} {l.damaged_quantity} {systemText(doc.lines.find(item=>item.id===l.line_id)?.unit)}</dd></div>)}</dl>{r.note && <p>{r.note}</p>}
@@ -266,7 +296,7 @@ export default function PurchaseOrders() {
           </FormField>
           <Button disabled={busy || !!receiving || !!adjustment || !!voidId || !source.trim()} loading={busy} onClick={runPreview}>{uiText("purchaseOrders.recognize.order")}</Button>
           {preview && <>
-            <Alert type="info">{preview.warnings.join(' ')}</Alert>
+            {preview.warnings.length > 0 && <Alert type="info">{preview.warnings.join(' ')}</Alert>}
             {preview.existing_order_id && preview.existing_order_id !== selected?.id && <Alert type="warning" action={<Button onClick={() => void open(preview.existing_order_id!, true)}>{uiText("purchaseOrders.open.existing.order.and.retain.original.text")}</Button>}>{uiText("purchaseOrders.this.order.is.already.recorded.check.the.existing.record")}</Alert>}
             <Box>{uiText("purchaseOrders.detected.merchant")}{preview.draft.vendor || uiText("purchaseOrders.not.detected")} {uiText("purchaseOrders.order.number")}{preview.draft.order_number || uiText("purchaseOrders.not.detected")} {uiText("purchaseOrders.candidate.items")} {preview.draft.lines.length} {uiText("purchaseOrders.records")}</Box>
             <Table variant="embedded" items={preview.draft.lines} columnDefinitions={[{ id: 'name', header: uiText("purchaseOrders.detected.items.verify.before.use"), cell: l => l.name }, { id: 'qty', header: uiText("procurementItemRow.quantity"), cell: l => l.quantity ?? uiText("purchaseOrders.not.detected") }, { id: 'price', header: uiText("procurementItemRow.unit.price"), cell: l => moneyValue(l.unit_price ?? null) }]} />

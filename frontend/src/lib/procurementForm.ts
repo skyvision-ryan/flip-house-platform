@@ -1,9 +1,10 @@
 import { m as uiText, systemText } from '../i18n/core.ts';
-import type { OrderDocument, Receipt } from './purchaseOrders';
+import { adjustmentRefundTotal, type Adjustment, type OrderDocument, type OrderSummary, type Receipt } from './purchaseOrders.ts';
 
 export type FieldErrors = Record<string, string>;
 const present = (value: unknown) => value !== null && value !== undefined && value !== '';
 const nonnegative = (value: unknown) => present(value) && Number.isFinite(Number(value)) && Number(value) >= 0;
+const linkError = (value: string | null | undefined) => value && !/^https?:\/\/\S+$/i.test(String(value).trim()) ? uiText("procurementForm.enter.a.valid.link") : '';
 const dateError = (value: string | null | undefined) => value && (!/^\d{4}-\d{2}-\d{2}$/.test(value) || Number.isNaN(Date.parse(value)) || new Date(value).toISOString().slice(0, 10) !== value) ? uiText("procurementForm.enter.a.valid.date.in.yyyy.mm.dd.format") : '';
 
 /** UI feedback only. The order API remains the authority for quantities and money. */
@@ -20,7 +21,25 @@ export function orderFormErrors(doc: OrderDocument, stage?: string): FieldErrors
     if ((stage !== undefined || present(line.quantity)) && (!nonnegative(line.quantity) || Number(line.quantity) <= 0)) errors[`${line.id}.quantity`] = uiText("procurementForm.ordered.quantity.must.be.greater.than.0");
     if (present(line.unit_price) && !nonnegative(line.unit_price)) errors[`${line.id}.price`] = uiText("procurementForm.unit.price.cannot.be.negative.leave.unknown.prices.blank");
     if (dateError(line.expected_on)) errors[`${line.id}.date`] = dateError(line.expected_on);
+    for (const field of ['product_url', 'image_url', 'tracking_url'] as const) if (linkError(line[field])) errors[`${line.id}.${field}`] = linkError(line[field]);
   }
+  for (const field of ['order_url', 'voucher_url'] as const) if (linkError(doc[field])) errors[field] = linkError(doc[field]);
+  return errors;
+}
+/** One return / refund for one order line. Quantities come from the order summary; the API stays the authority. */
+export function adjustmentFormErrors(adjustment: Adjustment, line: OrderSummary['lines'][number], doc: OrderDocument, today: string): FieldErrors {
+  const errors: FieldErrors = {};
+  const returned = Number(adjustment.returned_quantity || 0), usable = Number(adjustment.returned_usable_quantity || 0);
+  const returnable = Number(line.received) - Number(line.returned);
+  if (!nonnegative(adjustment.returned_quantity || '0')) errors.returned = uiText("procurementForm.enter.a.nonnegative.amount.leave.unknown.amounts.blank");
+  else if (returned > returnable) errors.returned = uiText("procurementForm.return.exceeds.received");
+  if (!nonnegative(adjustment.returned_usable_quantity || '0') || usable > returned || usable > Number(line.usable)) errors.usable = uiText("procurementForm.usable.exceeds.returned");
+  if (present(adjustment.refund) && !nonnegative(adjustment.refund)) errors.refund = uiText("procurementForm.enter.a.nonnegative.amount.leave.unknown.amounts.blank");
+  else if (present(doc.total) && adjustmentRefundTotal([...doc.adjustments, adjustment]) > Number(doc.total)) errors.refund = uiText("procurementForm.refund.exceeds.order.total");
+  if (!returned && !present(adjustment.refund)) errors.returned = errors.returned || uiText("procurementForm.enter.a.return.quantity.or.refund");
+  if (!adjustment.occurred_on || dateError(adjustment.occurred_on)) errors.date = uiText("procurementForm.enter.a.valid.date.in.yyyy.mm.dd.format");
+  else if (adjustment.occurred_on > today) errors.date = uiText("procurementForm.date.cannot.be.in.the.future");
+  if (!adjustment.reason.trim()) errors.reason = uiText("procurementForm.enter.the.return.refund.reason");
   return errors;
 }
 export function receiptFormErrors(receipt: Receipt): FieldErrors {
