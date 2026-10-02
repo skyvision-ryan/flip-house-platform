@@ -246,5 +246,9 @@
   "settings.languageControl": [
     "语言 / Language",
     "语言 / Language"
+  ],
+  "assignment.autoJoin": [
+    "保存后自动加入项目：{{people}}",
+    "Saving automatically adds these people to the project: {{people}}"
   ]
 }

@@ -85,11 +85,6 @@ def create_project(body: schemas.ProjectCreate, request: Request, db: Session = 
             target = db.get(models.User, uid)
             if target is None or not target.active:
                 raise HTTPException(400, "安排中的账号不存在或已停用，请重新选择负责人")
-            # Selecting the purchase owner also authorizes their project membership.
-            # Other task assignment flows keep their existing explicit confirmation.
-            purchase_owner = any(p.step_key == "purchase" and p.assignee_user_id == uid for p in body.task_plan)
-            if uid != creator.id and not body.join_assignees and not purchase_owner:
-                raise HTTPException(400, "请确认将所选负责人加入新项目并分派任务")
             targets[uid] = target
     for plan in body.task_plan:
         if plan.step_key == "purchase" and plan.assignee_user_id and not allowed(targets[plan.assignee_user_id].role_code, "procurement"):

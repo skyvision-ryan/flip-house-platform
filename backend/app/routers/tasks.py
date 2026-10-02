@@ -546,7 +546,7 @@ def my_tasks(db: Session = Depends(get_db), me: models.User = Depends(require_us
 
 @router.post("/projects/{project_id}/tasks/{task_id}/assign", response_model=schemas.TaskOut)
 def assign_task(project_id: int, task_id: int, body: schemas.TaskAssignIn, db: Session = Depends(get_db), me: models.User = Depends(require_user)):
-    """分派 / 改派 / 改截止。改派要写原因；不是成员的账号要显式 join_project。保存成功后各入口才更新。"""
+    """分派 / 改派 / 改截止。改派要写原因；授权分派在同一事务自动加入成员。保存成功后各入口才更新。"""
     require(me.role_code, "assign_tasks", what="分派任务")
     p = _project(db, project_id)
     t = _task(db, project_id, task_id)
@@ -566,16 +566,12 @@ def assign_task(project_id: int, task_id: int, body: schemas.TaskAssignIn, db: S
                 raise HTTPException(400, "这个账号不存在或已停用，不能分派")
             if t.step_key == "purchase" and not allowed(target.role_code, "procurement"):
                 raise HTTPException(400, "采购主负责人须具有采购权限")
-            is_member = any(m.user_id == target.id for m in _members(db, project_id))
-            if not is_member:
-                if not body.join_project:
-                    raise HTTPException(400, f"{target.display_name} 还不是本项目成员。要分派给他，请选择「加入项目并分派」")
-                if ensure_member(db, project_id, target, me):
-                    db.flush()
-                    _event(db, t, project_id, "member_added", me, after={"user_id": target.id, "role_code": target.role_code})
     changed_assignee = new_assignee != prev_assignee
     if changed_assignee and prev_assignee is not None and not (body.reason or "").strip():
         raise HTTPException(400, "改派或取消分派要写原因，让接手的人和原负责人都看得到")
+    # Validate every target and reason before writing membership or events.
+    if target is not None and ensure_member(db, project_id, target, me):
+        _event(db, t, project_id, "member_added", me, after={"user_id": target.id, "role_code": target.role_code})
     if "due_at" in data and (body.due_at or None) != (t.due_at or None):
         before_due = t.due_at
         t.due_at = body.due_at or None

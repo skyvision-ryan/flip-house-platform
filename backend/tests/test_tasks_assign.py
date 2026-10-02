@@ -106,19 +106,53 @@ class TaskAssignTests(_TaskBase):
         a2 = self.login("a2")
         self.assertEqual(a2.get("/api/me/tasks").json()["assigned"], [], "同角色的 A2 不会因此拥有任务")
 
-    def test_non_member_needs_explicit_join_and_leaves_member_event(self):
+    def test_non_member_joins_with_one_save_and_leaves_member_event(self):
         j = self.login("jessie")
         t = self.task(j)
         r = j.post(f"/api/projects/{self.pid}/tasks/{t['id']}/assign", json={"version": t["version"], "assignee_user_id": self.uid["b"]})
-        self.assertEqual(r.status_code, 400)
-        self.assertIn("加入项目并分派", r.json()["detail"])
-        r = j.post(f"/api/projects/{self.pid}/tasks/{t['id']}/assign", json={"version": t["version"], "assignee_user_id": self.uid["b"], "join_project": True})
         self.assertEqual(r.status_code, 200, r.text)
         kinds = [e["kind"] for e in j.get(f"/api/projects/{self.pid}/tasks/{t['id']}/events").json()]
         self.assertEqual(kinds, ["assigned", "member_added"])
         members = j.get(f"/api/projects/{self.pid}/members").json()
         self.assertIn(self.uid["b"], [m["id"] for m in members["members"]])
         self.assertNotIn(self.uid["b"], [m["id"] for m in members["others"]])
+
+    def test_failed_assignment_leaves_no_membership_or_history(self):
+        j = self.login("jessie"); t = self.task(j)
+        url = f"/api/projects/{self.pid}/tasks/{t['id']}/assign"
+        t = j.post(url, json={"version": t["version"], "assignee_user_id": self.uid["a"]}).json()
+        with Session(self.engine) as s:
+            before_events = len(s.scalars(select(models.TaskEvent)).all())
+        for body, status in (({"version": t["version"], "assignee_user_id": self.uid["a2"]}, 400),
+                             ({"version": t["version"] - 1, "assignee_user_id": self.uid["a2"], "reason": "change"}, 409),
+                             ({"version": t["version"], "assignee_user_id": 999999, "reason": "change"}, 400)):
+            with self.subTest(body=body):
+                self.assertEqual(j.post(url, json=body).status_code, status)
+                with Session(self.engine) as s:
+                    self.assertIsNone(s.scalar(select(models.ProjectMember).where(models.ProjectMember.user_id == self.uid["a2"])))
+                    self.assertEqual(len(s.scalars(select(models.TaskEvent)).all()), before_events)
+                    self.assertEqual(s.get(models.Task, t["id"]).assignee_user_id, self.uid["a"])
+
+    def test_reactivation_and_retries_do_not_duplicate_members_or_history(self):
+        j = self.login("jessie"); t = self.task(j)
+        with Session(self.engine) as s:
+            ensure_member(s, self.pid, s.get(models.User, self.uid["a2"]), None)
+            s.commit()
+            member = s.scalar(select(models.ProjectMember).where(models.ProjectMember.user_id == self.uid["a2"]))
+            member.active = False
+            s.commit()
+            mid = member.id
+        url = f"/api/projects/{self.pid}/tasks/{t['id']}/assign"
+        body = {"version": t["version"], "assignee_user_id": self.uid["a2"], "join_project": False}
+        saved = j.post(url, json=body)
+        self.assertEqual(saved.status_code, 200, saved.text)
+        self.assertEqual(j.post(url, json=body).status_code, 409)
+        body["version"] = saved.json()["version"]
+        self.assertEqual(j.post(url, json=body).status_code, 200)
+        with Session(self.engine) as s:
+            members = s.scalars(select(models.ProjectMember).where(models.ProjectMember.user_id == self.uid["a2"])).all()
+            self.assertEqual([(m.id, m.active) for m in members], [(mid, True)])
+            self.assertEqual(len(s.scalars(select(models.TaskEvent)).all()), 2)
 
     def test_executor_cannot_assign(self):
         j = self.login("jessie"); t = self.task(j)
