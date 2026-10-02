@@ -835,3 +835,18 @@ html[lang="en-US"] .ui-stage-label { align-items: start; }
 }
 
 .ui-task-note { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* KAN-30 property-centred workbench, shared content on desktop and narrow screens. */
+.workbench-filters {display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:16px;}
+.workbench-filters>div {flex:1 1 210px;max-width:380px;}
+.workbench-columns,.workbench-row {display:grid;grid-template-columns:minmax(155px,1.15fr) minmax(170px,1.4fr) minmax(160px,1.3fr) minmax(150px,1.1fr) minmax(80px,.6fr);gap:20px;}
+.workbench-columns {font-weight:600;padding:16px 0;border-bottom:2px solid var(--ui-border);}
+.workbench-row {padding:20px 0;border-bottom:1px solid var(--ui-border);overflow-wrap:anywhere;}
+.workbench-row>div {min-width:0;}
+.workbench-task {padding:8px 0;border-bottom:1px solid var(--ui-border);}
+.workbench-people {font-size:.875rem;display:flex;gap:4px 12px;flex-wrap:wrap;}
+.workbench-mobile-label {display:none;}
+@media(max-width:1100px) {.workbench-columns {display:none;}.workbench-row {grid-template-columns:1fr 1fr;gap:20px;padding:24px 0;}.workbench-row>div:first-child {grid-column:1/-1;}.workbench-mobile-label {display:block;margin-bottom:8px;}}
+@media(max-width:600px) {.workbench-row {display:flex;flex-direction:column;gap:16px;}.workbench-filters {align-items:stretch;}.workbench-filters>div {max-width:none;}.workbench-row>div {width:100%;}}
+
+.workbench-task>button:first-child {margin-right:8px;}

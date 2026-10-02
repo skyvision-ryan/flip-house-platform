@@ -1,3 +1,4 @@
+import LanguageToggle from './LanguageToggle';
 import { taskTitle } from '../i18n/templateNames.ts';
 import { useLanguage } from '../i18n/LanguageProvider';
 import { m, systemText } from '../i18n/core.ts';
@@ -25,6 +26,7 @@ export default function TaskAssignModal({projectId, tasks, onDone, onConflict, o
   const [members, setMembers] = useState<ProjectMembers | null>(null);
   const [who, setWho] = useState<number | null>(task.assignee?.id ?? null);
   const [assistant, setAssistant] = useState<number | null>(bulk ? null : task.assistant?.id ?? null);
+  const [reviewer, setReviewer] = useState<number | null>(null);
   const [due, setDue] = useState(task.due_at ?? '');
   const [reason, setReason] = useState('');
   const [saving, setSaving] = useState(false);
@@ -41,8 +43,10 @@ export default function TaskAssignModal({projectId, tasks, onDone, onConflict, o
   const assistantOptions = [none, ...people.filter(u => u.id !== who).map(opt)];
   const selected = (id: number | null) => id == null ? none : opt(people.find(u => u.id === id) ?? {id, display_name: baselines.flatMap(t => [t.assignee, t.assistant]).find(u => u?.id === id)?.display_name ?? String(id), username:'', role_code:'', active:false});
   const pending = baselines.filter(t => !successes.includes(t.id));
+  const needsReviewer = pending.some(t => t.completion_mode === 'review' && !t.node_confirmation && t.step_key !== 'purchase' && !t.reviewer);
+  const reviewerOptions = [none, ...people.filter(u => userCan(meta, u, 'submission_reviewer')).map(opt)];
   const needsReason = pending.some(t => (t.assignee && t.assignee.id !== who) || (t.assistant && t.assistant.id !== assistant));
-  const changed = bulk || pending.some(t => (t.assignee?.id ?? null) !== who || (t.assistant?.id ?? null) !== assistant || (t.due_at ?? '') !== due);
+  const changed = !!reviewer || bulk || pending.some(t => (t.assignee?.id ?? null) !== who || (t.assistant?.id ?? null) !== assistant || (t.due_at ?? '') !== due);
   const joinNames = people.filter(u => (u.id === who || u.id === assistant) && !members?.members.some(x => x.id === u.id)).map(u => u.display_name);
   const save = async () => {
     setErr(''); setRefreshed(false);
@@ -54,6 +58,7 @@ export default function TaskAssignModal({projectId, tasks, onDone, onConflict, o
     for (const t of pending) {
       try {
         last = await api.assignTask(projectId, t.id, {version:t.version, assignee_user_id:who, assistant_user_id:assistant,
+          reviewer_user_id: reviewer && !t.reviewer && t.completion_mode === 'review' && !t.node_confirmation ? reviewer : undefined,
           due_at: bulk && !due ? undefined : due || null, reason:reason.trim() || null});
         saved.push(t.id);
       } catch (e: any) { failed.push({id:t.id, message:e.status === 409 ? m('assignment.conflictDraft') : e.message}); if (e.status === 409) stale.push(t.id); }
@@ -70,11 +75,12 @@ export default function TaskAssignModal({projectId, tasks, onDone, onConflict, o
     } catch(e: any) {setErr(e.message);} finally {setSaving(false);}
   };
   const dismiss = () => {if (successes.length) onConflict(); else onDismiss();};
-  return <Modal visible onDismiss={saving ? () => {} : dismiss} header={bulk ? m('sentences.assign.tasks', {value1:tasks.length}) : m('sentences.update.assignment', {value1:taskTitle(task)})} footer={<Box float="right"><SpaceBetween direction="horizontal" size="xs"><Button variant="link" disabled={saving} onClick={dismiss}>{m('fieldWithSource.cancel')}</Button><Button variant="primary" loading={saving} disabled={!members || !changed || !!conflicts.length} onClick={save}>{m('taskAssignModal.save.assignment')}</Button></SpaceBetween></Box>}>
+  return <Modal visible onDismiss={saving ? () => {} : dismiss} header={bulk ? m('sentences.assign.tasks', {value1:tasks.length}) : m('sentences.update.assignment', {value1:taskTitle(task)})} footer={<Box float="right"><SpaceBetween direction="horizontal" size="xs"><LanguageToggle /><Button variant="link" disabled={saving} onClick={dismiss}>{m('fieldWithSource.cancel')}</Button><Button variant="primary" loading={saving} disabled={!members || !changed || !!conflicts.length} onClick={save}>{m('taskAssignModal.save.assignment')}</Button></SpaceBetween></Box>}>
     <SpaceBetween size="m">
       {bulk && <Box>{tasks.map(taskTitle).join(' / ')}<p>{m('assignment.bulkHint')}</p></Box>}
       <FormField label={m('projectPreplan.primary.assignee')}><Select selectedOption={selected(who)} options={options} filteringType="auto" onChange={({detail})=>setWho(detail.selectedOption.value ? Number(detail.selectedOption.value) : null)} /></FormField>
       <FormField label={m('assistant.optional')} description={m('assistant.permissions')}><Select selectedOption={selected(assistant)} options={assistantOptions} filteringType="auto" onChange={({detail})=>setAssistant(detail.selectedOption.value ? Number(detail.selectedOption.value) : null)} /></FormField>
+      {needsReviewer && <FormField label={m('workbench.reviewer')} description={m('workbench.reviewerHint')}><Select selectedOption={selected(reviewer)} options={reviewerOptions} filteringType="auto" onChange={({detail})=>setReviewer(detail.selectedOption.value ? Number(detail.selectedOption.value) : null)} /></FormField>}
       {!!joinNames.length && <Box>{m('assignment.autoJoin',{people:joinNames.join(' / ')})}</Box>}
       <FormField label={m('projectPreplan.due.date.optional')}><DatePicker value={due} onChange={({detail})=>setDue(detail.value)} placeholder="YYYY/MM/DD" /></FormField>
       <FormField label={m(needsReason ? 'assignment.reasonRequired' : 'taskAssignModal.explanation.optional')}><Textarea value={reason} onChange={({detail})=>setReason(detail.value)} rows={2} /></FormField>
