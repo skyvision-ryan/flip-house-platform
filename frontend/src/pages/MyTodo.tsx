@@ -97,11 +97,11 @@ export default function MyTodo() {
     </section>;
   };
   const pane = (subset: Task[]) => (selected && filtered(subset).some((t) => t.id === selected.id)
-    ? <Container embedded cardId="task-processing" cardContext={selected?.title} header={<Header variant="h2" description={`${selected.project_name} · ${selected.project_address}`}>{taskTitle(selected)}</Header>}><TaskWorkbench task={selected} meId={me?.id ?? null} onChanged={replace} onConflict={load} /></Container>
+    ? <Container embedded cardId="task-processing" cardContext={selected?.title} header={<Header variant="h2" description={selected.project_name.trim() === selected.project_address.trim() ? selected.project_name : `${selected.project_name} · ${selected.project_address}`}>{taskTitle(selected)}</Header>}><TaskWorkbench task={selected} meId={me?.id ?? null} onChanged={replace} onConflict={load} /></Container>
     : <Container embedded cardId="task-processing"><Box color="text-body-secondary">{uiText("myTodo.select.a.task.to.review.its.requirements.and.take")}</Box></Container>);
-  const layout = (left: JSX.Element, subset: Task[]) => <CollaborationWorkspace processing backLabel={uiText('collaborationWorkspace.back.to.task.list')} main={left} detail={pane(subset)} detailOpen={!!selected && filtered(subset).some((t) => t.id === selected.id)} onBack={() => {
+  const layout = (left: JSX.Element, subset: Task[]) => <div className="todo-processing"><CollaborationWorkspace processing backLabel={uiText('collaborationWorkspace.back.to.task.list')} main={left} detail={pane(subset)} detailOpen={!!selected && filtered(subset).some((t) => t.id === selected.id)} onBack={() => {
     setSelectedId(null); setParams((prev) => { const next = new URLSearchParams(prev); next.delete('task'); return next; }, { replace: true });
-  }} />;
+  }} /></div>;
 
   return (
     <ContentLayout maxContentWidth={1440} header={<Header variant="h1" help={me ? uiText("myTodo.handle.your.assignments.and.review.submitted.deliverables") : uiText("myTodo.sign.in.to.view.your.tasks")}>{uiText("app.my.tasks")}</Header>}>

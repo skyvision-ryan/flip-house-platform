@@ -603,10 +603,7 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
 
   // 页头写事实，不喊口号。紧急 = 有 error/warning 级洞察的房子数，按项目去重。
   const urgent = new Set(insights.filter((i) => i.level !== 'info').map((i) => i.projectId)).size;
-  const pageDescription = [
-    urgent ? uiText("sentences.properties.need.action.today", { value1: (urgent) }) : null,
-    uiText("sentences.active.unpurchased.in.closeout.2", { value1: (summary?.active ?? '—'), value2: (summary?.leads ?? '—'), value3: (summary?.portfolio ?? '—') }),
-  ].filter(Boolean).join('');
+
 
   return (
     <ContentLayout
@@ -614,7 +611,6 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
       header={
         <Header
           variant="h1"
-          description={pageDescription}
           actions={
             <SpaceBetween direction="horizontal" size="xs">
               <ButtonDropdown
@@ -630,6 +626,14 @@ export default function Dashboard({ listOnly = false }: { listOnly?: boolean }) 
       }
     >
       <SpaceBetween size="l">
+        <section className="dashboard-overview" aria-label={uiText('workbench.overview')} aria-busy={loading}>
+          {loadError ? <Alert type="error">{systemText(loadError)}</Alert> : loading ? <StatusIndicator type="loading">{uiText('workbench.loadingOverview')}</StatusIndicator> : <dl className="dashboard-overview-stats">
+            <div className="dashboard-overview-priority"><dt>{uiText('workbench.needsActionToday')}</dt><dd>{urgent}{' '}<span>{uiText('workbench.propertiesUnit', {count: urgent})}</span></dd></div>
+            <div><dt>{uiText('dashboard.active')}</dt><dd>{summary?.active ?? '—'}</dd></div>
+            <div><dt>{uiText('directorDesign.not.purchased')}</dt><dd>{summary?.leads ?? '—'}</dd></div>
+            <div><dt>{uiText('workbench.closeout')}</dt><dd>{summary?.portfolio ?? '—'}</dd></div>
+          </dl>}
+        </section>
         {/* KAN-75 块 4：登录后工作台先看「项目关注」——每套房走到哪、下一动作是谁的、等我确认的交付；
             数据来自任务表。没登录（演示访客）保留原来的四个数与项目表。 */}
         {me && <WorkbenchFocus refreshKey={projects.length} />}

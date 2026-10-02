@@ -148,20 +148,20 @@
     "English"
   ],
   "review.pending": [
-    "证据满足，尚未审阅",
-    "Evidence met; awaiting review"
+    "待确认",
+    "Awaiting confirmation"
   ],
   "review.recheck": [
-    "依据已变化，待复核",
-    "Evidence changed; review required"
+    "资料有更新，请重新确认",
+    "Evidence updated. Please confirm again"
   ],
   "review.reviewed": [
     "已审阅完成",
     "Reviewed and complete"
   ],
   "review.mark": [
-    "审阅本版依据并确认完成",
-    "Review this evidence version and complete"
+    "确认完成",
+    "Confirm completion"
   ],
   "review.hint": [
     "资料满足后须由有权查看依据的项目助理或负责人审阅；依据变化后须重新复核。",
@@ -228,8 +228,8 @@
     "Early record has no timezone; original time preserved"
   ],
   "review.evidenceSummary": [
-    "本版依据摘要",
-    "Evidence summary for this revision"
+    "当前资料摘要",
+    "Current evidence summary"
   ],
   "review.continuing": [
     "本次满足（持续工作）",
@@ -282,5 +282,53 @@
   "review.previousBy": [
     "旧版审阅：{{person}} · {{at}}（已失效）",
     "Previous review: {{person}} · {{at}} (no longer valid)"
+  ],
+  "workbench.overview": [
+    "房屋概览",
+    "Property overview"
+  ],
+  "workbench.loadingOverview": [
+    "正在读取房屋概览…",
+    "Loading property overview…"
+  ],
+  "workbench.loadingProjects": [
+    "正在读取项目…",
+    "Loading projects…"
+  ],
+  "workbench.needsActionToday": [
+    "今日需处理",
+    "Needs action today"
+  ],
+  "workbench.nextReview": [
+    "确认当前资料",
+    "Review current evidence"
+  ],
+  "workbench.needsAssignment": [
+    "待安排负责人",
+    "Assignee needed"
+  ],
+  "workbench.nextWork": [
+    "继续处理",
+    "Continue work"
+  ],
+  "workbench.nextActor": [
+    "行动者：{{person}}",
+    "Next actor: {{person}}"
+  ],
+  "workbench.missingEvidence": [
+    "还缺少必要资料",
+    "Required evidence is missing"
+  ],
+  "workbench.closeout": [
+    "收尾",
+    "Closeout"
+  ],
+  "workbench.propertiesUnit_one": [
+    "套房",
+    "property"
+  ],
+  "workbench.propertiesUnit_other": [
+    "套房",
+    "properties"
   ]
 }

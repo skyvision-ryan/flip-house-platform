@@ -91,14 +91,11 @@ function TaskWorkbenchBody({ task, meId, onChanged, onConflict }: { task: Task; 
 
   if (task.completion_mode === 'evidence' || task.completion_mode === 'record') return <EvidenceTaskWorkbench key={`${task.project_id}:${task.id}`} task={task} onChanged={onChanged} />;
 
-  if (task.step_key === 'purchase') return <SpaceBetween size="m"><Alert type="info" action={<Button onClick={() => navigate(`/procurement?project=${task.project_id}`)}>{uiText("taskWorkbench.open.property.procurement")}</Button>}>{uiText("taskWorkbench.procurement.lead")}{task.assignee?.display_name || uiText("personAvatar.unassigned")} · {task.procurement_progress?.ready ?? 0} / {task.procurement_progress?.total ?? 0} {uiText("taskWorkbench.items.ready.procurement.progress.updates.from.the.list.automatically")}</Alert><TaskTimeline projectId={task.project_id} taskId={task.id} refreshKey={task.version} /></SpaceBetween>;
+  if (task.step_key === 'purchase') return <SpaceBetween size="m"><Alert type="info" action={<Button onClick={() => navigate(`/procurement?project=${task.project_id}`)}>{uiText("taskWorkbench.open.property.procurement")}</Button>}>{task.procurement_progress?.ready ?? 0} / {task.procurement_progress?.total ?? 0} {uiText("taskWorkbench.items.ready.procurement.progress.updates.from.the.list.automatically")}</Alert><TaskTimeline projectId={task.project_id} taskId={task.id} refreshKey={task.version} /></SpaceBetween>;
 
   const detail = (
     <SpaceBetween size="m">
       <KeyValuePairs columns={2} items={[
-        { label: uiText("taskSummaryPanel.status"), value: <div><StatusIndicator type={statusIndicator(task.exec_status)}>{systemText(task.exec_status_label)}</StatusIndicator>{task.exec_status === 'waiting' && <Box variant="small" color="text-body-secondary">{uiText("taskSummaryPanel.waiting.for")} {task.wait_for || '—'}：{task.wait_reason}{task.wait_until ? uiText("sentences.expected.2", { value1: (dueText(task.wait_until)) }) : ''}</Box>}{task.exec_status === 'done' && task.done_at && <Box variant="small" color="text-body-secondary">{uiText("taskWorkbench.confirmed.on")} {dateTime(task.done_at)}</Box>}</div> },
-        { label: uiText("taskTable.due"), value: task.due_at ? dueText(task.due_at) : <Box color="text-body-secondary">{uiText("projectPreplan.not.set")}</Box> },
-        { label: uiText('task.assignee'), value: <PersonAvatar user={task.assignee} /> },
         { label: uiText("taskSummaryPanel.reviewer"), value: task.reviewer ? <PersonAvatar user={task.reviewer} /> : '—' },
         { label: uiText("taskWorkbench.process.position"), value: `${stageKeyLabel(meta?.stage_groups, task.stage_key, task.stage_label)}${task.stage_index > task.project_current_stage_index ? uiText("taskWorkbench.the.project.has.not.reached.this.point.yet.but") : ''}` },
         { label: uiText("taskSummaryPanel.evidence.assessment"), value: task.satisfied ? <div><StatusIndicator type="success">{uiText("taskSummaryPanel.requirements.met")}</StatusIndicator>{task.satisfied_evidence && <Box variant="small" color="text-body-secondary">{systemText(task.satisfied_evidence)}</Box>}</div> : <Box color="text-body-secondary">{uiText("taskSummaryPanel.requirements.not.met")}</Box> },
@@ -251,5 +248,17 @@ function DeliverTab({ task, meId, canSubmit, canReview, busy, onAction }: { task
 }
 
 export default function TaskWorkbench(props: {task: Task; meId: number | null; onChanged: (t: Task) => void; onConflict: () => void}) {
-  return <SpaceBetween size="m"><TaskWorkbenchBody {...props} />{!props.task.node_confirmation && <TaskCollaboration key={`${props.meId}:${props.task.id}`} task={props.task} meId={props.meId} onChanged={props.onChanged} />}</SpaceBetween>;
+  useLanguage();
+  const task = props.task;
+  const evidence = ['evidence', 'record'].includes(props.task.completion_mode ?? '');
+  return <div className="task-processing-content"><SpaceBetween size="l">
+    {!evidence && !props.task.node_confirmation && <KeyValuePairs columns={2} items={[
+      { label: uiText("taskSummaryPanel.status"), value: <div><StatusIndicator type={statusIndicator(task.exec_status)}>{systemText(task.exec_status_label)}</StatusIndicator>{task.exec_status === 'waiting' && <Box variant="small" color="text-body-secondary">{uiText("taskSummaryPanel.waiting.for")} {task.wait_for || '—'}：{task.wait_reason}{task.wait_until ? uiText("sentences.expected.2", { value1: (dueText(task.wait_until)) }) : ''}</Box>}{task.exec_status === 'done' && task.done_at && <Box variant="small" color="text-body-secondary">{uiText("taskWorkbench.confirmed.on")} {dateTime(task.done_at)}</Box>}</div> },
+      { label: uiText("taskTable.due"), value: task.due_at ? dueText(task.due_at) : <Box color="text-body-secondary">{uiText("projectPreplan.not.set")}</Box> },
+      {label:uiText('task.assignee'),value:props.task.assignee?.display_name ?? uiText('personAvatar.unassigned')},
+      {label:uiText('assistant.label'),value:<>{props.task.assistant?.display_name ?? uiText('assistant.none')}{props.task.assistant?.id === props.meId && ` (${uiText('assistant.mine')})`}</>},
+    ]}/>}
+    <TaskWorkbenchBody {...props} />
+    {!props.task.node_confirmation && <TaskCollaboration showPeople={false} key={`${props.meId}:${props.task.id}`} task={props.task} meId={props.meId} onChanged={props.onChanged} />}
+  </SpaceBetween></div>;
 }
