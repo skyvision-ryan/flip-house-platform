@@ -1,4 +1,20 @@
 {
+  "assignment.creator": ["项目创建人", "Project creator"],
+  "assistant.label": ["协办", "Assistant"],
+  "assistant.optional": ["协办（可选一位）", "Assistant (one, optional)"],
+  "assistant.none": ["未安排", "None assigned"],
+  "assistant.mine": ["我协办", "Assisting"],
+  "assistant.permissions": ["协办共用这条任务，可按原有模块权限补资料和备注；任务进度与提交由主责处理，审核规则不变。", "The assistant shares this task and can add records under existing module permissions and collaboration notes. The primary assignee handles progress and submission; review rules remain unchanged."],
+  "assistant.notes": ["协作备注", "Collaboration notes"],
+  "assistant.noNotes": ["暂无协作备注", "No collaboration notes yet"],
+  "assistant.addNote": ["补充备注", "Add a note"],
+  "assistant.noteHelp": ["最多 4,000 字。保留作者和时间，不改变任务状态或提交批次。", "Up to 4,000 characters. The author and time are recorded. Task status and submission batches are unchanged."],
+  "assistant.saveNote": ["保存备注", "Save note"],
+  "event.assistantChanged": ["协办：{{before}} → {{after}}", "Assistant: {{before}} → {{after}}"],
+  "assignment.reasonRequired": ["更换或移除主责／协办须填写原因", "A reason is required to replace or remove the primary assignee or assistant"],
+  "assignment.draftRetained": ["已载入最新安排。你的输入已保留，请核对以下当前安排后再保存。", "Latest assignments loaded. Your draft is retained. Check the current assignments below before saving again."],
+  "assignment.savedItems": ["已保存：{{items}}；这些任务不会重复保存。", "Saved: {{items}}. These tasks will not be saved again."],
+  "assignment.refreshKeepDraft": ["载入最新安排，保留输入", "Load latest assignments and keep my draft"],
   "event.assigned": [
     "分派给 {{person}}",
     "Assigned to {{person}}"

@@ -222,6 +222,7 @@ export interface Submission {
   decision: 'pending' | 'confirmed' | 'returned'; decision_label: string; decided_by: UserBrief | null; decided_at: string | null; decision_reason: string | null;
   files: SubmissionFile[];
 }
+export interface TaskNote { id: number; task_id: number; author: UserBrief; text: string; created_at: string }
 export interface Task {
   completion_mode?: 'evidence' | 'record' | 'review';
   template_key?: string | null; template_name_snapshot?: string | null;
@@ -232,7 +233,7 @@ export interface Task {
   project_current_stage_index: number; project_current_stage_label: string;
   title: string; ws: string | null; purpose: string | null; done_when: string | null; owners: string[]; deliverable: Deliverable | null;
   description: string | null; deliverable_note: string | null;
-  assignee: UserBrief | null; reviewer: UserBrief | null;
+  assignee: UserBrief | null; assistant?: UserBrief | null; notes?: TaskNote[]; reviewer: UserBrief | null;
   exec_status: TaskExecStatus; exec_status_label: string;
   due_at: string | null; wait_for: string | null; wait_reason: string | null; wait_until: string | null;
   version: number;
@@ -252,8 +253,8 @@ export interface Workbench { projects: WorkbenchProject[]; my_pending: Task[]; c
 export interface ProjectMember extends UserBrief { role_snapshot: string | null; added_at: string | null }
 export interface ProjectMembers { members: ProjectMember[]; others: UserBrief[]; can_assign: boolean; can_add_member: boolean }
 export interface TaskSignal { id: number; task_id: number; project_id: number; project_name: string; title: string; template_key: string | null; template_name_snapshot: string | null; kind: string; mode: string; created_at: string; next: { id: number; title: string; template_key: string | null; template_name_snapshot: string | null; assignee: UserBrief | null; due_at: string | null } | null }
-export interface MyTasks { assigned: Task[]; reviewing: Task[]; signals?: TaskSignal[] }
-export interface TaskAssignIn { version: number; assignee_user_id?: number | null; due_at?: string | null; reason?: string | null; join_project?: boolean }
+export interface MyTasks { assisting?: Task[]; assigned: Task[]; reviewing: Task[]; signals?: TaskSignal[] }
+export interface TaskAssignIn { version: number; assignee_user_id?: number | null; assistant_user_id?: number | null; due_at?: string | null; reason?: string | null; join_project?: boolean }
 export interface TaskStatusIn { version: number; action: 'start' | 'wait' | 'resume'; wait_for?: string | null; wait_reason?: string | null; wait_until?: string | null }
 export type UserRow = Omit<Me, 'demo_mode'>;
 
@@ -312,6 +313,7 @@ export const api = {
   task: (id: number, taskId: number) => req<Task>(`/api/projects/${id}/tasks/${taskId}`),
   workbench: () => req<Workbench>('/api/me/workbench'),
   taskEvents: (id: number, taskId: number) => req<TaskEvent[]>(`/api/projects/${id}/tasks/${taskId}/events`),
+  addTaskNote: (id: number, taskId: number, body: {request_key: string; text: string}) => req<Task>(`/api/projects/${id}/tasks/${taskId}/notes`, {method: 'POST', body: JSON.stringify(body)}),
   assignTask: (id: number, taskId: number, body: TaskAssignIn) => req<Task>(`/api/projects/${id}/tasks/${taskId}/assign`, { method: 'POST', body: JSON.stringify(body) }),
   taskStatus: (id: number, taskId: number, body: TaskStatusIn) => req<Task>(`/api/projects/${id}/tasks/${taskId}/status`, { method: 'POST', body: JSON.stringify(body) }),
   myTasks: () => req<MyTasks>('/api/me/tasks'),

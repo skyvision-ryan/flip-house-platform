@@ -72,8 +72,8 @@
     "Enter a valid date, such as 2026/09/25"
   ],
   "projectPreplan.this.saves.a.draft.only.after.creation.tasks.start": [
-    "这里只保存草稿。创建后任务为“未开始”，审核人沿用现有规则，默认为创建者。",
-    "This saves a draft only. After creation, tasks start as Not started; the reviewer follows existing rules and defaults to the creator."
+    "这里只保存安排草稿；创建后主责与协办共用一条任务，审核沿用原规则。",
+    "This saves an assignment draft. After creation, the primary assignee and assistant share one task; existing review rules apply."
   ],
   "projectPreplan.assignment.summary": [
     "安排摘要",
@@ -124,8 +124,8 @@
     "No email will be sent ·"
   ],
   "projectPreplan.assignees": [
-    "位负责人。",
-    "assignees."
+    "位参与人员。",
+    "participants."
   ],
   "projectPreplan.tasks.for.the.same.assignee.are.combined.into.one": [
     "同一位负责人的任务合并为一份安排预览。",

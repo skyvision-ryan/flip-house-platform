@@ -1,3 +1,4 @@
+import TaskCollaboration from './TaskCollaboration';
 import { eventText } from '../i18n/taskDisplay.ts';
 import { taskTitle } from '../i18n/templateNames.ts';
 import { systemText } from '../i18n/core.ts';
@@ -76,6 +77,7 @@ export default function TaskSummaryPanel({ task, project, canAssign, onAssign, o
               items={[
                 { label: uiText("taskSummaryPanel.status"), value: <div><StatusIndicator type={statusIndicator(task.exec_status)}>{systemText(task.exec_status_label)}</StatusIndicator>{task.exec_status === 'waiting' && <Box variant="small" color="text-body-secondary">{uiText("taskSummaryPanel.waiting.for")} {task.wait_for || '—'}：{task.wait_reason}{task.wait_until ? uiText("sentences.expected", { value1: (dueText(task.wait_until)) }) : ''}</Box>}</div> },
                 { label: uiText("projectPreplan.primary.assignee"), value: canAssign ? <AssigneeButton user={task.assignee} label={uiText("sentences.change.assignee", { value1: (taskTitle(task)) })} onClick={() => onAssign(task)} /> : <PersonAvatar user={task.assignee} showRole={false} /> },
+                { label: uiText("assistant.label"), value: task.assistant?.display_name ?? uiText("assistant.none") },
                 { label: uiText("taskSummaryPanel.reviewer"), value: task.reviewer ? <PersonAvatar user={task.reviewer} showRole={false} /> : <Box color="text-body-secondary">{uiText("taskSummaryPanel.not.specified")}</Box> },
                 {
                   label: uiText("projectPreplan.due.date"),
@@ -95,9 +97,10 @@ export default function TaskSummaryPanel({ task, project, canAssign, onAssign, o
             />
             {task.exec_status !== 'done' && task.satisfied && <Box fontSize="body-s" color="text-status-info">{uiText("taskSummaryPanel.evidence.requirements.are.met.the.task.still.awaits.confirmation")}</Box>}
             <div className="ui-actions ui-actions-start">
-              {me && (task.assignee?.id === me.id || task.reviewer?.id === me.id) && <Button onClick={() => navigate(`/todo?task=${task.id}`)}>{task.exec_status === 'pending_review' && task.reviewer?.id === me.id ? uiText("taskSummaryPanel.review.in.my.tasks") : uiText("taskSummaryPanel.handle.in.my.tasks")}</Button>}
+              {me && (task.assignee?.id === me.id || task.assistant?.id === me.id || task.reviewer?.id === me.id) && <Button onClick={() => navigate(`/todo?task=${task.id}`)}>{task.exec_status === 'pending_review' && task.reviewer?.id === me.id ? uiText("taskSummaryPanel.review.in.my.tasks") : uiText("taskSummaryPanel.handle.in.my.tasks")}</Button>}
               <Button variant="link" onClick={() => navigate(`/projects/${task.project_id}/tasks/${task.id}`)}>{uiText("taskSummaryPanel.full.activity.history")}</Button>
             </div>
+            <TaskCollaboration key={`${me?.id}:${task.id}`} task={task} meId={me?.id ?? null} onChanged={onChanged} />
             <ExpandableSection headerText={uiText("taskSummaryPanel.activity.history")} variant="footer">
               <TaskTimeline projectId={task.project_id} taskId={task.id} refreshKey={refreshKey} limit={6} />
             </ExpandableSection>

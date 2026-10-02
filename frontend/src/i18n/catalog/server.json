@@ -1,4 +1,11 @@
 {
+  "server.assistantPairInvalid": ["协办须与主负责人不同，且必须先有主负责人", "An assistant must differ from the primary assignee, and a primary assignee is required."],
+  "server.assignmentAccountInvalid": ["安排中的账号不存在或已停用，请重新选择", "An account does not exist or is inactive. Select an active account."],
+  "server.procurementOwnerPermission": ["采购主负责人须具有采购权限", "The procurement lead must have procurement permission."],
+  "server.assistantChangeReason": ["替换或移除协办须填写原因", "A reason is required to replace or remove an assistant."],
+  "server.taskNoteDenied": ["只有主责、协办或有分派权限的人员能补充协作备注", "Only the primary assignee, assistant or an authorized task coordinator can add a collaboration note."],
+  "server.taskNoteRequired": ["请填写协作备注", "Enter a collaboration note."],
+  "server.taskNoteRequestConflict": ["这条备注已经保存且内容不同，请刷新后重新填写", "This note was already saved with different content. Refresh and enter a new note."],
   "server.latest.final.inspection.failed": [
     "最近一次 final 检查未通过：{{value1}}（{{value2}}）",
     "Latest Final Inspection failed: {{value1}} ({{value2}})"

@@ -37,3 +37,13 @@ test('中途录入从所选阶段安排，历史任务不冒充后续阶段', ()
   const groups = planByPerson(stages, plan, [], 's3');
   assert.equal(groups[0].items[0].future, false);
 });
+
+
+test('assistant shares the task count and gets a distinct role in the preview', () => {
+  const shared = {view: {assignee_user_id: 7, assistant_user_id: 8, due_at: ''}};
+  const summary = summarizePlan(stages, shared);
+  assert.equal(summary.assigned, 1);
+  assert.deepEqual(summary.people, [7, 8]);
+  assert.equal(planByPerson(stages, shared, [])[1].items[0].assisting, true);
+  assert.equal(planPayload(stages, shared)[0].assistant_user_id, 8);
+});

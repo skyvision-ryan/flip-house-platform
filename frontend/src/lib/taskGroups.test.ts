@@ -66,3 +66,11 @@ test('initialsOf 与 dueText', () => {
   assert.equal(dueText('2026-09-25'), '09/25');
   assert.equal(dueText(null), '未设定');
 });
+
+
+test('assistant has no primary execution actions', () => {
+  const primary = { id: 7, username: 'a', display_name: 'A', role_code: 'S', active: true };
+  const helper = {...primary, id: 8, username: 'b', display_name: 'B'};
+  assert.deepEqual(statusActions(task({assignee: primary, assistant: helper}), 8), []);
+  assert.deepEqual(statusActions(task({assignee: primary, assistant: helper}), 7), ['start', 'wait']);
+});

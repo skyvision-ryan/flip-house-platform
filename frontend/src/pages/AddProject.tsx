@@ -415,9 +415,9 @@ export default function AddProject() {
         <ProjectPreplan meta={meta} plan={plan} onChange={updatePlan} users={users} loading={loadingUsers} creatorId={me.id} initialStage={initialStage} />
       </SpaceBetween><aside className={css.aside}><SpaceBetween size="l">{houseCard}<PlanSummary meta={meta} plan={plan} users={users} initialStage={initialStage} /></SpaceBetween></aside></div>}
       {step === 2 && <div className={css.intakeSplit}><SpaceBetween size="l">
-        {houseCard}<PlanReview meta={meta} plan={plan} />
+        {houseCard}<PlanReview meta={meta} plan={plan} users={users} />
         <Container cardId="intake-start" header={<Header variant="h2">{uiText("addProject.getting.started.after.creation")}</Header>}><SpaceBetween size="m">
-          <KeyValuePairs columns={2} items={[{ label: uiText("addProject.starting.position"), value: stageOptions.find((s) => s.value === initialStage)?.label }, { label: uiText("addProject.task.status"), value: systemText('普通任务待处理；采购分派后即可录单') }, { label: uiText("addProject.reviewer.for.these.assignments"), value: planSummary.assigned ? me.display_name : uiText("addProject.set.when.assigning") }, { label: uiText("projectPreplan.milestones"), value: systemText('必要条件齐备后，由有权限的账号确认满足') }]} />
+          <KeyValuePairs columns={2} items={[{ label: uiText("addProject.starting.position"), value: stageOptions.find((s) => s.value === initialStage)?.label }, { label: uiText("addProject.task.status"), value: systemText('普通任务待处理；采购分派后即可录单') }, { label: uiText("assignment.creator"), value: me.display_name }, { label: uiText("projectPreplan.milestones"), value: systemText('必要条件齐备后，由有权限的账号确认满足') }]} />
           {joining.length > 0 && <Box>{uiText('assignment.autoJoin', { people: joining.map(id => users.find(u => u.id === id)?.display_name ?? String(id)).join('、') })}</Box>}
           <Box color="text-body-secondary">{uiText("addProject.unassigned")} {planSummary.unassigned} {uiText("addProject.tasks.remain.available.to.assign.later")}</Box>
         </SpaceBetween></Container>

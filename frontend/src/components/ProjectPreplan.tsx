@@ -34,12 +34,15 @@ export default function ProjectPreplan({ meta, plan, onChange, users, loading, c
   const [group, setGroup] = useState(meta.stage_groups?.find((g) => g.stages.includes(initialStage))?.key ?? 'buying');
   const [editing, setEditing] = useState<{ key: string; title: string } | null>(null);
   const [who, setWho] = useState<number | null>(null);
+  const [assistant, setAssistant] = useState<number | null>(null);
+  const [invalidPair, setInvalidPair] = useState(false);
   const [due, setDue] = useState('');
   const [invalidDate, setInvalidDate] = useState(false);
   const open = (item: { key: string; title: string }) => {
-    setEditing(item); setWho(plan[item.key]?.assignee_user_id ?? null); setDue(plan[item.key]?.due_at ?? ''); setInvalidDate(false);
+    setAssistant(plan[item.key]?.assistant_user_id ?? null); setInvalidPair(false); setEditing(item); setWho(plan[item.key]?.assignee_user_id ?? null); setDue(plan[item.key]?.due_at ?? ''); setInvalidDate(false);
   };
-  const options = [{ value: '', label: uiText("personAvatar.unassigned") }, ...users.filter(u => editing?.key !== 'purchase' || userCan(meta, u, 'procurement')).map((u) => ({ value: String(u.id), label: `${initialsOf(u)} · ${u.display_name}`, description: `${systemText(u.role_code)} · ${u.username}` }))];
+  const options = [{ value: '', label: uiText("personAvatar.unassigned") }, ...users.filter(u => u.active).filter(u => editing?.key !== 'purchase' || userCan(meta, u, 'procurement')).map((u) => ({ value: String(u.id), label: `${initialsOf(u)} · ${u.display_name}`, description: `${systemText(u.role_code)} · ${u.username}` }))];
+  const assistantOptions = [{value: '', label: uiText('assistant.none')}, ...users.filter(u => u.active && u.id !== who).map(u => ({value: String(u.id), label: u.display_name}))];
   const renderStage = (stage: PlanStage) => {
     const ordinary = stage.items.filter((i) => !i.gate);
     const gates = stage.items.filter((i) => i.gate);
@@ -51,7 +54,7 @@ export default function ProjectPreplan({ meta, plan, onChange, users, loading, c
         const user = users.find((u) => u.id === plan[item.key]?.assignee_user_id);
         return <div className={`${css.draftRow} ${css.draftItem}`} key={item.key}>
           <div><Box fontWeight="bold">{item.title}</Box><Box variant="small" color="text-body-secondary">{item.deliverable?.label ?? item.evidence}{!current && (stage.key < initialStage ? uiText("projectPreplan.earlier.history.needs.verification") : uiText("projectPreplan.prepare.ahead"))}</Box></div>
-          <AssigneeButton user={user} label={uiText("sentences.assign.person", { value1: (item.title) })} disabled={loading} onClick={() => open(item)} />
+          <div><AssigneeButton user={user} label={uiText("sentences.assign.person", { value1: (item.title) })} disabled={loading} onClick={() => open(item)} /><Box variant="small">{uiText('assistant.label')}: {users.find(u => u.id === plan[item.key]?.assistant_user_id)?.display_name ?? uiText('assistant.none')}</Box></div>
           <Button variant="inline-link" iconName="calendar" ariaLabel={uiText("sentences.set.due.date", { value1: (item.title) })} onClick={() => open(item)}>{plan[item.key]?.due_at || uiText("projectPreplan.not.set")}</Button>
         </div>;
       })}
@@ -64,10 +67,12 @@ export default function ProjectPreplan({ meta, plan, onChange, users, loading, c
     }))} />
     {editing && <Modal visible header={uiText("sentences.assignment", { value1: (editing.title) })} onDismiss={() => setEditing(null)} footer={<Box float="right"><SpaceBetween direction="horizontal" size="xs"><Button variant="link" onClick={() => setEditing(null)}>{uiText("fieldWithSource.cancel")}</Button><Button variant="primary" onClick={() => {
       if (due && (!/^\d{4}-\d{2}-\d{2}$/.test(due) || Number.isNaN(Date.parse(due)) || new Date(due).toISOString().slice(0, 10) !== due)) { setInvalidDate(true); return; }
-      onChange({ ...plan, [editing.key]: { assignee_user_id: who, due_at: due } }); setEditing(null);
+      if (assistant != null && (who == null || assistant === who)) { setInvalidPair(true); return; }
+      onChange({ ...plan, [editing.key]: { assignee_user_id: who, assistant_user_id: assistant, due_at: due } }); setEditing(null);
     }}>{uiText("projectPreplan.save.assignment")}</Button></SpaceBetween></Box>}>
       <SpaceBetween size="l">
         <FormField label={uiText("projectPreplan.primary.assignee")} description={editing.key === 'purchase' ? uiText("projectPreplan.on.creation.the.selected.procurement.assignee.joins.this.property") : uiText("projectPreplan.this.new.project.has.no.members.yet.select.real")}><Select filteringType="auto" options={options} selectedOption={options.find((o) => o.value === (who == null ? '' : String(who))) ?? null} onChange={({ detail }) => setWho(detail.selectedOption.value ? Number(detail.selectedOption.value) : null)} /></FormField>
+        <FormField label={uiText('assistant.optional')} description={uiText('assistant.permissions')} errorText={invalidPair ? uiText('server.assistantPairInvalid') : undefined}><Select filteringType="auto" options={assistantOptions} selectedOption={assistantOptions.find(o => o.value === (assistant == null ? '' : String(assistant))) ?? {value: String(assistant), label: users.find(u => u.id === assistant)?.display_name ?? String(assistant)}} onChange={({detail}) => {setAssistant(detail.selectedOption.value ? Number(detail.selectedOption.value) : null); setInvalidPair(false);}} /></FormField>
         {who != null && who !== creatorId && <Alert type="info">{uiText("projectPreplan.selected.assignees.join.the.project.on.creation.assignment.history")}</Alert>}
         <FormField label={uiText("projectPreplan.due.date.optional")} errorText={systemText(invalidDate ? uiText("projectPreplan.enter.a.valid.date.such.as.2026.09.25") : undefined)}><DatePicker value={due} onChange={({ detail }) => { setDue(detail.value); setInvalidDate(false); }} placeholder="YYYY/MM/DD" /></FormField>
         <HelpText>{uiText("projectPreplan.this.saves.a.draft.only.after.creation.tasks.start")}</HelpText>
@@ -100,17 +105,19 @@ export function PlanSummary({ meta, plan, users, initialStage, review = false }:
       </SpaceBetween>
     </Container>
     {preview && <Modal visible size="large" header={uiText("projectPreplan.assignment.preview.not.sent")} onDismiss={() => setPreview(false)} footer={<Box float="right"><Button onClick={() => setPreview(false)}>{uiText("myTodoTable.close")}</Button></Box>}>
-      <SpaceBetween size="l"><Alert type="info">{uiText("projectPreplan.this.preview.groups.tasks.by.assignee.recipient.addresses.sending")}</Alert>{recipients.map((r, index) => <Container cardId="plan-recipient" cardContext={r.user?.display_name} key={r.user?.id ?? index} header={<Header variant="h3"><PersonAvatar user={r.user} /></Header>}><SpaceBetween size="s">{r.items.map((i) => <div key={`${i.stage}-${i.title}`}><Box fontWeight="bold">{i.title}</Box><Box color="text-body-secondary">{stageKeyLabel(meta.stage_groups, i.stage_key, i.stage)} · {i.future ? uiText("projectPreplan.prepare.ahead.2") : uiText("projectPreplan.current.stage")} {uiText("projectPreplan.due")} {i.due || uiText("projectPreplan.not.set")}</Box></div>)}</SpaceBetween></Container>)}</SpaceBetween>
+      <SpaceBetween size="l"><Alert type="info">{uiText("projectPreplan.this.preview.groups.tasks.by.assignee.recipient.addresses.sending")}</Alert>{recipients.map((r, index) => <Container cardId="plan-recipient" cardContext={r.user?.display_name} key={r.user?.id ?? index} header={<Header variant="h3"><PersonAvatar user={r.user} /></Header>}><SpaceBetween size="s">{r.items.map((i) => <div key={`${i.stage}-${i.title}`}><Box fontWeight="bold">{i.title}</Box><Box>{uiText(i.assisting ? 'assistant.label' : 'projectPreplan.primary.assignee')}</Box><Box color="text-body-secondary">{stageKeyLabel(meta.stage_groups, i.stage_key, i.stage)} · {i.future ? uiText("projectPreplan.prepare.ahead.2") : uiText("projectPreplan.current.stage")} {uiText("projectPreplan.due")} {i.due || uiText("projectPreplan.not.set")}</Box></div>)}</SpaceBetween></Container>)}</SpaceBetween>
     </Modal>}
     {review && <HelpText>{uiText("projectPreplan.you.can.go.back.and.edit.before.creation.all")}</HelpText>}
   </SpaceBetween>;
 }
 
-export function PlanReview({ meta, plan }: { meta: Meta; plan: TaskPlan }) {
+export function PlanReview({ meta, plan, users }: { meta: Meta; plan: TaskPlan; users: UserBrief[] }) {
   useLanguage();
-  return <Table cardId="plan-review" variant="container" header={<Header variant="h2" help={uiText("projectPreplan.all.template.tasks.will.be.created.including.assigned.and")}>{uiText("projectPreplan.full.process.assignments")}</Header>} items={meta.stage_groups ?? []} trackBy="key" columnDefinitions={[
+  return <SpaceBetween size="m"><Table cardId="plan-review" variant="container" header={<Header variant="h2" help={uiText("projectPreplan.all.template.tasks.will.be.created.including.assigned.and")}>{uiText("projectPreplan.full.process.assignments")}</Header>} items={meta.stage_groups ?? []} trackBy="key" columnDefinitions={[
     { id: 'stage', header: uiText("projectPreplan.position"), cell: (g) => g.label },
     { id: 'assigned', header: uiText("projectPreplan.assigned.tasks"), cell: (g) => { const s = summarizePlan(meta.stage_checklist.filter((st) => g.stages.includes(st.key)), plan); return `${s.assigned} / ${s.total}`; } },
     { id: 'gate', header: uiText("projectPreplan.milestones"), cell: (g) => summarizePlan(meta.stage_checklist.filter((st) => g.stages.includes(st.key)), plan).gates },
-  ]} />;
+  ]} />
+  {meta.stage_checklist.flatMap(s => s.items.filter(i => !i.gate && plan[i.key])).map(i => <div key={i.key}><Box fontWeight="bold">{i.title}</Box><Box>{uiText('projectPreplan.primary.assignee')}: {users.find(u => u.id === plan[i.key].assignee_user_id)?.display_name ?? uiText('personAvatar.unassigned')} / {uiText('assistant.label')}: {users.find(u => u.id === plan[i.key].assistant_user_id)?.display_name ?? uiText('assistant.none')}</Box><Box>{uiText('projectPreplan.due.date')}: {plan[i.key].due_at || uiText('projectPreplan.not.set')}</Box></div>)}
+  </SpaceBetween>;
 }

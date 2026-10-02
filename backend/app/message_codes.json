@@ -1,4 +1,11 @@
 {
+  "server.assistantPairInvalid": "协办须与主负责人不同，且必须先有主负责人",
+  "server.assignmentAccountInvalid": "安排中的账号不存在或已停用，请重新选择",
+  "server.procurementOwnerPermission": "采购主负责人须具有采购权限",
+  "server.assistantChangeReason": "替换或移除协办须填写原因",
+  "server.taskNoteDenied": "只有主责、协办或有分派权限的人员能补充协作备注",
+  "server.taskNoteRequired": "请填写协作备注",
+  "server.taskNoteRequestConflict": "这条备注已经保存且内容不同，请刷新后重新填写",
   "server.latest.final.inspection.failed": "最近一次 final 检查未通过：{{value1}}（{{value2}}）",
   "server.final.inspection.passed": "final 检查通过：{{value1}}",
   "server.not.entered": "还没填{{value1}}",

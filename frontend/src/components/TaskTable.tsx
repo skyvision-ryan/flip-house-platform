@@ -39,7 +39,7 @@ export default function TaskTable({ data, selectedId, onSelect, canAssign, onAss
     // 六段 key 翻成位置条的说法（买房 · 未购入 / escrow 中 / 装修 …），不硬编码六段名
     ...data.stages.map((s) => { const l = stageKeyLabel(meta?.stage_groups, s.key, s.short); return { value: s.key, label: s.index === data.current_stage_index ? uiText("sentences.current", { value1: (l) }) : l }; }),
   ];
-  const rows = useMemo(() => data.tasks.filter((t) => (stage === ALL || t.stage_key === stage) && (!q || t.title.toLowerCase().includes(q.toLowerCase()) || (t.assignee?.display_name ?? '').includes(q))), [data.tasks, stage, q]);
+  const rows = useMemo(() => data.tasks.filter((t) => (stage === ALL || t.stage_key === stage) && (!q || t.title.toLowerCase().includes(q.toLowerCase()) || (t.assignee?.display_name ?? '').includes(q) || (t.assistant?.display_name ?? '').includes(q))), [data.tasks, stage, q]);
   const unassigned = rows.filter((t) => !t.assignee && !t.node_confirmation).length;
 
   return (
@@ -80,6 +80,7 @@ export default function TaskTable({ data, selectedId, onSelect, canAssign, onAss
             <div className="ui-task-person" onClick={(e) => e.stopPropagation()}>
               {t.node_confirmation ? <span>{uiText("taskTable.milestone.confirmation")} {t.node_confirmation.confirm.join(" / ")}</span> : canAssign ? <AssigneeButton user={t.assignee} label={`${t.assignee ? uiText("taskTable.reassign") : uiText("taskTable.assign")}：${taskTitle(t)}`} onClick={() => onAssign([t])} />
                 : <PersonAvatar user={t.assignee} size="small" showRole={false} />}
+              {!t.node_confirmation && <Box variant="small">{uiText('assistant.label')}: {t.assistant?.display_name ?? uiText('assistant.none')}</Box>}
             </div>
           ),
         },

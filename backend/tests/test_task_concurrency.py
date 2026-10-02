@@ -169,3 +169,23 @@ class TaskConcurrencyTests(unittest.TestCase):
             self.assertIn(events[0].actor_user_id, [self.users['planner'],self.users['replacement']])
         for client in [self.planner,david]:
             self.assertNotIn(node['id'],[t['id'] for t in client.get('/api/me/tasks').json()['reviewing']])
+
+    def test_assistant_race_rolls_back_losing_membership(self):
+        helpers=[]
+        with Session(self.engine) as session:
+            for index in range(2):
+                user=models.User(username=f'helper-{index}',display_name=f'Helper {index}',role_code='S',password_hash=hash_password(self.password))
+                session.add(user);session.flush();helpers.append(user.id)
+            session.commit()
+        other=self.login('planner')
+        current,responses=self.race(self.task,
+            (self.planner,'assign',{'assistant_user_id':helpers[0]}),
+            (other,'assign',{'assistant_user_id':helpers[1]}))
+        winner=current['assistant']['id'];loser=next(uid for uid in helpers if uid!=winner)
+        with Session(self.engine) as session:
+            added=session.scalars(select(models.ProjectMember.user_id).where(models.ProjectMember.user_id.in_(helpers))).all()
+            self.assertEqual(added,[winner])
+            events=session.scalars(select(models.TaskEvent).where(models.TaskEvent.kind=='assistant_changed')).all()
+            self.assertEqual(len(events),1)
+        self.assertEqual(current['assignee']['id'],self.users['worker'])
+        self.assertEqual(current['reviewer']['id'],self.users['planner'])

@@ -1,3 +1,4 @@
+import TaskCollaboration from './TaskCollaboration';
 import SubmissionList from './TaskSubmissionList';
 import EvidenceTaskWorkbench from './EvidenceTaskWorkbench';
 import { taskTitle } from '../i18n/templateNames.ts';
@@ -43,7 +44,7 @@ const kb = (n: number) => (n >= 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} M
  * 负责人在「交付」里选文件、写说明、提交审核；审核人在同一处看文件、当前生效要求，退回或确认。
  * 三个入口（我的事项、总览、活动记录页）共用同一条任务，不复制状态。
  */
-export default function TaskWorkbench({ task, meId, onChanged, onConflict }: { task: Task; meId: number | null; onChanged: (t: Task) => void; onConflict: () => void }) {
+function TaskWorkbenchBody({ task, meId, onChanged, onConflict }: { task: Task; meId: number | null; onChanged: (t: Task) => void; onConflict: () => void }) {
   useLanguage();
   const meta = useMeta();
   const flash = useFlash();
@@ -244,4 +245,8 @@ function DeliverTab({ task, meId, canSubmit, canReview, busy, onAction }: { task
       <SubmissionList subs={task.submissions} />
     </SpaceBetween>
   );
+}
+
+export default function TaskWorkbench(props: {task: Task; meId: number | null; onChanged: (t: Task) => void; onConflict: () => void}) {
+  return <SpaceBetween size="m"><TaskWorkbenchBody {...props} />{!props.task.node_confirmation && <TaskCollaboration key={`${props.meId}:${props.task.id}`} task={props.task} meId={props.meId} onChanged={props.onChanged} />}</SpaceBetween>;
 }
