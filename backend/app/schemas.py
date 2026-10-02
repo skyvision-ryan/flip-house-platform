@@ -76,6 +76,7 @@ class PropertyBrief(ORM):
 
 
 class ProjectOut(ORM):
+    created_today: bool = False
     holding_company: Optional[str] = None
     id: int
     name: str

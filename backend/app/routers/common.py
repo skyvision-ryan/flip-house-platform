@@ -13,6 +13,7 @@ from ..auth import current_user
 from ..db import get_db
 from ..dictionaries import KEY_FIELDS_FOR_COMPLETENESS, PERMISSIONS, PROPERTY_FIELDS, tier_of
 from ..settings import DEMO_MODE
+from ..project_dates import is_new_today
 from ..status import compute_status
 from ..steps import compute_steps, sync_legacy_stage
 
@@ -120,7 +121,7 @@ def project_out(db: Session, p: models.Project, actor: str = "负责人") -> sch
         purchase_price=None if hide else p.purchase_price, target_arv=None if hide else p.target_arv, purchase_date=p.purchase_date,
         construction_start=p.construction_start, construction_end=p.construction_end,
         list_date=p.list_date, sale_date=p.sale_date, sale_price=None if hide else p.sale_price,
-        risks=p.risks, notes=p.notes, created_at=p.created_at, updated_at=p.updated_at,
+        risks=p.risks, notes=p.notes, created_today=is_new_today(p.created_at), created_at=p.created_at, updated_at=p.updated_at,
         property=schemas.PropertyBrief.model_validate(prop),
         budget_planned=None if hide else planned, budget_spent=None if hide else spent,
         budget_used_pct=(None if hide else (round(spent / planned * 100, 1) if planned > 0 else None)),

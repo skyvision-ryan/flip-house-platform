@@ -190,4 +190,6 @@ PR 按 `.github/pull_request_template.md` 填检查与剩余缺口；无需每�
 
 仍未验证：iPhone/Safari 真机、所有角色预览的每一种交互组合、所有真实历史格式、每个表单的人员选择/嵌套弹窗切换。现有验收不是“全站全部组合通过”的声明。自动扫描的覆盖边界见上文；后续改动按受影响范围复验，不开启无关改造。
 
+2026-10-02 紧急批次术语：今日新建 = New today。按 America/Los_Angeles 的创建日期判定；无时区历史记录不猜算。公司名、人名、协作备注和历史原文不翻译。公司／选人草稿、备注、列表筛选及展开状态的中英切换按本批路径验收，详见当前实现与版本核验。
+
 未完成：自由中文内容自动英文阅读（含员工备注、自定义名称、未知非结构化历史及无可靠来源旧模板/旧分析名称）；附件翻译不在本轮。已识别的系统采购订单动态有兼容译法，未知原文不猜译。桌面本地翻译候选仅完成官方能力文档核对，尚未接入、测速或评测专业质量；不能保证跨设备零费用且快速准确。参考：[Chrome Translator API](https://developer.chrome.com/docs/ai/translator-api)、[Transformers.js](https://huggingface.co/docs/transformers.js/en/index)。

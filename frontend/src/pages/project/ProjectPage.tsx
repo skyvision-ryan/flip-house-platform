@@ -1,3 +1,4 @@
+import { projectListReturnPath } from '../../lib/projectDates';
 import { focusValue } from '../../i18n/taskDisplay.ts';
 import { systemText } from '../../i18n/core.ts';
 import { useLanguage } from '../../i18n/LanguageProvider';
@@ -142,7 +143,7 @@ export default function ProjectPage() {
 
   return (
     <ContentLayout maxContentWidth={1440}
-      breadcrumbs={<BreadcrumbGroup items={[{ text: uiText("app.workspace"), href: '/' }, { text: uiText("app.projects"), href: '/projects' }, { text: project.name, href: `/projects/${pid}` }]} onFollow={(e) => { e.preventDefault(); navigate(e.detail.href); }} />}
+      breadcrumbs={<BreadcrumbGroup items={[{ text: uiText("app.workspace"), href: '/' }, { text: uiText("app.projects"), href: projectListReturnPath(params.get('returnTo'), params.get('created') === String(pid) ? pid : undefined) }, { text: project.name, href: `/projects/${pid}` }]} onFollow={(e) => { e.preventDefault(); navigate(e.detail.href); }} />}
       header={
         <Container embedded cardId="project-header" cardContext={project.name}>
           <SpaceBetween size="l">
@@ -176,6 +177,7 @@ export default function ProjectPage() {
       }
     >
       <SpaceBetween size="l">
+        {params.get('created') === String(pid) && <Alert type="success" action={<Button onClick={()=>navigate(projectListReturnPath(params.get('returnTo'),pid))}>{uiText('newToday.locate')}</Button>}>{uiText('newToday.created', {name:project.name})}</Alert>}
         <Tabs
           activeTabId={tab}
           onChange={({ detail }) => setParams((prev) => { const n = new URLSearchParams(prev); n.set('tab', detail.activeTabId); n.delete('section'); return n; })}

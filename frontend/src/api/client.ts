@@ -245,6 +245,7 @@ export interface Task {
 export interface FocusFact { task_display?: { title: string; template_key?: string | null; template_name_snapshot?: string | null } | null; task_state?: string | null; label: string; value: string; tone: 'normal' | 'warning' }
 export interface TaskList { tasks: Task[]; stages: { key: string; label: string; short: string; index: number }[]; current_stage_index: number; template_missing: boolean; can_assign: boolean; focus: FocusFact[] }
 export interface WorkbenchProject {
+  created_at?: string; created_today?: boolean;
   project_id: number; project_name: string; address: string; group_position: GroupPosition; position_label: string;
   next_action: { task_id: number; title: string; template_key?: string | null; template_name_snapshot?: string | null; exec_status: TaskExecStatus; exec_status_label: string; due_at: string | null; actor: UserBrief | null; kind: 'review' | 'assign' | 'do' } | null;
   procurement?: { owner: string | null; ready: number; total: number; spent: string; missing_totals: number; order_count: number; problems: {id: number; name: string; note: string}[]; arrival_checks?: number } | null;
