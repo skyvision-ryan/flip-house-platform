@@ -1,6 +1,6 @@
 import { taskTitle } from '../i18n/templateNames.ts';
 import { useLanguage } from '../i18n/LanguageProvider';
-import { m } from '../i18n/core.ts';
+import { m, systemText } from '../i18n/core.ts';
 import Alert from '@cloudscape-design/components/alert';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
@@ -56,7 +56,7 @@ export default function TaskAssignModal({projectId, tasks, onDone, onConflict, o
         last = await api.assignTask(projectId, t.id, {version:t.version, assignee_user_id:who, assistant_user_id:assistant,
           due_at: bulk && !due ? undefined : due || null, reason:reason.trim() || null});
         saved.push(t.id);
-      } catch (e: any) { failed.push({id:t.id, message:e.message}); if (e.status === 409) stale.push(t.id); }
+      } catch (e: any) { failed.push({id:t.id, message:e.status === 409 ? m('assignment.conflictDraft') : e.message}); if (e.status === 409) stale.push(t.id); }
     }
     setSuccesses(saved); setFailures(failed); setConflicts(stale); setSaving(false);
     if (!failed.length && last) onDone(last);
@@ -80,9 +80,9 @@ export default function TaskAssignModal({projectId, tasks, onDone, onConflict, o
       <FormField label={m(needsReason ? 'assignment.reasonRequired' : 'taskAssignModal.explanation.optional')}><Textarea value={reason} onChange={({detail})=>setReason(detail.value)} rows={2} /></FormField>
       {refreshed && <Alert type="info">{m('assignment.draftRetained')}{pending.map(t => <div key={t.id}>{taskTitle(t)} · {m('projectPreplan.primary.assignee')}: {t.assignee?.display_name ?? none.label} · {m('assistant.label')}: {t.assistant?.display_name ?? none.label} · {m('projectPreplan.due.date')}: {t.due_at ?? m('projectPreplan.not.set')}</div>)}</Alert>}
       {!!successes.length && <Alert type="success">{m('assignment.savedItems',{items:tasks.filter(t=>successes.includes(t.id)).map(taskTitle).join(' / ')})}</Alert>}
-      {!!failures.length && <Alert type="error">{failures.map(f=><div key={f.id}>{taskTitle(tasks.find(t=>t.id===f.id)!)}: {f.message}</div>)}</Alert>}
+      {!!failures.length && <Alert type="error">{failures.map(f=><div key={f.id}>{taskTitle(tasks.find(t=>t.id===f.id)!)}: {systemText(f.message)}</div>)}</Alert>}
       {!!conflicts.length && <Button disabled={saving} onClick={refreshConflicts}>{m('assignment.refreshKeepDraft')}</Button>}
-      {err && <Alert type="error">{err}</Alert>}
+      {err && <Alert type="error">{systemText(err)}</Alert>}
     </SpaceBetween>
   </Modal>;
 }

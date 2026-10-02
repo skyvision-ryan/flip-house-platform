@@ -1,4 +1,8 @@
 {
+  "assignment.conflictDraft": [
+    "任务已被他人修改，未覆盖最新安排。你的输入已保留，请先载入最新安排再核对保存。",
+    "Someone changed this task. The latest assignment was not overwritten. Your draft is retained; load the latest assignment before reviewing and saving again."
+  ],
   "taskAssignModal.remove.assignment": [
     "取消分派",
     "Remove assignment"
