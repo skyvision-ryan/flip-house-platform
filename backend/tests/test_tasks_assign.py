@@ -76,10 +76,10 @@ class TaskAssignTests(_TaskBase):
     def test_ensure_tasks_builds_24_ordinary_items_and_is_idempotent(self):
         with Session(self.engine) as s:
             rows = ensure_tasks(s, self.pid)
-            self.assertEqual(len(rows), len(ORDINARY_ITEMS) + 5)
+            self.assertEqual(len(rows), len(ORDINARY_ITEMS) + 7)
             self.assertEqual(len(ORDINARY_ITEMS), 24)
-            self.assertEqual(len(ensure_tasks(s, self.pid)), 29)
-            self.assertEqual(sum(t.source == "node_confirmation" for t in rows), 5)
+            self.assertEqual(len(ensure_tasks(s, self.pid)), 31)
+            self.assertEqual(sum(t.source == "node_confirmation" for t in rows), 7)
 
     # ---- 分派 ----
     def test_assign_requires_real_login_even_with_x_actor(self):

@@ -6,15 +6,16 @@ from PIL import Image
 from pillow_heif import register_heif_opener
 from ..message_codes import system_error
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, Request
 from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .. import models, schemas
+from ..auth import current_user
 from ..db import UPLOAD_DIR, get_db
 from ..dictionaries import FILE_DEFAULT_OWNER, FILE_TYPES, MONEY_DOCS, STEP_BY_KEY, tier_of
-from .common import allowed, can_read_money, get_actor, log_update
+from .common import allowed, can_read_money, get_actor, log_update, require_project_read
 
 router = APIRouter(prefix="/api", tags=["files"])
 register_heif_opener(thumbnails=False)
@@ -70,7 +71,7 @@ def list_files(project_id: int, db: Session = Depends(get_db), actor: str = Depe
     if tier_of(actor) == "grey":
         # 外部人员只看照片和自己传的
         rows = [f for f in rows if (f.mime or "").startswith("image/") or f.uploaded_by == actor]
-    return [_out(f, actor) for f in rows]
+    return [_out(f, actor) for f in rows if _can_download(actor, f)]
 
 
 @router.post("/projects/{project_id}/files", response_model=schemas.FileOut, status_code=201)
@@ -123,10 +124,11 @@ async def upload(project_id: int, file: UploadFile = File(...), doc_type: Option
 
 
 @router.patch("/files/{file_id}", response_model=schemas.FileOut)
-def patch_file(file_id: int, body: schemas.FilePatch, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
+def patch_file(file_id: int, request: Request, body: schemas.FilePatch, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
     rec = db.get(models.ProjectFile, file_id)
     if not rec:
         raise HTTPException(404, "文件不存在")
+    require_project_read(db, rec.project_id, current_user(request, db))
     evidence_before = capture_evidence(db, rec.project_id)
     if not _can_touch(actor, rec.doc_type, rec.step_key, rec.uploaded_by):
         raise HTTPException(403, f"{actor} 不能改别人登记的文件")
@@ -144,20 +146,22 @@ def patch_file(file_id: int, body: schemas.FilePatch, db: Session = Depends(get_
 
 
 @router.get("/files/{file_id}/download")
-def download(file_id: int, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
+def download(file_id: int, request: Request, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
     rec = db.get(models.ProjectFile, file_id)
     if not rec:
         raise HTTPException(404, "文件不存在")
+    require_project_read(db, rec.project_id, current_user(request, db))
     if not _can_download(actor, rec):
         raise HTTPException(403, f"{actor} 不能下载这个文件")
     return FileResponse(rec.stored_path, filename=rec.filename, media_type=rec.mime or "application/octet-stream")
 
 
 @router.delete("/files/{file_id}", status_code=204)
-def delete_file(file_id: int, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
+def delete_file(file_id: int, request: Request, db: Session = Depends(get_db), actor: str = Depends(get_actor)):
     rec = db.get(models.ProjectFile, file_id)
     if not rec:
         raise HTTPException(404, "文件不存在")
+    require_project_read(db, rec.project_id, current_user(request, db))
     evidence_before = capture_evidence(db, rec.project_id)
     if not _can_touch(actor, rec.doc_type, rec.step_key, rec.uploaded_by):
         raise HTTPException(403, f"{actor} 不能删别人的文件")

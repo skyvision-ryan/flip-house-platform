@@ -30,7 +30,8 @@ export default function TaskWaitModal({ task, onDone, onConflict, onDismiss }: {
       onDone(await api.taskStatus(task.project_id, task.id, { version: task.version, action: 'wait', wait_for: waitFor.trim() || null, wait_reason: reason.trim(), wait_until: until || null }));
     } catch (e: any) {
       const msg = String(e.message ?? e);
-      if (e.status === 409) onConflict(); else setErr(msg);
+      setErr(msg);
+      if (e.status === 409) onConflict();
     } finally { setSaving(false); }
   };
   return (

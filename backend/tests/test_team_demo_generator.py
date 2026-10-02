@@ -104,7 +104,7 @@ class TeamDemoGeneratorTests(unittest.TestCase):
                 self.assertEqual(session.scalar(select(func.count()).select_from(models.Task).where(models.Task.project_id == project.id, models.Task.source == "template")), 24)
                 self.assertIsNone(project.sale_date)
                 self.assertIsNone(project.sale_price)
-            self.assertEqual(session.scalar(select(func.count()).select_from(models.Task)), 135)
+            self.assertEqual(session.scalar(select(func.count()).select_from(models.Task)), 141)
             purchases = session.scalars(select(models.ProcurementItem).where(models.ProcurementItem.project_id.in_(result["project_ids"]))).all()
             self.assertTrue(any(i.status == "ordered" and i.shipment_status == "delivered" and i.received_on is None for i in purchases))
             self.assertTrue(any(i.status == "ordered" and i.expected_on == "2026-09-26" and i.shipment_status == "in_transit" for i in purchases))

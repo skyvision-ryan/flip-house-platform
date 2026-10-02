@@ -137,12 +137,16 @@ class EmailAccountsTests(unittest.TestCase):
             self.assertEqual(self.login(email).status_code, 200)
             self.assertEqual(self.client.get("/api/users").status_code, 403)
             self.assertEqual(self.client.get(f"/api/projects/{self.pid}/procurement").status_code, 403)  # no active project membership
+            self.assertEqual(self.client.get(f"/api/projects/{self.pid}/budget-lines").status_code, 403)  # project scope also protects finance
+            with Session(self.engine) as session:
+                user=session.scalar(select(models.User).where(models.User.email==email))
+                tasks.ensure_member(session,self.pid,user,None); session.commit()
             self.assertEqual(self.client.get(f"/api/projects/{self.pid}/budget-lines").status_code, 200 if role == "财务" else 403)
             self.assertEqual(self.client.get(f"/api/projects/{self.pid}/analyses").status_code, 403)
             for as_who in ("D", "J"):
                 response = self.client.post(f"/api/projects/{self.pid}/steps/open_escrow", json={"done": True, "confirm_as": as_who})
                 self.assertEqual(response.status_code, 403)
-            self.assertEqual(self.client.get("/api/me/workbench").json()["projects"], [])
+            self.assertEqual(len(self.client.get("/api/me/workbench").json()["projects"]), 1)
         for doc in ("drawing", "drawing_final", "permit_application", "permit", "inspection_report"):
             self.assertTrue(_can_touch("Permit/设计", doc, None))
         self.assertFalse(_can_touch("Permit/设计", "loan_doc", None))

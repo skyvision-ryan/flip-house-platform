@@ -37,10 +37,18 @@ async def lifespan(app: FastAPI):
         # KAN-75：存量项目回填普通任务实例。幂等（按 project_id + step_key），每次启动跑一遍成本很低；
         # 不用迁移戳记表——那会在 seed 之前跑、灌 0 行，Render 每次部署都是新库。
         from .routers.tasks import ensure_tasks
-        for pid in db.scalars(select(models.Project.id)).all():
+        from .routers.tasks import NODE_KEYS
+        existing_nodes=set(db.execute(select(models.Task.project_id,models.Task.step_key).where(models.Task.step_key.in_(NODE_KEYS))).all())
+        pids=list(db.scalars(select(models.Project.id)))
+        expected_nodes=sum((pid,key) not in existing_nodes for pid in pids for key in NODE_KEYS)
+        print(f"Task compatibility: expected new node instances {expected_nodes}; existing task rows unchanged")
+        for pid in pids:
             ensure_tasks(db, pid)
         from .task_activity import initialize
         initialize(db)
+        from .evidence_review import initialize as initialize_reviews
+        print(f"Evidence review baseline: {initialize_reviews(db, dry_run=True)}")
+        initialize_reviews(db)
     yield
 
 

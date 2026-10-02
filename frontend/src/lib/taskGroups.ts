@@ -45,6 +45,7 @@ export function initialsOf(u: { username: string; display_name: string } | null 
 
 /** 能否对这项任务做 开始 / 等待 / 恢复：只有当前负责人本人。返回可用动作。 */
 export function statusActions(t: Task, meId: number | null): ('start' | 'wait' | 'resume')[] {
+  if (t.actions) return (['start', 'wait', 'resume'] as const).filter(action => t.actions?.[action]);
   if (meId == null || !t.assignee || t.assignee.id !== meId) return [];
   if (t.exec_status === 'not_started') return ['start', 'wait'];
   if (t.exec_status === 'in_progress') return ['wait'];

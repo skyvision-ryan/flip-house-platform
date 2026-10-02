@@ -1,4 +1,4 @@
-"""Formal-mode identity checks on existing property and inspection read routes; no project ACL changes."""
+"""Formal identity and the existing project membership contract on resource reads."""
 import unittest
 from unittest.mock import patch
 
@@ -27,6 +27,9 @@ class ProjectReadAuthTests(unittest.TestCase):
             session.add(models.Inspection(project_id=self.pid, name="Synthetic inspection", result="scheduled"))
             session.add(models.User(username="synthetic-reader", display_name="Synthetic reader", role_code="Permit/设计",
                                     password_hash=hash_password("synthetic-read-passphrase")))
+            session.flush()
+            reader=session.query(models.User).filter_by(username="synthetic-reader").one()
+            session.add(models.ProjectMember(project_id=self.pid,user_id=reader.id,role_snapshot=reader.role_code))
             session.commit()
         app = FastAPI()
         for module in (auth, ops, property_data):

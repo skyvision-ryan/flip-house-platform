@@ -543,3 +543,28 @@ class WorkflowBaseline(Base):
     __tablename__ = "workflow_baselines"
     key: Mapped[str] = mapped_column(String, primary_key=True)
     started_at: Mapped[str] = mapped_column(String, default=created_now)
+
+
+class TaskEvidenceVersion(Base):
+    """Monotonic revision survives evidence removal/replacement/restoration."""
+    __tablename__ = "task_evidence_versions"
+    task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id"), primary_key=True)
+    revision: Mapped[int] = mapped_column(Integer, default=0)
+    fingerprint: Mapped[str] = mapped_column(String(64))
+    met: Mapped[bool] = mapped_column(Boolean)
+
+
+class TaskEvidenceReview(Base):
+    __tablename__ = "task_evidence_reviews"
+    __table_args__ = (UniqueConstraint("task_id", "revision"), UniqueConstraint("task_id", "request_key"),)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id"), index=True)
+    revision: Mapped[int] = mapped_column(Integer)
+    fingerprint: Mapped[str] = mapped_column(String(64))
+    facts_json: Mapped[str] = mapped_column(Text)
+    reviewer_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    reviewed_at: Mapped[str] = mapped_column(String, index=True)
+    request_key: Mapped[str] = mapped_column(String(100))
+    source: Mapped[str] = mapped_column(String, default="mark")
+    invalidated_at: Mapped[Optional[str]] = mapped_column(String)
+    invalidation_reason: Mapped[Optional[str]] = mapped_column(Text)

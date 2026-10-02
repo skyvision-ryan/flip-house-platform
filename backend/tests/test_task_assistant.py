@@ -123,7 +123,7 @@ class AssistantTests(_TaskBase):
         response=self.j.post('/api/projects',json=body)
         self.assertEqual(response.status_code,201,response.text)
         pid=response.json()['id'];plan=self.j.get(f'/api/projects/{pid}/tasks').json()['tasks']
-        self.assertEqual(len(plan),29)
+        self.assertEqual(len(plan),31)
         row=next(t for t in plan if t['step_key']=='view')
         self.assertEqual((row['assignee']['id'],row['assistant']['id']),(self.uid['a2'],self.uid['b']))
         self.assertEqual(len(self.j.get(f'/api/projects/{pid}/members').json()['members']),3)

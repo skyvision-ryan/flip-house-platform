@@ -66,7 +66,7 @@ export default function TaskSummaryPanel({ task, project, canAssign, onAssign, o
       <Container embedded cardId="task-summary" cardContext={task?.title} header={<Header variant="h2" help={uiText("taskSummaryPanel.select.a.task.on.the.left.to.view.its")}>{uiText("taskSummaryPanel.task.summary")}</Header>}>
         {task && (task.node_confirmation || task.completion_mode === 'evidence' || task.completion_mode === 'record') ? <SpaceBetween size="m">
           {!task.node_confirmation && <><h3 className="ui-summary-title">{taskTitle(task)}</h3>{canAssign && <Button onClick={() => onAssign(task)}>{uiText('taskWorkflow.assignment')}</Button>}</>}
-          <TaskWorkbench task={task} meId={me?.id ?? null} onChanged={onChanged} onConflict={() => window.location.reload()} />
+          <TaskWorkbench task={task} meId={me?.id ?? null} onChanged={onChanged} onConflict={() => { void api.task(task.project_id, task.id).then(onChanged).catch(e => flash({type:'error',content:e.message})); }} />
         </SpaceBetween> : task ? (
           <SpaceBetween size="m">
             <h3 className="ui-summary-title">{taskTitle(task)}</h3>

@@ -15,6 +15,25 @@ const step = (o: Partial<StepItem> & { key: string; title: string }): StepItem =
   done_by: null, done_at: null, note: null, ...o,
 });
 
+test('ordinary evidence uses current receipt state instead of legacy automatic completion', () => {
+  const met = step({ key: 'view', title: '看房', done: false, how: 'auto', condition_met: true, review_state: 'pending', evidence: 'Original evidence 原文' });
+  assert.equal(factOf(met).kind, 'review-pending');
+  assert.equal(factOf(met).indicator, 'pending');
+  const confirmed = { ...met, done: true, how: 'reviewed', review_state: 'reviewed', done_by: 'Actual reviewer 原文', done_at: '2026-10-02T21:30:00+00:00' };
+  assert.equal(factOf(confirmed).kind, 'reviewed');
+  assert.ok(factOf(confirmed).basis.includes('Actual reviewer 原文 10/02'));
+  const replaced = { ...confirmed, done: false, review_state: 'recheck', done_by: null, done_at: null };
+  assert.equal(factOf(replaced).kind, 'review-pending');
+  assert.equal(factOf(replaced).indicator, 'warning');
+  assert.deepEqual(factOf(replaced).basis, ['Original evidence 原文']);
+});
+
+test('continuing work exposes current satisfaction without permanent task completion', () => {
+  const record = step({ key: 'progress', title: '施工进度', done: false, counts_as_task: false, condition_met: true, photo_count: 3 });
+  assert.equal(factOf(record).kind, 'record-current');
+  assert.equal(factOf(record).indicator, 'pending');
+});
+
 // ---- 项目 1 ----
 const p1Progress = step({
   key: 'progress', title: '施工进度', owners: ['PM'],

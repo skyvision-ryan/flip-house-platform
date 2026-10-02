@@ -50,7 +50,7 @@ export default function MyTodoTable({ rows, onReload, compact = false, actionOnl
     await onReload();
   };
 
-  const openAction = (row: Row) => {
+  const openAction = async (row: Row) => {
     const canDo = row.for_confirm ? true : canActOn(row.item, role);
     const mode = actionMode(row.item, { forConfirm: row.for_confirm });
     if (mode === 'navigate' || mode === 'view' || (!canDo && mode !== 'confirm')) {
@@ -58,7 +58,7 @@ export default function MyTodoTable({ rows, onReload, compact = false, actionOnl
       return;
     }
     if (mode === 'tick') {
-      setModal({ kind: 'tick', row });
+      try {const list=await api.projectTasks(row.project.project_id);const task=list.tasks.find(t=>t.step_key===row.item.key);if(task)navigate(`/projects/${row.project.project_id}?tab=overview&task=${task.id}`);}catch(e:any){flash({type:'error',content:e.message});}
       return;
     }
     if (mode === 'confirm') {

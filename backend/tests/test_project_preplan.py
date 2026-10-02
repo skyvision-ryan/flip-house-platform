@@ -38,9 +38,9 @@ class ProjectPreplanTests(_TaskBase):
         self.assertIsNone(p['target_arv'])
         pid = p['id']
         tasks = j.get(f'/api/projects/{pid}/tasks').json()['tasks']
-        self.assertEqual(len(tasks), 29)
+        self.assertEqual(len(tasks), 31)
         self.assertEqual(sum(t['assignee'] is not None for t in tasks), 2)
-        self.assertTrue(all(t['exec_status'] == ('done' if t['completion_mode'] == 'evidence' and t['satisfied'] else 'not_started') for t in tasks))
+        self.assertTrue(all(t['exec_status'] == ('pending_review' if t['completion_mode'] == 'evidence' and t['satisfied'] else 'not_started') for t in tasks))
         future = next(t for t in tasks if t['step_key'] == 'design_final')
         self.assertIsNone(future['reviewer'])
         self.assertEqual(next(t for t in tasks if t['step_key'] == 'view')['due_at'], '2026-09-26')
@@ -105,7 +105,7 @@ class ProjectPreplanTests(_TaskBase):
         r = j.post('/api/projects', json={**self.body, 'task_plan': [], 'join_assignees': False})
         self.assertEqual(r.status_code, 201, r.text)
         ts = j.get(f"/api/projects/{r.json()['id']}/tasks").json()['tasks']
-        self.assertEqual(len(ts), 29)
+        self.assertEqual(len(ts), 31)
         self.assertTrue(all(t['assignee'] is None for t in ts))
 
     def test_plan_and_candidates_require_real_authorized_account(self):

@@ -425,6 +425,7 @@ class UpdateOut(ORM):
 
 
 class StepToggleIn(BaseModel):
+    version: Optional[int] = None
     done: bool = True
     note: Optional[str] = None
     confirm_as: Optional[str] = None  # 大节点：以 D 或 J 的身份确认；不传则用当前身份
@@ -459,7 +460,7 @@ class UtilityIn(BaseModel):
 
 
 class UtilityOut(ORM):
-    id: int
+    id: Optional[int] = None
     project_id: int
     kind: str
     company: Optional[str] = None
@@ -471,7 +472,7 @@ class UtilityOut(ORM):
     status: str
     blocker: Optional[str] = None
     updated_by: Optional[str] = None
-    updated_at: str
+    updated_at: Optional[str] = None
 
 
 class InspectionIn(BaseModel):
@@ -757,7 +758,15 @@ class TaskNoteOut(BaseModel):
     created_at: str
 
 
+class TaskEvidenceMarkIn(BaseModel):
+    version: int
+    revision: int
+    fingerprint: str = Field(min_length=64, max_length=64)
+    request_key: UUID
+
+
 class TaskOut(BaseModel):
+    evidence_review: Optional[dict] = None
     actions: dict[str, bool] = Field(default_factory=dict)
     completion_mode: str = "review"
     template_key: Optional[str] = None
@@ -814,6 +823,7 @@ class TaskSubmitIn(BaseModel):
 
 
 class TaskDecisionIn(BaseModel):
+    confirm_as: Optional[str] = None
     version: int
     reason: Optional[str] = None
 

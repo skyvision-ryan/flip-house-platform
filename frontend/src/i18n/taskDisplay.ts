@@ -7,11 +7,15 @@ export function eventText(event: TaskEvent): string {
   const person = (id: unknown) => id == null ? systemText('待分派') : event.participant_names?.[String(id)] ?? m('server.account', { value1: String(id) });
   let text: string;
   switch (event.kind) {
+    case 'node_reopened': text=m('review.nodeReopened'); break;
+    case 'node_partial_confirmed': text=m('review.nodePartial'); break;
+    case 'evidence_reviewed': text=m('review.evidenceReviewed'); break;
+    case 'evidence_invalidated': text=m('review.evidenceInvalidated'); break;
     case 'reviewer_set': text = m('event.reviewerSet'); break;
     case 'procurement_completed': text = m('event.procurementCompleted'); break;
     case 'procurement_reopened': text = m('event.procurementReopened'); break;
     case 'assistant_changed': text = m('event.assistantChanged', { before: person(before.assistant_user_id), after: person(after.assistant_user_id) }); break;
-    case 'evidence_satisfied': text = m(after.mode === 'record' ? 'taskWorkflow.eventRecord' : 'taskWorkflow.eventMet'); break;
+    case 'evidence_satisfied': text = m(after.mode === 'record' ? 'taskWorkflow.eventRecord' : after.mode==='evidence'?'workbench.change.evidence_satisfied':'taskWorkflow.eventMet'); break;
     case 'evidence_missing': text = m('taskWorkflow.eventMissing'); break;
     case 'assigned': text = m('event.assigned', { person: person(after.assignee_user_id) }); break;
     case 'reassigned': text = m('event.reassigned', { before: person(before.assignee_user_id), after: person(after.assignee_user_id) }); break;
@@ -22,7 +26,7 @@ export function eventText(event: TaskEvent): string {
     case 'waiting': text = m(after.wait_for ? (after.wait_until ? 'event.waitingBoth' : 'event.waitingPerson') : (after.wait_until ? 'event.waitingDate' : 'event.waiting'), { person: after.wait_for, date: after.wait_until }); break;
     case 'member_added': text = m('event.joined', { person: person(after.user_id) }); break;
     case 'submitted': text = m(after.files ? 'event.submitted' : 'event.submittedNote', { seq: after.seq, count: Number(after.files ?? 0) }); break;
-    case 'returned': text = m('event.returned', { seq: after.seq }); break;
+    case 'returned': text = after.mode==='evidence'?m('review.evidenceReturned'):m('event.returned', { seq: after.seq }); break;
     case 'confirmed': text = m('event.confirmed', { seq: after.seq }); break;
     case 'node_confirmed': text = m('event.nodeConfirmed', { person: after.name ?? systemText('确认人') }); break;
     case 'stage_intake': text = m('event.stageIntake'); break;

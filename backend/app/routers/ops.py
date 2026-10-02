@@ -34,12 +34,8 @@ def list_utilities(project_id: int, db: Session = Depends(get_db), actor: str = 
     for k in UTILITY_KINDS:
         u = by.get(k["value"])
         if u is None:
-            u = models.UtilityAccount(project_id=project_id, kind=k["value"], status="not_started")
-            db.add(u)
+            u = schemas.UtilityOut(id=None, project_id=project_id, kind=k["value"], status="not_started", updated_at=None)
         out.append(u)
-    db.commit()
-    for u in out:
-        db.refresh(u)
     if allowed(actor, "utility_secret"):
         return out
     return [schemas.UtilityOut.model_validate(u).model_copy(update={"password": None}) for u in out]
