@@ -6,7 +6,6 @@ import Autosuggest from '@cloudscape-design/components/autosuggest';
 import Box from '@cloudscape-design/components/box';
 import BreadcrumbGroup from '@cloudscape-design/components/breadcrumb-group';
 import Button from '@cloudscape-design/components/button';
-import Checkbox from '@cloudscape-design/components/checkbox';
 import ColumnLayout from '@cloudscape-design/components/column-layout';
 import ContentLayout from '@cloudscape-design/components/content-layout';
 import DatePicker from '@cloudscape-design/components/date-picker';
@@ -55,7 +54,6 @@ export default function AddProject() {
   const [users, setUsers] = useState<UserBrief[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [usersError, setUsersError] = useState<string | null>(null);
-  const [joinAssignees, setJoinAssignees] = useState(false);
   const requestKey = useRef(crypto.randomUUID());
   const busy = useRef(false);
   const navigate = useNavigate();
@@ -89,9 +87,8 @@ export default function AddProject() {
   };
   useEffect(() => { if (me && userCan(meta, me, 'assign_tasks')) loadUsers(); }, [me?.id, meta]);
   const planSummary = summarizePlan(meta?.stage_checklist ?? [], plan, initialStage);
-  const purchaseOwner = plan.purchase?.assignee_user_id;
-  const joining = planSummary.people.filter((id) => id !== me?.id && id !== purchaseOwner);
-  const updatePlan = (value: TaskPlan) => { setPlan(value); setJoinAssignees(false); };
+  const joining = planSummary.people.filter((id) => id !== me?.id);
+  const updatePlan = (value: TaskPlan) => { setPlan(value);  };
 
 
   useEffect(() => {
@@ -114,7 +111,7 @@ export default function AddProject() {
   /** 确认切换到另一套房：把上一套房的买入价／目标售价清掉并明确提示（Ryan 09-22）。同一套房重选不动。 */
   const settleHouse = (label: string) => {
     if (lastHouse.current && lastHouse.current !== label && Object.keys(plan).length) {
-      setPlan({}); setJoinAssignees(false);
+      setPlan({});
       flash({ type: 'info', content: uiText("addProject.property.changed.previous.task.assignments.have.been.cleared.assign") });
     }
     if (shouldClearAmounts(lastHouse.current, label, deal)) {
@@ -166,14 +163,12 @@ export default function AddProject() {
 
   const submit = async () => {
     if (!address || !meta || busy.current) return;
-    if (joining.length && !joinAssignees) { setError(uiText("addProject.confirm.that.the.selected.assignees.should.join.the.new")); return; }
     busy.current = true;
     setSubmitting(true); setError(null);
     try {
       const p = await api.createProject({
         request_key: requestKey.current,
         task_plan: planPayload(meta.stage_checklist, plan),
-        join_assignees: joinAssignees,
         name: name || address.street,
         strategy, initial_stage_key: initialStage,
         address,
@@ -423,12 +418,11 @@ export default function AddProject() {
         {houseCard}<PlanReview meta={meta} plan={plan} />
         <Container cardId="intake-start" header={<Header variant="h2">{uiText("addProject.getting.started.after.creation")}</Header>}><SpaceBetween size="m">
           <KeyValuePairs columns={2} items={[{ label: uiText("addProject.starting.position"), value: stageOptions.find((s) => s.value === initialStage)?.label }, { label: uiText("addProject.task.status"), value: systemText('普通任务待处理；采购分派后即可录单') }, { label: uiText("addProject.reviewer.for.these.assignments"), value: planSummary.assigned ? me.display_name : uiText("addProject.set.when.assigning") }, { label: uiText("projectPreplan.milestones"), value: systemText('必要条件齐备后，由有权限的账号确认满足') }]} />
-          {purchaseOwner && purchaseOwner !== me?.id && <Box>{uiText("addProject.procurement.lead")} {users.find(u => u.id === purchaseOwner)?.display_name} {uiText("addProject.will.automatically.join.this.property.on.creation.with.an")}</Box>}
-          {joining.length > 0 && <Checkbox checked={joinAssignees} onChange={({ detail }) => setJoinAssignees(detail.checked)}>{uiText("addProject.add")} {joining.map((id) => users.find((u) => u.id === id)?.display_name ?? uiText("sentences.account", { value1: (id) })).join('、')} {uiText("addProject.as.project.members.and.assign.tasks")}</Checkbox>}
+          {joining.length > 0 && <Box>{uiText('assignment.autoJoin', { people: joining.map(id => users.find(u => u.id === id)?.display_name ?? String(id)).join('、') })}</Box>}
           <Box color="text-body-secondary">{uiText("addProject.unassigned")} {planSummary.unassigned} {uiText("addProject.tasks.remain.available.to.assign.later")}</Box>
         </SpaceBetween></Container>
       </SpaceBetween><aside className={css.aside}><PlanSummary meta={meta} plan={plan} users={users} initialStage={initialStage} review /></aside></div>}
-      <div className={css.footer}><Button variant="link" disabled={submitting} onClick={() => navigate('/projects')}>{uiText("fieldWithSource.cancel")}</Button><SpaceBetween direction="horizontal" size="xs">{step > 0 && <Button disabled={submitting} onClick={() => { setError(null); setStep(step - 1); }}>{uiText("addProject.back")}</Button>}{step < 2 ? <Button variant="primary" loading={lookingUp} disabled={!address} onClick={advance}>{uiText("directorDesign.next.step")}{step === 0 ? uiText("addProject.prepare.tasks") : uiText("addProject.confirm.creation")}</Button> : <Button variant="primary" loading={submitting} onClick={submit} disabled={joining.length > 0 && !joinAssignees}>{uiText("addProject.create.project")}</Button>}</SpaceBetween></div>
+      <div className={css.footer}><Button variant="link" disabled={submitting} onClick={() => navigate('/projects')}>{uiText("fieldWithSource.cancel")}</Button><SpaceBetween direction="horizontal" size="xs">{step > 0 && <Button disabled={submitting} onClick={() => { setError(null); setStep(step - 1); }}>{uiText("addProject.back")}</Button>}{step < 2 ? <Button variant="primary" loading={lookingUp} disabled={!address} onClick={advance}>{uiText("directorDesign.next.step")}{step === 0 ? uiText("addProject.prepare.tasks") : uiText("addProject.confirm.creation")}</Button> : <Button variant="primary" loading={submitting} onClick={submit}>{uiText("addProject.create.project")}</Button>}</SpaceBetween></div>
     </div>
   </ContentLayout>;
 }

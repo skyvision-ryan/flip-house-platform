@@ -63,10 +63,21 @@ class ProjectPreplanTests(_TaskBase):
         self.assertEqual(j.post('/api/projects', json={**self.body, 'name': 'Changed'}).status_code, 409)
         self.assertEqual(self.counts(), counts)
 
+    def test_creation_automatically_joins_without_legacy_confirmation(self):
+        j = self.login('jessie')
+        body = {**self.body, 'join_assignees': False}
+        r = j.post('/api/projects', json=body)
+        self.assertEqual(r.status_code, 201, r.text)
+        members = j.get(f"/api/projects/{r.json()['id']}/members").json()['members']
+        self.assertIn(self.uid['a'], [m['id'] for m in members])
+        before = self.counts()
+        self.assertEqual(j.post('/api/projects', json=body).json()['id'], r.json()['id'])
+        self.assertEqual(self.counts(), before)
+
     def test_invalid_plan_never_leaves_partial_project(self):
         j = self.login('jessie')
         cases = [([{'step_key': 'open_escrow'}], True), ([{'step_key': 'screen'}, {'step_key': 'screen'}], True),
-                 ([{'step_key': 'screen', 'assignee_user_id': 99999}], True), (self.body['task_plan'], False),
+                 ([{'step_key': 'screen', 'assignee_user_id': 99999}], True),
                  ([{'step_key': 'view', 'due_at': '2026-02-30'}], True)]
         before = self.counts()
         for plan, join in cases:
