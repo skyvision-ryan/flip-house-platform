@@ -90,5 +90,29 @@
   "procurementItemPage.restoring.it.will.require.another.upload": [
     "」后，需要重新上传才能恢复。",
     "”? Restoring it will require another upload."
+  ],
+  "procurementItemPage.delete.requirement": [
+    "删除此需求",
+    "Delete this requirement"
+  ],
+  "procurementItemPage.delete.confirm.title": [
+    "删除采购需求",
+    "Delete procurement requirement"
+  ],
+  "procurementItemPage.delete.confirm": [
+    "将永久删除「{{value1}}」。只有没有订单、没有图片的需求可以删除；需要保留理由时请改用「本房不需要」。",
+    "This permanently deletes “{{value1}}”. Only requirements with no orders and no images can be deleted; use “Not needed for this property” when a reason should be kept."
+  ],
+  "procurementItemPage.remove.images.first": [
+    "请先移除该需求的图片，再删除。",
+    "Remove this requirement's images before deleting it."
+  ],
+  "procurementItemPage.requirement.deleted": [
+    "已删除需求「{{value1}}」",
+    "Requirement “{{value1}}” deleted"
+  ],
+  "procurementItemPage.confirm.delete": [
+    "确认删除",
+    "Confirm delete"
   ]
 }

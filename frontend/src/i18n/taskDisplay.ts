@@ -23,6 +23,7 @@ export function eventText(event: TaskEvent): string {
     case 'node_confirmed': text = m('event.nodeConfirmed', { person: after.name ?? systemText('确认人') }); break;
     case 'stage_intake': text = m('event.stageIntake'); break;
     case 'procurement_requirement_added': text = m('event.requirementAdded'); break;
+    case 'procurement_requirement_removed': text = m('event.requirementRemoved'); break;
     default: return event.text;
   }
   return event.reason ? `${text}: ${event.reason}` : text;

@@ -115,6 +115,8 @@ def _event_text(ev: models.TaskEvent, names: dict[int, str]) -> str:
         t = f"退回第 {after.get('seq')} 次提交"
     elif k == "procurement_requirement_added":
         return ev.reason or "新增采购需求"
+    elif k == "procurement_requirement_removed":
+        return ev.reason or "删除采购需求"
     elif k == "confirmed":
         t = f"确认第 {after.get('seq')} 次交付，任务完成"
     else:

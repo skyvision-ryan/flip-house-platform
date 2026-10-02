@@ -146,5 +146,9 @@
   "purchaseOrderEntry.order.link": [
     "订单链接",
     "Order link"
+  ],
+  "purchaseOrderEntry.order.title.optional": [
+    "订单标题（可选，如：厨房灯具第一批）",
+    "Order title (optional, e.g. Kitchen lighting, batch 1)"
   ]
 }

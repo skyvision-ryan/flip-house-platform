@@ -36,6 +36,9 @@ Review every reachable route, not just navigation: login/settings; workspace and
 | 部分到货 / 已备齐 | Partially received / All required items ready | Receipt/requirement coverage; not financial completion |
 | 未采购完成 | Procurement incomplete | Requirement remains unmet; may include unplaced or outstanding orders |
 | 预计到货 / 实际收货 | Estimated arrival / Actual receipt | Estimate versus recorded business date |
+| 到期 / 超期 | Due / Overdue | Estimated arrival is today / already past, while quantity is still outstanding; a list marker, not a receipt fact |
+| 录入时间 | Recorded at | When the order record was created in the platform; distinct from the order date |
+| 订单标题 | Order title | Optional buyer-given name for an order; merchant + order number remain the identity |
 | 装修预算 | Renovation budget | Planned renovation amount |
 | 商品金额 | Item amount | Order line amount; excludes unallocated order charges |
 | 订单实付 | Recorded order payment | Recorded payment, not financial verification |

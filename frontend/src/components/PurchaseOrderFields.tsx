@@ -4,6 +4,7 @@ import { useLanguage } from '../i18n/LanguageProvider';
 import { m as uiText } from '../i18n/core.ts';
 import Box from '@cloudscape-design/components/box';
 import Button from '@cloudscape-design/components/button';
+import DatePicker from '@cloudscape-design/components/date-picker';
 import Input from '@cloudscape-design/components/input';
 import Select from '@cloudscape-design/components/select';
 import SpaceBetween from '@cloudscape-design/components/space-between';
@@ -23,6 +24,11 @@ export function TextField({ label, value, onChange, numeric = false, date = fals
   return <FormField label={label.replace(/^商品 \d+ /, '').replace(/^.* (?=本次实收数量$|其中破损数量$)/, '')} errorText={systemText(error)} constraintText={hint}><Input ariaLabel={label} value={value == null ? '' : String(value)} type={numeric ? 'number' : date ? 'text' : 'text'}
     placeholder={date ? 'YYYY-MM-DD' : undefined} disabled={disabled} onChange={({ detail }) => onChange(detail.value)} /></FormField>;
 }
+/** Calendar picker for recorded business dates (receipt / return); other order dates keep the plain text field. */
+export function DateField({ label, value, onChange, disabled = false, error }: { label: string; value: string | null | undefined; onChange: (v: string) => void; disabled?: boolean; error?: string }) {
+  useLanguage();
+  return <FormField label={label} errorText={systemText(error)}><DatePicker ariaLabel={label} value={value ?? ''} placeholder="YYYY-MM-DD" disabled={disabled} onChange={({ detail }) => onChange(detail.value)} /></FormField>;
+}
 export function Choice({ label, value, options, onChange, disabled = false, error }: { label: string; value: string; options: { value: string; label: string }[]; onChange: (v: string) => void; disabled?: boolean; error?: string }) {
   useLanguage();
   return <FormField label={label.replace(/^商品 \d+ /, '').replace(/^.* (?=本次实收数量$|其中破损数量$)/, '')} errorText={systemText(error)}><Select ariaLabel={label} disabled={disabled} options={options} selectedOption={options.find(o => o.value === value) ?? null}
@@ -41,6 +47,7 @@ export default function PurchaseOrderFields({ doc, onChange, materials, busy, no
   const choices = [...materials].sort((a, b) => Number(b.wave === defaultNode) - Number(a.wave === defaultNode)).map(m => ({ value: String(m.id), label: `${materialName(m)} · ${nodes.find(n => n.value === m.wave)?.label || m.wave}` }));
   return <SpaceBetween size="m">
     <div className="proc-common-fields">
+      <TextField label={uiText("purchaseOrderFields.order.title")} value={doc.title ?? ''} disabled={busy} onChange={v => set('title', v)} />
       <TextField error={errors.vendor} label={uiText("purchaseOrderEntry.procurement.channel.supplier")} value={doc.vendor} disabled={busy} onChange={v => set('vendor', v)} />
       <TextField error={errors.order_number} label={uiText("purchaseOrderFields.merchant.order.number")} value={doc.order_number} disabled={busy} onChange={v => set('order_number', v)} />
       <TextField error={errors.ordered_on} label={uiText("procurementItemRow.order.date")} date value={doc.ordered_on} disabled={busy} onChange={v => set('ordered_on', v || null)} />

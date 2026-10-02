@@ -234,5 +234,25 @@
   "procurementWorkspace.no.materials.match.the.filters": [
     "没有符合筛选的材料。",
     "No materials match the filters."
+  ],
+  "procurementWorkspace.column.order": [
+    "订单",
+    "Order"
+  ],
+  "procurementWorkspace.column.recorded.at": [
+    "录入时间",
+    "Recorded at"
+  ],
+  "procurementWorkspace.column.links": [
+    "链接",
+    "Links"
+  ],
+  "procurementWorkspace.chip.due.today": [
+    "今日到期",
+    "Due today"
+  ],
+  "procurementWorkspace.search.title.merchant.order.number.or.item": [
+    "搜索标题、商家、订单号或商品",
+    "Search title, merchant, order number or item"
   ]
 }

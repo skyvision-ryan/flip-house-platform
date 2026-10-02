@@ -364,6 +364,7 @@ export const api = {
   procurement: (id: number) => req<ProcurementList>(`/api/projects/${id}/procurement`),
   initProcurement: (id: number) => req<ProcurementList>(`/api/projects/${id}/procurement/init`, { method: 'POST' }),
   patchProcurement: (itemId: number, body: ProcurementPatch) => req<ProcurementList>(`/api/procurement/${itemId}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  deleteProcurement: (itemId: number, updatedAt: string) => req<ProcurementList>(`/api/procurement/${itemId}?expected_updated_at=${encodeURIComponent(updatedAt)}`, { method: 'DELETE' }),
   procurementWorklist: (id: number, items: {id: number; updated_at: string; selected: boolean}[]) => req<ProcurementList>(`/api/projects/${id}/procurement/worklist`, {method: 'POST', body: JSON.stringify({items})}),
   procurementNotNeeded: (id: number, body: { reason: string; items: {id: number; updated_at: string}[] }) => req<ProcurementList>(`/api/projects/${id}/procurement/not-needed`, { method: 'POST', body: JSON.stringify(body) }),
   addProcurement: (id: number, body: Partial<ProcurementRequirements> & { name: string; wave: string; request_key?: string }) => req<ProcurementList>(`/api/projects/${id}/procurement`, { method: 'POST', body: JSON.stringify(body) }),

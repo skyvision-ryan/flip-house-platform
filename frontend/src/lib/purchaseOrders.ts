@@ -24,7 +24,7 @@ export interface Adjustment {
   refund: Numeric; occurred_on: string; reason: string;
 }
 export interface OrderDocument {
-  vendor: string; order_number: string; seller: string; purchasing_entity: string; buyer_user_id: number | null;
+  title?: string; vendor: string; order_number: string; seller: string; purchasing_entity: string; buyer_user_id: number | null;
   ordered_on: string | null; order_url: string | null; voucher_url: string | null; currency: 'USD';
   tax: Numeric; shipping: Numeric; discount: Numeric; total: Numeric; refunded?: Numeric; delivery_address?: string; reconciliation_note: string;
   follow_up: string; follow_up_on: string | null; checked_on: string | null; note: string;
@@ -49,7 +49,7 @@ export interface SaveOrder { request_key: string; expected_version?: number; doc
 export const newLine = (materialId = 0): OrderLine => ({ id: crypto.randomUUID(), material_id: materialId,
   name: '', specification: '', brand: '', vendor: '', model: '', color: '', unit: '件', quantity: null, cancelled_quantity: '0',
   unit_price: null, amount: null, product_url: null, image_url: null, expected_on: null, needed_on: null, location: '', selection_note: '', issue_note: '', website_status: 'unknown', delivery_address: null, tracking_url: null });
-export const newOrder = (): OrderDocument => ({ vendor: '', order_number: '', seller: '', purchasing_entity: '', buyer_user_id: null,
+export const newOrder = (): OrderDocument => ({ title: '', vendor: '', order_number: '', seller: '', purchasing_entity: '', buyer_user_id: null,
   ordered_on: null, order_url: null, voucher_url: null, currency: 'USD', tax: null, shipping: null, discount: null, total: null,
   reconciliation_note: '', delivery_address: '', refunded: null, follow_up: '', follow_up_on: null, checked_on: null, note: '', lines: [], deliveries: [], receipts: [], adjustments: [] });
 export function moneyValue(value: Numeric): string {
@@ -68,6 +68,12 @@ export function reconcile(doc: OrderDocument) {
   const difference = calculated === null || doc.total === null || doc.total === '' ? null : Math.round((Number(doc.total) - calculated) * 100) / 100;
   return { subtotal, missing, calculated, difference };
 }
+/** A delivery batch is done when every allocated line is received in full, or the line itself needs nothing more. */
+export function deliveryDone(order: PurchaseOrder, delivery: Delivery): boolean {
+  const d = order.document;
+  return delivery.allocations.length > 0 && delivery.allocations.every(a => Number(order.summary.lines.find(l => l.id === a.line_id)?.remaining) === 0 || d.receipts.filter(r => r.delivery_id === delivery.id && !r.void_reason)
+    .flatMap(r => r.lines).filter(r => r.line_id === a.line_id).reduce((n, r) => n + Number(r.quantity), 0) >= Number(a.quantity));
+}
 export function orderAttention(order: PurchaseOrder, today: string): string[] {
   const d = order.document; const reasons = [];
   if (d.follow_up) reasons.push(d.follow_up_on && d.follow_up_on <= today ? uiText("sentences.follow.up.due", { value1: (d.follow_up) }) : d.follow_up);
@@ -84,8 +90,7 @@ export function orderAttention(order: PurchaseOrder, today: string): string[] {
     }
   }
   for (const delivery of d.deliveries) {
-    const done = delivery.allocations.length > 0 && delivery.allocations.every(a => Number(order.summary.lines.find(l => l.id === a.line_id)?.remaining) === 0 || d.receipts.filter(r => r.delivery_id === delivery.id && !r.void_reason)
-      .flatMap(r => r.lines).filter(r => r.line_id === a.line_id).reduce((n, r) => n + Number(r.quantity), 0) >= Number(a.quantity));
+    const done = deliveryDone(order, delivery);
     if (delivery.website_status === 'exception') reasons.push(uiText("sentences.shipment.exception", { value1: (delivery.label) }));
     else if (!done && delivery.website_status === 'delivered') reasons.push(uiText("sentences.carrier.shows.delivered.verify.receipt", { value1: (delivery.label) }));
     else if (!done && delivery.website_status === 'ready_pickup') reasons.push(uiText("sentences.awaiting.pickup", { value1: (delivery.label) }));
@@ -109,4 +114,48 @@ export function refundedAfterAdjustment(doc: OrderDocument, adjustment: Adjustme
   if (doc.refunded == null || doc.refunded === '') return { refunded: null, raised: false };
   const sum = adjustmentRefundTotal([...doc.adjustments, adjustment]);
   return Number(doc.refunded) < sum ? { refunded: sum.toFixed(2), raised: true } : { refunded: doc.refunded, raised: false };
+}
+
+/** Buyer-given title first; vendor and order number remain the identity and the fallback. */
+export const orderTitle = (doc: Pick<OrderDocument, 'title' | 'vendor' | 'order_number'>) => doc.title?.trim() || `${doc.vendor} · ${doc.order_number}`;
+export type LineStatus = 'pending' | 'partial' | 'received' | 'cancelled' | 'returned';
+/** Per-line receiving state from the order summary; never from merchant website status. */
+export function lineStatus(summary: OrderSummary['lines'][number], line: Pick<OrderLine, 'quantity' | 'cancelled_quantity'>): LineStatus {
+  const quantity = line.quantity == null || line.quantity === '' ? null : Number(line.quantity);
+  if (quantity != null && Number(line.cancelled_quantity) >= quantity) return 'cancelled';
+  const received = Number(summary.received), returned = Number(summary.returned);
+  if (received > 0 && returned >= received) return 'returned';
+  if (summary.remaining != null && Number(summary.remaining) === 0) return 'received';
+  return received > 0 ? 'partial' : 'pending';
+}
+export const lineStatusLabel = (status: LineStatus) => uiText(({ pending: 'purchaseOrders.line.status.pending', partial: 'purchaseOrders.line.status.partial', received: 'purchaseOrders.line.status.received', cancelled: 'purchaseOrders.line.status.cancelled', returned: 'purchaseOrders.line.status.returned' } as const)[status]);
+/** Earliest estimated arrival still outstanding: lines with remaining quantity and delivery batches not received in full. Null once nothing is outstanding. */
+export function nextExpected(order: PurchaseOrder): string | null {
+  const d = order.document;
+  const dates: string[] = [];
+  for (const line of d.lines) {
+    const fact = order.summary.lines.find(l => l.id === line.id);
+    if (!fact || lineStatus(fact, line) === 'cancelled') continue;
+    if ((fact.remaining == null || Number(fact.remaining) > 0) && line.expected_on) dates.push(line.expected_on);
+  }
+  for (const delivery of d.deliveries) if (!deliveryDone(order, delivery) && delivery.expected_on) dates.push(delivery.expected_on);
+  return dates.length ? dates.sort()[0] : null;
+}
+const dayNumber = (iso: string) => Date.UTC(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10))) / 86400000;
+/** Due-today or overdue marker for the order list; a front-end expression only, the backend keeps its strict "past" rule. */
+export function arrivalChip(order: PurchaseOrder, today: string): { kind: 'today' } | { kind: 'overdue'; days: number } | null {
+  const next = nextExpected(order);
+  if (!next || order.summary.complete) return null;
+  if (next === today) return { kind: 'today' };
+  return next < today ? { kind: 'overdue', days: dayNumber(today) - dayNumber(next) } : null;
+}
+/** Outstanding orders with a date first (soonest first), then outstanding without a date, then received orders, each latest-updated first. */
+export function sortOrdersForList(orders: PurchaseOrder[]): PurchaseOrder[] {
+  const rank = (o: PurchaseOrder) => o.summary.complete ? 2 : nextExpected(o) ? 0 : 1;
+  return [...orders].sort((a, b) => {
+    const ra = rank(a), rb = rank(b);
+    if (ra !== rb) return ra - rb;
+    if (ra === 0) return nextExpected(a)!.localeCompare(nextExpected(b)!) || b.updated_at.localeCompare(a.updated_at);
+    return b.updated_at.localeCompare(a.updated_at);
+  });
 }

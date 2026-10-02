@@ -8,7 +8,7 @@ import warnings
 from uuid import uuid4
 from typing import Optional
 
-from fastapi import Body, APIRouter, Depends, File, HTTPException, Request, UploadFile
+from fastapi import Body, APIRouter, Depends, File, HTTPException, Query, Request, UploadFile
 from fastapi.responses import FileResponse
 from PIL import Image, UnidentifiedImageError
 from sqlalchemy import select, update
@@ -22,6 +22,7 @@ from ..db import UPLOAD_DIR, get_db
 from ..auth import current_user
 from ..procurement_orders import order_material_projection, procurement_attention
 from ..dictionaries import PROCUREMENT_STATUSES, PROCUREMENT_TEMPLATE, PROCUREMENT_WAVES
+from ..message_codes import system_error
 from .common import allowed, get_actor, log_update, require, require_user
 
 router = APIRouter(prefix="/api", tags=["procurement"])
@@ -245,6 +246,38 @@ def patch_procurement(item_id: int, body: schemas.ProcurementPatchIn, db: Sessio
         raise HTTPException(409, "这项材料刚被同事修改，请重新载入后再保存；你的输入仍保留")
     log_update(db, row.project_id, me.role_code, "procurement", f"{me.display_name} 更新采购材料「{row.name}」")
     project_id = row.project_id
+    db.commit()
+    db.expire_all()
+    return _payload(db, project_id)
+
+
+_LEGACY_PURCHASE_FIELDS = ("retailer", "order_number", "amount", "ordered_on", "received_on")
+
+
+@router.delete("/procurement/{item_id}", response_model=schemas.ProcurementListOut)
+def delete_procurement(item_id: int, expected_updated_at: str = Query(min_length=1), db: Session = Depends(get_db), me: models.User = Depends(require_user)):
+    """Hard delete of a mis-added requirement. Rows with orders, images or legacy purchase facts stay; use 本房不需要 to keep a reason."""
+    row = db.get(models.ProcurementItem, item_id)
+    if not row:
+        raise HTTPException(404, "采购项不存在")
+    _access(db, row.project_id, me, me.role_code)
+    if row.id in order_material_projection(db, [row]):
+        raise system_error(409, "server.procurement.row.has.orders")
+    if row.images:
+        raise system_error(409, "server.procurement.row.has.images")
+    if any(getattr(row, field) not in (None, "") for field in _LEGACY_PURCHASE_FIELDS):
+        raise system_error(409, "server.procurement.row.has.legacy.purchase")
+    if row.updated_at != expected_updated_at:
+        raise HTTPException(409, "这项材料刚被同事修改，请重新载入后再保存；你的输入仍保留")
+    project_id, name = row.project_id, row.name
+    from .tasks import _event
+    purchase = db.scalar(select(models.Task).where(models.Task.project_id == project_id, models.Task.step_key == "purchase"))
+    for request in db.scalars(select(models.ProcurementRequest).where(models.ProcurementRequest.item_id == row.id)).all():
+        db.delete(request)
+    db.delete(row)
+    _event(db, purchase, project_id, "procurement_requirement_removed", me, after={"item_id": item_id, "name": name, "wave": row.wave},
+           reason=f"{me.display_name} 删除采购需求「{name}」")
+    log_update(db, project_id, me.role_code, "procurement", f"{me.display_name} 删除采购需求「{name}」")
     db.commit()
     db.expire_all()
     return _payload(db, project_id)

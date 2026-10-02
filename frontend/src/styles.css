@@ -806,3 +806,14 @@ html[lang="en-US"] .ui-stage-label { align-items: start; }
 .proc-line-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px 16px; }
 .procurement-surface .proc-return-form { background: var(--ui-panel); padding: 20px; scroll-margin-top: 150px; }
 @media (max-width: 700px) { .proc-line-links { grid-template-columns: auto minmax(0, 1fr); } .proc-line-links > :nth-child(n+3) { grid-column: 1 / -1; } }
+
+/* KAN-54 批次 2：订单标题、行状态、列表到期标记、需求删除入口 */
+.ui-order-entry-title { grid-column: 1 / span 2; }
+.procurement-surface .proc-line-title { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+.proc-order-subtitle { display: block; font-weight: 400; color: var(--ui-secondary); font-size: .8125rem; }
+.proc-order-cell { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.proc-order-cell-links { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.proc-requirement-actions { display: inline-flex; flex-wrap: wrap; gap: 4px 16px; align-items: center; }
+@media (max-width: 700px) {
+  .ui-order-entry-title { grid-column: 1 / -1; }
+}

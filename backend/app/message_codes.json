@@ -611,5 +611,8 @@
   "server.password.unchanged": "新密码不能与当前密码相同。",
   "server.password.changedElsewhere": "密码已在其他会话中更改，请重新登录。",
   "server.taskEvidenceAutomatic": "此任务按房屋证据自动判断，无需提交审核；请补充对应资料或记录",
-  "server.taskPhotoRequired": "这项任务需要可读取的现场照片，请使用 JPG、PNG 或 WebP 图片；普通文件不能作为照片证据"
+  "server.taskPhotoRequired": "这项任务需要可读取的现场照片，请使用 JPG、PNG 或 WebP 图片；普通文件不能作为照片证据",
+  "server.procurement.row.has.orders": "该需求已关联订单，不能删除；误选请在订单中移除商品，或标为本房不需要",
+  "server.procurement.row.has.images": "该需求有图片，请先移除图片再删除",
+  "server.procurement.row.has.legacy.purchase": "该需求保留着旧购买记录，不能删除；请改为标记本房不需要"
 }

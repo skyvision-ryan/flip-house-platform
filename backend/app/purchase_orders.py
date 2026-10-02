@@ -101,6 +101,7 @@ class Adjustment(Record):
 
 
 class OrderDocument(Record):
+    title: Short = ""  # Optional buyer-facing name; vendor + order number remain the identity.
     vendor: str = Field(min_length=1, max_length=200)
     order_number: str = Field(min_length=1, max_length=200)
     seller: Short = ""
@@ -202,6 +203,11 @@ class OrderDocument(Record):
         if self.total is not None and (self.refunded if self.refunded is not None else legacy_refund) > self.total:
             raise ValueError("累计退款不能超过订单实付")
         return self
+
+
+def order_label(doc: OrderDocument) -> str:
+    """Title when the buyer gave one; otherwise merchant and order number."""
+    return doc.title.strip() or f"{doc.vendor} {doc.order_number}"
 
 
 def order_summary(doc: OrderDocument) -> dict:
